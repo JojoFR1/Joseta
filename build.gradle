@@ -1,0 +1,30 @@
+plugins {
+    id("java")
+    id("application")
+    id("com.gradleup.shadow") version "8.3.1"
+}
+version '1.0'
+
+sourceSets.main.java.srcDirs = ["src"]
+sourceSets.main.resources.srcDirs = ["src"]
+mainClassName = "joseta.JosetaBot"
+
+sourceCompatibility = JavaVersion.VERSION_17
+
+compileJava.options.encoding = "UTF-8"
+
+repositories{
+    mavenCentral()
+}
+
+dependencies{
+    implementation("net.dv8tion:JDA:5.2.1") {
+      // Optionally disable audio natives to reduce jar size by excluding `opus-java`
+      exclude module: 'opus-java'
+    }
+    implementation("ch.qos.logback:logback-classic:1.5.12")
+}
+
+shadowJar {
+    archiveFileName = "JosetaBot.jar"
+}
