@@ -1,4 +1,4 @@
-name: Build Bog
+name: Build Bot
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
@@ -27,4 +27,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.repository.name }}
-        path: build/libs/${{ github.event.repository.name }}.jar
+        path: build/libs/${{ github.event.repository.name }}Bot.jar
