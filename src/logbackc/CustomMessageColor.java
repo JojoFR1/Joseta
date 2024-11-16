@@ -13,7 +13,7 @@ public class CustomMessageColor extends ForegroundCompositeConverterBase<ILoggin
             case Level.ERROR_INT:
                 return ANSIConstants.RED_FG;
             default:
-                return ANSIConstants.WHITE_FG;
+                return ANSIConstants.RESET;
         }
     }
     

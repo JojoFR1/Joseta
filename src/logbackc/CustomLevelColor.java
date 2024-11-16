@@ -21,7 +21,7 @@ public class CustomLevelColor extends ForegroundCompositeConverterBase<ILoggingE
             case Level.DEBUG_INT:
                 return ANSIConstants.BOLD + ANSIConstants.CYAN_FG;
             default:
-                return ANSIConstants.WHITE_FG;
+                return ANSIConstants.RESET;
         }
     }
     
