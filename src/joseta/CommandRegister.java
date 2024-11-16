@@ -9,10 +9,11 @@ public class CommandRegister extends ListenerAdapter {
     
     @Override
     public void onReady(ReadyEvent event) {
-        Guild guild = event.getJDA().getGuildById("1219005659194851389");
+        Guild guild = event.getJDA().getGuildById(Vars.testGuildId);
 
         guild.updateCommands().addCommands(
-            Commands.slash("ping", "Pong.")
+            Commands.slash("ping", "Obtenez le ping du bot"),
+            Commands.slash("testo", "Secret.")
         ).queue();
     }
 }
