@@ -15,13 +15,15 @@ import java.io.*;
 import javax.imageio.*;
 
 public class WelcomeMessage extends ListenerAdapter {
+    private static final Font font = new Font("Arial", Font.PLAIN, 60);
+    private static final Color color = Color.WHITE;
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (!event.getName().equals("testw")) return;
 
         try {
-            modifyImage(event.getUser().getName());
+            createWelcomeImage(event.getUser().getName());
             event.reply("Hey").addFiles(FileUpload.fromData(new File("images/welcomeImage.png"))).queue();
         } catch (Exception e) {
             Vars.logger.error("", e);
@@ -29,22 +31,33 @@ public class WelcomeMessage extends ListenerAdapter {
         }
     }
 
-    private void modifyImage(String userName) throws Exception {
+    private void createWelcomeImage(String userName) throws Exception {
         BufferedImage image = CachedData.getWelcomeImage();
         BufferedImage processedImage = new BufferedImage(
-            image.getWidth(), image.getHeight(), BufferedImage.TYPE_4BYTE_ABGR
+            image.getWidth(),
+            image.getHeight(),
+            BufferedImage.TYPE_INT_ARGB
         );
-            
+        
         Graphics2D g2d = processedImage.createGraphics();
-        g2d.drawImage(image, 0, 0, null);
-        g2d.setFont(g2d.getFont().deriveFont(60f));
-        g2d.drawString("Hi " + userName, 100, 100);
-        g2d.dispose();
+        try {
+            // Configure rendering hints
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                                RenderingHints.VALUE_RENDER_QUALITY);
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        try (BufferedOutputStream output = new BufferedOutputStream(
-                new FileOutputStream("images/welcomeImage.png"))) {
-            ImageIO.write(processedImage, "png", output);
+            g2d.drawImage(image, 0, 0, null);
+            g2d.setColor(color);
+            g2d.setFont(font);
+            g2d.drawString(String.format("Hi %s", userName), 100, 100);
+        } finally {
+            g2d.dispose();
         }
+
+        ImageIO.write(processedImage, "png", new File("images/welcomeImage.png"));
     }
     
     // @Override
