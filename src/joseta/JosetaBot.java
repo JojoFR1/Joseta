@@ -2,6 +2,9 @@ package joseta;
 
 import net.dv8tion.jda.api.*;
 
+import joseta.commands.*;
+import joseta.events.*;
+
 public class JosetaBot {
     
     @SuppressWarnings("unused")
@@ -13,13 +16,7 @@ public class JosetaBot {
         JDA bot = JDABuilder.createLight(Vars.token)
                     .addEventListeners(new CommandRegister())
                     .addEventListeners(new PingCommand())
+                    .addEventListeners(new WelcomeMessage())
                     .build();
-    
-        
-        Vars.logger.debug("debug TEST");
-        Vars.logger.trace("trace TEST");
-        Vars.logger.info("info TEST");
-        Vars.logger.warn("warn TEST");
-        Vars.logger.error("error TEST");
     }
 }

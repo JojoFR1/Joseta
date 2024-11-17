@@ -1,26 +1,15 @@
-package joseta;
-
-import java.time.*;
-import java.util.*;
+package joseta.commands;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.hooks.*;
+
+import java.time.*;
 
 public class PingCommand extends ListenerAdapter {
     
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (event.getName().equals("testo")) {
-            if (!Arrays.stream(Vars.ownersId).anyMatch(event.getUser().getId()::equals)) {
-                event.reply("T'es pas un owner, dégage.").queue();
-                return;
-            }
-            
-            event.reply(String.format("Coucou %s !", event.getUser().getAsMention())).queue();
-
-            return;
-        }
-        else if (!event.getName().equals("ping")) return;
+        if (!event.getName().equals("ping")) return;
 
         Instant startTime = Instant.now();
 

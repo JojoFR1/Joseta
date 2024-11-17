@@ -13,7 +13,7 @@ public class CommandRegister extends ListenerAdapter {
 
         guild.updateCommands().addCommands(
             Commands.slash("ping", "Obtenez le ping du bot"),
-            Commands.slash("testo", "Secret.")
+            Commands.slash("testw", "Secret.")
         ).queue();
     }
 }
