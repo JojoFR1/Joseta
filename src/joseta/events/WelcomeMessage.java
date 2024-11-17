@@ -1,6 +1,7 @@
 package joseta.events;
 
 import joseta.*;
+import joseta.util.*;
 
 import net.dv8tion.jda.api.events.guild.member.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -10,7 +11,6 @@ import net.dv8tion.jda.api.utils.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import java.net.*;
 
 import javax.imageio.*;
 
@@ -21,25 +21,30 @@ public class WelcomeMessage extends ListenerAdapter {
         if (!event.getName().equals("testw")) return;
 
         try {
-            event.reply("Hey").addFiles(FileUpload.fromData(modifyImage(event.getUser().getName()))).queue();
+            modifyImage(event.getUser().getName());
+            event.reply("Hey").addFiles(FileUpload.fromData(new File("images/welcomeImage.png"))).queue();
         } catch (Exception e) {
             Vars.logger.error("", e);
             return;
         }
     }
 
-    private File modifyImage(String userName) throws Exception {
-        BufferedImage image = ImageIO.read(new URL("https://probot.media/tZFvtyOXuC.png"));
+    private void modifyImage(String userName) throws Exception {
+        BufferedImage image = CachedData.getWelcomeImage();
+        BufferedImage processedImage = new BufferedImage(
+            image.getWidth(), image.getHeight(), BufferedImage.TYPE_4BYTE_ABGR
+        );
             
-        Graphics g = image.getGraphics();
-        g.setFont(g.getFont().deriveFont(60f));
-        g.drawString("Hi " + userName, 100, 100);
-        g.dispose();
+        Graphics2D g2d = processedImage.createGraphics();
+        g2d.drawImage(image, 0, 0, null);
+        g2d.setFont(g2d.getFont().deriveFont(60f));
+        g2d.drawString("Hi " + userName, 100, 100);
+        g2d.dispose();
 
-        File imageFile = new File("test.png");
-        ImageIO.write(image, "png", imageFile);
-
-        return imageFile;
+        try (BufferedOutputStream output = new BufferedOutputStream(
+                new FileOutputStream("images/welcomeImage.png"))) {
+            ImageIO.write(processedImage, "png", output);
+        }
     }
     
     // @Override
