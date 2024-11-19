@@ -1,6 +1,7 @@
 package joseta;
 
 import net.dv8tion.jda.api.*;
+import net.dv8tion.jda.api.requests.*;
 
 import joseta.commands.*;
 import joseta.events.*;
@@ -22,6 +23,7 @@ public class JosetaBot {
         }
         
         JDA bot = JDABuilder.createLight(Vars.token)
+                    .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
                     .addEventListeners(new CommandRegister())
                     .addEventListeners(new PingCommand())
                     .addEventListeners(new WelcomeMessage())
