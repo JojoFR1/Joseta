@@ -24,11 +24,14 @@ public class JosetaBot {
 
         if (Vars.debug || Vars.server) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-            rootLogger.setLevel(Level.DEBUG);
+            rootLogger.setLevel(Level.TRACE);
             
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
-            if (!Vars.server) rootLogger.detachAppender("FILE");
+            if (!Vars.server) {
+                rootLogger.setLevel(Level.DEBUG);
+                rootLogger.detachAppender("FILE");
+            }
         }
 
         try {
