@@ -25,8 +25,8 @@ public class Vars {
             System.exit(1);
         }
 
-        token = debug ? secret.getProperty("tokenDebug") : secret.getProperty("token");
-        testGuildId = debug ? secret.getProperty("testGuildIdDebug") : secret.getProperty("testGuildId");
-        ownersId = secret.getProperty("admins").split(" ");
+        token = secret.getProperty(debug ? "tokenDebug" : "token");
+        testGuildId = secret.getProperty(debug ? "testGuildIdDebug" : "testGuildId");
+        ownersId = secret.getProperty(debug ? "adminsDebug" : "admins").split(" ");
     }
 }

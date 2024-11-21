@@ -11,7 +11,7 @@ public class JosetaBot {
     
     @SuppressWarnings("unused")
     public static void main(String[] args) {
-        if (args.length > 0) Vars.setDebug(args[0].equals("debug") ? true : false);
+        if (args.length > 0) Vars.setDebug(args[0].equals("--debug") ? true : false);
         else Vars.setDebug(false);
         Vars.loadSecrets();
 
