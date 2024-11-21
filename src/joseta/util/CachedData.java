@@ -11,8 +11,8 @@ public class CachedData {
 
     
     public static void cacheImages() throws Exception {
-        Files.createDirectories(Paths.get("images"));
-        Path cachedImagePath = Paths.get("images", "welcomeImageBase.png");
+        Files.createDirectories(Paths.get("resources"));
+        Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
         
         if (Files.exists(cachedImagePath))  {
             welcomeImage = ImageIO.read(cachedImagePath.toFile());

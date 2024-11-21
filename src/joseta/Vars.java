@@ -10,10 +10,14 @@ public class Vars {
     public static String token, testGuildId = null;
     public static String[] ownersId = null;
     
-    public static boolean debug;
+    public static boolean debug, server = false;
 
     public static void setDebug(boolean isDebug) {
         debug = isDebug;
+    }
+
+    public static void setServer(boolean isServer) {
+        server = isServer;
     }
 
     public static void loadSecrets() {

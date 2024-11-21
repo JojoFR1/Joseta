@@ -3,12 +3,24 @@
     <conversionRule conversionWord="levelColor" class="logbackc.CustomLevelColor"/>
     <conversionRule conversionWord="messageColor" class="logbackc.CustomMessageColor"/>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%gray([%d{dd-MM-yyyy HH:mm:ss.SSS}]) %levelColor([%.-1level]) %green(%-24([%thread])) %magenta([%logger{0}]) %messageColor(%msg%n)</pattern>
         </encoder>
     </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/latest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/%d{dd-MM-yyyy}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%d{dd-MM-yyyy HH:mm:ss.SSS}] [%.-1level] %-24([%thread]) [%logger{0}] %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="info">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
     </root>
 </configuration>
