@@ -40,12 +40,11 @@ public class WelcomeMessage extends ListenerAdapter {
 
         try {
             BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
-            createWelcomeImage(user.getName(), avatar);
+            ByteArrayInputStream image = createWelcomeImage(user.getName(), avatar);
             
-            event.reply(user.getAsMention()).addFiles(FileUpload.fromData(new File("resources/welcomeImage.png"))).queue();
+            event.reply(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
             
             Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));
-            Files.deleteIfExists(Paths.get("resources", "welcomeImage.png"));
         } catch (Exception e) {
             Vars.logger.error("An error occured while proccessing welcome image.", e);
             return;
@@ -53,7 +52,7 @@ public class WelcomeMessage extends ListenerAdapter {
 
     }
 
-    private void createWelcomeImage(String userName, BufferedImage userAvatar) throws Exception {
+    private ByteArrayInputStream createWelcomeImage(String userName, BufferedImage userAvatar) throws Exception {
         BufferedImage image = CachedData.getWelcomeImage();
         BufferedImage processedImage = new BufferedImage(
             image.getWidth(),
@@ -86,7 +85,10 @@ public class WelcomeMessage extends ListenerAdapter {
             g2d.dispose();
         }
 
-        ImageIO.write(processedImage, "png", new File("resources/welcomeImage.png"));
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        ImageIO.write(processedImage, "png", output);
+
+        return new ByteArrayInputStream(output.toByteArray());
     }
 
     private BufferedImage makeCircularAvatar(BufferedImage avatar) {
