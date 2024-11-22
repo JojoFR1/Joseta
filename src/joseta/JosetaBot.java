@@ -23,14 +23,11 @@ public class JosetaBot {
 
         if (Vars.debug || Vars.server) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-            rootLogger.setLevel(Level.TRACE);
+            rootLogger.setLevel(Level.DEBUG);
             
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
-            if (!Vars.server) {
-                rootLogger.setLevel(Level.DEBUG);
-                rootLogger.detachAppender("FILE");
-            }
+            if (!Vars.server) rootLogger.detachAppender("FILE");
         }
 
         try {
@@ -47,7 +44,7 @@ public class JosetaBot {
                     .addEventListeners(new WelcomeMessage());
         
         builder.setStatus(OnlineStatus.DO_NOT_DISTURB);
-        builder.setActivity(Activity.playing("Hola"));
+        builder.setActivity(Activity.watching("🇫🇷 Mindustry France."));
                     
         builder.build();
     }

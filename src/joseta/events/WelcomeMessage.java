@@ -31,7 +31,7 @@ public class WelcomeMessage extends ListenerAdapter {
     // TODO Un-hardcode the channel ID
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        TextChannel channel = event.getGuild().getTextChannelById("1243926805275217963");
+        TextChannel channel = event.getGuild().getTextChannelById("1256989659448348673");
         User user = event.getUser();
 
         try {
@@ -52,7 +52,7 @@ public class WelcomeMessage extends ListenerAdapter {
     // TODO Un-hardcode the channel ID
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+        event.getGuild().getTextChannelById("1256989659448348673").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
     }
 
 
@@ -97,12 +97,19 @@ public class WelcomeMessage extends ListenerAdapter {
             g2d.drawImage(image, 0, 0, null);
             g2d.drawImage(userAvatar, 62, 14, null);
             
+            // Adapative font size based of name lenght - support the maximum of 67 characters.
             g2d.setFont(font);
+            FontMetrics fm = g2d.getFontMetrics();
+            int userNameWidth = fm.stringWidth(userName);
+            int imageWidth = image.getWidth() - 222 - 7; // Position of the te - offset
+            float widhtRatio = userNameWidth > imageWidth ? (float) imageWidth / userNameWidth : 1.0f;
+
+            g2d.setFont(font.deriveFont(25f * widhtRatio));
             g2d.setColor(new Color(244, 204, 122));
             g2d.drawString(userName, 222, 44);
 
             g2d.setFont(font.deriveFont(20f));
-            g2d.setColor(Color.LIGHT_GRAY);
+            g2d.setColor(new Color(155, 255, 169));
             g2d.drawString(Integer.toString(guildMemberCount), 510, 124);
             
         } finally {
