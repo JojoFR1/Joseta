@@ -1,6 +1,7 @@
 package joseta;
 
 import net.dv8tion.jda.api.*;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.*;
 
 import org.slf4j.*;
@@ -40,11 +41,15 @@ public class JosetaBot {
             System.exit(1);
         }
         
-        JDA bot = JDABuilder.createLight(Vars.token)
+        JDABuilder builder = JDABuilder.createLight(Vars.token)
                     .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
                     .addEventListeners(new CommandRegister())
                     .addEventListeners(new PingCommand())
-                    .addEventListeners(new WelcomeMessage())
-                    .build();
+                    .addEventListeners(new WelcomeMessage());
+        
+        builder.setStatus(OnlineStatus.DO_NOT_DISTURB);
+        builder.setActivity(Activity.playing("Hola"));
+                    
+        builder.build();
     }
 }
