@@ -21,7 +21,6 @@ import javax.imageio.*;
 public class WelcomeMessage extends ListenerAdapter {
     private static Font font;
     static {
-        //TODO Maybe best to load it in a separate area to be reused?
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
         } catch (Exception e) {
@@ -111,16 +110,17 @@ public class WelcomeMessage extends ListenerAdapter {
 
         return circular;
     }
-    
-    // TODO just todo
+
+    // TODO Un-hardcode the channel ID
+    // TODO Once finished put everything here
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("No way y a un nouveau.");
+        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("JOIN - Futur /testw ici.").queue();
     }
 
-    // TODO todo again
+    // TODO Un-hardcode the channel ID
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("No way y a une personne qui a quitter.");
+        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
     }
 }
