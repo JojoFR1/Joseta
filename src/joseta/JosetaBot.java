@@ -10,7 +10,6 @@ import ch.qos.logback.classic.Logger;
 
 import joseta.commands.*;
 import joseta.events.*;
-import joseta.util.*;
 
 public class JosetaBot {
     
@@ -35,7 +34,7 @@ public class JosetaBot {
         }
 
         try {
-            CachedData.cacheImages();
+            Vars.cacheWelcomeImage();
         } catch (Exception e) {
             Vars.logger.error("Couldn't load the caches.", e);
             System.exit(1);

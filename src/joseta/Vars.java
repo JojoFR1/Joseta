@@ -1,7 +1,11 @@
 package joseta;
 
+import java.awt.image.*;
 import java.io.*;
+import java.nio.file.*;
 import java.util.*;
+
+import javax.imageio.*;
 
 import org.slf4j.*;
 
@@ -11,14 +15,8 @@ public class Vars {
     public static String[] ownersId = null;
     
     public static boolean debug, server = false;
+    public static BufferedImage welcomeImage;
 
-    public static void setDebug(boolean isDebug) {
-        debug = isDebug;
-    }
-
-    public static void setServer(boolean isServer) {
-        server = isServer;
-    }
 
     public static void loadSecrets() {
         Properties secret = new Properties();
@@ -32,5 +30,23 @@ public class Vars {
         token = secret.getProperty(debug ? "tokenDebug" : "token");
         testGuildId = secret.getProperty(debug ? "testGuildIdDebug" : "testGuildId");
         ownersId = secret.getProperty(debug ? "adminsDebug" : "admins").split(" ");
+    }
+    
+    public static void cacheWelcomeImage() throws Exception {
+        Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
+        
+        welcomeImage = ImageIO.read(cachedImagePath.toFile());
+    }
+
+    public static BufferedImage getWelcomeImage() {
+        return welcomeImage;
+    }
+
+    public static void setDebug(boolean isDebug) {
+        debug = isDebug;
+    }
+
+    public static void setServer(boolean isServer) {
+        server = isServer;
     }
 }
