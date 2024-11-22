@@ -2,10 +2,9 @@ package joseta.events;
 
 import joseta.*;
 
-import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.events.guild.member.*;
-import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.hooks.*;
 import net.dv8tion.jda.api.utils.*;
 
@@ -29,27 +28,52 @@ public class WelcomeMessage extends ListenerAdapter {
         }
     }
 
-    // TODO temporary while testing.
+    // TODO Un-hardcode the channel ID
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("testw")) return;
-        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR)) return;
+    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+        TextChannel channel = event.getGuild().getTextChannelById("1243926805275217963");
         User user = event.getUser();
 
         try {
-            BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
-            int guildMemberCount = event.getGuild().getMemberCount();
             String userName = user.getGlobalName() + " ("+ user.getName() +")";
-            ByteArrayInputStream image = createWelcomeImage(userName, guildMemberCount, avatar);
+            int guildMemberCount = event.getGuild().getMemberCount();
+            BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
 
-            event.reply(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
+            ByteArrayInputStream image = createWelcomeImage(userName, guildMemberCount, avatar);
+            channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
             
             Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));
         } catch (Exception e) {
             Vars.logger.error("An error occured while proccessing welcome image.", e);
             return;
         }
+    }
 
+    // TODO Un-hardcode the channel ID
+    @Override
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
+        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+    }
+
+
+    private BufferedImage makeCircularAvatar(BufferedImage avatar) {
+        BufferedImage circular = new BufferedImage(avatar.getWidth(), avatar.getWidth(), BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = circular.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        Ellipse2D.Double clip = new Ellipse2D.Double(0, 0, avatar.getWidth(), avatar.getWidth());
+        g2d.setClip(clip);
+
+        g2d.drawImage(avatar, 0, 0, null);
+        g2d.dispose();
+
+        return circular;
     }
 
     private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws Exception {
@@ -89,38 +113,5 @@ public class WelcomeMessage extends ListenerAdapter {
         ImageIO.write(processedImage, "png", output);
 
         return new ByteArrayInputStream(output.toByteArray());
-    }
-
-    private BufferedImage makeCircularAvatar(BufferedImage avatar) {
-        BufferedImage circular = new BufferedImage(avatar.getWidth(), avatar.getWidth(), BufferedImage.TYPE_INT_ARGB);
-
-        Graphics2D g2d = circular.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-
-        Ellipse2D.Double clip = new Ellipse2D.Double(0, 0, avatar.getWidth(), avatar.getWidth());
-        g2d.setClip(clip);
-
-        g2d.drawImage(avatar, 0, 0, null);
-        g2d.dispose();
-
-        return circular;
-    }
-
-    // TODO Un-hardcode the channel ID
-    // TODO Once finished put everything here
-    @Override
-    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("JOIN - Futur /testw ici.").queue();
-    }
-
-    // TODO Un-hardcode the channel ID
-    @Override
-    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        event.getGuild().getTextChannelById("1243926805275217963").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
     }
 }
