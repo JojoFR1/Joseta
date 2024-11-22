@@ -72,7 +72,7 @@ public class WelcomeMessage extends ListenerAdapter {
                                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
             g2d.drawImage(image, 0, 0, null);
-            g2d.drawImage(userAvatar, 40, 40, null);
+            g2d.drawImage(userAvatar, 62, 14, null);
             
             g2d.setFont(font);
             g2d.setColor(new Color(244, 204, 122));
