@@ -23,7 +23,7 @@ public class WelcomeMessage extends ListenerAdapter {
     static {
         //TODO Maybe best to load it in a separate area to be reused?
         try {
-            font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(20f);
+            font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
         } catch (Exception e) {
             Vars.logger.error("Couldn't load font file. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);
@@ -74,13 +74,13 @@ public class WelcomeMessage extends ListenerAdapter {
             g2d.drawImage(image, 0, 0, null);
             g2d.drawImage(userAvatar, 62, 14, null);
             
-            g2d.setFont(font.deriveFont(25f));
+            g2d.setFont(font);
             g2d.setColor(new Color(244, 204, 122));
-            drawText(g2d, userName, 208, 24);
+            g2d.drawString(userName, 222, 44);
 
             g2d.setFont(font.deriveFont(20f));
             g2d.setColor(Color.LIGHT_GRAY);
-            drawText(g2d, Integer.toString(guildMemberCount), 496, 108);
+            g2d.drawString(Integer.toString(guildMemberCount), 510, 124);
             
         } finally {
             g2d.dispose();
@@ -110,13 +110,6 @@ public class WelcomeMessage extends ListenerAdapter {
         g2d.dispose();
 
         return circular;
-    }
-
-    private void drawText(Graphics2D g2d, String text, int xPos, int yPos) {
-        FontMetrics fm = g2d.getFontMetrics();
-    
-        int textHeight = fm.getAscent();
-        g2d.drawString(text, xPos, yPos + textHeight);
     }
     
     // TODO just todo
