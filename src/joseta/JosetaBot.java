@@ -19,30 +19,40 @@ public class JosetaBot {
         
     public static void main(String[] args) {
         registerShutdown();
-
-        if (args.length > 0) {
-            Vars.setDebug(args[0].equals("--debug"));
-            Vars.setServer(args[0].equals("--server"));
-        }
-        preLoad();
+        preLoad(args);
         
         bot = JDABuilder.createLight(Vars.token)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, 
-                                GatewayIntent.GUILD_MEMBERS, 
-                                GatewayIntent.MESSAGE_CONTENT)
-                .addEventListeners(new CommandRegister(),
-                                    new PingCommand(),
-                                    new AutoResponse(),
-                                    new WelcomeMessage())
+                               GatewayIntent.GUILD_MEMBERS, 
+                               GatewayIntent.MESSAGE_CONTENT)
+                .addEventListeners(new PingCommand(),
+                                   new GameCommand(),
+                                   new AutoResponse(),
+                                   new WelcomeMessage())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
                 .build();
         
-        // Add global commands
-        bot.upsertCommand("ping", "Obtenez le ping du bot.");
+        try {
+            bot.awaitReady();
+        } catch (InterruptedException e) {
+            Vars.logger.error("Could not await for the bot to connect.", e);
+        }
+
+        // Add commands on a test guild - Instantly
+        if (Vars.debug) bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
+        // Add global commands - Takes time
+        else {
+            bot.getGuildById(Vars.testGuildId).updateCommands().addCommands().queue(); // Reset for the test guild
+            bot.updateCommands().addCommands(Vars.commands).queue();
+        }
     }
 
-    private static void preLoad() {
+    private static void preLoad(String args[]) {
+        if (args.length > 0) {
+            Vars.setDebug(args[0].equals("--debug"));
+            Vars.setServer(args[0].equals("--server"));
+        }
         Vars.loadSecrets();
 
         if (Vars.debug || Vars.server) {
@@ -76,6 +86,6 @@ public class JosetaBot {
                     bot.shutdownNow();
                 }
             }
-        }));
+        }, "ShutdownThread"));
     } 
 }

@@ -7,6 +7,10 @@ import java.util.*;
 
 import javax.imageio.*;
 
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.*;
+import net.dv8tion.jda.api.interactions.commands.build.*;
+
 import org.slf4j.*;
 
 public class Vars {
@@ -17,6 +21,13 @@ public class Vars {
     public static boolean debug, server = false;
     public static BufferedImage welcomeImage;
 
+    public static SlashCommandData[] commands = {
+        Commands.slash("ping", "Obtenez le ping du bot."),
+        Commands.slash("play", "Jouez a des jeux.")
+            .addOptions(new OptionData(OptionType.STRING, "game", "Le jeu à jouer.", true)
+                .addChoice("Guess the Block", "gtb"))
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR))
+    };
 
     public static void loadSecrets() {
         Properties secret = new Properties();
@@ -36,10 +47,6 @@ public class Vars {
         Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
         
         welcomeImage = ImageIO.read(cachedImagePath.toFile());
-    }
-
-    public static BufferedImage getWelcomeImage() {
-        return welcomeImage;
     }
 
     public static void setDebug(boolean isDebug) {
