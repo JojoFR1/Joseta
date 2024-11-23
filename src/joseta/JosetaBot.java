@@ -41,6 +41,7 @@ public class JosetaBot {
                     .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
                     .addEventListeners(new CommandRegister())
                     .addEventListeners(new PingCommand())
+                    .addEventListeners(new AutoResponse())
                     .addEventListeners(new WelcomeMessage());
         
         builder.setStatus(OnlineStatus.DO_NOT_DISTURB);
