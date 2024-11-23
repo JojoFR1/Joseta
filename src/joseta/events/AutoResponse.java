@@ -23,9 +23,9 @@ public class AutoResponse extends ListenerAdapter {
         String text = msg.getContentRaw();
         
         if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find()) {
-            Vars.logger.debug("match");
+            Vars.logger.debug("Multiplayer regex match.");
             msg.reply(
-                ":doyouknowtheway: Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : https://discord.com/channels/1219005659194851389/1234869952519864321/1234869952519864321\n*Ceci est une réponse automatique possiblement hors-sujet.*"
+                "<:doyouknowtheway:1241824114952372344> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>\n*Ceci est une réponse automatique possiblement hors-sujet.*"
             ).queue();
         }
     }

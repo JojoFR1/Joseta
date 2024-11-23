@@ -12,7 +12,7 @@ public class CommandRegister extends ListenerAdapter {
         Guild guild = event.getJDA().getGuildById(Vars.testGuildId);
 
         guild.updateCommands().addCommands(
-            Commands.slash("ping", "Obtenez le ping du bot")
+            Commands.slash("ping", "Obtenez le ping du bot.")
         ).queue();
     }
 }

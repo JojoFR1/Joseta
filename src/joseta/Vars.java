@@ -23,7 +23,7 @@ public class Vars {
         try (FileInputStream fi = new FileInputStream("secret.cfg")) {
             secret.load(fi);
         } catch (Exception e) {
-            System.err.println("Couldn't open the secret config file.");
+            logger.error("Could not open the secret config file.", e);
             System.exit(1);
         }
 

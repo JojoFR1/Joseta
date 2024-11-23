@@ -46,7 +46,10 @@ public class JosetaBot {
         
         builder.setStatus(OnlineStatus.DO_NOT_DISTURB);
         builder.setActivity(Activity.watching("🇫🇷 Mindustry France."));
-                    
-        builder.build();
+        
+        // Build the bot + add global commands
+        JDA bot = builder.build();
+        
+        bot.upsertCommand("ping", "Obtenez le ping du bot.");
     }
 }
