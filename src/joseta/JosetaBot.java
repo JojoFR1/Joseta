@@ -39,10 +39,13 @@ public class JosetaBot {
             Vars.logger.error("Could not await for the bot to connect.", e);
         }
 
-        // Add global commands - Around 1 hour
-        bot.updateCommands().addCommands(Vars.commands).queue();
         // Add commands on a test guild - Instantly
         if (Vars.debug) bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
+        // Add global commands - Takes time
+        else {
+            bot.getGuildById(Vars.testGuildId).updateCommands().addCommands().queue(); // Reset for the test guild
+            bot.updateCommands().addCommands(Vars.commands).queue();
+        }
     }
 
     private static void preLoad(String args[]) {
@@ -83,6 +86,6 @@ public class JosetaBot {
                     bot.shutdownNow();
                 }
             }
-        }));
+        }, "ShutdownThread"));
     } 
 }
