@@ -19,6 +19,26 @@ public class JosetaBot {
             Vars.setDebug(args[0].equals("--debug"));
             Vars.setServer(args[0].equals("--server"));
         }
+        preLoad();
+
+        
+        JDA bot = JDABuilder.createLight(Vars.token)
+                    .enableIntents(GatewayIntent.GUILD_MESSAGES, 
+                                   GatewayIntent.GUILD_MEMBERS, 
+                                   GatewayIntent.MESSAGE_CONTENT)
+                    .addEventListeners(new CommandRegister(),
+                                       new PingCommand(),
+                                       new AutoResponse(),
+                                       new WelcomeMessage())
+                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                    .setActivity(Activity.watching("🇫🇷 Mindustry France."))
+                    .build();
+        
+        // Add global commands
+        bot.upsertCommand("ping", "Obtenez le ping du bot.");
+    }
+
+    public static void preLoad() {
         Vars.loadSecrets();
 
         if (Vars.debug || Vars.server) {
@@ -36,20 +56,5 @@ public class JosetaBot {
             Vars.logger.error("Couldn't load the caches.", e);
             System.exit(1);
         }
-        
-        JDABuilder builder = JDABuilder.createLight(Vars.token)
-                    .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
-                    .addEventListeners(new CommandRegister())
-                    .addEventListeners(new PingCommand())
-                    .addEventListeners(new AutoResponse())
-                    .addEventListeners(new WelcomeMessage());
-        
-        builder.setStatus(OnlineStatus.DO_NOT_DISTURB);
-        builder.setActivity(Activity.watching("🇫🇷 Mindustry France."));
-        
-        // Build the bot + add global commands
-        JDA bot = builder.build();
-        
-        bot.upsertCommand("ping", "Obtenez le ping du bot.");
     }
 }
