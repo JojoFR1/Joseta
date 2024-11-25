@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.interaction.component.*;
 import net.dv8tion.jda.api.hooks.*;
 
 public class GameCommand extends ListenerAdapter {
-    private GuessTheBlock gtbGame = null;
+    private static GuessTheBlock gtbGame = null;
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
@@ -20,36 +20,20 @@ public class GameCommand extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (event.getComponentId().equals("gtb-play")) {
-            event.reply("Joueeeeee").queue();
-        }
-        if (event.getComponentId().equals("gtb-cancel")) {
-            if (!event.getUser().getId().equals(gtbGame.launcherId)) {
-                event.reply("Tu n'a pas lancer le jeu, donc tu ne peux pas annuler !")
-                    .setEphemeral(true).queue();
-                return;
-            }
+        if (gtbGame != null && event.getComponentId().startsWith("gtb")) {
+            gtbGame.onButtonInteraction(event);
 
-            gtbGame = null;
-            event.getMessage().delete().queue();
-            event.getChannel().sendMessage("Le jeu a été annulé !").queue();
+            // Doesn't work in the gtbGame function
+            if (event.getComponentId().equals("gtb-cancel")) {
+                event.getMessage().delete().queue();
+            }
         }
     }
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        String guildName = event.getGuild().getName();
-        String guildIcon = event.getGuild().getIconUrl();
-        if (event.getComponentId().startsWith("gtb-")) {
-            if (event.getComponentId().equals("gtb-mode")) {
-                gtbGame.setMode(event.getValues().get(0));
-            }
-            if (event.getComponentId().equals("gtb-difficulty")) {
-                gtbGame.setDifficulty(event.getValues().get(0));
-            }
-
-            event.editMessageEmbeds(gtbGame.config(guildName, guildIcon)).queue();
-        }
+        if (gtbGame != null && event.getComponentId().startsWith("gtb"))
+            gtbGame.onStringSelectInteraction(event);
     }
 
     private void playGtb(SlashCommandInteractionEvent event) {
@@ -59,6 +43,10 @@ public class GameCommand extends ListenerAdapter {
         }
 
         gtbGame = new GuessTheBlock(event.getUser().getId());
-        gtbGame.play(event);
+        gtbGame.start(event);
+    }
+
+    public static void cancelGtb() {
+        gtbGame = null;
     }
 }
