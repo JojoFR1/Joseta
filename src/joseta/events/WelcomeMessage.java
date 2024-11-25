@@ -35,7 +35,10 @@ public class WelcomeMessage extends ListenerAdapter {
         User user = event.getUser();
 
         try {
-            String userName = user.getGlobalName() + " ("+ user.getName() +")";
+            String name = "@"+user.getName();
+            String globalName = user.getGlobalName();
+            String userName = globalName == null ? name : globalName + " ("+ name +")";
+            
             int guildMemberCount = event.getGuild().getMemberCount();
             BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
 
