@@ -40,7 +40,7 @@ public class JosetaBot {
         }
 
         // Add commands on a test guild - Instantly
-        if (Vars.debug) bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
+        if (Vars.isDebug) bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
         // Add global commands - Takes time
         else {
             bot.getGuildById(Vars.testGuildId).updateCommands().addCommands().queue(); // Reset for the test guild
@@ -55,13 +55,13 @@ public class JosetaBot {
         }
         Vars.loadSecrets();
 
-        if (Vars.debug || Vars.server) {
+        if (Vars.isDebug || Vars.isServer) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             rootLogger.setLevel(Level.DEBUG);
             
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
-            if (!Vars.server) rootLogger.detachAppender("FILE");
+            if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
 
         try {
