@@ -14,6 +14,8 @@ import ch.qos.logback.classic.Logger;
 import joseta.commands.*;
 import joseta.events.*;
 
+import static joseta.Vars.*;
+
 public class JosetaBot {
     private static JDA bot;
         
@@ -30,28 +32,39 @@ public class JosetaBot {
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, 
                                 GatewayIntent.GUILD_MEMBERS, 
                                 GatewayIntent.MESSAGE_CONTENT)
-                .addEventListeners(new CommandRegister(),
-                                    new PingCommand(),
-                                    new AutoResponse(),
-                                    new WelcomeMessage())
+                .addEventListeners(new PingCommand(),
+                                   new AutoResponse(),
+                                   new WelcomeMessage())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
                 .build();
-        
-        // Add global commands
-        bot.upsertCommand("ping", "Obtenez le ping du bot.");
+            
+        try {
+            bot.awaitReady();
+        } catch (InterruptedException e) {
+            Vars.logger.error("Could not await for the bot to connect.", e);
+        }
+    
+        // Add commands on a test guild - Instantly
+        if (isDebug && Vars.testGuildId != null)
+            bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
+        // Add global commands - Takes time
+        else {
+            bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
+            bot.updateCommands().addCommands(Vars.commands).queue();
+        }
     }
 
     private static void preLoad() {
         Vars.loadSecrets();
 
-        if (Vars.debug || Vars.server) {
+        if (Vars.isDebug || Vars.isServer) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             rootLogger.setLevel(Level.DEBUG);
             
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
-            if (!Vars.server) rootLogger.detachAppender("FILE");
+            if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
 
         try {
@@ -76,6 +89,6 @@ public class JosetaBot {
                     bot.shutdownNow();
                 }
             }
-        }));
+        }, "ShutdownThread"));
     } 
 }
