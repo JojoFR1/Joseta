@@ -20,7 +20,8 @@ public class Vars {
     public static BufferedImage welcomeImage;
 
     public static final SlashCommandData[] commands = {
-        Commands.slash("ping", "Obtenez le ping du bot.")
+        Commands.slash("ping", "Obtenez le ping du bot."),
+        Commands.slash("multi", "Envoyez le message d'aide pour le multijoueur.")
     };
 
     public static void loadSecrets() {

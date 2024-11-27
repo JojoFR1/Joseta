@@ -30,8 +30,8 @@ public class JosetaBot {
         
         bot = JDABuilder.createLight(Vars.token)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, 
-                                GatewayIntent.GUILD_MEMBERS, 
-                                GatewayIntent.MESSAGE_CONTENT)
+                               GatewayIntent.GUILD_MEMBERS, 
+                               GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new PingCommand(),
                                    new AutoResponse(),
                                    new WelcomeMessage())
