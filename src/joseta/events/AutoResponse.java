@@ -10,11 +10,11 @@ import net.dv8tion.jda.api.hooks.*;
 
 public class AutoResponse extends ListenerAdapter {
     private static Pattern patternQuestion = Pattern.compile(
-        "(?:\\b|[.,?!;:])(?:com*[ea]nt?|si|pos*ible)(?:\\b|[.,?!;:])|\\?",
+        "(?:\\b|[.,?!;:])(?:com*[ea]nt?|pos*ible|m(?:oyen|ani[èeé]re)|fa[cç]on)(?:\\b|[.,?!;:])",
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
     );
     private static Pattern patternMulti = Pattern.compile(
-        "(?:\\b|[.,?!;:])(?:multi[ -]?(?:joueu?r|playeu?r)?|coop(?:eration)?|(?:[aà] (?:deux|[2-9]|[1-9]+|plu?si?e?u?rs?)))(?:\\b|[.,?!;:])",
+        "(?:\\b|[.,?!;:])(?:multi[ -]?(?:joueu?r|playeu?r)?|co*p(?:eration|[ea]?ins?)?|amis?|pot[oe]s?|(?:[aà] (?:deux|[2-9]|[1-9]+|plu?si?e?u?rs?)))(?:\\b|[.,?!;:])",
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
     );
     
