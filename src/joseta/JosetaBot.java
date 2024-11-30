@@ -1,5 +1,8 @@
 package joseta;
 
+import joseta.commands.*;
+import joseta.events.*;
+
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.*;
@@ -10,9 +13,6 @@ import java.util.concurrent.*;
 
 import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.Logger;
-
-import joseta.commands.*;
-import joseta.events.*;
 
 import static joseta.Vars.*;
 
@@ -33,6 +33,7 @@ public class JosetaBot {
                                GatewayIntent.GUILD_MEMBERS, 
                                GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new PingCommand(),
+                                   new ModCommands(),
                                    new AutoResponse(),
                                    new WelcomeMessage())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
@@ -42,11 +43,11 @@ public class JosetaBot {
         try {
             bot.awaitReady();
         } catch (InterruptedException e) {
-            Vars.logger.error("Could not await for the bot to connect.", e);
+            Vars.logger.error("Was not able to wait for the bot to connect.", e);
         }
     
         // Add commands on a test guild - Instantly
-        if (isDebug && Vars.testGuildId != null)
+        if (isDebug && Vars.testGuildId != -1)
             bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
         // Add global commands - Takes time
         else {
@@ -78,13 +79,16 @@ public class JosetaBot {
     private static void registerShutdown() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Vars.logger.info("Shutting down...");
-
+            
             if (bot != null) {
+                bot.setAutoReconnect(false);
                 bot.shutdown();
-
+                
                 try {
-                    if (!bot.awaitShutdown(10, TimeUnit.SECONDS))
+                    if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
+                        Vars.logger.warn("Shutdown 10 second limit exceeded. Force shutting down...");    
                         bot.shutdownNow();
+                    }
                 } catch (Exception e) {
                     bot.shutdownNow();
                 }

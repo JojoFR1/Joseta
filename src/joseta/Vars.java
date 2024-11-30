@@ -1,5 +1,11 @@
 package joseta;
 
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.*;
+import net.dv8tion.jda.api.interactions.commands.build.*;
+
+import org.slf4j.*;
+
 import java.awt.image.*;
 import java.io.*;
 import java.nio.file.*;
@@ -7,21 +13,39 @@ import java.util.*;
 
 import javax.imageio.*;
 
-import net.dv8tion.jda.api.interactions.commands.build.*;
-
-import org.slf4j.*;
-
 public class Vars {
     public static final Logger logger = LoggerFactory.getLogger(JosetaBot.class);
-    public static String token, testGuildId = null;
-    public static String[] ownersId = null;
+    public static String token = null;
+    public static long testGuildId = 0;
+    public static String[] ownersId; // Not a long because it requires a loop
     
     public static boolean isDebug, isServer = false;
     public static BufferedImage welcomeImage;
 
     public static final SlashCommandData[] commands = {
         Commands.slash("ping", "Obtenez le ping du bot."),
-        Commands.slash("multi", "Envoyez le message d'aide pour le multijoueur.")
+        Commands.slash("multi", "Envoie le message d'aide pour le multijoueur."),
+
+        Commands.slash("mute", "WIP - Mute.")
+            .addOption(OptionType.USER, "user", "WIP", true)
+            .addOption(OptionType.STRING, "reason", "WIP")
+            .addOption(OptionType.STRING, "time", "WIP")
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)),
+        
+        Commands.slash("kick", "WIP - Kick.")
+            .addOption(OptionType.USER, "user", "WIP", true)
+            .addOption(OptionType.STRING, "reason", "WIP")
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS)),
+        
+        Commands.slash("ban", "WIP - Ban.")
+            .addOption(OptionType.USER, "user", "WIP", true)
+            .addOption(OptionType.STRING, "reason", "WIP")
+            .addOption(OptionType.STRING, "time", "WIP")
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS)),
+        
+        Commands.slash("unban", "WIP - Unban.")
+            .addOption(OptionType.USER, "user", "WIP", true)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
     };
 
     public static void loadSecrets() {
@@ -34,7 +58,7 @@ public class Vars {
         }
 
         token = secret.getProperty(isDebug ? "tokenDebug" : "token");
-        testGuildId = secret.getProperty(isDebug ? "testGuildIdDebug" : "testGuildId");
+        testGuildId = Long.parseLong(secret.getProperty(isDebug ? "testGuildIdDebug" : "testGuildId", "-1"));
         ownersId = secret.getProperty(isDebug ? "adminsDebug" : "admins").split(" ");
     }
     

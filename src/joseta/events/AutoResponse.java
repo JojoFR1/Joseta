@@ -1,12 +1,13 @@
 package joseta.events;
 
-import java.util.regex.Pattern;
+import joseta.*;
 
-import joseta.Vars;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.hooks.*;
+
+import java.util.regex.*;
 
 public class AutoResponse extends ListenerAdapter {
     private static final Pattern patternQuestion = Pattern.compile(
