@@ -76,8 +76,7 @@ public class ModCommands extends ListenerAdapter {
 
     // sanctionId: 10 (Warn), 20 (Mute), 30 (Kick), 40 (Ban)
     private void log(long userId, String reason, long time, long moderatorId, int sanctionTypeId) {
-        //? Pretty printing is temporary while testing. Should be removed to reduce size.
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new Gson();
 
         try {
             JsonObject rootNode = gson.fromJson(new FileReader("resources/modlog.json"), JsonObject.class);
@@ -103,7 +102,7 @@ public class ModCommands extends ListenerAdapter {
             rootNode.addProperty(lastSanctionIdString, sanctionId + 1);
 
             JsonObject newSanction = new JsonObject();
-            newSanction.addProperty("id", sanctionId + 1);
+            newSanction.addProperty("id", Integer.toString(sanctionTypeId) + (sanctionId + 1));
             newSanction.addProperty("reason", reason);
             if (sanctionType != "kicks") newSanction.addProperty("for", time);
             newSanction.addProperty("at", Instant.now().toString());
@@ -115,9 +114,14 @@ public class ModCommands extends ListenerAdapter {
             FileWriter writer = new FileWriter("resources/modlog.json");
             gson.toJson(rootNode, writer);
             writer.close();
-        } catch (Exception e) {
-            // TODO more catch to have more precise error logging. Not using global 'Exception'.
-            Vars.logger.error("Error while logging a sanction.", e);
+        } catch (JsonIOException e) {
+            Vars.logger.error("ModLogging - Could not read or write JSON data.", e);
+        } catch (JsonSyntaxException e) {
+            Vars.logger.error("ModLogging - The 'modlog.json' file has invalid JSON syntax.", e);
+        } catch (FileNotFoundException e) {
+            Vars.logger.error("ModLogging - Could not find the 'modlog.json' file. Please make one in the 'resources' folder.", e);
+        } catch (IOException e) {
+            Vars.logger.error("ModLogging - Could not open file 'modlog.json' or it is not a valid file.", e);
         }
     }
 

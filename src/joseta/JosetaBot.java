@@ -41,7 +41,8 @@ public class JosetaBot {
         try {
             bot.awaitReady();
         } catch (InterruptedException e) {
-            Vars.logger.error("Was not able to wait for the bot to connect.", e);
+            Vars.logger.error("An error occured while waiting for the bot to connect.", e);
+            System.exit(1);
         }
     
         // Add commands on a test guild - Instantly
@@ -66,12 +67,7 @@ public class JosetaBot {
             if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
 
-        try {
-            Vars.cacheWelcomeImage();
-        } catch (Exception e) {
-            Vars.logger.error("Couldn't load the caches.", e);
-            System.exit(1);
-        }
+        Vars.cacheWelcomeImage();
     }
 
     private static void registerShutdown() {
@@ -84,10 +80,11 @@ public class JosetaBot {
                 
                 try {
                     if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
-                        Vars.logger.warn("Shutdown 10 second limit exceeded. Force shutting down...");    
+                        Vars.logger.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
                         bot.shutdownNow();
                     }
-                } catch (Exception e) {
+                } catch (InterruptedException e) {
+                    Vars.logger.error("An error occured while waitin for the bot to shutdown. Force shutting down...", e);
                     bot.shutdownNow();
                 }
             }

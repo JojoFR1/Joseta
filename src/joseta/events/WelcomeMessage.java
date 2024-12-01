@@ -23,7 +23,7 @@ public class WelcomeMessage extends ListenerAdapter {
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
         } catch (Exception e) {
-            Vars.logger.error("Couldn't load font file. Defaulted to 'Arial'", e);
+            Vars.logger.error("WelcomeImage - Could not load the font file. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);
         }
     }
@@ -34,21 +34,22 @@ public class WelcomeMessage extends ListenerAdapter {
         TextChannel channel = event.getGuild().getTextChannelById("1256989659448348673");
         User user = event.getUser();
 
+        String name = "@"+user.getName();
+        String globalName = user.getGlobalName();
+        String userName = globalName == null ? name : globalName + " ("+ name +")";
+        
+        int guildMemberCount = event.getGuild().getMemberCount();
+        
         try {
-            String name = "@"+user.getName();
-            String globalName = user.getGlobalName();
-            String userName = globalName == null ? name : globalName + " ("+ name +")";
-            
-            int guildMemberCount = event.getGuild().getMemberCount();
             BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
-
             ByteArrayInputStream image = createWelcomeImage(userName, guildMemberCount, avatar);
             channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
             
-            Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));
-        } catch (Exception e) {
-            Vars.logger.error("An error occured while proccessing welcome image.", e);
-            return;
+            Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));    
+        } catch (MalformedURLException e) {
+            Vars.logger.error("WelcomeImage - An error occured with the user avatar URL.", e);
+        } catch (IOException e) {
+            Vars.logger.error("WelcomeImage - Could not read/write the base/generated image.", e);
         }
     }
 
@@ -79,7 +80,7 @@ public class WelcomeMessage extends ListenerAdapter {
         return circular;
     }
 
-    private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws Exception {
+    private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
         BufferedImage image = Vars.welcomeImage;
         BufferedImage processedImage = new BufferedImage(
             image.getWidth(),

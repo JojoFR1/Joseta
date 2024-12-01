@@ -66,10 +66,15 @@ public class Vars {
         ownersId = secret.getProperty(isDebug ? "adminsDebug" : "admins").split(" ");
     }
     
-    public static void cacheWelcomeImage() throws Exception {
+    public static void cacheWelcomeImage() {
         Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
         
-        welcomeImage = ImageIO.read(cachedImagePath.toFile());
+        try {
+            welcomeImage = ImageIO.read(cachedImagePath.toFile());
+        } catch (IOException e) {
+            Vars.logger.error("Cache - An error occured while reading the base welcome image.", e);
+            System.exit(1);
+        }
     }
 
     public static BufferedImage getWelcomeImage() {
