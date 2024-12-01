@@ -14,8 +14,6 @@ import java.util.concurrent.*;
 import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.Logger;
 
-import static joseta.Vars.*;
-
 public class JosetaBot {
     private static JDA bot;
         
@@ -47,7 +45,7 @@ public class JosetaBot {
         }
     
         // Add commands on a test guild - Instantly
-        if (isDebug && Vars.testGuildId != -1)
+        if (Vars.isDebug && Vars.testGuildId != -1)
             bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
         // Add global commands - Takes time
         else {

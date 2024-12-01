@@ -26,15 +26,19 @@ public class Vars {
         Commands.slash("ping", "Obtenez le ping du bot."),
         Commands.slash("multi", "Envoie le message d'aide pour le multijoueur."),
 
-        Commands.slash("mute", "WIP - Mute.")
-            .addOption(OptionType.USER, "user", "WIP", true)
-            .addOption(OptionType.STRING, "reason", "WIP")
-            .addOption(OptionType.STRING, "time", "WIP")
+        Commands.slash("mute", "Mute un membre.")
+            .addOption(OptionType.USER, "user", "Membre a mute", true)
+            .addOption(OptionType.STRING, "reason", "La raison du mute")
+            .addOption(OptionType.STRING, "time", "La durée du mute (s, m, h, d, w)")
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)),
         
-        Commands.slash("kick", "WIP - Kick.")
-            .addOption(OptionType.USER, "user", "WIP", true)
-            .addOption(OptionType.STRING, "reason", "WIP")
+        Commands.slash("unmute", "Retire le mute d'un membre")
+            .addOption(OptionType.USER, "user", "Membre a unmute", true)
+            .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)),
+        
+        Commands.slash("kick", "Exclue un membre.")
+            .addOption(OptionType.USER, "user", "Membre a exclure", true)
+            .addOption(OptionType.STRING, "reason", "La raison de l'exclusion")
             .setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS)),
         
         Commands.slash("ban", "WIP - Ban.")

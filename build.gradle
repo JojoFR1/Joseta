@@ -23,6 +23,7 @@ dependencies{
       exclude module: 'opus-java'
     }
     implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("com.google.code.gson:gson:2.11.0") 
 }
 
 shadowJar {
