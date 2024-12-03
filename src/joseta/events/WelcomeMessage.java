@@ -105,10 +105,10 @@ public class WelcomeMessage extends ListenerAdapter {
             g2d.setFont(font);
             FontMetrics fm = g2d.getFontMetrics();
             int userNameWidth = fm.stringWidth(userName);
-            int imageWidth = image.getWidth() - 222 - 7; // Position of the te - offset
-            float widhtRatio = userNameWidth > imageWidth ? (float) imageWidth / userNameWidth : 1.0f;
+            // 383 is the available space in pixel for the text.
+            float widthRatio = userNameWidth > 383 ? 383.0f / userNameWidth : 1.0f;
 
-            g2d.setFont(font.deriveFont(25f * widhtRatio));
+            g2d.setFont(font.deriveFont((float) Math.floor(25.0f * widthRatio)));
             g2d.setColor(new Color(244, 204, 122));
             g2d.drawString(userName, 222, 44);
 
