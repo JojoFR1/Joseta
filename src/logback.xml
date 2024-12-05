@@ -12,7 +12,7 @@
         <file>logs/latest.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/%d{dd-MM-yyyy}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <maxHistory>7</maxHistory>
         </rollingPolicy>
         <encoder>
             <pattern>[%d{dd-MM-yyyy HH:mm:ss.SSS}] [%.-1level] [%thread] [%logger{0}] %msg%n</pattern>
