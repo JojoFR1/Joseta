@@ -21,9 +21,7 @@ public class KickCommand extends ModCommand {
     }
 
     @Override
-    public void run(SlashCommandInteractionEvent event) {
-        super.run(event);
-                
+    public void runImpl(SlashCommandInteractionEvent event) {
         event.reply("Kick - " + member + "\n" + reason).queue();
         // member.kick().reason(reason).queue();
 

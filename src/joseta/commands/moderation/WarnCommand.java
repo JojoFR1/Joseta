@@ -22,9 +22,7 @@ public class WarnCommand extends ModCommand {
     }
 
     @Override
-    public void run(SlashCommandInteractionEvent event) {
-        super.run(event);
-        
+    public void runImpl(SlashCommandInteractionEvent event) {
         event.reply("Warn- " + member + "\n" + reason + "\n" + time).queue();
         modLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), reason, time);
     }

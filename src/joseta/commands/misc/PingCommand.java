@@ -11,9 +11,7 @@ public class PingCommand extends Command {
     }
     
     @Override
-    public void run(SlashCommandInteractionEvent event) {
-        super.run(event);
-        
+    public void runImpl(SlashCommandInteractionEvent event) {
         long startTime = System.currentTimeMillis();
         long gatewayPing = event.getJDA().getGatewayPing();
 

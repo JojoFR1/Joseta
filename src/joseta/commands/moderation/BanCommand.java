@@ -22,9 +22,7 @@ public class BanCommand extends ModCommand {
     }
 
     @Override
-    public void run(SlashCommandInteractionEvent event) {
-        super.run(event);
-                
+    public void runImpl(SlashCommandInteractionEvent event) {
         event.reply("Ban- " + member + "\n" + reason + "\n" + time).queue();
         // member.ban(0, null).reason(reason).queue();
 

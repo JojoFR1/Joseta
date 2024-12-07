@@ -22,9 +22,7 @@ public class MuteCommand extends ModCommand {
     }
     
     @Override
-    public void run(SlashCommandInteractionEvent event) {
-        super.run(event);
-
+    public void runImpl(SlashCommandInteractionEvent event) {
         event.reply("Mute- " + member + "\n" + reason + "\n" + time).queue();
 
         // member.timeoutFor(time, TimeUnit.SECONDS).reason(reason).queue();

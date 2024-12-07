@@ -11,6 +11,7 @@ public abstract class Command {
     public final String description;
     public final Seq<OptionData> options;
     public final DefaultMemberPermissions defaultPermissions;
+    protected boolean shouldRun = true;
 
     protected Command(String name, String description) {
         this(name, description, Seq.with(), DefaultMemberPermissions.ENABLED);
@@ -28,14 +29,16 @@ public abstract class Command {
         this.defaultPermissions = defaultPermissions;
     }
 
-    public void run(SlashCommandInteractionEvent event) {
+    public final void run(SlashCommandInteractionEvent event) {
         getArgs(event);
         if (!check(event)) return;
+
+        runImpl(event);
     }
 
-    protected void getArgs(SlashCommandInteractionEvent event) {
-    
-    }
+    protected abstract void runImpl(SlashCommandInteractionEvent event);
+
+    protected void getArgs(SlashCommandInteractionEvent event) {}
     
     protected boolean check(SlashCommandInteractionEvent event) {
         return true;

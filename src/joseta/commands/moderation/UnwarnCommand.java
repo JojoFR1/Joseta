@@ -21,9 +21,7 @@ public class UnwarnCommand extends ModCommand {
     }
 
     @Override
-    public void run(SlashCommandInteractionEvent event) {   
-        super.run(event);
-        
+    public void runImpl(SlashCommandInteractionEvent event) {   
         // TODO need a warn ID ? or latest
         
         event.reply("Unwarn- " + member).queue();

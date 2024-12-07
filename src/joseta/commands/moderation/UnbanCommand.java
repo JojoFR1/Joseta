@@ -19,9 +19,7 @@ public class UnbanCommand extends ModCommand {
     }
 
     @Override
-    public void run(SlashCommandInteractionEvent event) {
-        super.run(event);
-                
+    public void runImpl(SlashCommandInteractionEvent event) {
         event.reply("Unban- " + member).queue();
 
         // event.getGuild().unban(member).queue();
