@@ -22,6 +22,7 @@ public class JosetaBot {
     private static JDA bot;
     public static final Seq<Command> commands = Seq.with(
         new PingCommand(),
+        new MultiInfoCommand(),
         
         new WarnCommand(),
         new UnwarnCommand(),
