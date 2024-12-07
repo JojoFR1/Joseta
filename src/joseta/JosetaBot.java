@@ -1,10 +1,14 @@
 package joseta;
 
 import joseta.commands.*;
+import joseta.commands.misc.*;
+import joseta.commands.moderation.*;
 import joseta.events.*;
+import joseta.utils.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 
 import org.slf4j.*;
@@ -16,7 +20,18 @@ import ch.qos.logback.classic.Logger;
 
 public class JosetaBot {
     private static JDA bot;
+    public static final Seq<Command> commands = Seq.with(
+        new PingCommand(),
         
+        new WarnCommand(),
+        new UnwarnCommand(),
+        new MuteCommand(),
+        new UnmuteCommand(),
+        new KickCommand(),
+        new BanCommand(),
+        new UnbanCommand()
+    );
+
     public static void main(String[] args) {
         registerShutdown();
 
@@ -30,10 +45,9 @@ public class JosetaBot {
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, 
                                GatewayIntent.GUILD_MEMBERS, 
                                GatewayIntent.MESSAGE_CONTENT)
-                .addEventListeners(new PingCommand(),
-                                   new ModCommands(),
-                                   new AutoResponse(),
-                                   new WelcomeMessage())
+                .addEventListeners(new CommandExecutor(),
+                                   new WelcomeMessage(),
+                                   new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
                 .build();
@@ -44,14 +58,17 @@ public class JosetaBot {
             Vars.logger.error("An error occured while waiting for the bot to connect.", e);
             System.exit(1);
         }
-    
+
+        Seq<CommandData> commandsData = new Seq<>();
+        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addOptions(cmd.options.toArray(OptionData.class)).setDefaultPermissions(cmd.defaultPermissions)));
+
         // Add commands on a test guild - Instantly
         if (Vars.isDebug && Vars.testGuildId != -1)
-            bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(Vars.commands).queue();
+            bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
         // Add global commands - Takes time
         else {
             bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
-            bot.updateCommands().addCommands(Vars.commands).queue();
+            bot.updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
         }
     }
 

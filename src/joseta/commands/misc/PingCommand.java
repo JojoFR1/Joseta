@@ -1,14 +1,19 @@
-package joseta.commands;
+package joseta.commands.misc;
+
+import joseta.commands.*;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.hooks.*;
 
-public class PingCommand extends ListenerAdapter {
+public class PingCommand extends Command {
+
+    public PingCommand() {
+        super("ping", "Obtenez le ping du bot.");
+    }
     
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("ping")) return;
-
+    public void run(SlashCommandInteractionEvent event) {
+        super.run(event);
+        
         long startTime = System.currentTimeMillis();
         long gatewayPing = event.getJDA().getGatewayPing();
 
