@@ -1,6 +1,7 @@
 package joseta;
 
 import joseta.commands.*;
+import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.events.*;
@@ -10,6 +11,7 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
+import net.dv8tion.jda.api.utils.*;
 
 import org.slf4j.*;
 
@@ -42,9 +44,10 @@ public class JosetaBot {
         }
         preLoad();
         
-        bot = JDABuilder.createLight(Vars.token)
-                .enableIntents(GatewayIntent.GUILD_MESSAGES, 
-                               GatewayIntent.GUILD_MEMBERS, 
+        bot = JDABuilder.createDefault(Vars.token)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableIntents(GatewayIntent.GUILD_MESSAGES,
+                               GatewayIntent.GUILD_MEMBERS,
                                GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
@@ -61,7 +64,7 @@ public class JosetaBot {
         }
 
         Seq<CommandData> commandsData = new Seq<>();
-        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addOptions(cmd.options.toArray(OptionData.class)).setDefaultPermissions(cmd.defaultPermissions)));
+        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
 
         // Add commands on a test guild - Instantly
         if (Vars.isDebug && Vars.testGuildId != -1)

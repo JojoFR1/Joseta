@@ -1,7 +1,5 @@
 package joseta.commands;
 
-import joseta.utils.struct.*;
-
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -9,23 +7,34 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public abstract class Command {
     public final String name;
     public final String description;
-    public final Seq<OptionData> options;
     public final DefaultMemberPermissions defaultPermissions;
-    protected boolean shouldRun = true;
+    public final OptionData[] options; // Not compatible with subcommands.
+    public final SubcommandData[] subcommands; // Not compatible with options.
 
     protected Command(String name, String description) {
-        this(name, description, Seq.with(), DefaultMemberPermissions.ENABLED);
-    }
-    protected Command(String name, String description, Seq<OptionData> options) {
-        this(name, description, options, DefaultMemberPermissions.ENABLED);
+        this(name, description, DefaultMemberPermissions.ENABLED);
     }
     protected Command(String name, String description, DefaultMemberPermissions defaultPermissions) {
-        this(name, description, Seq.with(), defaultPermissions);
+        this(name, description, defaultPermissions, new OptionData[0]);
     }
-    protected Command(String name, String description, Seq<OptionData> options, DefaultMemberPermissions defaultPermissions) {
+    protected Command(String name, String description, OptionData... options) {
+        this(name, description, DefaultMemberPermissions.ENABLED, options);
+    }
+    protected Command(String name, String description, SubcommandData... subcommands) {
+        this(name, description, DefaultMemberPermissions.ENABLED, subcommands);
+    }
+    protected Command(String name, String description, DefaultMemberPermissions defaultPermissions, OptionData... options) {
         this.name = name;
         this.description = description;
         this.options = options;
+        this.subcommands = new SubcommandData[0];
+        this.defaultPermissions = defaultPermissions;
+    }
+    protected Command(String name, String description, DefaultMemberPermissions defaultPermissions, SubcommandData... subcommands) {
+        this.name = name;
+        this.description = description;
+        this.options = new OptionData[0];
+        this.subcommands = subcommands;
         this.defaultPermissions = defaultPermissions;
     }
 

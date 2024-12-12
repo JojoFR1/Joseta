@@ -1,7 +1,6 @@
 package joseta.commands.moderation;
 
-import joseta.commands.ModCommand;
-import joseta.utils.struct.*;
+import joseta.commands.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -12,12 +11,10 @@ public class WarnCommand extends ModCommand {
 
     public WarnCommand() {
         super("warn", "Averti un membre.",
-            Seq.with(
-                new OptionData(OptionType.USER, "user", "Membre a mute", true),
-                new OptionData(OptionType.STRING, "reason", "La raison du mute"),
-                new OptionData(OptionType.STRING, "for", "La durée avant expiration du warn (s, m, h, d, w)")
-            ),
-            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)
+            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
+            new OptionData(OptionType.USER, "user", "Membre a mute", true),
+            new OptionData(OptionType.STRING, "reason", "La raison du mute"),
+            new OptionData(OptionType.STRING, "time", "La durée avant expiration du warn (s, m, h, d, w)")
         );
     }
 

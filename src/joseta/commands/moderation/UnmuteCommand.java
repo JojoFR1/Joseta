@@ -1,7 +1,6 @@
 package joseta.commands.moderation;
 
-import joseta.commands.ModCommand;
-import joseta.utils.struct.*;
+import joseta.commands.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -12,8 +11,8 @@ public class UnmuteCommand extends ModCommand {
     
     public UnmuteCommand() {
         super("unmute", "Retire le mute d'un membre",
-            Seq.with(new OptionData(OptionType.USER, "user", "Membre a unmute", true)),
-            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS)
+            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
+            new OptionData(OptionType.USER, "user", "Membre a unmute", true)
         );
     }
 

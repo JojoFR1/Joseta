@@ -1,7 +1,6 @@
 package joseta.commands;
 
 import joseta.utils.*;
-import joseta.utils.struct.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -16,23 +15,29 @@ public abstract class ModCommand extends Command {
     protected long time;
     
     protected ModCommand(String name, String description) {
-        super(name, description, Seq.with(), DefaultMemberPermissions.ENABLED);
-    }
-    protected ModCommand(String name, String description, Seq<OptionData> options) {
-        super(name, description, options, DefaultMemberPermissions.ENABLED);
+        super(name, description, DefaultMemberPermissions.ENABLED);
     }
     protected ModCommand(String name, String description, DefaultMemberPermissions defaultPermissions) {
-        super(name, description, Seq.with(), defaultPermissions);
+        super(name, description, defaultPermissions, new OptionData[0]);
     }
-    protected ModCommand(String name, String description, Seq<OptionData> options, DefaultMemberPermissions defaultPermissions) {
-        super(name, description, options, defaultPermissions);
+    protected ModCommand(String name, String description, OptionData... options) {
+        super(name, description, DefaultMemberPermissions.ENABLED, options);
+    }
+    protected ModCommand(String name, String description, SubcommandData... subcommands) {
+        super(name, description, DefaultMemberPermissions.ENABLED, subcommands);
+    }
+    protected ModCommand(String name, String description, DefaultMemberPermissions defaultPermissions, OptionData... options) {
+        super(name, description, defaultPermissions, options);
+    }
+    protected ModCommand(String name, String description, DefaultMemberPermissions defaultPermissions, SubcommandData... subcommands) {
+        super(name, description, defaultPermissions, subcommands);
     }
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        user = event.getOption("user").getAsUser();
-        member = event.getOption("user").getAsMember();
-        reason = event.getOption("reason") != null ? event.getOption("reason").getAsString() : "Default reason";
+        user =   event.getOption("user")   != null ? event.getOption("user").getAsUser() : event.getUser();
+        member = event.getOption("user")   != null ? event.getOption("user").getAsMember() : event.getMember();
+        reason = event.getOption("reason") != null ? event.getOption("reason").getAsString() : "Raison par défaut";
         time = Strings.parseTime(event.getOption("time") != null ? event.getOption("time").getAsString() : "5m");
     }
     

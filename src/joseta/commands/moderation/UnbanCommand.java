@@ -1,7 +1,6 @@
 package joseta.commands.moderation;
 
-import joseta.commands.ModCommand;
-import joseta.utils.struct.*;
+import joseta.commands.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -12,8 +11,8 @@ public class UnbanCommand extends ModCommand {
     
     public UnbanCommand() {
         super("unban", "WIP - Unban",
-            Seq.with(new OptionData(OptionType.USER, "user", "WIP", true)),
-            DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS)
+            DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS),
+            new OptionData(OptionType.USER, "user", "WIP", true)
         );
 
     }
