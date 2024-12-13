@@ -25,6 +25,8 @@ public class JosetaBot {
     public static final Seq<Command> commands = Seq.with(
         new PingCommand(),
         new MultiInfoCommand(),
+
+        new AdminCommand(),
         
         new WarnCommand(),
         new UnwarnCommand(),
@@ -51,6 +53,7 @@ public class JosetaBot {
                                GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
+                                   new RulesAcceptEvent(),
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))

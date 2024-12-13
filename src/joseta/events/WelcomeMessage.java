@@ -33,6 +33,10 @@ public class WelcomeMessage extends ListenerAdapter {
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         TextChannel channel = event.getGuild().getTextChannelById("1256989659448348673");
         User user = event.getUser();
+        
+        // TODO cache role (and emojis)
+        if (event.getUser().isBot()) event.getGuild().addRoleToMember(user, event.getGuild().getRoleById(1234873005629243433L)).queue();
+        else event.getGuild().addRoleToMember(user, event.getGuild().getRoleById(1259874357384056852L)).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();
 
         String name = "@"+user.getName();
         String globalName = user.getGlobalName();
