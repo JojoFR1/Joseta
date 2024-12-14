@@ -1,0 +1,45 @@
+{
+  "projectName": "Joseta",
+  "projectOwner": "JojoFR1",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "JojoFR1",
+      "name": "Jojo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110781915?v=4",
+      "profile": "https://github.com/JojoFR1",
+      "contributions": [
+        "code",
+        "ideas",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "ZetaMap",
+      "name": "ZetaMap",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56844734?v=4",
+      "profile": "https://zetamap.fr/",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "xorblo-doitus",
+      "name": "Patou",
+      "avatar_url": "https://avatars.githubusercontent.com/u/75997617?v=4",
+      "profile": "https://xorblo-doitus.github.io/projects/",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": true
+}

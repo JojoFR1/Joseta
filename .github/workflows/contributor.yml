@@ -1,0 +1,32 @@
+name: Generate Contributor List
+on: [workflow_dispatch]
+
+jobs:
+  buildBot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        cache: "npm"
+    
+    - name: Update Node
+      run: npm install -g npm@latest
+    
+    - name: Install all-contributors CLI
+      run: npm i -g all-contributors-cli
+
+    - name: Generate contributors list
+      run: all-contributors generate
+
+    - name: Push generated contributors list
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md
+        git commit -m "docs: update contributors" || exit 0
+        git push
+        
