@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
 public abstract class ModCommand extends Command {
-    protected final ModLog modLog = ModLog.getInstance();
+    protected static final ModLog modLog = ModLog.getInstance();
     protected User user;
     protected Member member;
     protected String reason;
