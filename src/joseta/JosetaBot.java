@@ -34,7 +34,8 @@ public class JosetaBot {
         new UnmuteCommand(),
         new KickCommand(),
         new BanCommand(),
-        new UnbanCommand()
+        new UnbanCommand(),
+        new ModLogCommand()
     );
 
     public static void main(String[] args) {
@@ -54,6 +55,7 @@ public class JosetaBot {
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
                                    new RulesAcceptEvent(),
+                                   new ModLogButtonEvents(),
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
