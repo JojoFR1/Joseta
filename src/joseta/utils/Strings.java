@@ -479,7 +479,7 @@ public class Strings{
         long parsedTime = 0;
         int value = 0;
 
-        if (time == "inf") return Long.MAX_VALUE; 
+        if (time == "inf") return -1; 
         
         for (char c : time.toLowerCase().toCharArray()) {
             if (c >= '0' && c <= '9')
@@ -497,6 +497,30 @@ public class Strings{
         }
 
         return parsedTime;
+    }
+
+    /** Parse a long and converts the seconds as a time String */
+    public static String convertSecond(long seconds) {
+        String time = "";
+
+        // if (time == "inf") return Long.MAX_VALUE; 
+
+        long weeks = seconds / (7 * 24 * 60 * 60);
+        seconds %= (7 * 24* 60 * 60);
+        long days = seconds / (24 * 60 * 60);
+        seconds %= (24 * 60 * 60);
+        long hours = seconds / (60 * 60);
+        seconds %= (60 * 60);
+        long minutes = seconds / 60;
+        seconds %= 60;
+
+        if (weeks > 0) time += weeks + "w";
+        if (days > 0) time += days + "d";
+        if (hours > 0) time += hours + "h";
+        if (minutes > 0) time += minutes + "m";
+        if (seconds > 0) time += seconds + "s";
+
+        return time;
     }
 
     public static boolean canParseFloat(String s){

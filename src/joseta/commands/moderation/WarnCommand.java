@@ -1,6 +1,7 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
+import joseta.utils.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -22,5 +23,11 @@ public class WarnCommand extends ModCommand {
     public void runImpl(SlashCommandInteractionEvent event) {
         event.reply("Warn- " + member + "\n" + reason + "\n" + time).queue();
         modLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), reason, time);
+    }
+
+    @Override
+    protected void getArgs(SlashCommandInteractionEvent event) {
+        super.getArgs(event);
+        time = Strings.parseTime(event.getOption("time") != null ? event.getOption("time").getAsString() : "inf");
     }
 }

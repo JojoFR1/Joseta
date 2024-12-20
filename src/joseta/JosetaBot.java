@@ -5,6 +5,7 @@ import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.events.*;
+import joseta.utils.*;
 import joseta.utils.struct.*;
 
 import net.dv8tion.jda.api.*;
@@ -22,6 +23,8 @@ import ch.qos.logback.classic.Logger;
 
 public class JosetaBot {
     private static JDA bot;
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
     public static final Seq<Command> commands = Seq.with(
         new PingCommand(),
         new MultiInfoCommand(),
@@ -34,7 +37,8 @@ public class JosetaBot {
         new UnmuteCommand(),
         new KickCommand(),
         new BanCommand(),
-        new UnbanCommand()
+        new UnbanCommand(),
+        new ModLogCommand()
     );
 
     public static void main(String[] args) {
@@ -54,6 +58,7 @@ public class JosetaBot {
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
                                    new RulesAcceptEvent(),
+                                   new ModLogButtonEvents(),
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
@@ -65,6 +70,8 @@ public class JosetaBot {
             Vars.logger.error("An error occured while waiting for the bot to connect.", e);
             System.exit(1);
         }
+
+        scheduler.scheduleAtFixedRate(JosetaBot::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
 
         Seq<CommandData> commandsData = new Seq<>();
         commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
@@ -92,6 +99,17 @@ public class JosetaBot {
         }
 
         Vars.cacheWelcomeImage();
+    }
+
+
+    private static void checkExpiredSanctions() {
+        ModLog modLog = ModLog.getInstance();
+        modLog.getExpiredSanctions().each(sanction -> {
+            if (sanction.getSanctionTypeId() == 40) {
+                bot.getGuildById(Vars.testGuildId).unban(bot.getUserById(sanction.userId)).queue();
+            }
+            modLog.removeSanction(sanction);
+        });
     }
 
     private static void registerShutdown() {
