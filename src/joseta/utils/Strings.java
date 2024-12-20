@@ -479,7 +479,7 @@ public class Strings{
         long parsedTime = 0;
         int value = 0;
 
-        if (time == "inf") return Long.MAX_VALUE; 
+        if (time == "inf") return -1; 
         
         for (char c : time.toLowerCase().toCharArray()) {
             if (c >= '0' && c <= '9')

@@ -47,7 +47,7 @@ public class ModLogCommand extends ModCommand {
         if (event instanceof SlashCommandInteractionEvent cevent) {
             ReplyCallbackAction callback = cevent.replyEmbeds(embed);
 
-            // Only when sanction is empty it will start like this.
+            // Only when the user has no sanction that it will start like this.
             if (!embed.getDescription().startsWith("Oh !")) callback.addActionRow(buttons);
 
             Message msg = callback.complete().retrieveOriginal().complete();
@@ -79,11 +79,13 @@ public class ModLogCommand extends ModCommand {
                                 : sanctionTypeId == SanctionType.KICK ? "Kick"
                                 : "Ban";
 
-            description += "### "+ sanctionType +" - "+ sanction.id
-                        + "\n>   - Responsable: <@"+ sanction.moderatorId +"> (`"+ sanction.moderatorId +"`)"
-                        + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
+            description += "### "+ sanctionType +" - "+ sanction.id;
+            if (sanction.isExpired()) description += " (Expirée)";
+
+            description += "\n>   - Responsable: <@"+ sanction.moderatorId +"> (`"+ sanction.moderatorId +"`)"
+                         + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
             
-            if (sanctionTypeId != SanctionType.KICK) description += "\n>  - Pendant: " + Strings.convertSecond(sanction.time);
+            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + Strings.convertSecond(sanction.time);
 
             description += "\n>   - Raison: " + sanction.reason + "\n\n";
         }

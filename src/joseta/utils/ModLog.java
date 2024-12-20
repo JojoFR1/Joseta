@@ -56,7 +56,8 @@ public final class ModLog {
                               + "moderatorId BIGINT,"
                               + "reason TEXT,"
                               + "at TEXT,"
-                              + "for BIGINT"
+                              + "for BIGINT,"
+                              + "expired BOOLEAN DEFAULT FALSE"
                               + ")";
 
         Statement stmt = conn.createStatement();
@@ -88,8 +89,8 @@ public final class ModLog {
         String sanctionType = sanctionTypes[sanctionTypeId/10 - 1];
         
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO sanctions "
-                                                           + "(id, userId, moderatorId, reason, at, for) "
-                                                           + "VALUES (?, ?, ?, ?, ?, ?)"))
+                                                           + "(id, userId, moderatorId, reason, at, for, expired) "
+                                                           + "VALUES (?, ?, ?, ?, ?, ?, FALSE)"))
         {
             int lastSanctionId = getLastSanctionId(sanctionType);
             pstmt.setInt(1, Integer.parseInt(Integer.toString(sanctionTypeId) + (lastSanctionId + 1)));
@@ -124,6 +125,7 @@ public final class ModLog {
                 if (i >= endIndex) break;
                 sanctions.add(new Sanction(
                     rs.getLong("id"),
+                    rs.getLong("userId"),
                     rs.getLong("moderatorId"),
                     rs.getString("reason"),
                     Instant.parse(rs.getString("at")),
@@ -137,19 +139,64 @@ public final class ModLog {
         return sanctions;
     }
 
+    public Seq<Sanction> getExpiredSanctions() {
+        Seq<Sanction> sanctions = new Seq<>();
+
+        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE for >= 1 AND expired != TRUE")) {
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Instant at = Instant.parse(rs.getString("at"));
+                long forTime = rs.getLong("for");
+                if (at.plusSeconds(forTime).isBefore(Instant.now())) {
+                    sanctions.add(new Sanction(
+                        rs.getLong("id"),
+                        rs.getLong("userId"),
+                        rs.getLong("moderatorId"),
+                        rs.getString("reason"),
+                        at,
+                        forTime
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            Vars.logger.error("Could not get expired sanctions.", e);
+        }
+
+        return sanctions;
+    }
+
+    public void removeSanction(Sanction sanction) {
+        try (PreparedStatement pstmt = conn.prepareStatement("UPDATE sanctions SET expired = TRUE WHERE id = ?")) {
+            pstmt.setLong(1, sanction.id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            Vars.logger.error("Could not remove the sanction.", e);
+        }
+    }
+
     public class Sanction {
         public final long id;
+        public final long userId;
         public final long moderatorId;
         public final String reason;
         public final Instant at;
         public final long time; 
 
-        public Sanction(long id, long moderatorId, String reason, Instant at, long time) {
+        public Sanction(long id, long userId, long moderatorId, String reason, Instant at, long time) {
             this.id = id;
+            this.userId = userId;
             this.moderatorId = moderatorId;
             this.reason = reason;
             this.at = at;
             this.time = time;
+        }
+
+        public int getSanctionTypeId() {
+            return Integer.parseInt(Long.toString(id).substring(0, 2));
+        }
+
+        public boolean isExpired() {
+            return at.plusSeconds(time).isBefore(Instant.now()) && time >= 1;
         }
     } 
 

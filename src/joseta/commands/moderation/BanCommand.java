@@ -1,6 +1,7 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
+import joseta.utils.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -24,5 +25,11 @@ public class BanCommand extends ModCommand {
         // member.ban(0, null).reason(reason).queue();
 
         modLog.log(SanctionType.BAN, member.getIdLong(), event.getUser().getIdLong(), reason, time);
+    }
+
+    @Override
+    protected void getArgs(SlashCommandInteractionEvent event) {
+        super.getArgs(event);
+        time = Strings.parseTime(event.getOption("time") != null ? event.getOption("time").getAsString() : "inf");
     }
 }
