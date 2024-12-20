@@ -26,9 +26,9 @@ public final class ModLog {
             } else conn = DriverManager.getConnection(urlDb);
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            Vars.logger.error("Could not initialize the SQL table.", e);
         } catch (IOException e) {
-            e.printStackTrace();
+            Vars.logger.error("Could not create the 'modlog.db' file.", e);
         }
     }
 
@@ -52,7 +52,7 @@ public final class ModLog {
 
         String sanctionsTable = "CREATE TABLE sanctions (" 
                               + "id INT PRIMARY KEY," 
-                              + "userId BIGINT,"
+                              + "userId BIGINT," // FOREIGN KEY REFERENCES users(userId)
                               + "moderatorId BIGINT,"
                               + "reason TEXT,"
                               + "at TEXT,"
@@ -103,14 +103,15 @@ public final class ModLog {
             updateLastSanctionId(lastSanctionId + 1, sanctionType);
             updateUserTotalSanctions(userId);
         } catch (SQLException e) {
-            Vars.logger.error("Could not add new sanction", e);
+            Vars.logger.error("Could not log the new sanction.", e);
         }
     }
 
     public Seq<Sanction> getUserLog(long userId, int page, int maxPerPage) {
+        Seq<Sanction> sanctions = new Seq<>();
+
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ?")) {
             pstmt.setLong(1, userId);
-            Seq<Sanction> sanctions = new Seq<>();
 
             int i = -1;
             int startIndex = (page - 1) * maxPerPage;
@@ -129,11 +130,11 @@ public final class ModLog {
                     rs.getLong("for")
                 ));
             }
-            return sanctions;
         } catch (SQLException e) {
             Vars.logger.error("Could not get user sanction log.", e);;
-            return null;
         }
+
+        return sanctions;
     }
 
     public class Sanction {
@@ -175,7 +176,7 @@ public final class ModLog {
 
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) total = rs.getInt("totalSanctions");
-            else addNewUser(userId);
+            else addNewUser(userId); // The user doesn't exist so add it, total will be 0 by default.
         } catch (SQLException e) {
             Vars.logger.error("Could not get user total sanctions.", e);
         }

@@ -7,13 +7,14 @@ import joseta.utils.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.Message.*;
+import net.dv8tion.jda.api.events.interaction.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.interactions.*;
+import net.dv8tion.jda.api.events.interaction.component.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-import net.dv8tion.jda.api.interactions.components.buttons.*;
+import net.dv8tion.jda.api.interactions.components.*;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.requests.restaction.interactions.*;
 
 import java.awt.*;
 import java.time.*;
@@ -31,15 +32,31 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        MessageEmbed embed = generateEmbed(event.getGuild(), user, 1);
-        Message msg = event.replyEmbeds(embed).addActionRow(
-            Button.secondary("modlog-page-b-first", "Page first"),
-            Button.secondary("modlog-page-b-prev", "Page prev"),
-            Button.secondary("modlog-page-b-next", "Page next"),
-            Button.secondary("modlog-page-b-last", "Page last")
-        ).complete().retrieveOriginal().complete();
+        sendEmbed(event, user, 1, (int) Math.ceil((double) modLog.getUserTotalSanctions(user.getIdLong()) / SANCTION_PER_PAGE));
+    }
 
-        userOfMessage.put(msg.getIdLong(), user);
+    public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
+        MessageEmbed embed = generateEmbed(event.getGuild(), user, page);
+        ItemComponent[] buttons = {
+            Button.secondary("modlog-page-b-first", "Page first").withDisabled(page == 1),
+            Button.secondary("modlog-page-b-prev", "Page prev").withDisabled(page <= 1),
+            Button.secondary("modlog-page-b-next", "Page next").withDisabled(page >= lastPage),
+            Button.secondary("modlog-page-b-last", "Page last").withDisabled(page == lastPage)
+        };
+
+        if (event instanceof SlashCommandInteractionEvent cevent) {
+            ReplyCallbackAction callback = cevent.replyEmbeds(embed);
+
+            // Only when sanction is empty it will start like this.
+            if (!embed.getDescription().startsWith("Oh !")) callback.addActionRow(buttons);
+
+            Message msg = callback.complete().retrieveOriginal().complete();
+
+            userOfMessage.put(msg.getIdLong(), user);
+        }
+        if (event instanceof ButtonInteractionEvent bevent) {
+            bevent.editMessageEmbeds(embed).setActionRow(buttons).queue();
+        }
     }
 
     public static MessageEmbed generateEmbed(Guild guild, User user, int currentPage) {
@@ -53,8 +70,7 @@ public class ModLogCommand extends ModCommand {
             .setTimestamp(Instant.now());
 
         String description = "";
-
-        if (sanctions.isEmpty()) description = "Cette utilisateur n'a aucune sanction !";
+        if (sanctions.isEmpty()) description = "Oh ! Cette utilisateur n'a aucune sanction !";
 
         else for (Sanction sanction : sanctions) {
             int sanctionTypeId = Integer.parseInt(Long.toString(sanction.id).substring(0,2));
@@ -68,8 +84,7 @@ public class ModLogCommand extends ModCommand {
                         + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
             
             if (sanctionTypeId != SanctionType.KICK) description += "\n>  - Pendant: " + Strings.convertSecond(sanction.time);
-            
-            
+
             description += "\n>   - Raison: " + sanction.reason + "\n\n";
         }
 
