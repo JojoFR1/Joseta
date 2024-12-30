@@ -3,7 +3,7 @@ plugins {
     id("application")
     id("com.gradleup.shadow") version "8.3.1"
 }
-version '1.0'
+version '1.1.0'
 
 sourceSets.main.java.srcDirs = ["src"]
 sourceSets.main.resources.srcDirs = ["src"]
@@ -18,7 +18,7 @@ repositories{
 }
 
 dependencies{
-    implementation("net.dv8tion:JDA:5.2.1") {
+    implementation("net.dv8tion:JDA:5.2.2") {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java`
       exclude module: 'opus-java'
     }

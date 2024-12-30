@@ -14,22 +14,51 @@ This bot is not *yet* fully usable for personnal use due to multiple hardcoded v
 
 ### Why Java and JDA?
 
-We had the choices between JavaScript, Python or Java. Due to personnal preferences, we chose Java.
+We had the choices between JavaScript, Python or Java. Due to personnal preferences, we chose Java and JDA was a library we already had experience in.
+
+## Features
+
+The bot currently has those features available:
+
+- An **Image based welcome** for new memvers (not configurable)
+- A **Leave Message** for quitting members (not configurable)
+- **Rules** + an **acceptation system** (not configurable)
+- An **Auto Response** for a common question (not configurable)
+
+## Plans
+
+Our current plans for the future are the following:
+
+- Add moderations commands
+  - A `/(un)warn` command to (un)warn a member.
+  - A `/(un)mute` command to (un)mute a member.
+  - A `/kick` command to kick a member.
+  - A `/(un)ban` command to (un)ban a member.
+  - A `/modlog` command to acces a member moderation history.
+  - Support User IDs for `member` argument.
+  - Make the timed warn and ban actually expire
+
+- Add a `/config` command
+  - Allow to change *some* variable without having to rebuild and restart
+  - Allow to un-hardcode values
+  - Allow to be Runnable outside of our server
 
 ## How to build
 
-You will need **JDK 17** or later to be able to build this project.
+You will need at the minimum **JDK 17** or later to be able to build this project.
 
-At the root of the project, use:
+At the root of the project, use the following command:
 `./gradlew shadowJar`
 
-Once the build process is finished, the output will be present in `./build/libs/JosetaBot.jar`
+Once the build process is finished, the output will be present in `./build/libs/JosetaBot.jar`.
 
 ## How to run
 
-Running the bot is easy. You just need to execute this command: `java -jar build/libs/JosetaBot.jar`
+You will first need to follow the instruction in the `secret_template.cfg` file before being able to run the bot.
 
-You have the following arguments (after the `.jar`) available to use:
+After this, starting the bot is very easy. You just need to execute this command: `java -jar build/libs/JosetaBot.jar`
+
+The following arguments (after the `.jar`)  are available to use:
 
 - Default: run the bot normally. (Log level is info level)
 - `--debug`: run the bot in debug mode. (Log level is debug level & intended for testing)
