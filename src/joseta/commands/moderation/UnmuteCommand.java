@@ -10,9 +10,9 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class UnmuteCommand extends ModCommand {
     
     public UnmuteCommand() {
-        super("unmute", "Retire le mute d'un membre",
+        super("unmute", "Unmute un membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Membre a unmute", true)
+            new OptionData(OptionType.USER, "user", "Le membre a unmute.", true)
         );
     }
 

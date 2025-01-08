@@ -11,18 +11,19 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class BanCommand extends ModCommand {
     
     public BanCommand() {
-        super("ban", "WIP - Ban",
+        super("ban", "Bannir un membre.",
             DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS),
-            new OptionData(OptionType.USER, "user", "WIP", true),
-            new OptionData(OptionType.STRING, "reason", "WIP"),
-            new OptionData(OptionType.STRING, "time", "WIP")
+            new OptionData(OptionType.USER, "user", "Le membre a bannir.", true),
+            new OptionData(OptionType.STRING, "reason", "La raison du bannisement."),
+            new OptionData(OptionType.STRING, "time", "La durée du bannisement (s, m, h, d, w)")
         );
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        event.reply("Ban- " + member + "\n" + reason + "\n" + time).queue();
-        // member.ban(0, null).reason(reason).queue();
+        member.ban(0, null).reason(reason).queue();
+
+        event.reply("Le membre a bien été banni." ).setEphemeral(true).queue();
 
         modLog.log(SanctionType.BAN, member.getIdLong(), event.getUser().getIdLong(), reason, time);
     }

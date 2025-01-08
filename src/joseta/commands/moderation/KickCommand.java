@@ -10,17 +10,18 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class KickCommand extends ModCommand {
     
     public KickCommand() {
-        super("kick", "Exclue un membre",
-        DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS),
-        new OptionData(OptionType.USER, "user", "Membre a exclure", true),
-            new OptionData(OptionType.STRING, "reason", "La raison de l'exclusion")
+        super("kick", "Exclue un membre.",
+            DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS),
+            new OptionData(OptionType.USER, "user", "Le membre a exclure.", true),
+            new OptionData(OptionType.STRING, "reason", "La raison de l'exclusion.")
         );
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        event.reply("Kick - " + member + "\n" + reason).queue();
-        // member.kick().reason(reason).queue();
+        member.kick().reason(reason).queue();
+
+        event.reply("Le membre a bien été expulsé.").queue();
 
         modLog.log(SanctionType.KICK, member.getIdLong(), event.getUser().getIdLong(), reason, -1);
     }
