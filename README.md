@@ -21,6 +21,7 @@ We had the choices between JavaScript, Python or Java. Due to personnal preferen
 The bot currently has those features available:
 
 - Multiple commands:
+  - A `/admin`, only used to send rules as of now.
   - For moderation:
       - A `/(un)warn` command to (un)warn a member.
       - A `/(un)mute` command to (un)mute a member.
@@ -41,6 +42,7 @@ Our current plans for the future are the following:
   - Support User IDs for `member` argument.
   - Make 'un-' commands actually work (remove sanction)
   - Make it able to use a user id
+  - Better message response (sucess & failed)
 
 - Add a `/config` command
   - Allow to change *some* variable without having to rebuild and restart
