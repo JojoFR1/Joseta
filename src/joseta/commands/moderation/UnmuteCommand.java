@@ -18,15 +18,15 @@ public class UnmuteCommand extends ModCommand {
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {        
-        event.reply("Unmute- " + member).queue();
-        
         member.removeTimeout().queue();
+
+        event.reply("Le membre a bien été unmute.").setEphemeral(true).queue();
     }
 
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
         if (!member.isTimedOut()) {
-            event.reply("Dumdum, " + user.getName() + "is not muted.").queue();
+            event.reply("Ce membre n'est pas mute !").setEphemeral(true).queue();
             return false;
         }
 

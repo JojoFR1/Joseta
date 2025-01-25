@@ -23,6 +23,6 @@ public class KickCommand extends ModCommand {
 
         event.reply("Le membre a bien été expulsé.").queue();
 
-        modLog.log(SanctionType.KICK, member.getIdLong(), event.getUser().getIdLong(), reason, -1);
+        modLog.log(SanctionType.KICK, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);
     }
 }

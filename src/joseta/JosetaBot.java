@@ -59,6 +59,7 @@ public class JosetaBot {
                                    new WelcomeMessage(),
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
+                                   new UnbanAutoComplete(), //TODO fix
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
@@ -104,9 +105,16 @@ public class JosetaBot {
 
     private static void checkExpiredSanctions() {
         ModLog modLog = ModLog.getInstance();
+
         modLog.getExpiredSanctions().each(sanction -> {
             if (sanction.getSanctionTypeId() == 40) {
-                bot.getGuildById(Vars.testGuildId).unban(bot.getUserById(sanction.userId)).queue();
+                Guild guild = bot.getGuildById(sanction.guildId);
+                guild.retrieveBanList().queue(bans -> {
+                    bans.forEach(ban -> {
+                        if (ban.getUser().getIdLong() == sanction.userId)
+                            guild.unban(ban.getUser()).queue();
+                    });
+                });
             }
             modLog.removeSanction(sanction);
         });

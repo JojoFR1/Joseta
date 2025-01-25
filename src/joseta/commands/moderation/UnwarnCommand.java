@@ -13,15 +13,15 @@ public class UnwarnCommand extends ModCommand {
         super("unwarn", "Retire l'avertissement d'un membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
             new OptionData(OptionType.USER, "user", "Le membre a qui retirer l'avertissment.", true),
-            new OptionData(OptionType.STRING, "id", "L'identifiant du warn.")
+            new OptionData(OptionType.STRING, "id", "L'identifiant du warn.").setAutoComplete(true)
         );        
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {   
-        // TODO need a warn ID ? or latest
+        event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
         
-        event.reply("Unwarn- " + member).queue();
+        // TODO need a warn ID ? or latest
     }    
 
 }

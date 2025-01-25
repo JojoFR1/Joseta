@@ -12,14 +12,16 @@ public class UnbanCommand extends ModCommand {
     public UnbanCommand() {
         super("unban", "Débanir un membre.",
             DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS),
-            new OptionData(OptionType.USER, "user", "L'utilisateur a débanir.", true)
+            new OptionData(OptionType.STRING, "user", "L'utilisateur a débanir.", true).setAutoComplete(true)
         );
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        event.reply("Unban- " + member).queue();
+        event.getGuild().unban(member).queue();
+        
+        event.reply("Le membre a bien été débani.").setEphemeral(true).queue();
 
-        // event.getGuild().unban(member).queue();
+        //TODO remove sanction
     }
 }

@@ -20,28 +20,36 @@ We had the choices between JavaScript, Python or Java. Due to personnal preferen
 
 The bot currently has those features available:
 
-- An **Image based welcome** for new memvers (not configurable)
-- A **Leave Message** for quitting members (not configurable)
-- **Rules** + an **acceptation system** (not configurable)
-- An **Auto Response** for a common question (not configurable)
+- Multiple commands:
+  - For moderation:
+      - A `/(un)warn` command to (un)warn a member.
+      - A `/(un)mute` command to (un)mute a member.
+      - A `/kick` command to kick a member.
+      - A `/(un)ban` command to (un)ban a member.
+      - A `/modlog` command to acces a member moderation history.
+- Multiple features:
+  - An **Image based Welcome** for new members (not *yet* configurable)
+  - A **Leave Message** for quitting members (not *yet* configurable)
+  - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
+  - An **Auto Response** for a common question (not *yet* configurable)
 
 ## Plans
 
 Our current plans for the future are the following:
 
-- Add moderations commands
-  - A `/(un)warn` command to (un)warn a member.
-  - A `/(un)mute` command to (un)mute a member.
-  - A `/kick` command to kick a member.
-  - A `/(un)ban` command to (un)ban a member.
-  - A `/modlog` command to acces a member moderation history.
+- Moderation commands:
   - Support User IDs for `member` argument.
-  - Make the timed warn and ban actually expire
+  - Make 'un-' commands actually work (remove sanction)
+  - Make it able to use a user id
 
 - Add a `/config` command
   - Allow to change *some* variable without having to rebuild and restart
   - Allow to un-hardcode values
   - Allow to be Runnable outside of our server
+
+- Support multi-server:
+  - Mainly to make it useable outside of our server
+  - Make it actually useable for others
 
 ## How to build
 

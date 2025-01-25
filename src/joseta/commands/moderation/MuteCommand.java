@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
+import java.util.concurrent.*;
+
 public class MuteCommand extends ModCommand {
 
     public MuteCommand() {
@@ -20,10 +22,10 @@ public class MuteCommand extends ModCommand {
     
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        event.reply("Mute- " + member + "\n" + reason + "\n" + time).queue();
+        member.timeoutFor(time, TimeUnit.SECONDS).reason(reason).queue();
 
-        // member.timeoutFor(time, TimeUnit.SECONDS).reason(reason).queue();
+        event.reply("Le membre a bien été mute").setEphemeral(true).queue();
 
-        modLog.log(SanctionType.MUTE, member.getIdLong(), event.getUser().getIdLong(), reason, time);
+        modLog.log(SanctionType.MUTE, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
     }
 }

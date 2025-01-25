@@ -21,7 +21,7 @@ public class WarnCommand extends ModCommand {
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        modLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), reason, time);
+        modLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
         
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
     }
@@ -29,6 +29,6 @@ public class WarnCommand extends ModCommand {
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
         super.getArgs(event);
-        time = Strings.parseTime(event.getOption("time") != null ? event.getOption("time").getAsString() : "inf");
+        time = Strings.parseTime(event.getOption("time", "inf", OptionMapping::getAsString));
     }
 }

@@ -21,10 +21,10 @@ public class AdminCommand extends Command {
     private TextChannel channel;
     
     public AdminCommand() {
-        super("admin", "WIP",
+        super("admin", "Commande administratives.",
             DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR),
-            new SubcommandData("send-rules", "Envoie les règles dans un salon")
-                .addOption(OptionType.CHANNEL, "channel", "WIP channel to send to.", true)
+            new SubcommandData("send-rules", "Envoie les règles dans un salon.")
+                .addOption(OptionType.CHANNEL, "channel", "Le salon où envoyez les règles.", true)
             
         );
     }
@@ -74,6 +74,11 @@ public class AdminCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        channel = event.getOption("channel").getAsChannel().asTextChannel();
+        try {
+            channel = event.getOption("channel").getAsChannel().asTextChannel();
+        } catch (IllegalStateException e) {
+            event.reply("Le salon n'est pas un salon de texte !").queue();
+            return;
+        }
     }
 }

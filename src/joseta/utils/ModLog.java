@@ -47,13 +47,15 @@ public final class ModLog {
         
         String usersTable = "CREATE TABLE users ("
                           + "id BIGINT PRIMARY KEY,"
+                          + "guildId BIGINT,"
                           + "totalSanctions INT"
                           + ")";
 
         String sanctionsTable = "CREATE TABLE sanctions (" 
                               + "id INT PRIMARY KEY," 
-                              + "userId BIGINT," // FOREIGN KEY REFERENCES users(userId)
+                              + "userId BIGINT FOREIGN KEY REFERENCES users(userId),"
                               + "moderatorId BIGINT,"
+                              + "guildId BIGINT,"
                               + "reason TEXT,"
                               + "at TEXT,"
                               + "for BIGINT,"
@@ -73,50 +75,53 @@ public final class ModLog {
         }
     }
 
-    private void addNewUser(long userId) {
+    private void addNewUser(long userId, long  guildId) {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users "
-                                                           + "(id, totalSanctions)"
-                                                           + "VALUES (?, 0)"))
+                                                           + "(id, guildId, totalSanctions)"
+                                                           + "VALUES (?, ?, 0)"))
         {
             pstmt.setLong(1, userId);
+            pstmt.setLong(2, guildId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             Vars.logger.error("Could not create a new user.", e);
         }
     }
 
-    public void log(int sanctionTypeId, long userId, long moderatorId, String reason, long time) {
+    public void log(int sanctionTypeId, long userId, long moderatorId, long guildId, String reason, long time) {
         String sanctionType = sanctionTypes[sanctionTypeId/10 - 1];
         
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO sanctions "
-                                                           + "(id, userId, moderatorId, reason, at, for, expired) "
-                                                           + "VALUES (?, ?, ?, ?, ?, ?, FALSE)"))
+                                                           + "(id, userId, moderatorId, guildId, reason, at, for, expired) "
+                                                           + "VALUES (?, ?, ?, ?, ?, ?, ?, FALSE)"))
         {
             int lastSanctionId = getLastSanctionId(sanctionType);
             pstmt.setInt(1, Integer.parseInt(Integer.toString(sanctionTypeId) + (lastSanctionId + 1)));
             pstmt.setLong(2, userId);
             pstmt.setLong(3, moderatorId);
-            pstmt.setString(4, reason);
-            pstmt.setString(5, Instant.now().toString());
-            pstmt.setLong(6, time);
+            pstmt.setLong(4, guildId);
+            pstmt.setString(5, reason);
+            pstmt.setString(6, Instant.now().toString());
+            pstmt.setLong(7, time);
 
             pstmt.executeUpdate();
             updateLastSanctionId(lastSanctionId + 1, sanctionType);
-            updateUserTotalSanctions(userId);
+            updateUserTotalSanctions(userId, guildId);
         } catch (SQLException e) {
             Vars.logger.error("Could not log the new sanction.", e);
         }
     }
 
-    public Seq<Sanction> getUserLog(long userId, int page, int maxPerPage) {
+    public Seq<Sanction> getUserLog(long userId, long guildId, int page, int maxPerPage) {
         Seq<Sanction> sanctions = new Seq<>();
 
-        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ?")) {
+        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ? AND guildId = ?")) {
             pstmt.setLong(1, userId);
+            pstmt.setLong(2, guildId);
 
             int i = -1;
             int startIndex = (page - 1) * maxPerPage;
-            int endIndex = Math.min(startIndex + maxPerPage, getUserTotalSanctions(userId));
+            int endIndex = Math.min(startIndex + maxPerPage, getUserTotalSanctions(userId, guildId));
 
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -127,6 +132,7 @@ public final class ModLog {
                     rs.getLong("id"),
                     rs.getLong("userId"),
                     rs.getLong("moderatorId"),
+                    rs.getLong("guildId"),
                     rs.getString("reason"),
                     Instant.parse(rs.getString("at")),
                     rs.getLong("for")
@@ -152,6 +158,7 @@ public final class ModLog {
                         rs.getLong("id"),
                         rs.getLong("userId"),
                         rs.getLong("moderatorId"),
+                        rs.getLong("guildId"),
                         rs.getString("reason"),
                         at,
                         forTime
@@ -166,8 +173,9 @@ public final class ModLog {
     }
 
     public void removeSanction(Sanction sanction) {
-        try (PreparedStatement pstmt = conn.prepareStatement("UPDATE sanctions SET expired = TRUE WHERE id = ?")) {
+        try (PreparedStatement pstmt = conn.prepareStatement("UPDATE sanctions SET expired = TRUE WHERE id = ? AND guildId = ?")) {
             pstmt.setLong(1, sanction.id);
+            pstmt.setLong(2, sanction.guildId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             Vars.logger.error("Could not remove the sanction.", e);
@@ -178,14 +186,16 @@ public final class ModLog {
         public final long id;
         public final long userId;
         public final long moderatorId;
+        public final long guildId;
         public final String reason;
         public final Instant at;
         public final long time; 
 
-        public Sanction(long id, long userId, long moderatorId, String reason, Instant at, long time) {
+        public Sanction(long id, long userId, long moderatorId, long guildId, String reason, Instant at, long time) {
             this.id = id;
             this.userId = userId;
             this.moderatorId = moderatorId;
+            this.guildId = guildId;
             this.reason = reason;
             this.at = at;
             this.time = time;
@@ -216,14 +226,15 @@ public final class ModLog {
         pstmt.executeUpdate();
     }
 
-    public int getUserTotalSanctions(long userId) {
+    public int getUserTotalSanctions(long userId, long guildId) {
         int total = 0;
-        try (PreparedStatement pstmt = conn.prepareStatement("SELECT totalSanctions FROM users WHERE id = ?")) {
+        try (PreparedStatement pstmt = conn.prepareStatement("SELECT totalSanctions FROM users WHERE id = ? AND guildId = ?")) {
             pstmt.setLong(1, userId);
+            pstmt.setLong(2, guildId);
 
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) total = rs.getInt("totalSanctions");
-            else addNewUser(userId); // The user doesn't exist so add it, total will be 0 by default.
+            else addNewUser(userId, guildId); // The user doesn't exist so add it, total will be 0 by default.
         } catch (SQLException e) {
             Vars.logger.error("Could not get user total sanctions.", e);
         }
@@ -231,10 +242,11 @@ public final class ModLog {
         return total;
     }
 
-    private void updateUserTotalSanctions(long userId) throws SQLException {
-        PreparedStatement pstmt = conn.prepareStatement("UPDATE users SET totalSanctions = ? WHERE id = ?");
-        pstmt.setInt(1, getUserTotalSanctions(userId) + 1);
+    private void updateUserTotalSanctions(long userId, long guildId) throws SQLException {
+        PreparedStatement pstmt = conn.prepareStatement("UPDATE users SET totalSanctions = ? WHERE id = ? AND guildId = ?");
+        pstmt.setInt(1, getUserTotalSanctions(userId, guildId) + 1); // It will create a new user if it doesn't exist.
         pstmt.setLong(2, userId);
+        pstmt.setLong(3, guildId);
         pstmt.executeUpdate();
     }
 }
