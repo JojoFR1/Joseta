@@ -24,10 +24,8 @@ This bot is multipurpose and isn't centered around one thing, any feature added 
 - A **Goodbye Message** for leaving members (not *yet* configurable)
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
-
-
 - | Commands    | Use                                |
-  |:------------|:----------------------------------:|
+  |:------------|:-----------------------------------|
   | `/admin`    | Only used to send rules as of now. |
   | `/(un)warn` | (Un)warn a member.                 |
   | `/(un)mute` | (Un)mute a member.                 |
@@ -43,7 +41,7 @@ Our current plans for the future are the following:
   - Support User IDs for `member` argument.
   - Make 'un-' commands actually work (remove sanction)
   - Make it able to use a user id
-  - Better message responses (sucess & failure)
+  - Better message responses (sucess & failure) + logging to console
 
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart
