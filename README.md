@@ -28,11 +28,10 @@ The bot currently has those features available:
       - A `/kick` command to kick a member.
       - A `/(un)ban` command to (un)ban a member.
       - A `/modlog` command to acces a member moderation history.
-- Multiple features:
   - An **Image based Welcome** for new members (not *yet* configurable)
-  - A **Leave Message** for quitting members (not *yet* configurable)
+  - A **Goodbye Message** for leaving members (not *yet* configurable)
   - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
-  - An **Auto Response** for a common question (not *yet* configurable)
+  - An **Auto Response** for common questions (not *yet* configurable)
 
 ## Plans
 
@@ -42,12 +41,12 @@ Our current plans for the future are the following:
   - Support User IDs for `member` argument.
   - Make 'un-' commands actually work (remove sanction)
   - Make it able to use a user id
-  - Better message response (sucess & failed)
+  - Better message responses (sucess & failure)
 
 - Add a `/config` command
-  - Allow to change *some* variable without having to rebuild and restart
+  - Allow to change *some* variables without having to rebuild and restart
   - Allow to un-hardcode values
-  - Allow to be Runnable outside of our server
+  - Allow to be runnable outside of our server
 
 - Support multi-server:
   - Mainly to make it useable outside of our server
@@ -55,7 +54,7 @@ Our current plans for the future are the following:
 
 ## How to build
 
-You will need at the minimum **JDK 17** or later to be able to build this project.
+Building requires **JDK 17** or later.
 
 At the root of the project, use the following command:
 `./gradlew shadowJar`
@@ -64,7 +63,7 @@ Once the build process is finished, the output will be present in `./build/libs/
 
 ## How to run
 
-You will first need to follow the instruction in the `secret_template.cfg` file before being able to run the bot.
+You will first need to follow the instructions in the `secret_template.cfg` file before being able to run the bot.
 
 After this, starting the bot is very easy. You just need to execute this command: `java -jar build/libs/JosetaBot.jar`
 
