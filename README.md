@@ -14,7 +14,7 @@ This bot is not *yet* fully usable for personnal use due to multiple hardcoded v
 
 ### Why Java and JDA?
 
-We had the choices between JavaScript, Python or Java. Due to personnal preferences, we chose Java and JDA was a library we already had experience in.
+We could have used JavaScript or Python. But due to personal preferences, we have chosen Java and JDA, as it was a library we already had experience with.
 
 ## Features
 
