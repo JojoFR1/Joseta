@@ -18,13 +18,14 @@ We could have used JavaScript or Python. But due to personal preferences, we hav
 
 ## Features
 
-This bot is multipurpose and isn't centered around one thing, any feature added (removed or changed) are based off our needs. Here's a list of all the features this bot has:
+This bot is multipurpose and isn't centered around one thing, any features added (removed or changed) are based on our needs. Here's a list of all the features this bot has:
 
 - An **Image based Welcome** for new members (not *yet* configurable)
 - A **Goodbye Message** for leaving members (not *yet* configurable)
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
-- | Commands    | Use                                |
+- Multiple commands:
+| Commands    | Use                                |
   |:------------|:-----------------------------------|
   | `/admin`    | Only used to send rules as of now. |
   | `/(un)warn` | (Un)warn a member.                 |
