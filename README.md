@@ -18,20 +18,22 @@ We could have used JavaScript or Python. But due to personal preferences, we hav
 
 ## Features
 
-The bot currently has those features available:
+This bot is multipurpose and isn't centered around one thing, any feature added (removed or changed) are based off our needs. Here's a list of all the features this bot has:
 
-- Multiple commands:
-  - A `/admin`, only used to send rules as of now.
-  - For moderation:
-      - A `/(un)warn` command to (un)warn a member.
-      - A `/(un)mute` command to (un)mute a member.
-      - A `/kick` command to kick a member.
-      - A `/(un)ban` command to (un)ban a member.
-      - A `/modlog` command to acces a member moderation history.
-  - An **Image based Welcome** for new members (not *yet* configurable)
-  - A **Goodbye Message** for leaving members (not *yet* configurable)
-  - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
-  - An **Auto Response** for common questions (not *yet* configurable)
+- An **Image based Welcome** for new members (not *yet* configurable)
+- A **Goodbye Message** for leaving members (not *yet* configurable)
+- **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
+- An **Auto Response** for common questions (not *yet* configurable)
+
+
+- | Commands    | Use                                |
+  |:------------|:----------------------------------:|
+  | `/admin`    | Only used to send rules as of now. |
+  | `/(un)warn` | (Un)warn a member.                 |
+  | `/(un)mute` | (Un)mute a member.                 |
+  | `/kick`     | Kick a member.                     |
+  | `/(un)ban`  | (Un)ban a member.                  |
+  | `/modlog`   | Acces a member moderation history. |
 
 ## Plans
 
