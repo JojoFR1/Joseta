@@ -8,22 +8,9 @@ import java.sql.*;
 import java.time.*;
 
 public final class ModLog {
-    private static ModLog instance;
-
     private static final String urlDb = "jdbc:sqlite:resources/modlog.db";
     private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
     private static Connection conn;
-
-    private ModLog() {
-        initialize();
-    }
-
-    public static ModLog getInstance() {
-        if (instance == null)
-            instance = new ModLog();
-
-        return instance;
-    }
 
     public static void initialize() {
         File dbFile = new File("resources/modlog.db");
@@ -147,6 +134,34 @@ public final class ModLog {
         }
 
         return sanctions;
+    }
+
+    public static Sanction getLatestSanction(long userId, long guildId, int sanctionTypeID) {
+        Sanction sanction = null;
+
+        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ? AND guildId = ? AND id LIKE ? ORDER BY id DESC LIMIT 1")) {
+            pstmt.setLong(1, userId);
+            pstmt.setLong(2, guildId);
+            pstmt.setString(3, sanctionTypeID + "%");
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                sanction = new Sanction(
+                    rs.getLong("id"),
+                    rs.getLong("userId"),
+                    rs.getLong("moderatorId"),
+                    rs.getLong("guildId"),
+                    rs.getString("reason"),
+                    Instant.parse(rs.getString("at")),
+                    rs.getLong("for")
+                );
+
+            }
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not get the latest sanction.", e);
+        }
+
+        return sanction;
     }
 
     public static Seq<Sanction> getExpiredSanctions() {
