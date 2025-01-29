@@ -116,7 +116,7 @@ public final class ModLog {
         }
     }
 
-    public Seq<Sanction> getUserLog(long userId, long guildId, int page, int maxPerPage) {
+    public static Seq<Sanction> getUserLog(long userId, long guildId, int page, int maxPerPage) {
         Seq<Sanction> sanctions = new Seq<>();
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ? AND guildId = ?")) {

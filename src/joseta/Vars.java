@@ -1,7 +1,5 @@
 package joseta;
 
-import org.slf4j.*;
-
 import java.awt.image.*;
 import java.io.*;
 import java.nio.file.*;

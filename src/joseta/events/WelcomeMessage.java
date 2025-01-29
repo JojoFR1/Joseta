@@ -23,7 +23,7 @@ public class WelcomeMessage extends ListenerAdapter {
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
         } catch (Exception e) {
-            Vars.logger.error("WelcomeImage - Could not load the font file. Defaulted to 'Arial'", e);
+            JosetaBot.logger.error("WelcomeImage - Could not load the font file. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);
         }
     }
@@ -51,9 +51,9 @@ public class WelcomeMessage extends ListenerAdapter {
             
             Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));    
         } catch (MalformedURLException e) {
-            Vars.logger.error("WelcomeImage - An error occured with the user avatar URL.", e);
+            JosetaBot.logger.error("WelcomeImage - An error occured with the user avatar URL.", e);
         } catch (IOException e) {
-            Vars.logger.error("WelcomeImage - Could not read/write the base/generated image.", e);
+            JosetaBot.logger.error("WelcomeImage - Could not read/write the base/generated image.", e);
         }
     }
 

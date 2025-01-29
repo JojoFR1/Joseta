@@ -62,7 +62,7 @@ public class AdminCommand extends Command {
                 } else description += line + "\n"; // Simple line to add.
             }
         } catch (IOException e) {
-            Vars.logger.error("An error occured during rules embed building.", e);
+            JosetaBot.logger.error("An error occured during rules embed building.", e);
             return;
         }
         
