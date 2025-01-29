@@ -18,7 +18,7 @@ repositories{
 }
 
 dependencies{
-    implementation("net.dv8tion:JDA:5.2.2") {
+    implementation("net.dv8tion:JDA:5.2.3") {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java`
       exclude module: 'opus-java'
     }

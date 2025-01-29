@@ -25,7 +25,7 @@ This bot is multipurpose and isn't centered around one thing, any features added
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
 - Multiple commands:
-| Commands    | Use                                |
+  | Commands    | Use                                |
   |:------------|:-----------------------------------|
   | `/admin`    | Only used to send rules as of now. |
   | `/(un)warn` | (Un)warn a member.                 |
