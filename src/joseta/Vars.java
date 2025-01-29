@@ -10,7 +10,6 @@ import java.util.*;
 import javax.imageio.*;
 
 public class Vars {
-    public static final Logger logger = LoggerFactory.getLogger(JosetaBot.class);
     public static String token = null;
     public static long testGuildId = 0;
     public static String[] ownersId; // Not a long because it requires a loop
@@ -23,7 +22,7 @@ public class Vars {
         try (FileInputStream fi = new FileInputStream("secret.cfg")) {
             secret.load(fi);
         } catch (IOException e) {
-            logger.error("Could not open the secret config file.", e);
+            JosetaBot.logger.error("Could not open the secret config file.", e);
             System.exit(1);
         }
 
@@ -38,7 +37,7 @@ public class Vars {
         try {
             welcomeImage = ImageIO.read(cachedImagePath.toFile());
         } catch (IOException e) {
-            Vars.logger.error("Cache - An error occured while reading the base welcome image.", e);
+            JosetaBot.logger.error("Cache - An error occured while reading the base welcome image.", e);
             System.exit(1);
         }
     }
