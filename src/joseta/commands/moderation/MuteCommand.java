@@ -1,6 +1,8 @@
 package joseta.commands.moderation;
 
+import joseta.*;
 import joseta.commands.*;
+import joseta.utils.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -22,10 +24,16 @@ public class MuteCommand extends ModCommand {
     
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        member.timeoutFor(time, TimeUnit.SECONDS).reason(reason).queue();
+        member.timeoutFor(time, TimeUnit.SECONDS).reason(reason).queue(
+            success -> {
+                event.reply("Le membre a bien été mute").setEphemeral(true).queue();
 
-        event.reply("Le membre a bien été mute").setEphemeral(true).queue();
-
-        modLog.log(SanctionType.MUTE, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+                ModLog.log(SanctionType.MUTE, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+            },
+            failure -> {
+                event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();
+                JosetaBot.logger.error("Error while executing a command ('mute').", failure);
+            }
+        );
     }
 }

@@ -10,11 +10,22 @@ import java.time.*;
 public final class ModLog {
     private static ModLog instance;
 
-    private final String urlDb = "jdbc:sqlite:resources/modlog.db";
-    private final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
-    private Connection conn;
+    private static final String urlDb = "jdbc:sqlite:resources/modlog.db";
+    private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
+    private static Connection conn;
 
     private ModLog() {
+        initialize();
+    }
+
+    public static ModLog getInstance() {
+        if (instance == null)
+            instance = new ModLog();
+
+        return instance;
+    }
+
+    public static void initialize() {
         File dbFile = new File("resources/modlog.db");
         try {
             if (!dbFile.exists()) {
@@ -26,20 +37,13 @@ public final class ModLog {
             } else conn = DriverManager.getConnection(urlDb);
             
         } catch (SQLException e) {
-            Vars.logger.error("Could not initialize the SQL table.", e);
+            JosetaBot.logger.error("Could not initialize the SQL table.", e);
         } catch (IOException e) {
-            Vars.logger.error("Could not create the 'modlog.db' file.", e);
+            JosetaBot.logger.error("Could not create the 'modlog.db' file.", e);
         }
     }
 
-    public static ModLog getInstance() {
-        if (instance == null)
-            instance = new ModLog();
-
-        return instance;
-    }
-
-    private void initializeTable() throws SQLException {
+    private static void initializeTable() throws SQLException {
         String lastValuesTable = "CREATE TABLE lastValues ("
                                + "name TEXT PRIMARY KEY,"
                                + "value INT DEFAULT -1"
@@ -75,7 +79,7 @@ public final class ModLog {
         }
     }
 
-    private void addNewUser(long userId, long  guildId) {
+    private static void addNewUser(long userId, long  guildId) {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users "
                                                            + "(id, guildId, totalSanctions)"
                                                            + "VALUES (?, ?, 0)"))
@@ -84,11 +88,11 @@ public final class ModLog {
             pstmt.setLong(2, guildId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            Vars.logger.error("Could not create a new user.", e);
+            JosetaBot.logger.error("Could not create a new user.", e);
         }
     }
 
-    public void log(int sanctionTypeId, long userId, long moderatorId, long guildId, String reason, long time) {
+    public static void log(int sanctionTypeId, long userId, long moderatorId, long guildId, String reason, long time) {
         String sanctionType = sanctionTypes[sanctionTypeId/10 - 1];
         
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO sanctions "
@@ -108,7 +112,7 @@ public final class ModLog {
             updateLastSanctionId(lastSanctionId + 1, sanctionType);
             updateUserTotalSanctions(userId, guildId);
         } catch (SQLException e) {
-            Vars.logger.error("Could not log the new sanction.", e);
+            JosetaBot.logger.error("Could not log the new sanction.", e);
         }
     }
 
@@ -139,13 +143,13 @@ public final class ModLog {
                 ));
             }
         } catch (SQLException e) {
-            Vars.logger.error("Could not get user sanction log.", e);;
+            JosetaBot.logger.error("Could not get user sanction log.", e);;
         }
 
         return sanctions;
     }
 
-    public Seq<Sanction> getExpiredSanctions() {
+    public static Seq<Sanction> getExpiredSanctions() {
         Seq<Sanction> sanctions = new Seq<>();
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE for >= 1 AND expired != TRUE")) {
@@ -166,23 +170,23 @@ public final class ModLog {
                 }
             }
         } catch (SQLException e) {
-            Vars.logger.error("Could not get expired sanctions.", e);
+            JosetaBot.logger.error("Could not get expired sanctions.", e);
         }
 
         return sanctions;
     }
 
-    public void removeSanction(Sanction sanction) {
+    public static void removeSanction(Sanction sanction) {
         try (PreparedStatement pstmt = conn.prepareStatement("UPDATE sanctions SET expired = TRUE WHERE id = ? AND guildId = ?")) {
             pstmt.setLong(1, sanction.id);
             pstmt.setLong(2, sanction.guildId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            Vars.logger.error("Could not remove the sanction.", e);
+            JosetaBot.logger.error("Could not remove the sanction.", e);
         }
     }
 
-    public class Sanction {
+    public static class Sanction {
         public final long id;
         public final long userId;
         public final long moderatorId;
@@ -210,7 +214,7 @@ public final class ModLog {
         }
     } 
 
-    private int getLastSanctionId(String sanctionType) throws SQLException {
+    private static int getLastSanctionId(String sanctionType) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement("SELECT value FROM lastValues WHERE name = ?");
         pstmt.setString(1, sanctionType);
 
@@ -219,14 +223,14 @@ public final class ModLog {
         else return -1;
     }
 
-    private void updateLastSanctionId(int newSanctionId, String sanctionType) throws SQLException {
+    private static void updateLastSanctionId(int newSanctionId, String sanctionType) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement("UPDATE lastValues SET value = ? WHERE name = ?");
         pstmt.setInt(1, newSanctionId);
         pstmt.setString(2, sanctionType);
         pstmt.executeUpdate();
     }
 
-    public int getUserTotalSanctions(long userId, long guildId) {
+    public static int getUserTotalSanctions(long userId, long guildId) {
         int total = 0;
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT totalSanctions FROM users WHERE id = ? AND guildId = ?")) {
             pstmt.setLong(1, userId);
@@ -236,13 +240,13 @@ public final class ModLog {
             if (rs.next()) total = rs.getInt("totalSanctions");
             else addNewUser(userId, guildId); // The user doesn't exist so add it, total will be 0 by default.
         } catch (SQLException e) {
-            Vars.logger.error("Could not get user total sanctions.", e);
+            JosetaBot.logger.error("Could not get user total sanctions.", e);
         }
 
         return total;
     }
 
-    private void updateUserTotalSanctions(long userId, long guildId) throws SQLException {
+    private static void updateUserTotalSanctions(long userId, long guildId) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement("UPDATE users SET totalSanctions = ? WHERE id = ? AND guildId = ?");
         pstmt.setInt(1, getUserTotalSanctions(userId, guildId) + 1); // It will create a new user if it doesn't exist.
         pstmt.setLong(2, userId);

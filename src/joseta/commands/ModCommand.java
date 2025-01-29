@@ -8,11 +8,11 @@ import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
 public abstract class ModCommand extends Command {
-    protected static final ModLog modLog = ModLog.getInstance();
     protected User user;
     protected Member member;
     protected String reason;
     protected long time;
+    protected String defaultTime = "5m";
     
     protected ModCommand(String name, String description) {
         super(name, description, DefaultMemberPermissions.ENABLED);
@@ -38,7 +38,7 @@ public abstract class ModCommand extends Command {
         user =   event.getOption("user", event.getUser(), OptionMapping::getAsUser);
         member = event.getOption("user", event.getMember(), OptionMapping::getAsMember);
         reason = event.getOption("reason", "Raison par défaut", OptionMapping::getAsString);
-        time = Strings.parseTime(event.getOption("time", "5m", OptionMapping::getAsString));
+        time = Strings.parseTime(event.getOption("time", defaultTime, OptionMapping::getAsString));
     }
     
     @Override
@@ -61,7 +61,7 @@ public abstract class ModCommand extends Command {
         return super.check(event);
     }
 
-    protected final class SanctionType {
+    public final class SanctionType {
         public static final int WARN = 10;
         public static final int MUTE = 20;
         public static final int KICK = 30;

@@ -17,18 +17,14 @@ public class WarnCommand extends ModCommand {
             new OptionData(OptionType.STRING, "reason", "La raison de l'avertissement."),
             new OptionData(OptionType.STRING, "time", "La durée avant expiration de l'avertissement (s, m, h, d, w).")
         );
+        defaultTime = "inf";
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        modLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+        //TODO faillure?
+        ModLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
         
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
-    }
-
-    @Override
-    protected void getArgs(SlashCommandInteractionEvent event) {
-        super.getArgs(event);
-        time = Strings.parseTime(event.getOption("time", "inf", OptionMapping::getAsString));
     }
 }

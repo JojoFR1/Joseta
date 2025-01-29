@@ -1,5 +1,6 @@
 package joseta.commands.moderation;
 
+import joseta.*;
 import joseta.commands.*;
 
 import net.dv8tion.jda.api.*;
@@ -18,9 +19,18 @@ public class UnmuteCommand extends ModCommand {
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {        
-        member.removeTimeout().queue();
+        member.removeTimeout().queue(
+            success -> {
+                event.reply("Le membre a bien été unmute.").setEphemeral(true).queue();
 
-        event.reply("Le membre a bien été unmute.").setEphemeral(true).queue();
+                //TODO remove sanction
+            },
+            failure -> {
+                event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();
+                JosetaBot.logger.error("Error while executing a command ('unmute').", failure);
+            }
+        );
+
     }
 
     @Override

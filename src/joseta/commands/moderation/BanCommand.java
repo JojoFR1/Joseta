@@ -1,5 +1,6 @@
 package joseta.commands.moderation;
 
+import joseta.*;
 import joseta.commands.*;
 import joseta.utils.*;
 
@@ -21,21 +22,27 @@ public class BanCommand extends ModCommand {
             new OptionData(OptionType.STRING, "time", "La durée du bannisement (s, m, h, d, w)"),
             new OptionData(OptionType.STRING, "clearTime", "La période des messages a supprime du membre (s, m, h, d)")
         );
+        defaultTime = "inf";
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        member.ban(clearTime, TimeUnit.SECONDS).reason(reason).queue();
+        member.ban(clearTime, TimeUnit.SECONDS).reason(reason).queue(
+            success -> {
+                event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
 
-        event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
-
-        modLog.log(SanctionType.BAN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+                ModLog.log(SanctionType.BAN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);        
+            },
+            failure -> {
+                event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();
+                JosetaBot.logger.error("Error while executing a command ('ban').", failure);
+            }
+        );
     }
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
         super.getArgs(event);
-        time = Strings.parseTime(event.getOption("time", "inf", OptionMapping::getAsString));
         clearTime = (int) Strings.parseTime(event.getOption("clearTime", "1h", OptionMapping::getAsString));
     }
 }

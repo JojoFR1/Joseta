@@ -19,6 +19,8 @@ public class UnwarnCommand extends ModCommand {
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {   
+        // TODO remove sanction
+
         event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
         
         // TODO need a warn ID ? or latest
