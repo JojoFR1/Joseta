@@ -136,13 +136,13 @@ public final class ModLog {
         return sanctions;
     }
 
-    public static Sanction getLatestSanction(long userId, long guildId, int sanctionTypeID) {
+    public static Sanction getLatestSanction(long userId, long guildId, int sanctionTypeId) {
         Sanction sanction = null;
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ? AND guildId = ? AND id LIKE ? ORDER BY id DESC LIMIT 1")) {
             pstmt.setLong(1, userId);
             pstmt.setLong(2, guildId);
-            pstmt.setString(3, sanctionTypeID + "%");
+            pstmt.setString(3, sanctionTypeId + "%");
 
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -159,6 +159,32 @@ public final class ModLog {
             }
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not get the latest sanction.", e);
+        }
+
+        return sanction;
+    }
+
+    public static Sanction getSanctionById(int sanctionId, int sanctionTypeId) {
+        Sanction sanction = null;
+
+        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE id = ?")) {
+            pstmt.setInt(1, Integer.parseInt(sanctionTypeId + "" + sanctionId));
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                sanction = new Sanction(
+                    rs.getLong("id"),
+                    rs.getLong("userId"),
+                    rs.getLong("moderatorId"),
+                    rs.getLong("guildId"),
+                    rs.getString("reason"),
+                    Instant.parse(rs.getString("at")),
+                    rs.getLong("for")
+                );
+
+            }
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not get the sanction by ID.", e);
         }
 
         return sanction;
