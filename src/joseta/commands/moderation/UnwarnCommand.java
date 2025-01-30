@@ -15,7 +15,7 @@ public class UnwarnCommand extends ModCommand {
     public UnwarnCommand() {
         super("unwarn", "Retire l'avertissement d'un membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.STRING, "user", "Le membre a unwarn.", true),
+            new OptionData(OptionType.USER, "user", "Le membre a unwarn.", true),
             new OptionData(OptionType.STRING, "warn_id", "L'identifiant du warn. Plus récent par défaut.", false, true)
         );        
     }

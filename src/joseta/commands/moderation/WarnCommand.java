@@ -13,7 +13,7 @@ public class WarnCommand extends ModCommand {
     public WarnCommand() {
         super("warn", "Avertir un membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.STRING, "user", "Le membre a avertir.", true),
+            new OptionData(OptionType.USER, "user", "Le membre a avertir.", true),
             new OptionData(OptionType.STRING, "reason", "La raison de l'avertissement."),
             new OptionData(OptionType.STRING, "time", "La durée avant expiration de l'avertissement (s, m, h, d, w).")
         );
