@@ -12,7 +12,7 @@ public class UnwarnCommand extends ModCommand {
     public UnwarnCommand() {
         super("unwarn", "Retire l'avertissement d'un membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre a qui retirer l'avertissment.", true),
+            new OptionData(OptionType.STRING, "user", "Le membre a qui retirer l'avertissment.", true),
             new OptionData(OptionType.STRING, "id", "L'identifiant du warn.").setAutoComplete(true)
         );        
     }

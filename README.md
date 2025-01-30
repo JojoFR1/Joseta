@@ -36,13 +36,16 @@ This bot is multipurpose and isn't centered around one thing, any features added
 
 ## Plans
 
-Our current plans for the future are the following:
+Our current plans for the future are the following, in the order in which they will be made:
 
 - Moderation commands:
   - Support User IDs for `member` argument.
   - Make 'un-' commands actually work (remove sanction)
-  - Make it able to use a user id
-  - Better message responses (sucess & failure) + logging to console
+  
+- Add a Logging system:
+  - Send messages giving info on user actions (modified, deleted, ...)
+  - Send messages giving info on moderation actions (kick, ban, ...)
+  - Send messages giving info on administration actions (created, modifed channles/roles, ...)
 
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart

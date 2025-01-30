@@ -14,7 +14,7 @@ public class KickCommand extends ModCommand {
     public KickCommand() {
         super("kick", "Exclue un membre.",
             DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre a exclure.", true),
+            new OptionData(OptionType.STRING, "user", "Le membre a exclure.", true),
             new OptionData(OptionType.STRING, "reason", "La raison de l'exclusion.")
         );
     }

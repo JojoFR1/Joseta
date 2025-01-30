@@ -35,14 +35,22 @@ public abstract class ModCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        user =   event.getOption("user", event.getUser(), OptionMapping::getAsUser);
-        member = event.getOption("user", event.getMember(), OptionMapping::getAsMember);
+        String userInput = event.getOption("user", event.getUser().getId(), OptionMapping::getAsString);
+        String userId = userInput.replaceAll("[<@!>]", "");
+        member = event.getGuild().getMemberById(userId);
+        user = member.getUser();
+
         reason = event.getOption("reason", "Raison par défaut", OptionMapping::getAsString);
         time = Strings.parseTime(event.getOption("time", defaultTime, OptionMapping::getAsString));
     }
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
+        if (user == null) {
+            event.reply("Ce membre n'existe pas. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
+            return false;
+        }
+
         if (event.getMember().equals(member)) {
             event.reply("Ce membre est vous-même, vous ne pouvez pas vous auto-sanctionner").setEphemeral(true).queue();
             return false;

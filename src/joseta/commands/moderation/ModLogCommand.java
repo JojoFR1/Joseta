@@ -26,7 +26,7 @@ public class ModLogCommand extends ModCommand {
     public ModLogCommand() {
         super("modlog", "Obtient l'historique de modérations d'un membre",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre pour qui obtenir l'historique.")
+            new OptionData(OptionType.STRING, "user", "Le membre pour qui obtenir l'historique.")
         );
     }
 
