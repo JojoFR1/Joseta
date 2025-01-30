@@ -7,16 +7,12 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
-import java.util.regex.*;
-
 public abstract class ModCommand extends Command {
     protected User user;
     protected Member member;
     protected String reason;
     protected long time;
     protected String defaultTime = "5m";
-
-    private final Pattern numPattern = Pattern.compile("\\d+");
     
     protected ModCommand(String name, String description) {
         super(name, description, DefaultMemberPermissions.ENABLED);
@@ -39,20 +35,15 @@ public abstract class ModCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        String userInput = event.getOption("user", event.getUser().getId(), OptionMapping::getAsString);
-        String userId = userInput.replaceAll("[<@!>]", "");
-        if (!numPattern.matcher(userId).matches()) return; // An ID can only be numbers.
-
-        user = event.getJDA().getUserById(userId);
-        if (user != null) member = event.getGuild().getMember(user);
-        
+        user =   event.getOption("user", null, OptionMapping::getAsUser);
+        member = event.getOption("user", null, OptionMapping::getAsMember);
         reason = event.getOption("reason", "Raison par défaut", OptionMapping::getAsString);
         time = Strings.parseTime(event.getOption("time", defaultTime, OptionMapping::getAsString));
     }
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
-        if (user == null) {
+        if (user == null || member == null) {
             event.reply("Ce membre n'existe pas. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
             return false;
         }
