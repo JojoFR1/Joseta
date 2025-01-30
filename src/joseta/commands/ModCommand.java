@@ -7,12 +7,16 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
+import java.util.regex.*;
+
 public abstract class ModCommand extends Command {
     protected User user;
     protected Member member;
     protected String reason;
     protected long time;
     protected String defaultTime = "5m";
+
+    private final Pattern numPattern = Pattern.compile("\\d+");
     
     protected ModCommand(String name, String description) {
         super(name, description, DefaultMemberPermissions.ENABLED);
@@ -37,9 +41,11 @@ public abstract class ModCommand extends Command {
     protected void getArgs(SlashCommandInteractionEvent event) {
         String userInput = event.getOption("user", event.getUser().getId(), OptionMapping::getAsString);
         String userId = userInput.replaceAll("[<@!>]", "");
-        member = event.getGuild().getMemberById(userId);
-        user = member.getUser();
+        if (!numPattern.matcher(userId).matches()) return; // An ID can only be numbers.
 
+        user = event.getJDA().getUserById(userId);
+        if (user != null) member = event.getGuild().getMember(user);
+        
         reason = event.getOption("reason", "Raison par défaut", OptionMapping::getAsString);
         time = Strings.parseTime(event.getOption("time", defaultTime, OptionMapping::getAsString));
     }

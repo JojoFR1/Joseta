@@ -44,7 +44,7 @@ public final class ModLog {
 
         String sanctionsTable = "CREATE TABLE sanctions (" 
                               + "id INT PRIMARY KEY," 
-                              + "userId BIGINT FOREIGN KEY REFERENCES users(userId),"
+                              + "userId BIGINT,"
                               + "moderatorId BIGINT,"
                               + "guildId BIGINT,"
                               + "reason TEXT,"

@@ -14,7 +14,7 @@ public class UnbanCommand extends ModCommand {
     public UnbanCommand() {
         super("unban", "Débanir un membre.",
             DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS),
-            new OptionData(OptionType.STRING, "user", "L'utilisateur a débanir.", true).setAutoComplete(true)
+            new OptionData(OptionType.STRING, "user", "L'utilisateur a débanir.", true, true)
         );
     }
 

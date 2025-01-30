@@ -63,7 +63,7 @@ public class JosetaBot {
                                    new WelcomeMessage(),
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
-                                   new UnbanAutoComplete(), //TODO fix
+                                   new ModAutoComplete(), //TODO fix
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
