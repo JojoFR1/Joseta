@@ -45,7 +45,10 @@ public class WelcomeMessage extends ListenerAdapter {
         int guildMemberCount = event.getGuild().getMemberCount();
         
         try {
-            BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
+            BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128"));
+            if (avatar.getWidth() > 128 || avatar.getHeight() > 128) avatar = resizeAvatar(avatar);
+
+            avatar = makeCircularAvatar(avatar);
             ByteArrayInputStream image = createWelcomeImage(userName, guildMemberCount, avatar);
             channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
             
@@ -82,6 +85,23 @@ public class WelcomeMessage extends ListenerAdapter {
         g2d.dispose();
 
         return circular;
+    }
+
+    private BufferedImage resizeAvatar(BufferedImage avatar) {
+        BufferedImage resized = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = resized.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        g2d.drawImage(avatar, 0, 0, 128, 128, null);
+        g2d.dispose();
+
+        return resized;
     }
 
     private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
