@@ -1,16 +1,22 @@
 package joseta.utils;
 
 import joseta.*;
+import joseta.commands.ModCommand.*;
 import joseta.utils.struct.*;
+
+import net.dv8tion.jda.api.entities.*;
 
 import java.io.*;
 import java.sql.*;
 import java.time.*;
+import java.util.concurrent.*;
 
 public final class ModLog {
     private static final String urlDb = "jdbc:sqlite:resources/modlog.db";
     private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
     private static Connection conn;
+
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static void initialize() {
         File dbFile = new File("resources/modlog.db");
@@ -28,6 +34,8 @@ public final class ModLog {
         } catch (IOException e) {
             JosetaBot.logger.error("Could not create the 'modlog.db' file.", e);
         }
+
+        scheduler.scheduleAtFixedRate(ModLog::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
     }
 
     private static void initializeTable() throws SQLException {
@@ -253,7 +261,7 @@ public final class ModLog {
         public boolean isExpired() {
             return at.plusSeconds(time).isBefore(Instant.now()) && time >= 1;
         }
-    } 
+    }
 
     private static int getLastSanctionId(String sanctionType) throws SQLException {
         PreparedStatement pstmt = conn.prepareStatement("SELECT value FROM lastValues WHERE name = ?");
@@ -293,5 +301,20 @@ public final class ModLog {
         pstmt.setLong(2, userId);
         pstmt.setLong(3, guildId);
         pstmt.executeUpdate();
+    }
+
+    private static void checkExpiredSanctions() {
+        ModLog.getExpiredSanctions().each(sanction -> {
+            if (sanction.getSanctionTypeId() == SanctionType.BAN) {
+                Guild guild = JosetaBot.bot.getGuildById(sanction.guildId);
+                guild.retrieveBanList().queue(bans -> {
+                    bans.forEach(ban -> {
+                        if (ban.getUser().getIdLong() == sanction.userId)
+                            guild.unban(ban.getUser()).queue();
+                    });
+                });
+            }
+            ModLog.removeSanction(sanction);
+        });
     }
 }

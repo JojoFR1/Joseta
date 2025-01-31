@@ -99,4 +99,14 @@ public class ModLogCommand extends ModCommand {
     protected boolean check(SlashCommandInteractionEvent event) {
         return true;
     }
+
+    @Override
+    protected void getArgs(SlashCommandInteractionEvent event) {
+        super.getArgs(event);
+
+        if (user == null || member == null) {
+            user = event.getUser();
+            member = event.getMember();
+        }
+    }
 }

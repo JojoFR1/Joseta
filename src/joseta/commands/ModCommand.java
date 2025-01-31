@@ -44,7 +44,7 @@ public abstract class ModCommand extends Command {
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
         if (user == null || member == null) {
-            event.reply("Ce membre n'existe pas. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
+            event.reply("Ce membre n'existe pas ou n'est pas présent sur le serveur. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
             return false;
         }
 

@@ -1,7 +1,6 @@
 package joseta;
 
 import joseta.commands.*;
-import joseta.commands.ModCommand.*;
 import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
@@ -23,10 +22,8 @@ import ch.qos.logback.classic.*;
 import ch.qos.logback.classic.Logger;
 
 public class JosetaBot {
-    private static JDA bot;
+    public static JDA bot;
     public static final Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
-
-    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static final Seq<Command> commands = Seq.with(
         new PingCommand(),
@@ -44,15 +41,9 @@ public class JosetaBot {
         new ModLogCommand()
     );
 
-    //TODO Clean this up
     public static void main(String[] args) {
         registerShutdown();
-
-        if (args.length > 0) {
-            Vars.setDebug(args[0].equals("--debug"));
-            Vars.setServer(args[0].equals("--server"));
-        }
-        preLoad();
+        preLoad(args);
         
         bot = JDABuilder.createDefault(Vars.token)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -77,14 +68,16 @@ public class JosetaBot {
             System.exit(1);
         }
 
-        //TODO move this somewhere else
-        scheduler.scheduleAtFixedRate(JosetaBot::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
-
         initializeCommands();
         ModLog.initialize();
     }
 
-    private static void preLoad() {
+    private static void preLoad(String args[]) {
+        if (args.length > 0) {
+            Vars.setDebug(args[0].equals("--debug"));
+            Vars.setServer(args[0].equals("--server"));
+        }
+
         Vars.loadSecrets();
 
         if (Vars.isDebug || Vars.isServer) {
@@ -111,22 +104,6 @@ public class JosetaBot {
             bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
             bot.updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
         }
-    }
-
-
-    private static void checkExpiredSanctions() {
-        ModLog.getExpiredSanctions().each(sanction -> {
-            if (sanction.getSanctionTypeId() == SanctionType.BAN) {
-                Guild guild = bot.getGuildById(sanction.guildId);
-                guild.retrieveBanList().queue(bans -> {
-                    bans.forEach(ban -> {
-                        if (ban.getUser().getIdLong() == sanction.userId)
-                            guild.unban(ban.getUser()).queue();
-                    });
-                });
-            }
-            ModLog.removeSanction(sanction);
-        });
     }
 
     private static void registerShutdown() {
