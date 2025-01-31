@@ -38,10 +38,10 @@ public class ModLogCommand extends ModCommand {
     public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
         MessageEmbed embed = generateEmbed(event.getGuild(), user, event.getGuild().getIdLong(), page);
         ItemComponent[] buttons = {
-            Button.secondary("modlog-page-b-first", "Page first").withDisabled(page == 1),
-            Button.secondary("modlog-page-b-prev", "Page prev").withDisabled(page <= 1),
-            Button.secondary("modlog-page-b-next", "Page next").withDisabled(page >= lastPage),
-            Button.secondary("modlog-page-b-last", "Page last").withDisabled(page == lastPage)
+            Button.secondary("modlog-page-b-first", "⏪").withDisabled(page == 1),
+            Button.secondary("modlog-page-b-prev", "◀️").withDisabled(page <= 1),
+            Button.secondary("modlog-page-b-next", "▶️").withDisabled(page >= lastPage),
+            Button.secondary("modlog-page-b-last", "⏩").withDisabled(page == lastPage)
         };
 
         if (event instanceof SlashCommandInteractionEvent cevent) {
