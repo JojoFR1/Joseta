@@ -25,6 +25,7 @@ public class JosetaBot {
     public static final Seq<Command> commands = Seq.with(
         new PingCommand(),
         new MultiInfoCommand(),
+        new ManualWelcomeCommand(),
 
         new AdminCommand(),
         

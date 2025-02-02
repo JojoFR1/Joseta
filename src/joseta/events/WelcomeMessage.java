@@ -13,6 +13,7 @@ import java.awt.geom.*;
 import java.awt.image.*;
 import java.io.*;
 import java.net.*;
+import java.nio.channels.Channel;
 import java.nio.file.*;
 
 import javax.imageio.*;
@@ -38,33 +39,48 @@ public class WelcomeMessage extends ListenerAdapter {
         if (event.getUser().isBot()) event.getGuild().addRoleToMember(user, event.getGuild().getRoleById(1234873005629243433L)).queue();
         else event.getGuild().addRoleToMember(user, event.getGuild().getRoleById(1259874357384056852L)).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();
 
+        sendWelcomeMessage(event.getGuild(), channel, user);
+    }
+    
+    // TODO Un-hardcode the channel ID
+    @Override
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
+        event.getGuild().getTextChannelById("1256989659448348673").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+    }
+    
+    
+    public static void sendWelcomeMessage(Guild guild, TextChannel channel, User user) {
         String name = "@"+user.getName();
         String globalName = user.getGlobalName();
         String userName = globalName == null ? name : globalName + " ("+ name +")";
         
-        int guildMemberCount = event.getGuild().getMemberCount();
+        int guildMemberCount = guild.getMemberCount();
         
         try {
-            BufferedImage avatar = makeCircularAvatar(ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128")));
+            BufferedImage avatar = getUserAvatar(user, 128);
+            avatar = makeCircularAvatar(avatar);
             ByteArrayInputStream image = createWelcomeImage(userName, guildMemberCount, avatar);
             channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
             
-            Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));    
+            Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));
         } catch (MalformedURLException e) {
             Vars.logger.error("WelcomeImage - An error occured with the user avatar URL.", e);
         } catch (IOException e) {
             Vars.logger.error("WelcomeImage - Could not read/write the base/generated image.", e);
         }
     }
-
-    // TODO Un-hardcode the channel ID
-    @Override
-    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        event.getGuild().getTextChannelById("1256989659448348673").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+    
+    public static BufferedImage getUserAvatar(User user, Integer size) throws IOException {
+        BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=" + size.toString()));
+        if (avatar.getWidth() != size) {
+            Image scaledAvatar = avatar.getScaledInstance(size, size, BufferedImage.SCALE_AREA_AVERAGING);
+            avatar = new BufferedImage(size, size, avatar.getType());
+            avatar.getGraphics().drawImage(scaledAvatar, 0, 0, null);
+        }
+        return avatar;
     }
 
-
-    private BufferedImage makeCircularAvatar(BufferedImage avatar) {
+    private static BufferedImage makeCircularAvatar(BufferedImage avatar) {
         BufferedImage circular = new BufferedImage(avatar.getWidth(), avatar.getWidth(), BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2d = circular.createGraphics();
@@ -84,7 +100,7 @@ public class WelcomeMessage extends ListenerAdapter {
         return circular;
     }
 
-    private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
+    private static ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
         BufferedImage image = Vars.welcomeImage;
         BufferedImage processedImage = new BufferedImage(
             image.getWidth(),
