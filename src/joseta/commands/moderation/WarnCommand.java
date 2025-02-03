@@ -1,6 +1,7 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
+import joseta.utils.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -10,17 +11,20 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class WarnCommand extends ModCommand {
 
     public WarnCommand() {
-        super("warn", "Averti un membre.",
+        super("warn", "Avertir un membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Membre a mute", true),
-            new OptionData(OptionType.STRING, "reason", "La raison du mute"),
-            new OptionData(OptionType.STRING, "time", "La durée avant expiration du warn (s, m, h, d, w)")
+            new OptionData(OptionType.USER, "user", "Le membre a avertir.", true),
+            new OptionData(OptionType.STRING, "reason", "La raison de l'avertissement."),
+            new OptionData(OptionType.STRING, "time", "La durée avant expiration de l'avertissement (s, m, h, d, w).")
         );
+        defaultTime = "inf";
     }
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        event.reply("Warn- " + member + "\n" + reason + "\n" + time).queue();
-        modLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), reason, time);
+        //TODO faillure?
+        ModLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+        
+        event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
     }
 }

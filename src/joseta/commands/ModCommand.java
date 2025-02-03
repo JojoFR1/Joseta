@@ -8,11 +8,11 @@ import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
 public abstract class ModCommand extends Command {
-    protected final ModLog modLog = ModLog.getInstance();
     protected User user;
     protected Member member;
     protected String reason;
     protected long time;
+    protected String defaultTime = "5m";
     
     protected ModCommand(String name, String description) {
         super(name, description, DefaultMemberPermissions.ENABLED);
@@ -35,33 +35,38 @@ public abstract class ModCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        user =   event.getOption("user")   != null ? event.getOption("user").getAsUser() : event.getUser();
-        member = event.getOption("user")   != null ? event.getOption("user").getAsMember() : event.getMember();
-        reason = event.getOption("reason") != null ? event.getOption("reason").getAsString() : "Raison par défaut";
-        time = Strings.parseTime(event.getOption("time") != null ? event.getOption("time").getAsString() : "5m");
+        user =   event.getOption("user", null, OptionMapping::getAsUser);
+        member = event.getOption("user", null, OptionMapping::getAsMember);
+        reason = event.getOption("reason", "Raison par défaut", OptionMapping::getAsString);
+        time = Strings.parseTime(event.getOption("time", defaultTime, OptionMapping::getAsString));
     }
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
+        if (user == null || member == null) {
+            event.reply("Ce membre n'existe pas ou n'est pas présent sur le serveur. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
+            return false;
+        }
+
         if (event.getMember().equals(member)) {
-            event.reply("Mais t'es con pourquoi tu t'auto sanctionne ?").queue();
+            event.reply("Ce membre est vous-même, vous ne pouvez pas vous auto-sanctionner").setEphemeral(true).queue();
             return false;
         }
 
         if (user.isBot() || user.isSystem()) {
-            event.reply("C'est un bot ou un truc systeme imbecile").queue();
+            event.reply("Ce membre est un robot ou un compte système, vous ne pouvez pas le sanctionner.").setEphemeral(true).queue();
             return false;
         }
         
         if (event.getMember().getRoles().get(0).getPosition() < member.getRoles().get(0).getPosition()) {
-            event.reply("This user has a higher role than you bozo").queue();
+            event.reply("Ce membre a un rôle supérieur au votre, vous ne pouvez pas le sanctionner.").setEphemeral(true).queue();
             return false;
         }
 
         return super.check(event);
     }
 
-    protected final class SanctionType {
+    public final class SanctionType {
         public static final int WARN = 10;
         public static final int MUTE = 20;
         public static final int KICK = 30;

@@ -14,22 +14,60 @@ This bot is not *yet* fully usable for personnal use due to multiple hardcoded v
 
 ### Why Java and JDA?
 
-We had the choices between JavaScript, Python or Java. Due to personnal preferences, we chose Java.
+We could have used JavaScript or Python. But due to personal preferences, we have chosen Java and JDA, as it was a library we already had experience with.
+
+## Features
+
+This bot is multipurpose and isn't centered around one thing, any features added (removed or changed) are based on our needs. Here's a list of all the features this bot has:
+
+- An **Image based Welcome** for new members (not *yet* configurable)
+- A **Goodbye Message** for leaving members (not *yet* configurable)
+- **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
+- An **Auto Response** for common questions (not *yet* configurable)
+- Multiple commands:
+  | Commands    | Use                                |
+  |:------------|:-----------------------------------|
+  | `/admin`    | Only used to send rules as of now. |
+  | `/(un)warn` | (Un)warn a member.                 |
+  | `/(un)mute` | (Un)mute a member.                 |
+  | `/kick`     | Kick a member.                     |
+  | `/(un)ban`  | (Un)ban a member.                  |
+  | `/modlog`   | Acces a member moderation history. |
+
+## Plans
+
+Our current plans for the future are the following, in the order in which they will be made:
+  
+- Add a Logging system:
+  - Send messages giving info on user actions (modified, deleted, ...)
+  - Send messages giving info on moderation actions (kick, ban, ...)
+  - Send messages giving info on administration actions (created, modifed channles/roles, ...)
+
+- Add a `/config` command
+  - Allow to change *some* variables without having to rebuild and restart
+  - Allow to un-hardcode values
+  - Allow to be runnable outside of our server
+
+- Support multi-server:
+  - Mainly to make it useable outside of our server
+  - Make it actually useable for others
 
 ## How to build
 
-You will need **JDK 17** or later to be able to build this project.
+Building requires **JDK 17** or later.
 
-At the root of the project, use:
+At the root of the project, use the following command:
 `./gradlew shadowJar`
 
-Once the build process is finished, the output will be present in `./build/libs/JosetaBot.jar`
+Once the build process is finished, the output will be present in `./build/libs/JosetaBot.jar`.
 
 ## How to run
 
-Running the bot is easy. You just need to execute this command: `java -jar build/libs/JosetaBot.jar`
+You will first need to follow the instructions in the `secret_template.cfg` file before being able to run the bot.
 
-You have the following arguments (after the `.jar`) available to use:
+After this, starting the bot is very easy. You just need to execute this command: `java -jar build/libs/JosetaBot.jar`
+
+The following arguments (after the `.jar`)  are available to use:
 
 - Default: run the bot normally. (Log level is info level)
 - `--debug`: run the bot in debug mode. (Log level is debug level & intended for testing)

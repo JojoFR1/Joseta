@@ -25,7 +25,7 @@ public class AutoResponse extends ListenerAdapter {
         String text = msg.getContentRaw();
         
         if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find()) {
-            Vars.logger.debug("Multiplayer regex match.");
+            JosetaBot.logger.debug("Multiplayer regex match.");
             msg.reply(message + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
         }
     }
