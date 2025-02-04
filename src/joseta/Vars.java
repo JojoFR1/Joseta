@@ -1,11 +1,10 @@
 package joseta;
 
-import java.awt.image.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.*;
 
-import javax.imageio.*;
+import java.io.*;
+import java.util.*;
 
 public class Vars {
     public static String token = null;
@@ -13,8 +12,10 @@ public class Vars {
     public static String[] ownersId; // Not a long because it requires a loop
     
     public static boolean isDebug, isServer = false;
-    public static BufferedImage welcomeImage;
-    
+
+    public static Role memberRole, botRole;
+    public static TextChannel welcomeChannel;
+
     public static void loadSecrets() {
         Properties secret = new Properties();
         try (FileInputStream fi = new FileInputStream("secret.cfg")) {
@@ -28,18 +29,14 @@ public class Vars {
         testGuildId = Long.parseLong(secret.getProperty(isDebug ? "testGuildIdDebug" : "testGuildId", "-1"));
         ownersId = secret.getProperty(isDebug ? "adminsDebug" : "admins").split(" ");
     }
-    
-    public static void cacheWelcomeImage() {
-        Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
-        
-        try {
-            welcomeImage = ImageIO.read(cachedImagePath.toFile());
-        } catch (IOException e) {
-            JosetaBot.logger.error("Cache - An error occured while reading the base welcome image.", e);
-            System.exit(1);
-        }
-    }
 
+    // TODO Un-hardcode IDs (config)
+    public static void initialize(Guild guild) {
+        welcomeChannel = guild.getChannelById(TextChannel.class, 1256989659448348673L);
+        memberRole = guild.getRoleById(1259874357384056852L);
+        botRole = guild.getRoleById(1234873005629243433L);
+    }
+    
     public static void setDebug(boolean debug) {
         isDebug = debug;
     }

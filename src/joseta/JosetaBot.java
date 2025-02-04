@@ -41,6 +41,9 @@ public class JosetaBot {
         new ModLogCommand()
     );
 
+    /* Load - Before the bot load
+     * Initialize - After the bot load (after awaitReady)
+     */
     public static void main(String[] args) {
         registerShutdown();
         preLoad(args);
@@ -69,6 +72,8 @@ public class JosetaBot {
         }
 
         initializeCommands();
+        Vars.initialize(bot.getGuildById(Vars.testGuildId)); // TODO another way than that pls (SHOULD be fixed with config later)
+        WelcomeMessage.initialize();
         ModLog.initialize();
     }
 
@@ -88,8 +93,6 @@ public class JosetaBot {
             // so instead of adding it if it's a server, it's removed if otherwise
             if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
-
-        Vars.cacheWelcomeImage();
     }
 
     private static void initializeCommands() {

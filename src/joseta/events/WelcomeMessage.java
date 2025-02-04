@@ -19,37 +19,54 @@ import javax.imageio.*;
 
 public class WelcomeMessage extends ListenerAdapter {
     private static Font font;
-    static {
+    private static BufferedImage welcomeImage;
+    private static boolean imageLoaded = true;
+
+    public static void initialize() {
+        Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
+        
+        try {
+            welcomeImage = ImageIO.read(cachedImagePath.toFile());
+        } catch (IOException e) {
+            JosetaBot.logger.error("WelcomeMessage - An error occured while reading the base welcome image or font.", e);
+            imageLoaded = false;
+        }
+
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
-        } catch (Exception e) {
-            JosetaBot.logger.error("WelcomeImage - Could not load the font file. Defaulted to 'Arial'", e);
+        } catch (IOException e) {
+            JosetaBot.logger.error("WelcomeMessage - The font could not be loaded. Defaulted to 'Arial'", e);
+            font = new Font("Arial", Font.PLAIN, 30);        
+        } catch (FontFormatException e) {
+            JosetaBot.logger.error("WelcomeMessage - The font has a wrong format. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);
         }
     }
 
-    // TODO Un-hardcode the channel ID
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        TextChannel channel = event.getGuild().getTextChannelById("1256989659448348673");
         User user = event.getUser();
-        
-        // TODO cache role (and emojis)
-        if (event.getUser().isBot()) event.getGuild().addRoleToMember(user, event.getGuild().getRoleById(1234873005629243433L)).queue();
-        else event.getGuild().addRoleToMember(user, event.getGuild().getRoleById(1259874357384056852L)).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();
 
+        if (imageLoaded) sendWelcomeImage(event.getGuild(), Vars.welcomeChannel, user);
+        else Vars.welcomeChannel.sendMessage("Bienvenue "+ event.getUser().getAsMention() + " !").queue();
+
+        if (user.isBot()) event.getGuild().addRoleToMember(user, Vars.botRole).queue();
+        else event.getGuild().addRoleToMember(user, Vars.memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
+    }
+
+    @Override
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
+        Vars.welcomeChannel.sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+    }
+
+    private void sendWelcomeImage(Guild guild, TextChannel channel, User user) {
         String name = "@"+user.getName();
-        String globalName = user.getGlobalName();
-        String userName = globalName == null ? name : globalName + " ("+ name +")";
-        
-        int guildMemberCount = event.getGuild().getMemberCount();
+        String userName = user.getGlobalName() != null ? user.getGlobalName() + " ("+ name +")" : name;        
         
         try {
-            BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=128"));
-            if (avatar.getWidth() > 128 || avatar.getHeight() > 128) avatar = resizeAvatar(avatar);
+            BufferedImage avatar = getUserAvatar(user, 128);
 
-            avatar = makeCircularAvatar(avatar);
-            ByteArrayInputStream image = createWelcomeImage(userName, guildMemberCount, avatar);
+            ByteArrayInputStream image = createWelcomeImage(userName, guild.getMemberCount(), avatar);
             channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
             
             Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));    
@@ -60,12 +77,30 @@ public class WelcomeMessage extends ListenerAdapter {
         }
     }
 
-    // TODO Un-hardcode the channel ID
-    @Override
-    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        event.getGuild().getTextChannelById("1256989659448348673").sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+    private BufferedImage getUserAvatar(User user, int size) throws IOException {
+        BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=" + size));
+
+        if (avatar.getWidth() > 128 || avatar.getHeight() > 128) avatar = resizeAvatar(avatar);
+
+        return makeCircularAvatar(avatar);
     }
 
+    private BufferedImage resizeAvatar(BufferedImage avatar) {
+        BufferedImage resized = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = resized.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+        g2d.drawImage(avatar, 0, 0, 128, 128, null);
+        g2d.dispose();
+
+        return resized;
+    }
 
     private BufferedImage makeCircularAvatar(BufferedImage avatar) {
         BufferedImage circular = new BufferedImage(avatar.getWidth(), avatar.getWidth(), BufferedImage.TYPE_INT_ARGB);
@@ -87,28 +122,10 @@ public class WelcomeMessage extends ListenerAdapter {
         return circular;
     }
 
-    private BufferedImage resizeAvatar(BufferedImage avatar) {
-        BufferedImage resized = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
-
-        Graphics2D g2d = resized.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
-                RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-
-        g2d.drawImage(avatar, 0, 0, 128, 128, null);
-        g2d.dispose();
-
-        return resized;
-    }
-
     private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
-        BufferedImage image = Vars.welcomeImage;
         BufferedImage processedImage = new BufferedImage(
-            image.getWidth(),
-            image.getHeight(),
+            welcomeImage.getWidth(),
+            welcomeImage.getHeight(),
             BufferedImage.TYPE_INT_ARGB
         );
         
@@ -122,7 +139,7 @@ public class WelcomeMessage extends ListenerAdapter {
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-            g2d.drawImage(image, 0, 0, null);
+            g2d.drawImage(welcomeImage, 0, 0, null);
             g2d.drawImage(userAvatar, 62, 14, null);
             
             // Adapative font size based of name lenght - support the maximum of 67 characters.
