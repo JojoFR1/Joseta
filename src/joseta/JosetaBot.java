@@ -1,6 +1,7 @@
 package joseta;
 
 import joseta.commands.*;
+import joseta.commands.Command;
 import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
@@ -10,6 +11,7 @@ import joseta.utils.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
@@ -55,9 +57,10 @@ public class JosetaBot {
                                GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
+                                   new LogSystem(),
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
-                                   new ModAutoComplete(), //TODO fix
+                                   new ModAutoComplete(),
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
@@ -97,6 +100,7 @@ public class JosetaBot {
 
     private static void initializeCommands() {
         Seq<CommandData> commandsData = new Seq<>();
+        commandsData.add(Commands.slash("logtest", "test").setDefaultPermissions(DefaultMemberPermissions.DISABLED));
         commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
 
         // Add commands on a test guild - Instantly

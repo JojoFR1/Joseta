@@ -1,5 +1,6 @@
 # Sensible file
 secret.cfg
+*.bat
 
 # Build
 .gradle/
