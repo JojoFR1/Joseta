@@ -1,6 +1,7 @@
 package joseta;
 
 import joseta.commands.*;
+import joseta.commands.Command;
 import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
@@ -11,6 +12,7 @@ import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
@@ -56,9 +58,10 @@ public class JosetaBot {
                                GatewayIntent.MESSAGE_CONTENT)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
+                                   new LogSystem(),
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
-                                   new ModAutoComplete(), //TODO fix
+                                   new ModAutoComplete(),
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
