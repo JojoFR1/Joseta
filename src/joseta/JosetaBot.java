@@ -12,7 +12,6 @@ import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
@@ -98,7 +97,7 @@ public class JosetaBot {
             if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
     }
-
+    
     private static void initializeCommands() {
         Seq<CommandData> commandsData = new Seq<>();
         commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroupsData).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
