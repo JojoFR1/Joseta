@@ -6,10 +6,9 @@ import joseta.utils.struct.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.*;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.channel.*;
-import net.dv8tion.jda.api.events.interaction.command.*;
+import net.dv8tion.jda.api.events.channel.update.*;
 import net.dv8tion.jda.api.hooks.*;
 
 import java.awt.*;
@@ -26,22 +25,24 @@ public class LogSystem extends ListenerAdapter {
     //     });
     // }
 
-    private void sendLog(Log log){
-        log.guild.retrieveAuditLogs()
-            .type(log.type)
+    private <T extends Event> void sendLog(Guild guild, T event){
+        EventTypes eventType = EventTypes.getFromEventObject(event);
+        if (eventType == null) {
+            JosetaBot.logger.warn("Unknown event type: " + event);
+            return;
+        }
+
+        guild.retrieveAuditLogs()
+            .type(eventType.logType)
             .limit(1)
             .queue(
                 success -> {
                     if (success.isEmpty()) return;
-
-                    EmbedBuilder embed = new EmbedBuilder()
-                        .setTitle(log.title)
-                        .setDescription(log.description)
-                        .setColor(log.color)
-                        .setFooter(log.guild.getName(), log.guild.getIconUrl())
-                        .setTimestamp(Instant.now());
-        
-                    Vars.testChannel.sendMessageEmbeds(embed.build()).queue();        
+                    // TODO an actual description using the available info
+                    Vars.testChannel.sendMessageEmbeds(eventType.getEmbed()
+                        .setFooter(guild.getName(), guild.getIconUrl())
+                        .build()
+                    ).queue();
                 },
                 failure -> {
                     JosetaBot.logger.error("Error while logging.", failure);
@@ -49,27 +50,51 @@ public class LogSystem extends ListenerAdapter {
             );
     }
 
-    private class Log {
-        public final ActionType type;
-        public final Guild guild;
+    public enum EventTypes {
+        CHANNEL_CREATE(ChannelCreateEvent.class, ActionType.CHANNEL_CREATE, "Salon créé", "desc", Color.GREEN),
+        CHANNEL_DELETE(ChannelDeleteEvent.class, ActionType.CHANNEL_DELETE, "Salon supprimé", "desc", Color.RED);
+
+        public final Class<? extends Event> eventClass;
+        public final ActionType logType;
         public final String title, description;
         public final Color color;
 
-        public Log(ActionType type, Guild guild, String title, String description, Color color) {
-            this.type = type;
-            this.guild = guild;
+        private EventTypes(Class<? extends Event> eventClass, ActionType type, String title, String description, Color color) {
+            this.eventClass = eventClass;
+            this.logType = type;
             this.title = title;
             this.description = description;
             this.color = color;
         }
+
+        public static EventTypes getFromEventObject(Object event) {
+            for (EventTypes ev : values()) {
+                if (event.getClass() == ev.eventClass) return ev;
+            }
+            return null;
+        }
+
+        public EmbedBuilder getEmbed() {
+            return new EmbedBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .setColor(color)
+                .setTimestamp(Instant.now());
+        }
     }
 
     @Override
-    public void onGenericChannel(GenericChannelEvent event) {
-        if (event instanceof ChannelCreateEvent) {
-            sendLog(new Log(ActionType.CHANNEL_CREATE, event.getGuild(), "Salon créé", event.getChannel().getName(), Color.GREEN));
-        } else if (event instanceof ChannelDeleteEvent) {
-            sendLog(new Log(ActionType.CHANNEL_DELETE, event.getGuild(), "Salon supprimé", event.getChannel().getName(), Color.RED));
-        }
+    public void onChannelCreate(ChannelCreateEvent event) {
+        sendLog(event.getGuild(), event);
+    }
+
+    @Override
+    public void onChannelDelete(ChannelDeleteEvent event) {
+        sendLog(event.getGuild(), event);
+    }
+
+    @Override
+    public void onChannelUpdateName(ChannelUpdateNameEvent event) {
+        sendLog(event.getGuild(), event);
     }
 }
