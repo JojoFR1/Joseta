@@ -1,17 +1,16 @@
 package joseta.events;
 
 import joseta.*;
-import joseta.utils.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.*;
 import net.dv8tion.jda.api.events.channel.*;
-import net.dv8tion.jda.api.events.channel.update.*;
 import net.dv8tion.jda.api.hooks.*;
 
 import java.awt.*;
+import java.lang.reflect.*;
 import java.time.*;
 
 public class LogSystem extends ListenerAdapter {
@@ -25,7 +24,7 @@ public class LogSystem extends ListenerAdapter {
     //     });
     // }
 
-    private <T extends Event> void sendLog(Guild guild, T event){
+    private <T extends GenericEvent> void sendLog(T event, Guild guild) {
         EventTypes eventType = EventTypes.getFromEventObject(event);
         if (eventType == null) {
             JosetaBot.logger.warn("Unknown event type: " + event);
@@ -54,12 +53,12 @@ public class LogSystem extends ListenerAdapter {
         CHANNEL_CREATE(ChannelCreateEvent.class, ActionType.CHANNEL_CREATE, "Salon créé", "desc", Color.GREEN),
         CHANNEL_DELETE(ChannelDeleteEvent.class, ActionType.CHANNEL_DELETE, "Salon supprimé", "desc", Color.RED);
 
-        public final Class<? extends Event> eventClass;
+        public final Class<? extends GenericEvent> eventClass;
         public final ActionType logType;
         public final String title, description;
         public final Color color;
 
-        private EventTypes(Class<? extends Event> eventClass, ActionType type, String title, String description, Color color) {
+        private EventTypes(Class<? extends GenericEvent> eventClass, ActionType type, String title, String description, Color color) {
             this.eventClass = eventClass;
             this.logType = type;
             this.title = title;
@@ -83,18 +82,29 @@ public class LogSystem extends ListenerAdapter {
         }
     }
 
-    @Override
-    public void onChannelCreate(ChannelCreateEvent event) {
-        sendLog(event.getGuild(), event);
+    /**
+     * Gets the guild from an event if possible
+     * @param event The event to get the guild from
+     * @return The guild, or null if the event doesn't have a guild
+     */
+    private <T extends GenericEvent> Guild getGuildFromEvent(T event) {
+        try {
+            Method getGuildMethod = event.getClass().getMethod("getGuild");
+            return (Guild) getGuildMethod.invoke(event);
+        } catch (Exception e) {
+            // Method doesn't exist or can't be called
+            return null;
+        }
     }
 
     @Override
-    public void onChannelDelete(ChannelDeleteEvent event) {
-        sendLog(event.getGuild(), event);
-    }
+    public void onGenericEvent(GenericEvent event) {
+        Guild guild = getGuildFromEvent(event);
+        if (guild == null) {
+            JosetaBot.logger.warn("Event doesn't have a guild: " + event);
+            return;
+        }
 
-    @Override
-    public void onChannelUpdateName(ChannelUpdateNameEvent event) {
-        sendLog(event.getGuild(), event);
+        sendLog(event, guild);
     }
 }
