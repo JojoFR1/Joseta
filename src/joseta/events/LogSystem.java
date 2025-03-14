@@ -1,6 +1,7 @@
 package joseta.events;
 
 import joseta.*;
+import joseta.utils.func.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
@@ -14,19 +15,10 @@ import java.lang.reflect.*;
 import java.time.*;
 
 public class LogSystem extends ListenerAdapter {
-    // TODO batch log of same type to avoid spam
-    // TODO not a priority, first get it working
-    // private Seq<Log> logs = new Seq<>();
-
-    // private void sendBatchLogs() {
-    //     logs.each(log -> {
-            
-    //     });
-    // }
 
     private <T extends GenericEvent> void sendLog(T event, Guild guild) {
-        EventTypes eventType = EventTypes.getFromEventObject(event);
-        if (eventType == null) {
+        EventType eventType = EventType.getFromEventObject(event);
+        if (eventType == EventType.NONE) {
             JosetaBot.logger.warn("Unknown event type: " + event);
             return;
         }
@@ -37,11 +29,8 @@ public class LogSystem extends ListenerAdapter {
             .queue(
                 success -> {
                     if (success.isEmpty()) return;
-                    // TODO an actual description using the available info
-                    Vars.testChannel.sendMessageEmbeds(eventType.getEmbed()
-                        .setFooter(guild.getName(), guild.getIconUrl())
-                        .build()
-                    ).queue();
+                    
+                    Vars.testChannel.sendMessageEmbeds(eventType.getEmbed(guild, event)).queue();
                 },
                 failure -> {
                     JosetaBot.logger.error("Error while logging.", failure);
@@ -49,36 +38,32 @@ public class LogSystem extends ListenerAdapter {
             );
     }
 
-    public enum EventTypes {
-        CHANNEL_CREATE(ChannelCreateEvent.class, ActionType.CHANNEL_CREATE, "Salon créé", "desc", Color.GREEN),
-        CHANNEL_DELETE(ChannelDeleteEvent.class, ActionType.CHANNEL_DELETE, "Salon supprimé", "desc", Color.RED);
+    public enum EventType {
+        NONE(null, null, (guild, event) -> new EmbedBuilder().setDescription("Error").setFooter(guild.getName(), guild.getIconUrl()).setTimestamp(Instant.now()).build()),
+        CHANNEL_CREATE(ChannelCreateEvent.class, ActionType.CHANNEL_CREATE, (guild, event) -> new EmbedBuilder().setTitle("Salon créé").setDescription("desc").setColor(Color.GREEN).setFooter(guild.getName(), guild.getIconUrl()).setTimestamp(Instant.now()).build()),
+        CHANNEL_DELETE(ChannelDeleteEvent.class, ActionType.CHANNEL_DELETE, (guild, event) -> new EmbedBuilder().setTitle("Salon supprimé").setDescription("desc").setColor(Color.RED).setFooter(guild.getName(), guild.getIconUrl()).setTimestamp(Instant.now()).build());
 
         public final Class<? extends GenericEvent> eventClass;
+        public final Func2<Guild, ? extends GenericEvent, MessageEmbed> embed;
         public final ActionType logType;
-        public final String title, description;
-        public final Color color;
 
-        private EventTypes(Class<? extends GenericEvent> eventClass, ActionType type, String title, String description, Color color) {
+        private <T extends GenericEvent> EventType(Class<T> eventClass, ActionType type, Func2<Guild, T, MessageEmbed> embed) {
             this.eventClass = eventClass;
+            this.embed = embed;
             this.logType = type;
-            this.title = title;
-            this.description = description;
-            this.color = color;
+        }
+        
+        @SuppressWarnings("unchecked")
+        public <T extends GenericEvent> MessageEmbed getEmbed(Guild guild, T event) {
+            if (eventClass.isInstance(event)) return ((Func2<Guild, T, MessageEmbed>) embed).get(guild, event);
+            return new EmbedBuilder().setDescription("Error: Event type mismatch").build();
         }
 
-        public static EventTypes getFromEventObject(Object event) {
-            for (EventTypes ev : values()) {
+        public static EventType getFromEventObject(Object event) {
+            for (EventType ev : values()) {
                 if (event.getClass() == ev.eventClass) return ev;
             }
-            return null;
-        }
-
-        public EmbedBuilder getEmbed() {
-            return new EmbedBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setColor(color)
-                .setTimestamp(Instant.now());
+            return EventType.NONE;
         }
     }
 
