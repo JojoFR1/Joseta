@@ -1,9 +1,12 @@
 package joseta;
 
+import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 
+import java.awt.*;
 import java.io.*;
+import java.time.*;
 import java.util.*;
 
 public class Vars {
@@ -33,10 +36,18 @@ public class Vars {
     // TODO Un-hardcode IDs (config)
     public static void initialize(Guild guild) {
         testChannel = guild.getChannelById(TextChannel.class, 1342202526249914499L);
+        // testChannel = guild.getChannelById(TextChannel.class, 1348089378186068101L);
         welcomeChannel = guild.getChannelById(TextChannel.class, 1256989659448348673L);
         logChannel = guild.getChannelById(TextChannel.class, 1219276562860609576L);
         memberRole = guild.getRoleById(1259874357384056852L);
         botRole = guild.getRoleById(1234873005629243433L);
+    }
+
+    public static EmbedBuilder getDefaultEmbed(Color color, Guild guild) {
+        return new EmbedBuilder()
+            .setColor(color)
+            .setFooter(guild.getName(), guild.getIconUrl())
+            .setTimestamp(Instant.now());
     }
     
     public static void setDebug(boolean debug) {
