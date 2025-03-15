@@ -28,55 +28,47 @@ public class LogSystem extends ListenerAdapter {
 
     public enum EventType {
         CHANNEL_CREATE(ChannelCreateEvent.class,
-                       ActionType.CHANNEL_CREATE, 
                        event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild())
                                   .setTitle("Salon créé")
-                                  .setDescription("Salon créé: " + event.getChannel().getAsMention())
+                                  .setDescription("Salon créé: " + event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.CHANNEL_CREATE).getAsMention())
                                   .build()
         ),
         CHANNEL_DELETE(ChannelDeleteEvent.class,
-                       ActionType.CHANNEL_DELETE,
                        event -> Vars.getDefaultEmbed(Color.RED, event.getGuild())
                                   .setTitle("Salon supprimé")
-                                  .setDescription("desc")
+                                  .setDescription("desc" + " by " + retrieveModerator(event.getGuild(), ActionType.CHANNEL_DELETE).getAsMention())
                                   .build()
         ),
         CHANNEL_UPDATE_TOPIC(ChannelUpdateTopicEvent.class,
-                             ActionType.CHANNEL_UPDATE,
                              event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
                                         .setTitle("Salon mis a jour (Topic)")
-                                        .setDescription(event.getOldValue() + " en " + event.getNewValue())
+                                        .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.CHANNEL_UPDATE).getAsMention())
                                         .build()
         ),
         CHANNEL_UPDATE_SLOWMODE(ChannelUpdateSlowmodeEvent.class,
-                                ActionType.CHANNEL_UPDATE,
                                 event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
                                            .setTitle("Salon mis a jour (Slowmode)")
-                                           .setDescription(event.getOldValue() + " en " + event.getNewValue())
+                                           .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.CHANNEL_UPDATE).getAsMention())
                                            .build()
         ),
         CHANNEL_UPDATE_NAME(ChannelUpdateNameEvent.class,
-                            ActionType.CHANNEL_UPDATE,
                             event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
                                        .setTitle("Salon renommé")
-                                       .setDescription(event.getOldValue() + " en " + event.getNewValue())
+                                       .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.CHANNEL_UPDATE).getAsMention())
                                        .build()
         ),
         CHANNEL_UPDATE_NSFW(ChannelUpdateNSFWEvent.class,
-                            ActionType.CHANNEL_UPDATE,
                             event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
                                        .setTitle("Salon mis a jour (NSFW)")
-                                       .setDescription(event.getOldValue() + " en " + event.getNewValue())
+                                       .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.CHANNEL_UPDATE).getAsMention())
                                        .build()
         );
 
-        public final Class<? extends GenericEvent> eventClass;
-        public final ActionType logType;
-        public final Func<? extends GenericEvent, MessageEmbed> embed;
+        private final Class<? extends GenericEvent> eventClass;
+        private final Func<? extends GenericEvent, MessageEmbed> embed;
         
-        private <T extends GenericEvent> EventType(Class<T> eventClass, ActionType logType, Func<T, MessageEmbed> embed) {
+        private <T extends GenericEvent> EventType(Class<T> eventClass, Func<T, MessageEmbed> embed) {
             this.eventClass = eventClass;
-            this.logType = logType;
             this.embed = embed;
         }
         
@@ -91,5 +83,14 @@ public class LogSystem extends ListenerAdapter {
                 if (event.getClass() == eventType.eventClass) return eventType;
             return null;
         }
+    }
+
+    private static User retrieveModerator(Guild guild, ActionType actionType) {
+        return guild.retrieveAuditLogs()
+                .type(actionType)
+                .limit(1)
+                .complete()
+                .get(0)
+                .getUser();
     }
 }
