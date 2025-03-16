@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
+import net.dv8tion.jda.api.utils.cache.*;
 
 import org.slf4j.*;
 
@@ -54,7 +55,10 @@ public class JosetaBot {
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES,
                                GatewayIntent.GUILD_MEMBERS,
+                               GatewayIntent.GUILD_EXPRESSIONS,
+                               GatewayIntent.GUILD_MODERATION,
                                GatewayIntent.MESSAGE_CONTENT)
+                .enableCache(CacheFlag.EMOJI)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
                                    new LogSystem(),
