@@ -54,13 +54,17 @@ public class JosetaBot {
         bot = JDABuilder.createDefault(Vars.token)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES,
+                               GatewayIntent.GUILD_MESSAGE_REACTIONS,
                                GatewayIntent.GUILD_MEMBERS,
                                GatewayIntent.GUILD_EXPRESSIONS,
                                GatewayIntent.GUILD_MODERATION,
+                               GatewayIntent.GUILD_VOICE_STATES,
                                GatewayIntent.SCHEDULED_EVENTS,
                                GatewayIntent.MESSAGE_CONTENT)
                 .enableCache(CacheFlag.EMOJI,
-                             CacheFlag.SCHEDULED_EVENTS)
+                             CacheFlag.STICKER,
+                             CacheFlag.SCHEDULED_EVENTS,
+                             CacheFlag.VOICE_STATE)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
                                    new LogSystem(),
