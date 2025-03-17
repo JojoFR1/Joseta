@@ -57,8 +57,10 @@ public class JosetaBot {
                                GatewayIntent.GUILD_MEMBERS,
                                GatewayIntent.GUILD_EXPRESSIONS,
                                GatewayIntent.GUILD_MODERATION,
+                               GatewayIntent.SCHEDULED_EVENTS,
                                GatewayIntent.MESSAGE_CONTENT)
-                .enableCache(CacheFlag.EMOJI)
+                .enableCache(CacheFlag.EMOJI,
+                             CacheFlag.SCHEDULED_EVENTS)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
                                    new LogSystem(),
