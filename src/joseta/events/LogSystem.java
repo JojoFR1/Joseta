@@ -19,6 +19,13 @@ import net.dv8tion.jda.api.events.guild.override.*;
 import net.dv8tion.jda.api.events.guild.scheduledevent.*;
 import net.dv8tion.jda.api.events.guild.scheduledevent.update.*;
 import net.dv8tion.jda.api.events.guild.update.*;
+import net.dv8tion.jda.api.events.guild.voice.*;
+import net.dv8tion.jda.api.events.message.*;
+import net.dv8tion.jda.api.events.message.react.*;
+import net.dv8tion.jda.api.events.role.*;
+import net.dv8tion.jda.api.events.role.update.*;
+import net.dv8tion.jda.api.events.sticker.*;
+import net.dv8tion.jda.api.events.sticker.update.*;
 import net.dv8tion.jda.api.hooks.*;
 
 import java.awt.*;
@@ -317,6 +324,20 @@ public class LogSystem extends ListenerAdapter {
                                                   .setDescription(event.getUser().getAsMention() + " " + event.getOldNickname() + " en " + event.getNewNickname() + " by " + retrieveModerator(event.getGuild(), ActionType.MEMBER_UPDATE).getAsMention())
                                                   .build()
         ),
+        //TODO
+        GUILD_VOICE_GUILD_DEAFEN(GuildVoiceGuildDeafenEvent.class,
+                                 event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                              .setTitle("Déaf mis a jour")
+                                              .setDescription(event.getMember().getAsMention() + " " + event.getVoiceState() + " by " + retrieveModerator(event.getGuild(), ActionType.MEMBER_UPDATE).getAsMention())
+                                              .build()
+        ),
+        //TODO
+        GUILD_VOICE_GUILD_MUTE(GuildVoiceGuildMuteEvent.class,
+                               event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                            .setTitle("Mute mis a jour")
+                                            .setDescription(event.getMember().getAsMention() + " " + event.getVoiceState() + " by " + retrieveModerator(event.getGuild(), ActionType.MEMBER_UPDATE).getAsMention())
+                                            .build()
+        ),
         //#endregion
         //#region Permission Events
         //TODO
@@ -406,7 +427,152 @@ public class LogSystem extends ListenerAdapter {
                                                    .build()
         ),
         //#endregion
-        ;
+        //#region Message Events
+        //TODO
+        MESSAGE_BULK_DELETE(MessageBulkDeleteEvent.class,
+                            event -> Vars.getDefaultEmbed(Color.RED, event.getGuild())
+                                         .setTitle("Messages supprimés")
+                                         .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_BULK_DELETE).getAsMention())
+                                         .build()
+        ),
+        //TODO
+        MESSAGE_DELETE(MessageDeleteEvent.class,
+                       event -> Vars.getDefaultEmbed(Color.RED, event.getGuild())
+                                    .setTitle("Message supprimé")
+                                    .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_DELETE).getAsMention())
+                                    .build()
+        ),
+        //TODO
+        MESSAGE_UPDATE(MessageUpdateEvent.class,
+                       event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                    .setTitle("Message mis a jour")
+                                    .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_UPDATE).getAsMention())
+                                    .build()
+        ),
+        //TODO
+        MESSAGE_REACTION_REMOVE_EMOJI(MessageReactionRemoveEmojiEvent.class,
+                                      event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                                   .setTitle("Réaction retirée")
+                                                //    .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_REACTION_REMOVE).getAsMention())
+                                                   .build()
+        ),
+        //TODO
+        MESSAGE_REACTION_REMOVE_ALL(MessageReactionRemoveAllEvent.class,
+                                    event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                                 .setTitle("Réaction retirée")
+                                                //  .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_REACTION_REMOVE).getAsMention())
+                                                 .build()
+        ),
+        //#endregion
+        //#region Role Events
+        //TODO
+        ROLE_CREATE(RoleCreateEvent.class,
+                    event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild())
+                                 .setTitle("Rôle créé")
+                                 .setDescription(event.getRole().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_CREATE).getAsMention())
+                                 .build()
+        ),
+        //TODO
+        ROLE_DELETE(RoleDeleteEvent.class,
+                    event -> Vars.getDefaultEmbed(Color.RED, event.getGuild())
+                                 .setTitle("Rôle supprimé")
+                                 .setDescription(event.getRole().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_DELETE).getAsMention())
+                                 .build()
+        ),
+        //TODO
+        ROLE_UPDATE_COLOR(RoleUpdateColorEvent.class,
+                          event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                       .setTitle("Rôle mis a jour (Couleur)")
+                                       .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                       .build()
+        ),
+        //TODO
+        ROLE_UPDATE_HOIST(RoleUpdateHoistedEvent.class,
+                          event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                       .setTitle("Rôle mis a jour (Haut)")
+                                       .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                       .build()
+        ),
+        //TODO
+        ROLE_UPDATE_ICON(RoleUpdateIconEvent.class,
+                         event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                      .setTitle("Rôle mis a jour (Icône)")
+                                      .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                      .build()
+        ),
+        //TODO
+        ROLE_UPDATE_MENTIONABLE(RoleUpdateMentionableEvent.class,
+                                event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                             .setTitle("Rôle mis a jour (Mentionnable)")
+                                             .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                             .build()
+        ),
+        //TODO
+        ROLE_UPDATE_NAME(RoleUpdateNameEvent.class,
+                         event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                      .setTitle("Rôle mis a jour (Nom)")
+                                      .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                      .build()
+        ),
+        //TODO
+        ROLE_UPDATE_PERMISSIONS(RoleUpdatePermissionsEvent.class,
+                                event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                             .setTitle("Rôle mis a jour (Permissions)")
+                                             .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                             .build()
+        ),
+        //TODO
+        ROLE_UPDATE_POSITION(RoleUpdatePositionEvent.class,
+                             event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                          .setTitle("Rôle mis a jour (Position)")
+                                          .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.ROLE_UPDATE).getAsMention())
+                                          .build()
+        ),
+        //#endregion
+        //#region Sticker Events
+        //TODO
+        GUILD_STICKER_ADDED(GuildStickerAddedEvent.class,
+                            event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild())
+                                         .setTitle("Autocollant ajouté")
+                                         .setDescription(event.getSticker().getName() + " by " + retrieveModerator(event.getGuild(), ActionType.STICKER_CREATE).getAsMention())
+                                         .build()
+        ),
+        //TODO
+        GUILD_STICKER_REMOVED(GuildStickerRemovedEvent.class,
+                              event -> Vars.getDefaultEmbed(Color.RED, event.getGuild())
+                                           .setTitle("Autocollant supprimé")
+                                           .setDescription(event.getSticker().getName() + " by " + retrieveModerator(event.getGuild(), ActionType.STICKER_DELETE).getAsMention())
+                                           .build()
+        ),
+        //TODO
+        GUILD_STICKER_UPDATE_AVAILABLE(GuildStickerUpdateAvailableEvent.class,
+                                       event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                                    .setTitle("Autocollant mis a jour (Disponibilité)")
+                                                    .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.STICKER_UPDATE).getAsMention())
+                                                    .build()
+        ),
+        //TODO
+        GUILD_STICKER_UPDATE_DESCRIPTION(GuildStickerUpdateDescriptionEvent.class,
+                                         event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                                      .setTitle("Autocollant mis a jour (Description)")
+                                                      .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.STICKER_UPDATE).getAsMention())
+                                                      .build()
+        ),
+        //TODO
+        GUILD_STICKER_UPDATE_NAME(GuildStickerUpdateNameEvent.class,
+                                  event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                               .setTitle("Autocollant mis a jour (Nom)")
+                                               .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.STICKER_UPDATE).getAsMention())
+                                               .build()
+        ),
+        //TODO
+        GUILD_STICKER_UPDATE_TAGS(GuildStickerUpdateTagsEvent.class,
+                                  event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild())
+                                               .setTitle("Autocollant mis a jour (Tags)")
+                                               .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveModerator(event.getGuild(), ActionType.STICKER_UPDATE).getAsMention())
+                                               .build()
+        );
+        //#endregion
 
         private final Class<? extends GenericEvent> eventClass;
         private final Func<? extends GenericEvent, MessageEmbed> embed;
