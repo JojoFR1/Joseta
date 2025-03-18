@@ -70,7 +70,7 @@ public class ModLogCommand extends ModCommand {
             .setTimestamp(Instant.now());
 
         String description = "";
-        if (sanctions.isEmpty()) description = "Oh ! Cette utilisateur n'a aucune sanction !";
+        if (sanctions.isEmpty()) description = "Oh ! Cet utilisateur n'a aucune sanction !";
 
         else for (Sanction sanction : sanctions) {
             int sanctionTypeId = Integer.parseInt(Long.toString(sanction.id).substring(0,2));
