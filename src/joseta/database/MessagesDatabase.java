@@ -85,38 +85,6 @@ public class MessagesDatabase extends ListenerAdapter {
         addNewMessage(id, guildId, channelId, authorId, content, timestamp);
     }
 
-    @Override
-    public void onMessageUpdate(MessageUpdateEvent event) {
-        long id = event.getMessageIdLong();
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
-        String content = event.getMessage().getContentRaw();
-        boolean edited = true;
-
-        updateMessage(id, guildId, channelId, content, edited);
-    }
-
-    @Override
-    public void onMessageDelete(MessageDeleteEvent event) {
-        long id = event.getMessageIdLong();
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
-
-        deleteMessage(id, guildId, channelId);
-    }
-
-    @Override
-    public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-        if (event.getChannel().getType().isGuild()) {
-            long guildId = event.getGuild().getIdLong();
-            long channelId = event.getChannel().getIdLong();
-
-            for (String id : event.getMessageIds()) {
-                deleteMessage(Long.parseLong(id), guildId, channelId);
-            }
-        }
-    }
-
     
     private static void initializeTable() throws SQLException {
         String messageTable = "CREATE TABLE messages ("
@@ -151,7 +119,7 @@ public class MessagesDatabase extends ListenerAdapter {
         }
     }
 
-    private static void updateMessage(long id, long guildId, long channelId, String content, boolean edited) {
+    public static void updateMessage(long id, long guildId, long channelId, String content, boolean edited) {
         try (PreparedStatement pstmt = conn.prepareStatement("UPDATE messages SET content = ?, edited = ? "
                                                            + "WHERE id = ? AND guildId = ? AND channelId = ?")) {
             pstmt.setString(1, content);
@@ -165,7 +133,7 @@ public class MessagesDatabase extends ListenerAdapter {
         }
     }
 
-    private static void deleteMessage(long id, long guildId, long channelId) {
+    public static void deleteMessage(long id, long guildId, long channelId) {
         try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM messages WHERE id = ? AND guildId = ? AND channelId = ?")) {
             pstmt.setLong(1, id);
             pstmt.setLong(2, guildId);
@@ -173,6 +141,50 @@ public class MessagesDatabase extends ListenerAdapter {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not delete a message.", e);
+        }
+    }
+
+    public static MessageEntry getMessageEntry(long id, long guildId, long channelId) {
+        try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM messages WHERE id = ? AND guildId = ? AND channelId = ?")) {
+            pstmt.setLong(1, id);
+            pstmt.setLong(2, guildId);
+            pstmt.setLong(3, channelId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return new MessageEntry(
+                    rs.getLong("id"),
+                    rs.getLong("guildId"),
+                    rs.getLong("channelId"),
+                    rs.getLong("authorId"),
+                    rs.getString("content"),
+                    rs.getString("timestamp"),
+                    rs.getBoolean("edited")
+                );
+            }
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not retrieve a message.", e);
+        }
+        return null;
+    }
+
+    public static class MessageEntry {
+        public final long id;
+        public final long guildId;
+        public final long channelId;
+        public final long authorId;
+        public final String content;
+        public final String timestamp;
+        public final boolean edited;
+
+        public MessageEntry(long id, long guildId, long channelId, long authorId, String content, String timestamp, boolean edited) {
+            this.id = id;
+            this.guildId = guildId;
+            this.channelId = channelId;
+            this.authorId = authorId;
+            this.content = content;
+            this.timestamp = timestamp;
+            this.edited = edited;
         }
     }
 }

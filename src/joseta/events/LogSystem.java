@@ -1,6 +1,8 @@
 package joseta.events;
 
 import joseta.*;
+import joseta.database.*;
+import joseta.database.MessagesDatabase.*;
 import joseta.utils.func.*;
 import joseta.utils.struct.*;
 
@@ -42,7 +44,8 @@ public class LogSystem extends ListenerAdapter {
                                                                         GatewayPingEvent.class,
                                                                         GuildReadyEvent.class,
                                                                         ReadyEvent.class,
-                                                                        ShutdownEvent.class);
+                                                                        ShutdownEvent.class,
+                                                                        MessageReceivedEvent.class);
 
     @Override
     public void onGenericEvent(GenericEvent event) {
@@ -462,19 +465,40 @@ public class LogSystem extends ListenerAdapter {
                                          .setDescription(event.getChannel().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.MESSAGE_BULK_DELETE).getUser().getAsMention())
                                          .build()
         ),
-        //TODO
         MESSAGE_DELETE(MessageDeleteEvent.class,
-                       event -> Vars.getDefaultEmbed(Color.RED, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                    .setTitle("Message supprimé")
-                                    .setDescription(event.getChannel().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.MESSAGE_DELETE).getUser().getAsMention())
-                                    .build()
+                       event -> {
+                            long messageId = event.getMessageIdLong();
+                            Guild guild = event.getGuild();
+                            Channel channel = event.getChannel();
+
+                            MessageEntry messageEntry = MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong());
+
+                            AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
+                            User user = auditLogEntry.getUser();
+                            if (user == null) user = guild.retrieveMemberById(messageEntry.authorId).complete().getUser();
+
+
+                            String description = "**Message envoyé par " + user.getAsMention() + " supprimé dans " + channel.getAsMention() + "**\n\n```" + messageEntry.content + "```";
+                            MessagesDatabase.deleteMessage(messageId, guild.getIdLong(), channel.getIdLong());
+                            
+                            return createEmbed(Color.RED, guild, user, description);
+                       }
         ),
-        //TODO
         MESSAGE_UPDATE(MessageUpdateEvent.class,
-                       event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                    .setTitle("Message mis a jour")
-                                    .setDescription(event.getChannel().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.MESSAGE_UPDATE).getUser().getAsMention())
-                                    .build()
+                       event -> {
+                            long messageId = event.getMessageIdLong();
+                            Guild guild = event.getGuild();
+                            Channel channel = event.getChannel();
+
+                            AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
+                            User user = auditLogEntry.getUser();
+                            if (user == null) user = event.getAuthor();
+
+                            String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw() + "```";
+                            MessagesDatabase.updateMessage(messageId, guild.getIdLong(), channel.getIdLong(), event.getMessage().getContentRaw(), true);
+                            
+                            return createEmbed(Color.YELLOW, guild, user, description);
+                       }
         ),
         //TODO
         MESSAGE_REACTION_REMOVE_EMOJI(MessageReactionRemoveEmojiEvent.class,
@@ -634,7 +658,14 @@ public class LogSystem extends ListenerAdapter {
                                         .limit(1)
                                         .complete();
         
-        return !auditLog.isEmpty() ? auditLog.get(0) : null;
+        return !auditLog.isEmpty() ? auditLog.get(0) : new AuditLogEntry(ActionType.UNKNOWN, 0, 0, 0, 0, null, null, null, null, null, null);
+    }
+
+    private static MessageEmbed createEmbed(Color color, Guild guild, User author, String description) {
+        return Vars.getDefaultEmbed(color, guild, author)
+                .setDescription(description)
+                .build();
+
     }
 
     private static String getChannelTypeString(ChannelType channelType) {
