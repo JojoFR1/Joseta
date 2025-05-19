@@ -1,12 +1,15 @@
-# Sensible file
+## Sensible file
 secret.cfg
-*.bat
 
-# Build
+## Build
 .gradle/
 build/
 bin/
+# gradlew is already pushed so no worries
+*.bat
+*.sh
 
-# Other
+## Other
 logs/
-modlog.db
+*.db
+*.py
