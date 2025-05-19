@@ -1,4 +1,4 @@
-package joseta.utils;
+package joseta.database;
 
 import joseta.*;
 import joseta.commands.ModCommand.*;
@@ -12,23 +12,23 @@ import java.sql.*;
 import java.time.*;
 import java.util.concurrent.*;
 
-public final class ModLog {
-    private static final String urlDb = "jdbc:sqlite:resources/modlog.db";
+public final class ModLogDatabase {
+    private static final String dbFileName = "resources/database/modlog.db";
     private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
     private static Connection conn;
 
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static void initialize() {
-        File dbFile = new File("resources/modlog.db");
+        File dbFile = new File(dbFileName);
         try {
             if (!dbFile.exists()) {
                 dbFile.createNewFile();
                 
-                conn = DriverManager.getConnection(urlDb);
+                conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
 
                 initializeTable();
-            } else conn = DriverManager.getConnection(urlDb);
+            } else conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
             
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not initialize the SQL table.", e);
@@ -36,7 +36,7 @@ public final class ModLog {
             JosetaBot.logger.error("Could not create the 'modlog.db' file.", e);
         }
 
-        scheduler.scheduleAtFixedRate(ModLog::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(ModLogDatabase::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
     }
 
     private static void initializeTable() throws SQLException {
@@ -75,7 +75,7 @@ public final class ModLog {
         }
     }
 
-    private static void addNewUser(long userId, long  guildId) {
+    private static void addNewUser(long userId, long guildId) {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO users "
                                                            + "(id, guildId, totalSanctions)"
                                                            + "VALUES (?, ?, 0)"))
@@ -305,7 +305,7 @@ public final class ModLog {
     }
 
     private static void checkExpiredSanctions() {
-        ModLog.getExpiredSanctions().each(sanction -> {
+        ModLogDatabase.getExpiredSanctions().each(sanction -> {
             if (sanction.getSanctionTypeId() == SanctionType.BAN) {
                 Guild guild = JosetaBot.bot.getGuildById(sanction.guildId);
                 guild.retrieveBanList().queue(bans -> {
@@ -315,7 +315,7 @@ public final class ModLog {
                     });
                 });
             }
-            ModLog.removeSanction(sanction);
+            ModLogDatabase.removeSanction(sanction);
         });
     }
 }

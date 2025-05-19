@@ -1,7 +1,7 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
-import joseta.utils.*;
+import joseta.database.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -23,7 +23,7 @@ public class WarnCommand extends ModCommand {
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
         //TODO faillure?
-        ModLog.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+        ModLogDatabase.log(SanctionType.WARN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
         
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
     }

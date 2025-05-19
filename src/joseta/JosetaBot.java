@@ -5,8 +5,8 @@ import joseta.commands.Command;
 import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
+import joseta.database.*;
 import joseta.events.*;
-import joseta.utils.*;
 
 import arc.struct.*;
 
@@ -71,7 +71,8 @@ public class JosetaBot {
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
                                    new ModAutoComplete(),
-                                   new AutoResponse())
+                                   new AutoResponse(),
+                                   new MessagesDatabase())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
                 .build();
@@ -86,8 +87,10 @@ public class JosetaBot {
 
         initializeCommands();
         Vars.initialize(bot.getGuildById(Vars.testGuildId)); // TODO another way than that pls (SHOULD be fixed with config later)
+        
         WelcomeMessage.initialize();
-        ModLog.initialize();
+        ModLogDatabase.initialize();
+        MessagesDatabase.initialize();
     }
 
     private static void preLoad(String args[]) {
