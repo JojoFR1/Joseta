@@ -12,8 +12,8 @@ public class PingCommand extends Command {
     
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        long startTime = System.currentTimeMillis();
         long gatewayPing = event.getJDA().getGatewayPing();
+        long startTime = System.currentTimeMillis();
 
         event.reply("Pinging...").queue(reply -> {
             reply.editOriginal("Pong! Latency: "+ (System.currentTimeMillis() - startTime) +"ms | API Latency: "+ gatewayPing +"ms").queue();
