@@ -57,8 +57,25 @@ public class MessagesDatabase extends ListenerAdapter {
         // }
     }
 
+    private static void initializeTable() throws SQLException {
+        String messageTable = "CREATE TABLE messages ("
+                            + "id BIGINT PRIMARY KEY,"
+                            + "guildId BIGINT,"
+                            + "channelId BIGINT,"
+                            + "authorId BIGINT,"
+                            + "content TEXT,"
+                            + "timestamp TEXT,"
+                            + "edited BOOLEAN DEFAULT FALSE" // Is it really necessary to store this?
+                            + ")";
+
+
+        Statement stmt = conn.createStatement();
+        stmt.execute(messageTable);
+    }
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (!event.isFromGuild()) return; // Ignore DMs
         long id = event.getMessageIdLong();
 
         // Check if message already exists in the database
@@ -85,23 +102,6 @@ public class MessagesDatabase extends ListenerAdapter {
         addNewMessage(id, guildId, channelId, authorId, content, timestamp);
     }
 
-    
-    private static void initializeTable() throws SQLException {
-        String messageTable = "CREATE TABLE messages ("
-                            + "id BIGINT PRIMARY KEY,"
-                            + "guildId BIGINT,"
-                            + "channelId BIGINT,"
-                            + "authorId BIGINT,"
-                            + "content TEXT,"
-                            + "timestamp TEXT,"
-                            + "edited BOOLEAN DEFAULT FALSE"
-                            + ")";
-
-
-        Statement stmt = conn.createStatement();
-        stmt.execute(messageTable);
-    }
-
     private static void addNewMessage(long id, long guildId, long channelId, long authorId, String content, String timestamp) {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO messages "
                                                            + "(id, guildId, channelId, authorId, content, timestamp)"
@@ -119,11 +119,11 @@ public class MessagesDatabase extends ListenerAdapter {
         }
     }
 
-    public static void updateMessage(long id, long guildId, long channelId, String content, boolean edited) {
+    public static void updateMessage(long id, long guildId, long channelId, String content) {
         try (PreparedStatement pstmt = conn.prepareStatement("UPDATE messages SET content = ?, edited = ? "
                                                            + "WHERE id = ? AND guildId = ? AND channelId = ?")) {
             pstmt.setString(1, content);
-            pstmt.setBoolean(2, edited);
+            pstmt.setBoolean(2, true);
             pstmt.setLong(3, id);
             pstmt.setLong(4, guildId);
             pstmt.setLong(5, channelId);

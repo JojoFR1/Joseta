@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.events.guild.update.*;
 import net.dv8tion.jda.api.events.guild.voice.*;
 import net.dv8tion.jda.api.events.http.*;
 import net.dv8tion.jda.api.events.message.*;
+import net.dv8tion.jda.api.events.message.poll.*;
 import net.dv8tion.jda.api.events.message.react.*;
 import net.dv8tion.jda.api.events.role.*;
 import net.dv8tion.jda.api.events.role.update.*;
@@ -39,59 +40,78 @@ import java.util.List;
 
 public class LogSystem extends ListenerAdapter {
     @SuppressWarnings("unchecked")
-    private Seq<Class<? extends GenericEvent>> ignoredEvents = Seq.with(StatusChangeEvent.class,
+    private Seq<Class<? extends GenericEvent>> ignoredEvents = Seq.with(// Bot related events
+                                                                        StatusChangeEvent.class,
                                                                         HttpRequestEvent.class,
                                                                         GatewayPingEvent.class,
                                                                         GuildReadyEvent.class,
                                                                         ReadyEvent.class,
                                                                         ShutdownEvent.class,
-                                                                        MessageReceivedEvent.class);
+                                                                        SessionDisconnectEvent.class,
+                                                                        SessionResumeEvent.class,
+                                                                        // Other unused events - generally basic user events
+                                                                        MessageReceivedEvent.class,
+                                                                        MessageReactionAddEvent.class,
+                                                                        MessageReactionRemoveEvent.class,
+                                                                        MessagePollVoteAddEvent.class,
+                                                                        MessagePollVoteRemoveEvent.class,
+                                                                        GuildAuditLogEntryCreateEvent.class);
 
     @Override
     public void onGenericEvent(GenericEvent event) {
-        EventType eventType = EventType.getFromEvent(event);
         if (ignoredEvents.contains(event.getClass())) return;
 
+        EventType eventType = EventType.getFromEvent(event);
         if (eventType == null) {
             JosetaBot.logger.warn("Unknown event type: " + event);
             return;
         }
-        if (eventType.batched) {
-            return;
-        }
 
-        Vars.testChannel.sendMessageEmbeds(eventType.getEmbed(event)).queue();
+        MessageEmbed embed = eventType.getEmbed(event);
+        if (embed == null) return;
+
+        Vars.testChannel.sendMessageEmbeds(embed).queue();
+        // Vars.logChannel.sendMessageEmbeds(embed).queue();
     }
 
     public enum EventType {
         //#region Channel Events
+        // TODO
         CHANNEL_CREATE(ChannelCreateEvent.class,
                        event -> Vars.getDefaultEmbed(Color.decode("#417505"), event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
                                     .setTitle("Nouveau salon - " + getChannelTypeString(event.getChannelType()))
                                     .setDescription("Salon créé: " + event.getChannel().getAsMention())
                                     .build()
         ),
+        // TODO
         CHANNEL_DELETE(ChannelDeleteEvent.class,
                        event -> Vars.getDefaultEmbed(Color.decode("#D0021B"), event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_DELETE).getUser())
                                     .setTitle("Salon supprimé - " + getChannelTypeString(event.getChannelType()))
                                     .setDescription("Salon supprimé: `" + event.getChannel().getName()  + "`")
                                     .build()
         ),
+        // TODO
         CHANNEL_UPDATE(GenericChannelUpdateEvent.class,
-                      event -> null,
-                      true),
+                      event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_UPDATE).getUser())
+                               .setTitle("Salon mis a jour - " + getChannelTypeString(event.getChannelType()))
+                               .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_UPDATE).getUser().getAsMention())
+                               .build()
+        ),
+        // TODO
         CHANNEL_UPDATE_TOPIC(ChannelUpdateTopicEvent.class,
                              event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
                                           .setTitle("Salon mis a jour (Topic)")
                                           .setDescription(event.getOldValue() + " en " + event.getNewValue())
                                           .build()
         ),
+        // TODO
         CHANNEL_UPDATE_SLOWMODE(ChannelUpdateSlowmodeEvent.class,
                                 event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
                                              .setTitle("Salon mis a jour (Slowmode)")
                                              .setDescription("" +event.getOldValue() + " en " + event.getNewValue())
                                              .build()
         ),
+        // TODO
         CHANNEL_UPDATE_NAME(ChannelUpdateNameEvent.class,
                             event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
                                          .setTitle("Salon mis à jour")
@@ -323,8 +343,10 @@ public class LogSystem extends ListenerAdapter {
         ),
         // TODO
         GUILD_MEMBER_UPDATE(GenericGuildMemberUpdateEvent.class,
-                            event -> null,
-                            true
+                            event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
+                                         .setTitle("Membre mis a jour")
+                                         .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.MEMBER_UPDATE).getUser().getAsMention())
+                                         .build()
         ),
         //TODO
         GUILD_MEMBER_ROLE_ADDED(GuildMemberRoleAddEvent.class,
@@ -458,126 +480,195 @@ public class LogSystem extends ListenerAdapter {
         ),
         //#endregion
         //#region Message Events
-        //TODO
-        MESSAGE_BULK_DELETE(MessageBulkDeleteEvent.class,
-                            event -> Vars.getDefaultEmbed(Color.RED, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                         .setTitle("Messages supprimés")
-                                         .setDescription(event.getChannel().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.MESSAGE_BULK_DELETE).getUser().getAsMention())
-                                         .build()
-        ),
         MESSAGE_DELETE(MessageDeleteEvent.class,
-                       event -> {
-                            long messageId = event.getMessageIdLong();
-                            Guild guild = event.getGuild();
-                            Channel channel = event.getChannel();
+            event -> {
+                long messageId = event.getMessageIdLong();
+                Guild guild = event.getGuild();
+                Channel channel = event.getChannel();
 
-                            MessageEntry messageEntry = MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong());
+                MessageEntry messageEntry = MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong());
 
-                            AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
-                            User user = auditLogEntry.getUser();
-                            if (user == null) user = guild.retrieveMemberById(messageEntry.authorId).complete().getUser();
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
+                User user = auditLogEntry.getUser();
+                if (user == null) user = guild.retrieveMemberById(messageEntry.authorId).complete().getUser();
+                if (user.isBot() || user.isSystem()) return null;
 
-
-                            String description = "**Message envoyé par " + user.getAsMention() + " supprimé dans " + channel.getAsMention() + "**\n\n```" + messageEntry.content + "```";
-                            MessagesDatabase.deleteMessage(messageId, guild.getIdLong(), channel.getIdLong());
-                            
-                            return createEmbed(Color.RED, guild, user, description);
-                       }
+                String description = "**Message envoyé par " + user.getAsMention() + " supprimé dans " + channel.getAsMention() + "**\n\n```" + messageEntry.content + "```";
+                MessagesDatabase.deleteMessage(messageId, guild.getIdLong(), channel.getIdLong());
+                
+                return createEmbed(Color.RED, guild, user, description);
+            }
         ),
         MESSAGE_UPDATE(MessageUpdateEvent.class,
-                       event -> {
-                            long messageId = event.getMessageIdLong();
-                            Guild guild = event.getGuild();
-                            Channel channel = event.getChannel();
+            event -> {
+                long messageId = event.getMessageIdLong();
+                Guild guild = event.getGuild();
+                Channel channel = event.getChannel();
 
-                            AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
-                            User user = auditLogEntry.getUser();
-                            if (user == null) user = event.getAuthor();
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
+                User user = auditLogEntry.getUser();
+                if (user == null) user = event.getAuthor();
+                if (user.isBot() || user.isSystem()) return null;
 
-                            String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw() + "```";
-                            MessagesDatabase.updateMessage(messageId, guild.getIdLong(), channel.getIdLong(), event.getMessage().getContentRaw(), true);
-                            
-                            return createEmbed(Color.YELLOW, guild, user, description);
-                       }
+                String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content.replace("``", "\\`") + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw().replace("``", "\\`") + "```";
+                MessagesDatabase.updateMessage(messageId, guild.getIdLong(), channel.getIdLong(), event.getMessage().getContentRaw());
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
-        //TODO
         MESSAGE_REACTION_REMOVE_EMOJI(MessageReactionRemoveEmojiEvent.class,
-                                      event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                   .setTitle("Réaction retirée")
-                                                //    .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_REACTION_REMOVE).getUser().getAsMention())
-                                                   .build()
+            event -> {
+                Guild guild = event.getGuild();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**La réaction "+ event.getEmoji().getFormatted() +" de "+ event.getJumpUrl() +" a été retirer par " + user.getAsMention() +"**";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
-        //TODO
         MESSAGE_REACTION_REMOVE_ALL(MessageReactionRemoveAllEvent.class,
-                                    event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                 .setTitle("Réaction retirée")
-                                                //  .setDescription(event.getChannel().getAsMention() + " by " + retrieveModerator(event.getGuild(), ActionType.MESSAGE_REACTION_REMOVE).getUser().getAsMention())
-                                                 .build()
+            event -> {
+                Guild guild = event.getGuild();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Les réactions de "+ event.getJumpUrl() +" ont toutes été retirer par " + user.getAsMention() +"**";
+                
+                return createEmbed(Color.RED, guild, user, description);
+            }
         ),
         //#endregion
         //#region Role Events
-        //TODO
         ROLE_CREATE(RoleCreateEvent.class,
-                    event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                 .setTitle("Rôle créé")
-                                 .setDescription(event.getRole().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_CREATE).getUser().getAsMention())
-                                 .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_CREATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau rôle par " + user.getAsMention() + "**\n\n+ `"+ role.getName() +"`";
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
         ),
-        //TODO
         ROLE_DELETE(RoleDeleteEvent.class,
-                    event -> Vars.getDefaultEmbed(Color.RED, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                 .setTitle("Rôle supprimé")
-                                 .setDescription(event.getRole().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_DELETE).getUser().getAsMention())
-                                 .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_DELETE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Rôle supprimé par " + user.getAsMention() + "**\n\n\\- `"+ role.getName() +"`";
+                
+                return createEmbed(Color.RED, guild, user, description);
+            }
         ),
-        //TODO
         ROLE_UPDATE_COLOR(RoleUpdateColorEvent.class,
-                          event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                       .setTitle("Rôle mis a jour (Couleur)")
-                                       .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                       .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouvelle couleur pour le rôle `" + role.getName() +"` par " + user.getAsMention() + "**\n\n "+ event.getOldColor() +" --> "+ event.getNewColor();
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
+
         ),
         //TODO
         ROLE_UPDATE_HOIST(RoleUpdateHoistedEvent.class,
-                          event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                       .setTitle("Rôle mis a jour (Haut)")
-                                       .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                       .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau s'affiche séparemtn... avec updatepermaussi? par " + user.getAsMention() + "\n\n"+ role.getAsMention();
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
+
         ),
         //TODO
         ROLE_UPDATE_ICON(RoleUpdateIconEvent.class,
-                         event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                      .setTitle("Rôle mis a jour (Icône)")
-                                      .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                      .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouvelle icône par " + user.getAsMention() + "\n\n "+ event.getOldIcon();
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
+
         ),
         //TODO
         ROLE_UPDATE_MENTIONABLE(RoleUpdateMentionableEvent.class,
-                                event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                             .setTitle("Rôle mis a jour (Mentionnable)")
-                                             .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                             .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau mentionnable... p'tet fusionner avec update perm? par " + user.getAsMention() + "\n\n"+ role.getAsMention();
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
+
         ),
-        //TODO
         ROLE_UPDATE_NAME(RoleUpdateNameEvent.class,
-                         event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                      .setTitle("Rôle mis a jour (Nom)")
-                                      .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                      .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau nom pour le rôle `" + role.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldName() +"` --> `"+ event.getNewName() +"`";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
         //TODO
         ROLE_UPDATE_PERMISSIONS(RoleUpdatePermissionsEvent.class,
-                                event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                             .setTitle("Rôle mis a jour (Permissions)")
-                                             .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                             .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouvelle.. permission....; ouais non pas aujourd'hui trop de boulot cette merde - par " + user.getAsMention() + "\n\n"+ role.getAsMention();
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
+
         ),
         //TODO
         ROLE_UPDATE_POSITION(RoleUpdatePositionEvent.class,
-                             event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                          .setTitle("Rôle mis a jour (Position)")
-                                          .setDescription(event.getRole().getAsMention() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.ROLE_UPDATE).getUser().getAsMention())
-                                          .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Role role = event.getRole();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.ROLE_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouvelle.. position....; ouais non pas aujourd'hui trop de boulot cette merde - par " + user.getAsMention() + "\n\n"+ role.getAsMention();
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
+
         ),
         //#endregion
         //#region Sticker Events
@@ -627,16 +718,10 @@ public class LogSystem extends ListenerAdapter {
 
         private final Class<? extends GenericEvent> eventClass;
         private final Func<? extends GenericEvent, MessageEmbed> embed;
-        public final boolean batched;
         
         private <T extends GenericEvent> EventType(Class<T> eventClass, Func<T, MessageEmbed> embed) {
-            this(eventClass, embed, false);
-        }
-        
-        private <T extends GenericEvent> EventType(Class<T> eventClass, Func<T, MessageEmbed> embed, boolean batched) {
             this.eventClass = eventClass;
             this.embed = embed;
-            this.batched = batched;
         }
         
         @SuppressWarnings("unchecked")
