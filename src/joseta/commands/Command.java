@@ -10,6 +10,7 @@ public abstract class Command {
     public final DefaultMemberPermissions defaultPermissions;
     public final OptionData[] options; // Not compatible with subcommands.
     public final SubcommandData[] subcommands; // Not compatible with options.
+    public final SubcommandGroupData[] subcommandGroupsData;  // Not compatible with options.
 
     protected Command(String name, String description) {
         this(name, description, DefaultMemberPermissions.ENABLED);
@@ -23,19 +24,32 @@ public abstract class Command {
     protected Command(String name, String description, SubcommandData... subcommands) {
         this(name, description, DefaultMemberPermissions.ENABLED, subcommands);
     }
+    protected Command(String name, String description, SubcommandGroupData... subcommandGroupsData) {
+        this(name, description, DefaultMemberPermissions.ENABLED, subcommandGroupsData);
+    }
     protected Command(String name, String description, DefaultMemberPermissions defaultPermissions, OptionData... options) {
         this.name = name;
         this.description = description;
+        this.defaultPermissions = defaultPermissions;
         this.options = options;
         this.subcommands = new SubcommandData[0];
-        this.defaultPermissions = defaultPermissions;
+        this.subcommandGroupsData = new SubcommandGroupData[0];
     }
     protected Command(String name, String description, DefaultMemberPermissions defaultPermissions, SubcommandData... subcommands) {
         this.name = name;
         this.description = description;
+        this.defaultPermissions = defaultPermissions;
         this.options = new OptionData[0];
         this.subcommands = subcommands;
+        this.subcommandGroupsData = new SubcommandGroupData[0];
+    }
+    protected Command(String name, String description, DefaultMemberPermissions defaultPermissions, SubcommandGroupData... subcommands) {
+        this.name = name;
+        this.description = description;
         this.defaultPermissions = defaultPermissions;
+        this.options = new OptionData[0];
+        this.subcommands = new SubcommandData[0];
+        this.subcommandGroupsData = subcommands;
     }
 
     public final void run(SlashCommandInteractionEvent event) {

@@ -33,8 +33,8 @@ public class JosetaBot {
         
         new WarnCommand(),
         new UnwarnCommand(),
-        new MuteCommand(),
-        new UnmuteCommand(),
+        new TimeoutCommand(),
+        new UntimeoutCommand(),
         new KickCommand(),
         new BanCommand(),
         new UnbanCommand(),
@@ -97,7 +97,7 @@ public class JosetaBot {
 
     private static void initializeCommands() {
         Seq<CommandData> commandsData = new Seq<>();
-        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
+        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroupsData).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
 
         // Add commands on a test guild - Instantly
         if (Vars.isDebug && Vars.testGuildId != -1)

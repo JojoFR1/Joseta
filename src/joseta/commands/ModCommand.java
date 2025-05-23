@@ -26,11 +26,17 @@ public abstract class ModCommand extends Command {
     protected ModCommand(String name, String description, SubcommandData... subcommands) {
         super(name, description, DefaultMemberPermissions.ENABLED, subcommands);
     }
+    protected ModCommand(String name, String description, SubcommandGroupData... subcommandGroupsData) {
+        super(name, description, DefaultMemberPermissions.ENABLED, subcommandGroupsData);
+    }
     protected ModCommand(String name, String description, DefaultMemberPermissions defaultPermissions, OptionData... options) {
         super(name, description, defaultPermissions, options);
     }
     protected ModCommand(String name, String description, DefaultMemberPermissions defaultPermissions, SubcommandData... subcommands) {
         super(name, description, defaultPermissions, subcommands);
+    }
+    protected ModCommand(String name, String description, DefaultMemberPermissions defaultPermissions, SubcommandGroupData... subcommandGroupsData) {
+        super(name, description, defaultPermissions, subcommandGroupsData);
     }
 
     @Override
