@@ -43,6 +43,6 @@ public class BanCommand extends ModCommand {
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
         super.getArgs(event);
-        clearTime = (int) Strings.parseTime(event.getOption("clear_time", "1h", OptionMapping::getAsString));
+        clearTime = (int) TimeParser.parse(event.getOption("clear_time", "1h", OptionMapping::getAsString));
     }
 }

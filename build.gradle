@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("application")
-    id("com.gradleup.shadow") version "8.3.1"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 version = '1.1.0'
 
@@ -20,6 +20,9 @@ compileJava.options.encoding = "UTF-8"
 
 repositories{
     mavenCentral()
+    maven{ url 'https://maven.xpdustry.fr/releases' }
+    maven{ url 'https://www.jitpack.io' }
+    maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
 }
 
 dependencies{
@@ -29,6 +32,7 @@ dependencies{
     }
     implementation("ch.qos.logback:logback-classic:1.5.12")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+    implementation("com.github.Anuken.Arc:arc-core:v146")
 }
 
 shadowJar {

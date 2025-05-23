@@ -27,7 +27,7 @@ This bot is multipurpose and isn't centered around one thing, any features added
 - Multiple commands:
   | Commands       | Use                                |
   |:---------------|:-----------------------------------|
-  | `/admin`       | Only used to send rules as of now. |
+  | `/admin`       | Only used for rules as of now.     |
   | `/(un)warn`    | (Un)warn a member.                 |
   | `/(un)timeout` | (Un)timeout a member.              |
   | `/kick`        | Kick a member.                     |
@@ -52,6 +52,7 @@ Our current plans for the future are the following, in the order in which they w
   - Allow to un-hardcode values
   - Allow to be runnable outside of our server
 
+- Add a `/markov` command to generate random message
 - Message leaderboard + levels?
 
 - Support multi-server:

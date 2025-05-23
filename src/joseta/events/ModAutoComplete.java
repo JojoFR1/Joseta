@@ -1,6 +1,6 @@
 package joseta.events;
 
-import joseta.utils.struct.*;
+import arc.struct.*;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.hooks.*;

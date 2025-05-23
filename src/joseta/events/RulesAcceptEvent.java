@@ -7,7 +7,7 @@ public class RulesAcceptEvent extends ListenerAdapter {
     
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (!event.getComponentId().equals("rule-accept")) return;
+        if (!event.getComponentId().equals("b-rules_accept")) return;
 
         event.getGuild().addRoleToMember(event.getUser(), event.getGuild().getRoleById(1235571503412543552L)).queue();
         event.getGuild().removeRoleFromMember(event.getUser(), event.getGuild().getRoleById(1259874357384056852L)).queue();

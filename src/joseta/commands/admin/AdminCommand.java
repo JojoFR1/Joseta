@@ -2,7 +2,8 @@ package joseta.commands.admin;
 
 import joseta.*;
 import joseta.commands.Command;
-import joseta.utils.struct.*;
+
+import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -17,7 +18,6 @@ import java.io.*;
 import java.nio.charset.*;
 import java.time.*;
 
-// TODO update this to more recent command system (and to support multiple subcommand)
 public class AdminCommand extends Command {
     private TextChannel channel;
     private long messageId;
@@ -30,24 +30,49 @@ public class AdminCommand extends Command {
                     new SubcommandData("send", "Envoie les règles dans un salon.")
                         .addOption(OptionType.CHANNEL, "channel", "Le salon où envoyez les règles.", true),
                     new SubcommandData("update", "Envoie les règles dans un salon.")
-                        .addOption(OptionType.INTEGER, "message_id", "L'identifiant du message où vous voulez envoyez règles.", true)
+                        .addOption(OptionType.CHANNEL,  "channel", "Le salon où envoyez les règles.", true)
+                        .addOption(OptionType.STRING,  "message_id", "L'identifiant du message où vous voulez envoyez règles.", true)
                 )
         );
     }
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
+        MessageEmbed[] embeds = getEmbeds(event.getGuild());
+
         if (event.getSubcommandName().equals("update")) {
-            event.reply("Cette commande n'est pas encore disponible.").setEphemeral(true).queue();
+            Message message = channel.retrieveMessageById(messageId).complete();
+            if (message == null) {
+                event.reply("Unknown message, please check the ID or the existence of this message.").setEphemeral(true).queue();
+                return;
+            }
+            if (message.getAuthor() != JosetaBot.bot.getSelfUser()) {
+                event.reply("Message not sent by the bot.").setEphemeral(true).queue();
+                return;
+            }
+            message.editMessageEmbeds(embeds).queue();
+
+            event.reply("Rules updated succesfully.").setEphemeral(true).queue();
             return;
         }
-        Guild guild = event.getGuild();
-        String iconUrl = guild.getIconUrl();
 
+
+        Message msg = channel.sendMessage("").setEmbeds(embeds).addActionRow(
+            Button.success("b-rules_accept", "Accepter")
+        ).complete();
+
+        msg.getIdLong();
+        channel.getIdLong();
+        
+        event.reply("Rules sent succesfully.").setEphemeral(true).queue();
+    }
+
+    private MessageEmbed[] getEmbeds(Guild guild) {
+        String iconUrl = guild.getIconUrl();
         Instant timestamp = Instant.now();
         Seq<MessageEmbed> embeds = new Seq<>();
-        
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("resources/rules.txt"), StandardCharsets.UTF_8), 8192)) {
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("resources/rules.txt"), StandardCharsets.UTF_8))) {
             String description = "";
             EmbedBuilder embed = null;
             String line;
@@ -73,18 +98,15 @@ public class AdminCommand extends Command {
             }
         } catch (IOException e) {
             JosetaBot.logger.error("An error occured during rules embed building.", e);
-            return;
+            return null;
         }
-        
-        channel.sendMessage("").addEmbeds(embeds.toArray(MessageEmbed.class))
-            .addActionRow(Button.success("rule-accept", "Accepter")).queue();
-        
-        event.reply("Rules sent succesfully.").setEphemeral(true).queue();
+
+        return embeds.toArray(MessageEmbed.class);
     }
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        if (event.getSubcommandName().equals("send")) channel   = event.getOption("channel", null, OptionMapping::getAsChannel).asTextChannel();
-        else messageId = event.getOption("message_id", null, OptionMapping::getAsLong);
+        channel = event.getOption("channel", null, OptionMapping::getAsChannel).asTextChannel();
+        if (event.getSubcommandName().equals("update")) messageId = Long.parseLong(event.getOption("message_id", null, OptionMapping::getAsString));
     }
 }

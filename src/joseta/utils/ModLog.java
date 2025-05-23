@@ -2,7 +2,8 @@ package joseta.utils;
 
 import joseta.*;
 import joseta.commands.ModCommand.*;
-import joseta.utils.struct.*;
+
+import arc.struct.*;
 
 import net.dv8tion.jda.api.entities.*;
 

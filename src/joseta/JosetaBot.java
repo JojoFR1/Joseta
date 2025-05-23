@@ -6,7 +6,8 @@ import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.events.*;
 import joseta.utils.*;
-import joseta.utils.struct.*;
+
+import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;

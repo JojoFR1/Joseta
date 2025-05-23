@@ -44,7 +44,7 @@ public abstract class ModCommand extends Command {
         user =   event.getOption("user", null, OptionMapping::getAsUser);
         member = event.getOption("user", null, OptionMapping::getAsMember);
         reason = event.getOption("reason", "Raison par défaut", OptionMapping::getAsString);
-        time = Strings.parseTime(event.getOption("time", defaultTime, OptionMapping::getAsString));
+        time = TimeParser.parse(event.getOption("time", defaultTime, OptionMapping::getAsString));
     }
     
     @Override

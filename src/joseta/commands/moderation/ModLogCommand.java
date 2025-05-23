@@ -3,7 +3,8 @@ package joseta.commands.moderation;
 import joseta.commands.*;
 import joseta.utils.*;
 import joseta.utils.ModLog.*;
-import joseta.utils.struct.*;
+
+import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -85,7 +86,7 @@ public class ModLogCommand extends ModCommand {
             description += "\n>   - Responsable: <@"+ sanction.moderatorId +"> (`"+ sanction.moderatorId +"`)"
                          + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
             
-            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + Strings.convertSecond(sanction.time);
+            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.time);
 
             description += "\n>   - Raison: " + sanction.reason + "\n\n";
         }
