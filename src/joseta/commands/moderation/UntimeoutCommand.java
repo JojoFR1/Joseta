@@ -9,10 +9,10 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
-public class UnmuteCommand extends ModCommand {
+public class UntimeoutCommand extends ModCommand {
     
-    public UnmuteCommand() {
-        super("unmute", "Unmute un membre.",
+    public UntimeoutCommand() {
+        super("untimeout", "Retire l'exclusion des salons du membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
             new OptionData(OptionType.USER, "user", "Le membre a unmute.", true)
         );

@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class KickCommand extends ModCommand {
     
     public KickCommand() {
-        super("kick", "Exclue un membre.",
+        super("kick", "Exclue du serveur le membre .",
             DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS),
             new OptionData(OptionType.USER, "user", "Le membre a bannir.", true),
             new OptionData(OptionType.STRING, "reason", "La raison de l'exclusion.")

@@ -63,6 +63,11 @@ public abstract class ModCommand extends Command {
             return false;
         }
 
+        if (event.getMember().isOwner()) {
+            event.reply("Ce membre est le propriétaire du serveur, vous ne pouvez pas le sanctionner.").setEphemeral(true).queue();
+            return false;
+        }
+
         return super.check(event);
     }
 

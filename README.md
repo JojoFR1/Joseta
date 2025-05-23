@@ -25,23 +25,20 @@ This bot is multipurpose and isn't centered around one thing, any features added
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
 - Multiple commands:
-  | Commands    | Use                                |
-  |:------------|:-----------------------------------|
-  | `/admin`    | Only used to send rules as of now. |
-  | `/(un)warn` | (Un)warn a member.                 |
-  | `/(un)mute` | (Un)mute a member.                 |
-  | `/kick`     | Kick a member.                     |
-  | `/(un)ban`  | (Un)ban a member.                  |
-  | `/modlog`   | Acces a member moderation history. |
+  | Commands       | Use                                |
+  |:---------------|:-----------------------------------|
+  | `/admin`       | Only used to send rules as of now. |
+  | `/(un)warn`    | (Un)warn a member.                 |
+  | `/(un)timeout` | (Un)timeout a member.              |
+  | `/kick`        | Kick a member.                     |
+  | `/(un)ban`     | (Un)ban a member.                  |
+  | `/modlog`      | Acces a member moderation history. |
 
 ## Plans
 
 Our current plans for the future are the following, in the order in which they will be made:
 
-- Change `/admin send-rules` to `/admin rules send [channel]` 
-- Able to update rules (`/admin rules update [msgId]`)
-- Moderation commands: add a check if it's owner (forgot to)
-
+- Be able to update rules (`/admin rules update [msgId]`)
 - Add a Logging system:
   - Send messages giving info on user actions (modified, deleted, ...)
   - Send messages giving info on moderation actions (kick, ban, ...)
@@ -49,7 +46,6 @@ Our current plans for the future are the following, in the order in which they w
   - Batch logs (maybe for later)
 
 - Send info to user DM about their sanction
-- Rename `/(un)mute` to `/(un)timeout`
 
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart

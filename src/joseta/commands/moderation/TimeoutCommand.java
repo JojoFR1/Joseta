@@ -11,10 +11,10 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 
 import java.util.concurrent.*;
 
-public class MuteCommand extends ModCommand {
+public class TimeoutCommand extends ModCommand {
 
-    public MuteCommand() {
-        super("mute", "Mute un membre.",
+    public TimeoutCommand() {
+        super("timeout", "Exclue des salons le membre.",
             DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
             new OptionData(OptionType.USER, "user", "Le membre a mute.", true),
             new OptionData(OptionType.STRING, "reason", "La raison du mute."),
