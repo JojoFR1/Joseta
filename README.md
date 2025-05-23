@@ -37,16 +37,26 @@ This bot is multipurpose and isn't centered around one thing, any features added
 ## Plans
 
 Our current plans for the future are the following, in the order in which they will be made:
-  
+
+- Change `/admin send-rules` to `/admin rules send [channel]` 
+- Able to update rules (`/admin rules update [msgId]`)
+- Moderation commands: add a check if it's owner (forgot to)
+
 - Add a Logging system:
   - Send messages giving info on user actions (modified, deleted, ...)
   - Send messages giving info on moderation actions (kick, ban, ...)
   - Send messages giving info on administration actions (created, modifed channles/roles, ...)
+  - Batch logs (maybe for later)
+
+- Send info to user DM about their sanction
+- Rename `/(un)mute` to `/(un)timeout`
 
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart
   - Allow to un-hardcode values
   - Allow to be runnable outside of our server
+
+- Message leaderboard + levels?
 
 - Support multi-server:
   - Mainly to make it useable outside of our server
