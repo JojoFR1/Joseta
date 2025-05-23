@@ -13,6 +13,8 @@ public class Vars {
     public static String token = null;
     public static long testGuildId = 0;
     public static String[] ownersId; // Not a long because it requires a loop
+
+    public static final String databaseLocation = "resources/database/";
     
     public static boolean isDebug, isServer = false;
 

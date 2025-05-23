@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 import java.util.stream.*;
 
 public class MessagesDatabase extends ListenerAdapter {
-    private static final String dbFileName = "resources/database/messages.db";
+    private static final String dbFileName = Vars.databaseLocation + "messages.db";
     private static Connection conn;
 
     public static void initialize() {
@@ -25,6 +25,7 @@ public class MessagesDatabase extends ListenerAdapter {
                 conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
 
                 initializeTable();
+                populateNewTable();
             } else conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
             
         } catch (SQLException e) {
@@ -32,29 +33,6 @@ public class MessagesDatabase extends ListenerAdapter {
         } catch (IOException e) {
             JosetaBot.logger.error("Could not create the 'messages.db' file.", e);
         }
-
-        // for (Guild guild : JosetaBot.bot.getGuilds()) {
-        //     for (TextChannel channel : guild.getTextChannels()) {
-        //         System.out.println("Fetching messages from channel: " + channel.getName() + " in guild: " + guild.getName());
-        //         try {
-        //             for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
-        //                 long id = message.getIdLong();
-        //                 long guildId = guild.getIdLong();
-        //                 long channelId = channel.getIdLong();
-        //                 long authorId = message.getAuthor().getIdLong();
-        //                 String content = message.getContentRaw();
-        //                 String timestamp = message.getTimeCreated().toString();
-        //                 boolean edited = message.isEdited();
-
-        //                 addNewMessage(id, guildId, channelId, authorId, content, timestamp);
-        //             }
-        //         } catch (InterruptedException e) {
-        //             e.printStackTrace();
-        //         } catch (ExecutionException e) {
-        //             e.printStackTrace();
-        //         }
-        //     }
-        // }
     }
 
     private static void initializeTable() throws SQLException {
@@ -64,13 +42,36 @@ public class MessagesDatabase extends ListenerAdapter {
                             + "channelId BIGINT,"
                             + "authorId BIGINT,"
                             + "content TEXT,"
-                            + "timestamp TEXT,"
-                            + "edited BOOLEAN DEFAULT FALSE" // Is it really necessary to store this?
+                            + "timestamp TEXT"
                             + ")";
 
 
         Statement stmt = conn.createStatement();
         stmt.execute(messageTable);
+    }
+
+    private static void populateNewTable() {
+        for (Guild guild : JosetaBot.bot.getGuilds()) {
+            for (TextChannel channel : guild.getTextChannels()) {
+                System.out.println("Fetching messages from channel: " + channel.getName() + " in guild: " + guild.getName());
+                try {
+                    for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
+                        long id = message.getIdLong();
+                        long guildId = guild.getIdLong();
+                        long channelId = channel.getIdLong();
+                        long authorId = message.getAuthor().getIdLong();
+                        String content = message.getContentRaw();
+                        String timestamp = message.getTimeCreated().toString();
+
+                        addNewMessage(id, guildId, channelId, authorId, content, timestamp);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Override
@@ -120,13 +121,12 @@ public class MessagesDatabase extends ListenerAdapter {
     }
 
     public static void updateMessage(long id, long guildId, long channelId, String content) {
-        try (PreparedStatement pstmt = conn.prepareStatement("UPDATE messages SET content = ?, edited = ? "
+        try (PreparedStatement pstmt = conn.prepareStatement("UPDATE messages SET content = ? "
                                                            + "WHERE id = ? AND guildId = ? AND channelId = ?")) {
             pstmt.setString(1, content);
-            pstmt.setBoolean(2, true);
-            pstmt.setLong(3, id);
-            pstmt.setLong(4, guildId);
-            pstmt.setLong(5, channelId);
+            pstmt.setLong(2, id);
+            pstmt.setLong(3, guildId);
+            pstmt.setLong(4, channelId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not update a message.", e);
@@ -158,8 +158,7 @@ public class MessagesDatabase extends ListenerAdapter {
                     rs.getLong("channelId"),
                     rs.getLong("authorId"),
                     rs.getString("content"),
-                    rs.getString("timestamp"),
-                    rs.getBoolean("edited")
+                    rs.getString("timestamp")
                 );
             }
         } catch (SQLException e) {
@@ -175,16 +174,14 @@ public class MessagesDatabase extends ListenerAdapter {
         public final long authorId;
         public final String content;
         public final String timestamp;
-        public final boolean edited;
 
-        public MessageEntry(long id, long guildId, long channelId, long authorId, String content, String timestamp, boolean edited) {
+        public MessageEntry(long id, long guildId, long channelId, long authorId, String content, String timestamp) {
             this.id = id;
             this.guildId = guildId;
             this.channelId = channelId;
             this.authorId = authorId;
             this.content = content;
             this.timestamp = timestamp;
-            this.edited = edited;
         }
     }
 }
