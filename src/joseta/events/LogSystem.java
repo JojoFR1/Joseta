@@ -3,8 +3,9 @@ package joseta.events;
 import joseta.*;
 import joseta.database.*;
 import joseta.database.MessagesDatabase.*;
-import joseta.utils.func.*;
-import joseta.utils.struct.*;
+
+import arc.func.*;
+import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
