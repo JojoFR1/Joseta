@@ -17,20 +17,30 @@ import java.io.*;
 import java.nio.charset.*;
 import java.time.*;
 
+// TODO update this to more recent command system (and to support multiple subcommand)
 public class AdminCommand extends Command {
     private TextChannel channel;
+    private long messageId;
     
     public AdminCommand() {
         super("admin", "Commande administratives.",
             DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR),
-            new SubcommandData("send-rules", "Envoie les règles dans un salon.")
-                .addOption(OptionType.CHANNEL, "channel", "Le salon où envoyez les règles.", true)
-            
+            new SubcommandGroupData("rules", "Catégorie règles")
+                .addSubcommands(
+                    new SubcommandData("send", "Envoie les règles dans un salon.")
+                        .addOption(OptionType.CHANNEL, "channel", "Le salon où envoyez les règles.", true),
+                    new SubcommandData("update", "Envoie les règles dans un salon.")
+                        .addOption(OptionType.INTEGER, "message_id", "L'identifiant du message où vous voulez envoyez règles.", true)
+                )
         );
     }
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
+        if (event.getSubcommandName().equals("update")) {
+            event.reply("Cette commande n'est pas encore disponible.").setEphemeral(true).queue();
+            return;
+        }
         Guild guild = event.getGuild();
         String iconUrl = guild.getIconUrl();
 
@@ -74,11 +84,7 @@ public class AdminCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        try {
-            channel = event.getOption("channel").getAsChannel().asTextChannel();
-        } catch (IllegalStateException e) {
-            event.reply("Le salon n'est pas un salon de texte !").queue();
-            return;
-        }
+        if (event.getSubcommandName().equals("send")) channel   = event.getOption("channel", null, OptionMapping::getAsChannel).asTextChannel();
+        else messageId = event.getOption("message_id", null, OptionMapping::getAsLong);
     }
 }
