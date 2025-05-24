@@ -1,11 +1,12 @@
 package joseta;
 
 import joseta.commands.*;
+import joseta.commands.Command;
 import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
+import joseta.database.*;
 import joseta.events.*;
-import joseta.utils.*;
 
 import arc.struct.*;
 
@@ -14,6 +15,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
+import net.dv8tion.jda.api.utils.cache.*;
 
 import org.slf4j.*;
 
@@ -52,14 +54,25 @@ public class JosetaBot {
         bot = JDABuilder.createDefault(Vars.token)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .enableIntents(GatewayIntent.GUILD_MESSAGES,
+                               GatewayIntent.GUILD_MESSAGE_REACTIONS,
                                GatewayIntent.GUILD_MEMBERS,
+                               GatewayIntent.GUILD_EXPRESSIONS,
+                               GatewayIntent.GUILD_MODERATION,
+                               GatewayIntent.GUILD_VOICE_STATES,
+                               GatewayIntent.SCHEDULED_EVENTS,
                                GatewayIntent.MESSAGE_CONTENT)
+                .enableCache(CacheFlag.EMOJI,
+                             CacheFlag.STICKER,
+                             CacheFlag.SCHEDULED_EVENTS,
+                             CacheFlag.VOICE_STATE)
                 .addEventListeners(new CommandExecutor(),
                                    new WelcomeMessage(),
+                                   new LogSystem(),
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
-                                   new ModAutoComplete(), //TODO fix
-                                   new AutoResponse())
+                                   new ModAutoComplete(),
+                                   new AutoResponse(),
+                                   new MessagesDatabase())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
                 .build();
@@ -74,8 +87,10 @@ public class JosetaBot {
 
         initializeCommands();
         Vars.initialize(bot.getGuildById(Vars.testGuildId)); // TODO another way than that pls (SHOULD be fixed with config later)
+        
         WelcomeMessage.initialize();
-        ModLog.initialize();
+        ModLogDatabase.initialize();
+        MessagesDatabase.initialize();
     }
 
     private static void preLoad(String args[]) {
@@ -95,7 +110,7 @@ public class JosetaBot {
             if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
     }
-
+    
     private static void initializeCommands() {
         Seq<CommandData> commandsData = new Seq<>();
         commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroupsData).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
