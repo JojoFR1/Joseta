@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.*;
+import net.dv8tion.jda.api.entities.sticker.*;
 import net.dv8tion.jda.api.events.*;
 import net.dv8tion.jda.api.events.channel.*;
 import net.dv8tion.jda.api.events.channel.update.*;
@@ -26,6 +27,8 @@ import net.dv8tion.jda.api.events.guild.scheduledevent.update.*;
 import net.dv8tion.jda.api.events.guild.update.*;
 import net.dv8tion.jda.api.events.guild.voice.*;
 import net.dv8tion.jda.api.events.http.*;
+import net.dv8tion.jda.api.events.interaction.command.*;
+import net.dv8tion.jda.api.events.interaction.component.*;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.events.message.poll.*;
 import net.dv8tion.jda.api.events.message.react.*;
@@ -50,13 +53,15 @@ public class LogSystem extends ListenerAdapter {
                                                                         ShutdownEvent.class,
                                                                         SessionDisconnectEvent.class,
                                                                         SessionResumeEvent.class,
-                                                                        // Other unused events - generally basic user events
+                                                                        // Other unused events - generally basic user events or not useful for logging
                                                                         MessageReceivedEvent.class,
                                                                         MessageReactionAddEvent.class,
                                                                         MessageReactionRemoveEvent.class,
                                                                         MessagePollVoteAddEvent.class,
                                                                         MessagePollVoteRemoveEvent.class,
-                                                                        GuildAuditLogEntryCreateEvent.class);
+                                                                        GuildAuditLogEntryCreateEvent.class,
+                                                                        SlashCommandInteractionEvent.class,
+                                                                        ButtonInteractionEvent.class);
 
     @Override
     public void onGenericEvent(GenericEvent event) {
@@ -76,7 +81,7 @@ public class LogSystem extends ListenerAdapter {
     }
 
     public enum EventType {
-        //#region Channel Events
+        //#region Channel Events TODO
         // TODO
         CHANNEL_CREATE(ChannelCreateEvent.class,
                        event -> Vars.getDefaultEmbed(Color.decode("#417505"), event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
@@ -127,7 +132,7 @@ public class LogSystem extends ListenerAdapter {
                                          .build()
         ),
         //#endregion
-        //#region Emoji Events
+        //#region Emoji Events TODO
         //TODO
         EMOJI_ADDED(EmojiAddedEvent.class,
                     event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
@@ -157,7 +162,7 @@ public class LogSystem extends ListenerAdapter {
                                         .build()
         ),
         //#endregion
-        //#region Guild Events
+        //#region Guild Events TODO
         //TODO
         GUILD_BAN(GuildBanEvent.class,
                   event -> Vars.getDefaultEmbed(Color.RED, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
@@ -327,7 +332,7 @@ public class LogSystem extends ListenerAdapter {
                                                      .build()
         ),
         //#endregion
-        //#region Member Events
+        //#region Member Events TODO
         //TODO
         GUILD_MEMBER_JOIN(GuildMemberJoinEvent.class,
                           event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
@@ -392,7 +397,7 @@ public class LogSystem extends ListenerAdapter {
                                         .build()
         ),
         //#endregion
-        //#region Permission Events
+        //#region Permission Events TODO
         //TODO
         PERMISSION_OVERRIDE_CREATE(PermissionOverrideCreateEvent.class,
                                    event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
@@ -415,7 +420,7 @@ public class LogSystem extends ListenerAdapter {
                                                 .build()
         ),
         //#endregion
-        //#region Schedule Event Events
+        //#region Schedule Event Events TODO
         //TODO
         SCHEDULED_EVENT_CREATE(ScheduledEventCreateEvent.class,
                                event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
@@ -511,7 +516,7 @@ public class LogSystem extends ListenerAdapter {
                 if (user == null) user = event.getAuthor();
                 if (user.isBot() || user.isSystem()) return null;
 
-                String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content.replace("``", "\\`") + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw().replace("``", "\\`") + "```";
+                String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content.replace("`", "\\`") + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw().replace("`", "\\`") + "```";
                 MessagesDatabase.updateMessage(messageId, guild.getIdLong(), channel.getIdLong(), event.getMessage().getContentRaw());
                 
                 return createEmbed(Color.YELLOW, guild, user, description);
@@ -521,28 +526,22 @@ public class LogSystem extends ListenerAdapter {
             event -> {
                 Guild guild = event.getGuild();
 
-                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
-                User user = auditLogEntry.getUser();
-
-                String description = "**La réaction "+ event.getEmoji().getFormatted() +" de "+ event.getJumpUrl() +" a été retirer par " + user.getAsMention() +"**";
+                String description = "**La réaction "+ event.getEmoji().getFormatted() +" de "+ event.getJumpUrl() +" a été retirer.**";
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(Color.YELLOW, guild, null, description);
             }
         ),
         MESSAGE_REACTION_REMOVE_ALL(MessageReactionRemoveAllEvent.class,
             event -> {
                 Guild guild = event.getGuild();
 
-                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.MESSAGE_UPDATE);
-                User user = auditLogEntry.getUser();
-
-                String description = "**Les réactions de "+ event.getJumpUrl() +" ont toutes été retirer par " + user.getAsMention() +"**";
+                String description = "**Les réactions de "+ event.getJumpUrl() +" ont toutes été retirer.**";
                 
-                return createEmbed(Color.RED, guild, user, description);
+                return createEmbed(Color.RED, guild, null, description);
             }
         ),
         //#endregion
-        //#region Role Events
+        //#region Role Events TODO
         ROLE_CREATE(RoleCreateEvent.class,
             event -> {
                 Guild guild = event.getGuild();
@@ -673,47 +672,89 @@ public class LogSystem extends ListenerAdapter {
         ),
         //#endregion
         //#region Sticker Events
-        //TODO
         GUILD_STICKER_ADDED(GuildStickerAddedEvent.class,
-                            event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                         .setTitle("Autocollant ajouté")
-                                         .setDescription(event.getSticker().getName() + " by " + retrieveAuditLog(event.getGuild(), ActionType.STICKER_CREATE).getUser().getAsMention())
-                                         .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Sticker sticker = event.getSticker();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_CREATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau sticker (`"+ sticker.getName() +"`) par " + user.getAsMention() + ".**";
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
         ),
-        //TODO
         GUILD_STICKER_REMOVED(GuildStickerRemovedEvent.class,
-                              event -> Vars.getDefaultEmbed(Color.RED, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                           .setTitle("Autocollant supprimé")
-                                           .setDescription(event.getSticker().getName() + " by " + retrieveAuditLog(event.getGuild(), ActionType.STICKER_DELETE).getUser().getAsMention())
-                                           .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Sticker sticker = event.getSticker();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_DELETE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Le sticker (`"+ sticker.getName() +"`) a été supprimé par " + user.getAsMention() + ".**";
+                
+                return createEmbed(Color.RED, guild, user, description);
+            }
         ),
-        //TODO
         GUILD_STICKER_UPDATE_AVAILABLE(GuildStickerUpdateAvailableEvent.class,
-                                       event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                    .setTitle("Autocollant mis a jour (Disponibilité)")
-                                                    .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.STICKER_UPDATE).getUser().getAsMention())
-                                                    .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Sticker sticker = event.getSticker();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau \"availablility\"? pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
-        //TODO
         GUILD_STICKER_UPDATE_DESCRIPTION(GuildStickerUpdateDescriptionEvent.class,
-                                         event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                      .setTitle("Autocollant mis a jour (Description)")
-                                                      .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.STICKER_UPDATE).getUser().getAsMention())
-                                                      .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Sticker sticker = event.getSticker();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouelle description pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
-        //TODO
         GUILD_STICKER_UPDATE_NAME(GuildStickerUpdateNameEvent.class,
-                                  event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                               .setTitle("Autocollant mis a jour (Nom)")
-                                               .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.STICKER_UPDATE).getUser().getAsMention())
-                                               .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Sticker sticker = event.getSticker();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau nom pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
-        //TODO
         GUILD_STICKER_UPDATE_TAGS(GuildStickerUpdateTagsEvent.class,
-                                  event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                               .setTitle("Autocollant mis a jour (Tags)")
-                                               .setDescription(event.getSticker().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.STICKER_UPDATE).getUser().getAsMention())
-                                               .build()
+            event -> {
+                Guild guild = event.getGuild();
+                Sticker sticker = event.getSticker();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String oldTag = event.getOldValue().iterator().next();
+                String newTag = event.getNewValue().iterator().next();
+                // Check if they're a custom emoji or default emoji
+                String oldEmoji = !oldTag.matches("[0-9]+") ? ":"+oldTag+":" : guild.retrieveEmojiById(oldTag).complete().getFormatted();
+                String newEmoji = !newTag.matches("[0-9]+") ? ":"+newTag+":" : guild.retrieveEmojiById(newTag).complete().getFormatted();
+
+                String description = "**Nouveau tags pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n "+ oldEmoji +" --> "+ newEmoji;
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         );
         //#endregion
 
