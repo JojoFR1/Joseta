@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.hooks.*;
 
 import java.io.*;
 import java.sql.*;
-import java.util.concurrent.*;
 import java.util.stream.*;
 
 public class MessagesDatabase extends ListenerAdapter {
@@ -51,9 +50,10 @@ public class MessagesDatabase extends ListenerAdapter {
     }
 
     private static void populateNewTable() {
+        int count = 0;
+        JosetaBot.logger.debug("Populating the Messages Database...");
         for (Guild guild : JosetaBot.bot.getGuilds()) {
             for (TextChannel channel : guild.getTextChannels()) {
-                System.out.println("Fetching messages from channel: " + channel.getName() + " in guild: " + guild.getName());
                 try {
                     for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
                         long id = message.getIdLong();
@@ -64,36 +64,23 @@ public class MessagesDatabase extends ListenerAdapter {
                         String timestamp = message.getTimeCreated().toString();
 
                         addNewMessage(id, guildId, channelId, authorId, content, timestamp);
+                        count += 1;
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    JosetaBot.logger.error("Could not populate the Messages database.", e);
                 }
             }
+
+            JosetaBot.logger.debug("Populated Messages database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
+            count = 0;
         }
     }
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (!event.isFromGuild()) return; // Ignore DMs
+        
         long id = event.getMessageIdLong();
-
-        // Check if message already exists in the database
-        try (PreparedStatement pstmtCheck = conn.prepareStatement("SELECT 1 FROM messages WHERE id = ? AND guildId = ? AND channelId = ?")) {
-            pstmtCheck.setLong(1, id);
-            pstmtCheck.setLong(2, event.getGuild().getIdLong());
-            pstmtCheck.setLong(3, event.getChannel().getIdLong());
-            try (ResultSet rs = pstmtCheck.executeQuery()) {
-                if (rs.next()) {
-                    // Message already exists, so do not add it again.
-                    return;
-                }
-            }
-        } catch (SQLException e) {
-            JosetaBot.logger.error("Failed to check for existing message " + id + ". Proceeding with add attempt.", e);
-        }
-
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
         long authorId = event.getAuthor().getIdLong();
