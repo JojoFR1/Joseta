@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
+import net.dv8tion.jda.api.interactions.components.*;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 
 import java.awt.*;
@@ -50,7 +51,9 @@ public class AdminCommand extends Command {
                 event.reply("Message not sent by the bot.").setEphemeral(true).queue();
                 return;
             }
-            message.editMessageEmbeds(embeds).queue();
+            message.editMessageEmbeds(embeds).setComponents(
+               ActionRow.of(Button.success("b-rules_accept", "Accepter"))
+            ).queue();
 
             event.reply("Rules updated succesfully.").setEphemeral(true).queue();
             return;
