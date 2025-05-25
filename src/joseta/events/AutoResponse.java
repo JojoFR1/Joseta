@@ -17,7 +17,7 @@ public class AutoResponse extends ListenerAdapter {
         "(?:\\b|[.,?!;:])(?:multi[ -]?(?:joueu?r|playeu?r)?|co*p(?:eration|[ea]?ins?)?|amis?|pot[oe]s?|(?:[aà] (?:deux|[2-9]|[1-9]+|plu?si?e?u?rs?)))(?:\\b|[.,?!;:])",
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
     );
-    public static final String message = "<:doyouknowtheway:1241824114952372344> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
+    public static final String message = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
     
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {

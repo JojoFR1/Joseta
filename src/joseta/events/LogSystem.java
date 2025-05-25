@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.*;
+import net.dv8tion.jda.api.entities.emoji.*;
 import net.dv8tion.jda.api.entities.sticker.*;
 import net.dv8tion.jda.api.events.*;
 import net.dv8tion.jda.api.events.channel.*;
@@ -132,34 +133,58 @@ public class LogSystem extends ListenerAdapter {
                                          .build()
         ),
         //#endregion
-        //#region Emoji Events TODO
-        //TODO
+        //#region Emoji Events
         EMOJI_ADDED(EmojiAddedEvent.class,
-                    event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                 .setTitle("Emoji ajouté")
-                                 .setDescription(event.getEmoji().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.EMOJI_CREATE).getUser().getAsMention())
-                                 .build()
+            event -> {
+                Guild guild = event.getGuild();
+                RichCustomEmoji emoji = event.getEmoji();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.EMOJI_CREATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau emoji "+ emoji.getFormatted() +" (`"+ emoji.getName() +"`) par " + user.getAsMention() + ".**";
+                
+                return createEmbed(Color.GREEN, guild, user, description);
+            }
         ),
-        //TODO
         EMOJI_REMOVED(EmojiRemovedEvent.class,
-                      event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                   .setTitle("Emoji retiré")
-                                   .setDescription(event.getEmoji().getAsMention() + " by " + retrieveAuditLog(event.getGuild(), ActionType.EMOJI_CREATE).getUser().getAsMention())
-                                   .build()
+            event -> {
+                Guild guild = event.getGuild();
+                RichCustomEmoji emoji = event.getEmoji();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.EMOJI_DELETE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**L'emoji `"+ emoji.getName() +"` a été supprimer par " + user.getAsMention() + ".**";
+                
+                return createEmbed(Color.RED, guild, user, description);
+            }
         ),
-        //TODO
         EMOJI_UPDATE_NAME(EmojiUpdateNameEvent.class,
-                          event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                       .setTitle("Emoji mis a jour")
-                                       .setDescription(event.getEmoji().getAsMention() + " " + event.getOldName() + " en " + event.getNewName() + " by " + retrieveAuditLog(event.getGuild(), ActionType.EMOJI_UPDATE).getUser().getAsMention())
-                                       .build()
+            event -> {
+                Guild guild = event.getGuild();
+                RichCustomEmoji emoji = event.getEmoji();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.EMOJI_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau nom pour "+ emoji.getFormatted() +" (`"+ emoji.getName() +"`) par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
-        //TODO
         EMOJI_UPDATE_ROLES(EmojiUpdateRolesEvent.class,
-                           event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                        .setTitle("Emoji mis a jour (Rôles)")
-                                        .setDescription(event.getEmoji().getAsMention() + " " + event.getOldRoles() + " en " + event.getNewRoles() + " by " + retrieveAuditLog(event.getGuild(), ActionType.EMOJI_UPDATE).getUser().getAsMention())
-                                        .build()
+            event -> {
+                Guild guild = event.getGuild();
+                RichCustomEmoji emoji = event.getEmoji();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.EMOJI_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau rôle(s) pour "+ emoji.getFormatted() +" (`"+ emoji.getName() +"`) par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
+                
+                return createEmbed(Color.YELLOW, guild, user, description);
+            }
         ),
         //#endregion
         //#region Guild Events TODO
