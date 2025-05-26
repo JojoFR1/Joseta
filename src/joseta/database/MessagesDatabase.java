@@ -4,6 +4,7 @@ import joseta.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
+import net.dv8tion.jda.api.entities.channel.middleman.*;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.hooks.*;
 
@@ -54,26 +55,35 @@ public class MessagesDatabase extends ListenerAdapter {
         JosetaBot.logger.debug("Populating the Messages Database...");
         for (Guild guild : JosetaBot.bot.getGuilds()) {
             for (TextChannel channel : guild.getTextChannels()) {
-                try {
-                    for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
-                        long id = message.getIdLong();
-                        long guildId = guild.getIdLong();
-                        long channelId = channel.getIdLong();
-                        long authorId = message.getAuthor().getIdLong();
-                        String content = message.getContentRaw();
-                        String timestamp = message.getTimeCreated().toString();
-
-                        addNewMessage(id, guildId, channelId, authorId, content, timestamp);
-                        count += 1;
-                    }
-                } catch (Exception e) {
-                    JosetaBot.logger.error("Could not populate the Messages database.", e);
-                }
+                for (ThreadChannel thread : channel.getThreadChannels()) count += addChannelMessageHistory(thread, guild);
+                count += addChannelMessageHistory(channel, guild);
             }
 
             JosetaBot.logger.debug("Populated Messages database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
             count = 0;
         }
+    }
+
+    private static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild) {
+        int count = 0;
+        
+        try {
+            for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
+                long id = message.getIdLong();
+                long guildId = guild.getIdLong();
+                long channelId = channel.getIdLong();
+                long authorId = message.getAuthor().getIdLong();
+                String content = message.getContentRaw();
+                String timestamp = message.getTimeCreated().toString();
+
+                addNewMessage(id, guildId, channelId, authorId, content, timestamp);
+                count++;
+            }
+        } catch (Exception e) {
+            JosetaBot.logger.error("Could not populate the Messages database.", e);
+        }
+
+        return count;
     }
 
     @Override
