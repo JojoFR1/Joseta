@@ -131,7 +131,7 @@ public class LogSystem extends ListenerAdapter {
                 else description += "\n```"+ event.getOldValue().replace("`", "\\`") + "```";
                 description += "\n\n**Nouveau sujet:**";
                 if (event.getNewValue().isEmpty()) description += " *Vide*";
-                else description += "```" + event.getNewValue().replace("`", "\\`") + "```";;
+                else description += "```" + event.getNewValue().replace("`", "\\`") + "```";
 
                 return createEmbed(COLOR_UPDATE, guild, user, description);
             }
@@ -488,69 +488,131 @@ public class LogSystem extends ListenerAdapter {
                                                 .build()
         ),
         //#endregion
-        //#region Schedule Event Events TODO
-        //TODO
+        //#region Schedule Event Events
         SCHEDULED_EVENT_CREATE(ScheduledEventCreateEvent.class,
-                               event -> Vars.getDefaultEmbed(Color.GREEN, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                            .setTitle("Événement créé")
-                                            .setDescription(event.getScheduledEvent().getName() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_CREATE).getUser().getAsMention())
-                                            .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_CREATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau événement "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + ".**";
+                
+                return createEmbed(COLOR_CREATE, guild, user, description);
+            }
         ),
-        //TODO
         SCHEDULED_EVENT_DELETE(ScheduledEventDeleteEvent.class,
-                               event -> Vars.getDefaultEmbed(Color.RED, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                            .setTitle("Événement supprimé")
-                                            .setDescription(event.getScheduledEvent().getName() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_DELETE).getUser().getAsMention())
-                                            .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_DELETE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**L'événement `"+ scheduledEvent.getName() +"` a été supprimer par " + user.getAsMention() + ".**";
+                
+                return createEmbed(COLOR_DELETE, guild, user, description);
+            }
         ),
-        //TODO
         SCHEDULED_EVENT_UPDATE_DESCRIPTION(ScheduledEventUpdateDescriptionEvent.class,
-                                           event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                        .setTitle("Événement mis a jour (Description)")
-                                                        .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                        .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancienne description:**";
+                if (event.getOldValue().isEmpty()) description += " *Vide*";
+                else description += "\n```"+ event.getOldValue().replace("`", "\\`") + "```";
+                description += "\n\n**Nouvelle description:**";
+                if (event.getNewValue().isEmpty()) description += " *Vide*";
+                else description += "```" + event.getNewValue().replace("`", "\\`") + "```";
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
+        // TODO format to more readable time
         SCHEDULED_EVENT_UPDATE_END_TIME(ScheduledEventUpdateEndTimeEvent.class,
-                                        event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                     .setTitle("Événement mis a jour (Heure de fin)")
-                                                     .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                     .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancienne date de fin:** "+ event.getOldEndTime() +"\n**Nouvelle date de fin:** "+ event.getNewEndTime();
+                                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
         SCHEDULED_EVENT_UPDATE_IMAGE(ScheduledEventUpdateImageEvent.class,
-                                     event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                  .setTitle("Événement mis a jour (Image)")
-                                                  .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                  .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancienne image:** "+ event.getOldImageUrl() +"\n**Nouvelle image:** "+ event.getNewImageUrl();
+
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
+        // TODO support channel ids
         SCHEDULED_EVENT_UPDATE_LOCATION(ScheduledEventUpdateLocationEvent.class,
-                                        event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                     .setTitle("Événement mis a jour (Lieu)")
-                                                     .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                     .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancien lieu:** "+ event.getOldLocation() +"\n**Nouveau lieu:** "+ event.getNewLocation();
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
         SCHEDULED_EVENT_UPDATE_NAME(ScheduledEventUpdateNameEvent.class,
-                                    event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                 .setTitle("Événement mis a jour (Nom)")
-                                                 .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                 .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancien nom:** "+ event.getOldName() +"\n**Nouveau nom:** "+ event.getNewName();
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
+        // TODO format to more readable time
         SCHEDULED_EVENT_UPDATE_START_TIME(ScheduledEventUpdateStartTimeEvent.class,
-                                          event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                       .setTitle("Événement mis a jour (Heure de début)")
-                                                       .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                       .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancienne date de début:** "+ event.getOldStartTime() +"\n**Nouvelle date de début:** "+ event.getNewStartTime();
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
         SCHEDULED_EVENT_UPDATE_STATUS(ScheduledEventUpdateStatusEvent.class,
-                                      event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                                   .setTitle("Événement mis a jour (Statut)")
-                                                   .setDescription(event.getScheduledEvent().getName() + " " + event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.SCHEDULED_EVENT_UPDATE).getUser().getAsMention())
-                                                   .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ScheduledEvent scheduledEvent = event.getScheduledEvent();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.SCHEDULED_EVENT_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Événement mis à jour: "+ scheduledEvent.getJumpUrl() +" (`"+ scheduledEvent.getName() +"`) par " + user.getAsMention() + "**.\n\n**Ancien statut:** "+ event.getOldStatus() +"\n**Nouveau statut:** "+ event.getNewStatus();
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
         //#endregion
         //#region Message Events

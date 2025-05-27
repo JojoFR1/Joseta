@@ -24,6 +24,7 @@ This bot is multipurpose and isn't centered around one thing, any features added
 - A **Goodbye Message** for leaving members (not *yet* configurable)
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
+- A **Logging System** to get more information on Discord audit log (not *yet* configurable)
 - Multiple commands:
   | Commands       | Use                                |
   |:---------------|:-----------------------------------|
@@ -36,13 +37,9 @@ This bot is multipurpose and isn't centered around one thing, any features added
 
 ## Plans
 
-Our current plans for the future are the following, in the order in which they will be made:
+Our current plans for the future are the following, in the possible order in which they will be made (depends on what we want to work on):
 
-- Add a Logging system:
-  - Send messages giving info on user actions (modified, deleted, ...)
-  - Send messages giving info on moderation actions (kick, ban, ...)
-  - Send messages giving info on administration actions (created, modifed channles/roles, ...)
-  - Batch logs (maybe for later)
+- Finish the last few Logging system category
 
 - Make it so `/admin rules update` show a list of possible choice of available messages
 - Send info to user DM about their sanction
@@ -53,7 +50,10 @@ Our current plans for the future are the following, in the order in which they w
   - Allow to be runnable outside of our server
 
 - Add a `/markov` command to generate random message
-- Message leaderboard + levels?
+- Message leaderboard + levels
+- Explore the idea of Embedded App SDK for games (not compatible with JDA as far as I know)
+
+- Improve Logging System by batching logs
 
 - Support multi-server:
   - Mainly to make it useable outside of our server
