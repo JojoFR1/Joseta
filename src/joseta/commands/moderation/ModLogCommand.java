@@ -87,7 +87,7 @@ public class ModLogCommand extends ModCommand {
             description += "\n>   - Responsable: <@"+ sanction.moderatorId +"> (`"+ sanction.moderatorId +"`)"
                          + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
             
-            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.time);
+            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + TimeUtils.convertSecond(sanction.time);
 
             description += "\n>   - Raison: " + sanction.reason + "\n\n";
         }

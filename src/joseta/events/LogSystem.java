@@ -3,6 +3,7 @@ package joseta.events;
 import joseta.*;
 import joseta.database.*;
 import joseta.database.MessagesDatabase.*;
+import joseta.utils.*;
 
 import arc.func.*;
 import arc.struct.*;
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.*;
+import net.dv8tion.jda.api.entities.channel.unions.*;
 import net.dv8tion.jda.api.entities.emoji.*;
 import net.dv8tion.jda.api.entities.sticker.*;
 import net.dv8tion.jda.api.events.*;
@@ -64,6 +66,12 @@ public class LogSystem extends ListenerAdapter {
                                                                         SlashCommandInteractionEvent.class,
                                                                         ButtonInteractionEvent.class);
 
+    private static Color COLOR_CREATE = Color.decode("#7ED321"),
+                         COLOR_CREATE_IMPORTANT = Color.decode("#417505"),
+                         COLOR_UPDATE = Color.decode("#F8E71C"),
+                         COLOR_DELETE = Color.decode("#FF0020"),
+                         COLOR_DELETE_IMPORTANT = Color.decode("#D0021B");
+
     @Override
     public void onGenericEvent(GenericEvent event) {
         if (ignoredEvents.contains(event.getClass())) return;
@@ -81,56 +89,91 @@ public class LogSystem extends ListenerAdapter {
         // Vars.logChannel.sendMessageEmbeds(embed).queue();
     }
 
+    //TODO for future me: still need to do the rest of the event category & make clean descriptions
     public enum EventType {
-        //#region Channel Events TODO
-        // TODO
+        //#region Channel Events
         CHANNEL_CREATE(ChannelCreateEvent.class,
-                       event -> Vars.getDefaultEmbed(Color.decode("#417505"), event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                    .setTitle("Nouveau salon - " + getChannelTypeString(event.getChannelType()))
-                                    .setDescription("Salon créé: " + event.getChannel().getAsMention())
-                                    .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ChannelUnion channel = event.getChannel();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.CHANNEL_CREATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Nouveau salon "+ channel.getAsMention() +" (`"+ channel.getName() +"`) par " + user.getAsMention() + "**";
+                
+                return createEmbed(COLOR_CREATE_IMPORTANT, guild, user, description);
+            }
         ),
-        // TODO
         CHANNEL_DELETE(ChannelDeleteEvent.class,
-                       event -> Vars.getDefaultEmbed(Color.decode("#D0021B"), event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_DELETE).getUser())
-                                    .setTitle("Salon supprimé - " + getChannelTypeString(event.getChannelType()))
-                                    .setDescription("Salon supprimé: `" + event.getChannel().getName()  + "`")
-                                    .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ChannelUnion channel = event.getChannel();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.CHANNEL_DELETE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Le salon `"+ channel.getName() +"` a été supprimé par " + user.getAsMention() + "**";
+                
+                return createEmbed(COLOR_DELETE_IMPORTANT, guild, user, description);
+            }
         ),
-        // TODO
-        CHANNEL_UPDATE(GenericChannelUpdateEvent.class,
-                      event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_UPDATE).getUser())
-                               .setTitle("Salon mis a jour - " + getChannelTypeString(event.getChannelType()))
-                               .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_UPDATE).getUser().getAsMention())
-                               .build()
-        ),
-        // TODO
         CHANNEL_UPDATE_TOPIC(ChannelUpdateTopicEvent.class,
-                             event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                          .setTitle("Salon mis a jour (Topic)")
-                                          .setDescription(event.getOldValue() + " en " + event.getNewValue())
-                                          .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ChannelUnion channel = event.getChannel();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.CHANNEL_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Salon mis à jour: "+ channel.getAsMention() +" (`"+ channel.getName() +"`) par " + user.getAsMention() + "**\n\n**Ancien sujet:**";
+                if (event.getOldValue().isEmpty()) description += " *Vide*";
+                else description += "\n```"+ event.getOldValue().replace("`", "\\`") + "```";
+                description += "\n\n**Nouveau sujet:**";
+                if (event.getNewValue().isEmpty()) description += " *Vide*";
+                else description += "```" + event.getNewValue().replace("`", "\\`") + "```";;
+
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        // TODO
         CHANNEL_UPDATE_SLOWMODE(ChannelUpdateSlowmodeEvent.class,
-                                event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                             .setTitle("Salon mis a jour (Slowmode)")
-                                             .setDescription("" +event.getOldValue() + " en " + event.getNewValue())
-                                             .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ChannelUnion channel = event.getChannel();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.CHANNEL_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Salon mis à jour: "+ channel.getAsMention() +" (`"+ channel.getName() +"`) par " + user.getAsMention() + "**\n\n**Ancien ralenti: ** " + TimeUtils.formatTime(event.getOldValue()) + "\n**Nouveau ralenti:** " + TimeUtils.formatTime(event.getNewValue());
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        // TODO
         CHANNEL_UPDATE_NAME(ChannelUpdateNameEvent.class,
-                            event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                         .setTitle("Salon mis à jour")
-                                         .setDescription("Ancien nom: `" + event.getOldValue() + "`\nNouveau nom: `" + event.getNewValue() + "`")
-                                         .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ChannelUnion channel = event.getChannel();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.CHANNEL_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Salon mis à jour: "+ channel.getAsMention() +" (`"+ channel.getName() +"`) par " + user.getAsMention() + "**\n\n**Ancien nom: ** " + event.getOldValue() + "\n**Nouveau nom:** " + event.getNewValue();
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
-        //TODO
         CHANNEL_UPDATE_NSFW(ChannelUpdateNSFWEvent.class,
-                            event -> Vars.getDefaultEmbed(Color.YELLOW, event.getGuild(), retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_CREATE).getUser())
-                                         .setTitle("Salon mis a jour (NSFW)")
-                                         .setDescription(event.getOldValue() + " en " + event.getNewValue() + " by " + retrieveAuditLog(event.getGuild(), ActionType.CHANNEL_UPDATE).getUser().getAsMention())
-                                         .build()
+            event -> {
+                Guild guild = event.getGuild();
+                ChannelUnion channel = event.getChannel();
+
+                AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.CHANNEL_UPDATE);
+                User user = auditLogEntry.getUser();
+
+                String description = "**Salon mis à jour: "+ channel.getAsMention() +" (`"+ channel.getName() +"`) par " + user.getAsMention() + "**\n\n**Ancien NSFW: ** " + event.getOldValue() + "\n**Nouveau NSFW:** " + event.getNewValue();
+                
+                return createEmbed(COLOR_UPDATE, guild, user, description);
+            }
         ),
         //#endregion
         //#region Emoji Events
@@ -144,7 +187,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau emoji "+ emoji.getFormatted() +" (`"+ emoji.getName() +"`) par " + user.getAsMention() + ".**";
                 
-                return createEmbed(Color.GREEN, guild, user, description);
+                return createEmbed(COLOR_CREATE, guild, user, description);
             }
         ),
         EMOJI_REMOVED(EmojiRemovedEvent.class,
@@ -157,7 +200,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**L'emoji `"+ emoji.getName() +"` a été supprimer par " + user.getAsMention() + ".**";
                 
-                return createEmbed(Color.RED, guild, user, description);
+                return createEmbed(COLOR_DELETE, guild, user, description);
             }
         ),
         EMOJI_UPDATE_NAME(EmojiUpdateNameEvent.class,
@@ -170,7 +213,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau nom pour "+ emoji.getFormatted() +" (`"+ emoji.getName() +"`) par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         ),
         EMOJI_UPDATE_ROLES(EmojiUpdateRolesEvent.class,
@@ -183,7 +226,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau rôle(s) pour "+ emoji.getFormatted() +" (`"+ emoji.getName() +"`) par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         ),
         //#endregion
@@ -527,7 +570,7 @@ public class LogSystem extends ListenerAdapter {
                 String description = "**Message envoyé par " + user.getAsMention() + " supprimé dans " + channel.getAsMention() + "**\n\n```" + messageEntry.content + "```";
                 MessagesDatabase.deleteMessage(messageId, guild.getIdLong(), channel.getIdLong());
                 
-                return createEmbed(Color.RED, guild, user, description);
+                return createEmbed(COLOR_DELETE, guild, user, description);
             }
         ),
         MESSAGE_UPDATE(MessageUpdateEvent.class,
@@ -541,10 +584,10 @@ public class LogSystem extends ListenerAdapter {
                 if (user == null) user = event.getAuthor();
                 if (user.isBot() || user.isSystem()) return null;
 
-                String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content.replace("`", "\\`") + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw().replace("`", "\\`") + "```";
+                String description = "**Message envoyé par " + user.getAsMention() + " modifié: (" + event.getMessage().getJumpUrl() + ")**\n\n**Ancien**\n```" + MessagesDatabase.getMessageEntry(messageId, guild.getIdLong(), channel.getIdLong()).content.replace("`", "\\`") + "```\n**Nouveau**\n```" + event.getMessage().getContentRaw().replace("`", "\\`") + "```";
                 MessagesDatabase.updateMessage(messageId, guild.getIdLong(), channel.getIdLong(), event.getMessage().getContentRaw());
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         ),
         MESSAGE_REACTION_REMOVE_EMOJI(MessageReactionRemoveEmojiEvent.class,
@@ -553,7 +596,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**La réaction "+ event.getEmoji().getFormatted() +" de "+ event.getJumpUrl() +" a été retirer.**";
                 
-                return createEmbed(Color.YELLOW, guild, null, description);
+                return createEmbed(COLOR_DELETE, guild, null, description);
             }
         ),
         MESSAGE_REACTION_REMOVE_ALL(MessageReactionRemoveAllEvent.class,
@@ -562,7 +605,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Les réactions de "+ event.getJumpUrl() +" ont toutes été retirer.**";
                 
-                return createEmbed(Color.RED, guild, null, description);
+                return createEmbed(COLOR_DELETE_IMPORTANT, guild, null, description);
             }
         ),
         //#endregion
@@ -707,7 +750,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau sticker (`"+ sticker.getName() +"`) par " + user.getAsMention() + ".**";
                 
-                return createEmbed(Color.GREEN, guild, user, description);
+                return createEmbed(COLOR_CREATE, guild, user, description);
             }
         ),
         GUILD_STICKER_REMOVED(GuildStickerRemovedEvent.class,
@@ -720,7 +763,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Le sticker (`"+ sticker.getName() +"`) a été supprimé par " + user.getAsMention() + ".**";
                 
-                return createEmbed(Color.RED, guild, user, description);
+                return createEmbed(COLOR_DELETE, guild, user, description);
             }
         ),
         GUILD_STICKER_UPDATE_AVAILABLE(GuildStickerUpdateAvailableEvent.class,
@@ -733,7 +776,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau \"availablility\"? pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         ),
         GUILD_STICKER_UPDATE_DESCRIPTION(GuildStickerUpdateDescriptionEvent.class,
@@ -746,7 +789,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouelle description pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         ),
         GUILD_STICKER_UPDATE_NAME(GuildStickerUpdateNameEvent.class,
@@ -759,7 +802,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau nom pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n `"+ event.getOldValue() +"` --> `"+ event.getNewValue() +"`";
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         ),
         GUILD_STICKER_UPDATE_TAGS(GuildStickerUpdateTagsEvent.class,
@@ -778,7 +821,7 @@ public class LogSystem extends ListenerAdapter {
 
                 String description = "**Nouveau tags pour le sticker `" + sticker.getName() +"` par " + user.getAsMention() + "**\n\n "+ oldEmoji +" --> "+ newEmoji;
                 
-                return createEmbed(Color.YELLOW, guild, user, description);
+                return createEmbed(COLOR_UPDATE, guild, user, description);
             }
         );
         //#endregion
