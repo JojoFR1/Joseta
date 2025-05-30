@@ -13,3 +13,4 @@ bin/
 logs/
 *.db
 *.py
+app-test/

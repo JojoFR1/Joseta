@@ -40,6 +40,8 @@ This bot is multipurpose and isn't centered around one thing, any features added
 Our current plans for the future are the following, in the possible order in which they will be made (depends on what we want to work on):
 
 - Finish the last few Logging system category
+- Encrypt the message database
+- Add translation (French & English)
 
 - Make it so `/admin rules update` show a list of possible choice of available messages
 - Send info to user DM about their sanction
