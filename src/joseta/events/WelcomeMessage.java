@@ -78,7 +78,7 @@ public class WelcomeMessage extends ListenerAdapter {
     }
 
     private BufferedImage getUserAvatar(User user, int size) throws IOException {
-        BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=" + size));
+        BufferedImage avatar = ImageIO.read(URI.create(user.getEffectiveAvatarUrl() + "?size=" + size).toURL());
 
         if (avatar.getWidth() > 128 || avatar.getHeight() > 128) avatar = resizeAvatar(avatar);
 

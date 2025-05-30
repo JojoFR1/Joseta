@@ -2,7 +2,7 @@ package joseta.commands.moderation;
 
 import joseta.*;
 import joseta.commands.*;
-import joseta.utils.*;
+import joseta.database.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -28,7 +28,7 @@ public class TimeoutCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été mute").setEphemeral(true).queue();
 
-                ModLog.log(SanctionType.MUTE, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+                ModLogDatabase.log(SanctionType.MUTE, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();

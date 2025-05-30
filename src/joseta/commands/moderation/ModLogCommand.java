@@ -1,8 +1,9 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
+import joseta.database.*;
+import joseta.database.ModLogDatabase.*;
 import joseta.utils.*;
-import joseta.utils.ModLog.*;
 
 import arc.struct.*;
 
@@ -33,7 +34,7 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        sendEmbed(event, user, 1, (int) Math.ceil((double) ModLog.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
+        sendEmbed(event, user, 1, (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
     }
 
     public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
@@ -61,8 +62,8 @@ public class ModLogCommand extends ModCommand {
     }
 
     public static MessageEmbed generateEmbed(Guild guild, User user, long guildId, int currentPage) {
-        Seq<Sanction> sanctions = ModLog.getUserLog(user.getIdLong(), guildId, currentPage, SANCTION_PER_PAGE);
-        int totalPages = (int) Math.ceil((double) ModLog.getUserTotalSanctions(user.getIdLong(), guildId) / SANCTION_PER_PAGE);
+        Seq<Sanction> sanctions = ModLogDatabase.getUserLog(user.getIdLong(), guildId, currentPage, SANCTION_PER_PAGE);
+        int totalPages = (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), guildId) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
             .setTitle("Historique de modération de " + user.getName() + " ┃ Page "+ currentPage +"/"+ totalPages)
@@ -86,7 +87,7 @@ public class ModLogCommand extends ModCommand {
             description += "\n>   - Responsable: <@"+ sanction.moderatorId +"> (`"+ sanction.moderatorId +"`)"
                          + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
             
-            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.time);
+            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + TimeUtils.convertSecond(sanction.time);
 
             description += "\n>   - Raison: " + sanction.reason + "\n\n";
         }

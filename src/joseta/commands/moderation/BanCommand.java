@@ -2,6 +2,7 @@ package joseta.commands.moderation;
 
 import joseta.*;
 import joseta.commands.*;
+import joseta.database.*;
 import joseta.utils.*;
 
 import net.dv8tion.jda.api.*;
@@ -31,7 +32,7 @@ public class BanCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
 
-                ModLog.log(SanctionType.BAN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);        
+                ModLogDatabase.log(SanctionType.BAN, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);        
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();
@@ -43,6 +44,6 @@ public class BanCommand extends ModCommand {
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
         super.getArgs(event);
-        clearTime = (int) TimeParser.parse(event.getOption("clear_time", "1h", OptionMapping::getAsString));
+        clearTime = (int) TimeUtils.parseTime(event.getOption("clear_time", "1h", OptionMapping::getAsString));
     }
 }

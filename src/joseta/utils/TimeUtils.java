@@ -1,6 +1,6 @@
 package joseta.utils;
 
-public class TimeParser {
+public class TimeUtils {
 
     /** Parse a long and converts the seconds as a time String */
     public static String convertSecond(long seconds) {
@@ -26,7 +26,7 @@ public class TimeParser {
 
     
     /** Parse a String and converts the time as seconds - Supports: w(eeks), d(ays), h(ours), m(inutes) and s(econds) */
-    public static long parse(String time) {
+    public static long parseTime(String time) {
         long parsedTime = 0;
         int value = 0;
 
@@ -44,10 +44,27 @@ public class TimeParser {
                 case 'm': parsedTime +=               60 * value; value = 0; break;
                 case 's': parsedTime +=                    value; value = 0; break;
                 default:  parsedTime +=                    value; value = 0; break;
-            }    
+            }
         }
 
         return parsedTime;
     }
 
+    public static String formatTime(long seconds) {
+        if (seconds == 0) return "0 seconde";
+        String formattedTime = "";
+
+        for (char c : convertSecond(seconds).toLowerCase().toCharArray()) {
+            switch (c) {
+                case 'w': formattedTime += " semaines(s)"; break;
+                case 'd': formattedTime += " jour(s)"; break;
+                case 'h': formattedTime += " heure(s)"; break;
+                case 'm': formattedTime += " minute(s)"; break;
+                case 's': formattedTime += " seconde(s)"; break;
+                default:  formattedTime += c; break;
+            }
+        }
+
+        return formattedTime;
+    }
 }
