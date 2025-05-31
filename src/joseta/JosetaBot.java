@@ -113,14 +113,15 @@ public class JosetaBot {
     
     private static void initializeCommands() {
         Seq<CommandData> commandsData = new Seq<>();
-        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroupsData).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
+        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).setLocalizationFunction(Vars.bundles).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroupsData).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
 
         // Add commands on a test guild - Instantly
-        if (Vars.isDebug && Vars.testGuildId != -1)
+        if (Vars.isDebug && Vars.testGuildId != -1) {
+            bot.getGuildById(Vars.testGuildId).updateCommands().queue(); // Reset for the guilds command to avoid duplicates.
             bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
         // Add global commands - Takes time
-        else {
-            bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
+        } else {
+            bot.getGuilds().forEach(g -> g.updateCommands().queue()); // Reset for the guilds command to avoid duplicates.
             bot.updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
         }
     }

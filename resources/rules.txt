@@ -2,59 +2,53 @@
 243, 118, 97
 📜┃Règles
 
-Ci-dessous se trouvent les règles qui s'appliquent partout sur ce serveur, basées sur les règles du serveur *Mindustry*, en plus des notres.
+Ci-dessous se trouvent les règles qui s'appliquent partout sur ce serveur :
 
-1. Nous vous prions de parler uniquement en **français**, toutes autres langues étrangères ne seront acceptées, exception à l'**anglais**.
-2. Le racisme, le sexisme, l'homophobie, etc. ainsi que les menaces ou le harcèlement ne sont pas autorisés.
-3. Pas de spam¹, flood² ou mass ping³.
-4. Pas de NSFW, de contenu explicite ou sexuel. Les contenus ou les références au gore, à l'automutilation ou à la violence sont interdits.
-5. Respectez le contenu des salons, le hors-sujet reste dans <#1223758326375120926>. Il est accepté si et seulement s'il provient d'une discussion qui a dérivé (mais qui doit être déplacée).
-6. Aucun drama. Aucun reproche. Rien. Ça se passe et se passera uniquement en messages privés.
-7. N'interagissez pas avec des personnes ne respectant pas ces règles, notifiez un administrateur.
-8. N'usurpez pas l'identité d'autres membres et n'éditez pas vos messages pour tromper les autres membres.
-9. La publicité sur le serveur ou en messages privés est interdite. Veuillez prévenir un administrateur si cette règle n'est pas respectée.
-10. L'évasion de bannissement est interdite. Les doubles (ou plus) comptes sont autorisés exclusivement s'ils sont **déclarés** dans <#1219274298620117122>.
-11. Ne parlez pas de sujets sensibles en lien avec la politique, la religion ou la race.
-12. Les administrateurs ont le dernier mot. Toute tentative de débattre, glorifier ou contester la sanction publiquement sera sanctionnée. Si vous voulez contester une sanction, allez en messages privés avec l'administrateur en question.
+1. La seule langue autorisée est le **français**, avec des tolérances pour l'**anglais**. (French only!)
+2. Les menaces, le harcèlement, le racisme, le sexisme, l'homophobie, etc. et tout sujet sensible (politique, religieux ou racial) sont strictement interdits.
+3. Aucun spam¹, flood², mass ping³, drama ni contenu NSFW⁴.
+5. La publicité sur le serveur ou en message privé est formellement interdite sauf autorisation préalable.
+4. Respectez le contenu des salons et ne faites pas de hors-sujet. Il est toléré uniquement s'il provient d'une discussion qui a dérivé (mais qui doit être déplacée dans <#1223758326375120926>).
+6. Les administrateurs ont le dernier mot. Toute tentative de débattre, glorifier ou contester une sanction publiquement sera sanctionnée. Pour contester une sanction, discutez en messages privés avec l'administrateur en question.
 
-Les sanctions appliquées seront généralement des avertissements voir des exclusions temporaires, cela dépendra de votre attitude, du récidivisme et de l'humeur de l'administrateur.
-Des avertissements "verbaux" peuvent être donnés avant un véritable avertissement.
+Les sanctions appliquées seront généralement des avertissements, voire des exclusions temporaires, cela dépendra de votre attitude, du récidivisme et de l'humeur de l'administrateur.
+Des avertissements « verbaux » peuvent être donnés avant un véritable avertissement.
 
-> Ces règles peuvent être modifiées **à tout moment**, les changements majeurs seront notifiés.
+> Ces règles peuvent être modifiées **à tout moment**, les changements majeurs vous seront signalés.
 
-**__Invitation officiel du serveur:__ <https://discord.com/invite/hzGPWhZSGV>**
+**__Invitation officielle du serveur :__ <https://discord.com/invite/hzGPWhZSGV>**
 
-***Dernière modification <t:1728916820:R>***
+***Dernière modification <t:1748165400:R>***
 
--# 1- spam = le fait d'envoyer plusieurs fois le même message 
--# 2- flood = mettre le même caractère un grand nombre de fois
--# 3- mass ping = notifier un ou plusieurs utilisateurs en grande quantité
+-# 1 – spam : fait d'envoyer plusieurs fois le même message 
+-# 2 – flood : répéter le même caractère un grand nombre de fois
+-# 3 – mass ping : mentionner un ou plusieurs utilisateurs en grande quantité
+-# 4 – NSFW : contenu pour adulte inapproprié pour les mineurs (sexuel, gore, violent, automutilation, etc.)
 ---ENDEMBED---
 
 ---STARTEMBED---
 194, 43, 43
 🚫┃Sanction
 
-Ci-dessous se trouvent les sanctions dépendant du nombre d'avertissements reçus.
-La sanction appliquée en cas de non-respect des règles dépend pour chacun de votre attitude, du récidivisme et de l'humeur de l'administrateur.
+Ci-dessous se trouvent les sanctions encourues en fonction du nombre d'avertissements reçus.
+La sanction appliquée en cas de non-respect des règles dépend de votre attitude, du récidivisme et de l'humeur de l'administrateur.
 
 > - 2 avertissements : Exclusion temporaire de 24 heures.
-> - 4 avertissements : Rôle <@&1249479455559385120>
-> - 6 avertissements : Exclusion temporaire de 7 jours
-> - 8 avertissements : Ban définitif (possibilité de pardon la première fois)
+> - 4 avertissements : Rôle <@&1249479455559385120> & exclusion temporaire de 7 jours.
+> - 6 avertissements : Ban définitif.
 
 Ces sanctions sont générales, leur durée peut par exemple varier, et une autre sanction peut être appliquée au cas par cas.
 
-Les avertissements seront parfois vérifiés et retirés si nous jugeons qu'assez de temps s'est écoulé.
+Les bannissement sont **définitifs** et **impardonnable** sans exception, sauf erreur de notre part.
 
-***Dernière modification <t:1724370840:R>***
+***Dernière modification <t:1748165400:R>***
 ---ENDEMBED---
 
 ---STARTEMBED---
 31, 193, 0
 ✅┃Acceptation
 
-Pour accéder à l'entièreté du serveur vous devez lire et accepter les règles ci-dessus.
+Pour accéder à l'entièreté du serveur, vous devez lire et accepter les règles ci-dessus.
 
 En cliquant sur le bouton `Accepter` ci-dessous, vous vous engagez à avoir lu et à respecter les règles.
 ---ENDEMBED---

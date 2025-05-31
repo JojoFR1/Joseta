@@ -7,6 +7,7 @@ import joseta.utils.*;
 
 import arc.func.*;
 import arc.struct.*;
+import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.audit.*;
@@ -952,7 +953,7 @@ public class LogSystem extends ListenerAdapter {
                 AuditLogEntry auditLogEntry = retrieveAuditLog(guild, ActionType.STICKER_CREATE);
                 User user = auditLogEntry.getUser();
 
-                String description = "**Nouveau sticker (`"+ sticker.getName() +"`) par " + user.getAsMention() + ".**";
+                String description = Vars.bundles.getFormatted("log_system.new", guild.getLocale(), "sticker", sticker.getName(), user.getAsMention());
                 
                 return createEmbed(COLOR_CREATE, guild, user, description);
             }
@@ -1061,22 +1062,10 @@ public class LogSystem extends ListenerAdapter {
     }
 
     //TODO improve this function + more method to lower repetition of code in all the events
-    // and allow to add images to the messag + maybe generate color image for color difference 
+    //TODO and allow to add images to the messag + maybe generate color image for color difference 
     private static MessageEmbed createEmbed(Color color, Guild guild, User author, String description) {
         return Vars.getDefaultEmbed(color, guild, author)
                 .setDescription(description)
                 .build();
-    }
-
-    //TODO is this needed to precise?
-    private static String getChannelTypeString(ChannelType channelType) {
-        if (channelType.equals(ChannelType.FORUM)) return "Forum";
-        if (channelType.equals(ChannelType.MEDIA)) return "Média";
-        if (channelType.equals(ChannelType.NEWS)) return "Annonce";
-        if (channelType.equals(ChannelType.STAGE)) return "Conférence";
-        if (channelType.equals(ChannelType.TEXT)) return "Textuel";
-        if (channelType.equals(ChannelType.VOICE)) return "Vocal";
-
-        return "Inconnu";
     }
 }

@@ -3,14 +3,12 @@ plugins {
     id("application")
     id("com.gradleup.shadow") version "8.3.5"
 }
-version = '1.2.0'
+version = "1.2.0"
 
-sourceSets.main.java.srcDirs = ["src"]
-sourceSets.main.resources.srcDirs = ["src"]
+sourceSets.main.java.srcDirs "src"
+sourceSets.main.resources.srcDirs "src", "resources/bundles"
 
-application {
-    mainClass = "joseta.JosetaBot"
-}
+application.mainClass = "joseta.JosetaBot"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -20,21 +18,27 @@ compileJava.options.encoding = "UTF-8"
 
 repositories{
     mavenCentral()
-    maven{ url 'https://maven.xpdustry.fr/releases' }
-    maven{ url 'https://www.jitpack.io' }
-    maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
+    maven{ url = 'https://maven.xpdustry.fr/releases' }
+    maven{ url = "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
+    maven{ url = 'https://www.jitpack.io' }
 }
 
 dependencies{
-    implementation("net.dv8tion:JDA:5.5.1") {
+    implementation ("net.dv8tion:JDA:5.5.1") {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java`
       exclude module: 'opus-java'
     }
-    implementation("ch.qos.logback:logback-classic:1.5.12")
-    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
-    implementation("com.github.Anuken.Arc:arc-core:v146")
+    implementation "ch.qos.logback:logback-classic:1.5.18"
+    implementation "org.xerial:sqlite-jdbc:3.49.1.0"
+    implementation "com.github.Anuken.Arc:arc-core:v146"
 }
 
 shadowJar {
     archiveFileName = "JosetaBot.jar"
+
+    // Copy 'bundle_en_US' as 'bundle_en_UK' because they're basically the same
+    from('resources/bundles') {
+        include 'bundle_en_US.properties'
+        rename 'bundle_en_US.properties', 'bundle_en_GB.properties'
+    }
 }

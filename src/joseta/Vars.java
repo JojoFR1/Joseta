@@ -1,8 +1,12 @@
 package joseta;
 
+import joseta.utils.*;
+
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
+import net.dv8tion.jda.api.interactions.*;
+import net.dv8tion.jda.api.interactions.commands.localization.*;
 
 import java.awt.*;
 import java.io.*;
@@ -20,6 +24,8 @@ public class Vars {
 
     public static TextChannel testChannel, welcomeChannel, logChannel;
     public static Role memberRole, botRole;
+
+    public static final Bundles bundles = Bundles.fromBundles("bundle", DiscordLocale.ENGLISH_US, DiscordLocale.ENGLISH_UK, DiscordLocale.FRENCH).build();
 
     public static void loadSecrets() {
         Properties secret = new Properties();
