@@ -176,7 +176,7 @@ public class MarkovUtilities {
                     genChain.append(' ').append(currentWord);
                 }
             } else {
-                currentWord = keys.get(rand.random(0, keys.size)); // New words
+                currentWord = keys.get(rand.random(0, keys.size - 1)); // New words
                 genChain.append(", ").append(currentWord); // Add a coma since it's a new starting point
             }
         }
