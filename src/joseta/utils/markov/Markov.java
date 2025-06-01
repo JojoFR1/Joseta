@@ -159,7 +159,7 @@ public class Markov {
                     genChain.append(' ').append(currentWord);
                 }
             } else {
-                currentWord = keys.get(rand.random(0, keys.size));
+                currentWord = keys.get(rand.random(0, keys.size - 1));
                 genChain.append(", ").append(currentWord);
             }
         }
