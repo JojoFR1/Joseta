@@ -157,19 +157,19 @@ public class MarkovUtilities {
      * 
      * @param chain
      *        The chain to use for generation.
-     * @param lenght
+     * @param length
      *        The number of words in the generated string.
      * @param word
      *        The starting word.
      * @return
      *        A new {@link ObjectMap} containing the generated Markov chain text.
      */
-    public static String generate(ObjectMap<String, MarkovLink> chain, int lenght, String word) {
+    public static String generate(ObjectMap<String, MarkovLink> chain, int length, String word) {
         Seq<String> keys = chain.keys().toSeq();
         String currentWord = word;
         StringBuilder genChain = new StringBuilder(currentWord);
 
-        for (int i = 1; i < lenght - 1; i++) {
+        for (int i = 1; i < length - 1; i++) {
             if (chain.containsKey(currentWord)) {
                 if (!chain.get(currentWord).getAfter().isEmpty()) {
                     currentWord = chain.get(currentWord).getRandomAfter();
