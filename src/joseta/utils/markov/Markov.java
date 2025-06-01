@@ -138,21 +138,21 @@ public class Markov {
     }
 
     /**
-     * Generates a 'sentence' based on a specified length and starting word.
-     * 
-     * @param lenght
-     *       The number of words to generate.
-     * @param word
-     *      The starting word.
-     * @return
-     *       A randomly generated 'sentence'.
-     */
-    public String generate(int lenght, String word) {
+    * Generates a 'sentence' based on a specified length and starting word.
+    * 
+    * @param length
+    *       The number of words to generate.
+    * @param word
+    *      The starting word.
+    * @return
+    *       A randomly generated 'sentence'.
+    */
+    public String generate(int length, String word) {
         Seq<String> keys = chain.keys().toSeq();
         String currentWord = word;
         StringBuilder genChain = new StringBuilder(currentWord);
 
-        for (int i = 1; i < lenght -1; i++) {
+        for (int i = 1; i < length -1; i++) {
             if (chain.containsKey(currentWord)) {
                 if (!chain.get(currentWord).getAfter().isEmpty()) {
                     currentWord = chain.get(currentWord).getRandomAfter();
