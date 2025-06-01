@@ -29,7 +29,7 @@ This bot is multipurpose and isn't centered around one thing, any features added
   |:---------------|:-------------------------------------------------------------|
   | `/ping`        | Get the bot ping.                                            |
   | `/multi`       | Send the multiplayer help message manually.                  |
-  | `/markov       | Generate a random message using messages sent on the server. |
+  | `/markov`      | Generate a random message using messages sent on the server. |
   | `/admin`       | Only used for rules as of now.                               |
   | `/(un)warn`    | (Un)warn a member.                                           |
   | `/(un)timeout` | (Un)timeout a member.                                        |
