@@ -52,10 +52,7 @@ public class Markov {
      *        The line of text to be processed.
      */
     private void linkToChain(String string) {
-        String lower = string.toLowerCase().replace('\n', ' ').trim();
-        String cleanCopy = Pattern.compile("[^a-z.\\]\\[ ]+").matcher(lower).replaceAll("").replace('.', ' ');
-        String spaced = Pattern.compile("\\s+").matcher(cleanCopy).replaceAll(" ");
-        String[] words = spaced.split(" ");
+        String[] words = string.split(" ");
 
         if (words.length > 1) {
             for (int i = 0; i < words.length - 2; i++) {

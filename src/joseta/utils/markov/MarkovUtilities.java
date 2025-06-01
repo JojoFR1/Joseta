@@ -29,7 +29,7 @@ public class MarkovUtilities {
             return json.fromJson(new ObjectMap<String, MarkovLink>().getClass(), file);
         } else {
             JosetaBot.logger.warn("No PDO detected. Returning blank Dictionary<String, MarkovLink>.");
-            return new ObjectMap<>();
+            return new ObjectMap<String, MarkovLink>();
         }
     }
 

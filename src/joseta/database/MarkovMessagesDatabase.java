@@ -7,16 +7,24 @@ import arc.struct.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
+import net.dv8tion.jda.api.events.channel.*;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.hooks.*;
 
 import java.io.*;
 import java.sql.*;
+import java.util.regex.*;
 import java.util.stream.*;
 
 public class MarkovMessagesDatabase extends ListenerAdapter {
     private static final String dbFileName =  "resources/database/markov_messages.db";
     private static Connection conn;
+    private static Seq<Long> channelBlackList = Seq.with(1219013018873233512L, 1219013344099303576L, 1306634181119315979L, 1256989659448348673L);
+    private static Seq<Long> categoryBlackList = Seq.with(1219273667012460664L);
+
+    private static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
+    private static final Pattern CLEAN_COPY_PATTERN = Pattern.compile("[^a-z0-9.?!,;\\-()~\"'&$€£ \\]\\[àáâãäåæçèéêëìíîïñòóôõöùúûüýÿ ]+", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    private static final Pattern SPACED_PATTERN = Pattern.compile("\\s+");
 
     public static void initialize() {
         File dbFile = new File(dbFileName);
@@ -56,6 +64,9 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         JosetaBot.logger.debug("Populating the Markov Messages Database...");
         for (Guild guild : JosetaBot.bot.getGuilds()) {
             for (TextChannel channel : guild.getTextChannels()) {
+                if (channelBlackList.contains(channel.getIdLong())) continue;
+                if (channel.isNSFW() || categoryBlackList.contains(channel.getParentCategoryIdLong())) continue;
+
                 for (ThreadChannel thread : channel.getThreadChannels()) count += addChannelMessageHistory(thread, guild);
                 count += addChannelMessageHistory(channel, guild);
             }
@@ -68,19 +79,12 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
     private static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild) {
         int count = 0;        
         try {
-            for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
-                if (message.getAuthor().isBot() || message.getAuthor().isSystem()) continue;
-                // if (channelBlackList.contains(channel.getIdLong())) continue;
-                
-
-                long id = message.getIdLong();
-                long guildId = guild.getIdLong();
-                long channelId = channel.getIdLong();
+            for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {                
                 long authorId = message.getAuthor().getIdLong();
                 String content = message.getContentRaw();
                 String timestamp = message.getTimeCreated().toString();
 
-                addNewMessage(id, guildId, channelId, authorId, content, timestamp);
+                addNewMessage(message, guild, channel, authorId, content, timestamp);
                 count++;
             }
         } catch (Exception e) {
@@ -94,17 +98,72 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         if (!event.isFromGuild()) return; // Ignore DMs
         
-        long id = event.getMessageIdLong();
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
         long authorId = event.getAuthor().getIdLong();
         String content = event.getMessage().getContentRaw();
         String timestamp = event.getMessage().getTimeCreated().toString();
 
-        addNewMessage(id, guildId, channelId, authorId, content, timestamp);
+        addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
     }
 
-    private static void addNewMessage(long id, long guildId, long channelId, long authorId, String content, String timestamp) {
+    @Override
+    public void onMessageUpdate(MessageUpdateEvent event) {
+        if (!event.isFromGuild()) return; // Ignore DMs
+        
+        long id = event.getMessageIdLong();
+        long guildId = event.getGuild().getIdLong();
+        long channelId = event.getChannel().getIdLong();
+        String content = event.getMessage().getContentRaw();
+
+        updateMessage(id, guildId, channelId, content);
+    }
+
+    @Override
+    public void onMessageDelete(MessageDeleteEvent event) {
+        if (!event.isFromGuild()) return; // Ignore DMs
+
+        long id = event.getMessageIdLong();
+        long guildId = event.getGuild().getIdLong();
+        long channelId = event.getChannel().getIdLong();
+
+        deleteMessage(id, guildId, channelId);
+    }
+
+    @Override
+    public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
+        long guildId = event.getGuild().getIdLong();
+        long channelId = event.getChannel().getIdLong();
+
+        for (String id : event.getMessageIds()) {
+            deleteMessage(Long.parseLong(id), guildId, channelId);
+        }
+    }
+
+    @Override
+    public void onChannelDelete(ChannelDeleteEvent event) {
+        long guildId = event.getGuild().getIdLong();
+        long channelId = event.getChannel().getIdLong();
+
+        // Remove all messages from the deleted channel
+        try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM messages WHERE channelId = ? AND guildId = ?")) {
+            pstmt.setLong(1, channelId);
+            pstmt.setLong(2, guildId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not delete messages from a deleted channel.", e);
+        }
+    }
+
+    private static void addNewMessage(Message message, Guild guild, GuildMessageChannel channel, long authorId, String content, String timestamp) {
+        long id = message.getIdLong();
+        long guildId = guild.getIdLong();
+        long channelId = channel.getIdLong();
+        
+        if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return;
+        if (channelBlackList.contains(channelId)) return;
+        if (channel instanceof TextChannel textChannel &&
+            (textChannel.isNSFW() || categoryBlackList.contains(textChannel.getParentCategoryIdLong()))) return;
+
+        
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO messages "
                                                            + "(id, guildId, channelId, authorId, content, timestamp)"
                                                            + "VALUES (?, ?, ?, ?, ?, ?)"))
@@ -113,7 +172,7 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
             pstmt.setLong(2, guildId);
             pstmt.setLong(3, channelId);
             pstmt.setLong(4, authorId);
-            pstmt.setString(5, content);
+            pstmt.setString(5, cleanMessage(content));
             pstmt.setString(6, timestamp);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -124,7 +183,7 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
     public static void updateMessage(long id, long guildId, long channelId, String content) {
         try (PreparedStatement pstmt = conn.prepareStatement("UPDATE messages SET content = ? "
                                                            + "WHERE id = ? AND guildId = ? AND channelId = ?")) {
-            pstmt.setString(1, content);
+            pstmt.setString(1, cleanMessage(content));
             pstmt.setLong(2, id);
             pstmt.setLong(3, guildId);
             pstmt.setLong(4, channelId);
@@ -132,6 +191,15 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not update a message.", e);
         }
+    }
+    
+    private static String cleanMessage(String string) {
+        String lower = string.toLowerCase().replace('\n', ' ').trim();
+        String noUrl = NO_URL_PATTERN.matcher(lower).replaceAll("");
+        String cleanCopy = CLEAN_COPY_PATTERN.matcher(noUrl).replaceAll("").replace('.', ' ');
+        String spaced = SPACED_PATTERN.matcher(cleanCopy).replaceAll(" ");
+
+        return spaced;
     }
 
     public static void deleteMessage(long id, long guildId, long channelId) {
@@ -165,6 +233,7 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not retrieve a message.", e);
         }
+
         return null;
     }
 
