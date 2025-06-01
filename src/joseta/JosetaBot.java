@@ -4,6 +4,7 @@ import joseta.commands.*;
 import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
+import joseta.database.*;
 import joseta.events.*;
 import joseta.utils.*;
 
@@ -29,6 +30,7 @@ public class JosetaBot {
     public static final Seq<Command> commands = Seq.with(
         new PingCommand(),
         new MultiInfoCommand(),
+        new MarkovCommand(),
 
         new AdminCommand(),
         
@@ -76,6 +78,7 @@ public class JosetaBot {
         Vars.initialize(bot.getGuildById(Vars.testGuildId)); // TODO another way than that pls (SHOULD be fixed with config later)
         WelcomeMessage.initialize();
         ModLog.initialize();
+        MarkovMessagesDatabase.initialize();
     }
 
     private static void preLoad(String args[]) {
