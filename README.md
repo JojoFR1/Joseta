@@ -25,14 +25,17 @@ This bot is multipurpose and isn't centered around one thing, any features added
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
 - Multiple commands:
-  | Commands       | Use                                |
-  |:---------------|:-----------------------------------|
-  | `/admin`       | Only used for rules as of now.     |
-  | `/(un)warn`    | (Un)warn a member.                 |
-  | `/(un)timeout` | (Un)timeout a member.              |
-  | `/kick`        | Kick a member.                     |
-  | `/(un)ban`     | (Un)ban a member.                  |
-  | `/modlog`      | Acces a member moderation history. |
+  | Commands       | Use                                                          |
+  |:---------------|:-------------------------------------------------------------|
+  | `/ping`        | Get the bot ping.                                            |
+  | `/multi`       | Send the multiplayer help message manually.                  |
+  | `/markov`      | Generate a random message using messages sent on the server. |
+  | `/admin`       | Only used for rules as of now.                               |
+  | `/(un)warn`    | (Un)warn a member.                                           |
+  | `/(un)timeout` | (Un)timeout a member.                                        |
+  | `/kick`        | Kick a member.                                               |
+  | `/(un)ban`     | (Un)ban a member.                                            |
+  | `/modlog`      | Acces a member moderation history.                           |
 
 ## Plans
 
@@ -52,7 +55,6 @@ Our current plans for the future are the following, in the order in which they w
   - Allow to un-hardcode values
   - Allow to be runnable outside of our server
 
-- Add a `/markov` command to generate random message
 - Message leaderboard + levels?
 
 - Support multi-server:
