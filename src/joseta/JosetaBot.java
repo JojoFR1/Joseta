@@ -28,11 +28,12 @@ public class JosetaBot {
     public static final Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
 
     public static final Seq<Command> commands = Seq.with(
+        new AdminCommand(),
+        new ConfigCommand(),
+
         new PingCommand(),
         new MultiInfoCommand(),
         new MarkovCommand(),
-
-        new AdminCommand(),
         
         new WarnCommand(),
         new UnwarnCommand(),

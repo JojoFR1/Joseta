@@ -25,35 +25,32 @@ This bot is multipurpose and isn't centered around one thing, any features added
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
 - Multiple commands:
-  | Commands       | Use                                                          |
-  |:---------------|:-------------------------------------------------------------|
-  | `/ping`        | Get the bot ping.                                            |
-  | `/multi`       | Send the multiplayer help message manually.                  |
-  | `/markov`      | Generate a random message using messages sent on the server. |
-  | `/admin`       | Only used for rules as of now.                               |
-  | `/(un)warn`    | (Un)warn a member.                                           |
-  | `/(un)timeout` | (Un)timeout a member.                                        |
-  | `/kick`        | Kick a member.                                               |
-  | `/(un)ban`     | (Un)ban a member.                                            |
-  | `/modlog`      | Acces a member moderation history.                           |
+
+  | Category   | Commands       | Use                                                          |
+  |:-----------|:---------------|:-------------------------------------------------------------|
+  | Admin      | `/admin`       | Only used for rules as of now.                               |
+  |            | `/config`      | Configure the bot variables for your server.                 |
+  | Misc.      | `/ping`        | Get the bot ping.                                            |
+  |            | `/multi`       | Send the multiplayer help message manually.                  |
+  |            | `/markov`      | Generate a random message using messages sent on the server. |
+  | Moderation | `/modlog`      | Acces a member moderation history.                           |
+  |            | `/(un)warn`    | (Un)warn a member.                                           |
+  |            | `/(un)timeout` | (Un)timeout a member.                                        |
+  |            | `/kick`        | Kick a member.                                               |
+  |            | `/(un)ban`     | (Un)ban a member.                                            |
 
 ## Plans
 
 Our current plans for the future are the following, in the order in which they will be made:
 
-- Be able to update rules (`/admin rules update [msgId]`)
-- Add a Logging system:
-  - Send messages giving info on user actions (modified, deleted, ...)
-  - Send messages giving info on moderation actions (kick, ban, ...)
-  - Send messages giving info on administration actions (created, modifed channles/roles, ...)
-  - Batch logs (maybe for later)
-
-- Send info to user DM about their sanction
-
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart
   - Allow to un-hardcode values
   - Allow to be runnable outside of our server
+
+- Send info to user DM about their sanction
+
+- Add a Logging system (on pause PR #6)
 
 - Message leaderboard + levels?
 
