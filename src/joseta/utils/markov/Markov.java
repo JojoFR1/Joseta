@@ -5,8 +5,6 @@ import arc.math.*;
 import arc.struct.*;
 import arc.util.serialization.*;
 
-import java.util.regex.*;
-
 /**
  * A markov generator. </br></br>
  * 
@@ -33,6 +31,7 @@ public class Markov {
         this.chain = chain;
     }
 
+    @SuppressWarnings({ "unused", "unchecked" })
     private ObjectMap<String, MarkovLink> readChain() {
         Fi file = new Fi(filename);
         Json json = new Json();
@@ -180,7 +179,8 @@ public class Markov {
         StringBuilder genChain = new StringBuilder(currentWord);
 
         int i = 0;
-        while (i < 50 && chain.containsKey(currentWord)) {
+        int limit = rand.random(30, 60);
+        while (i < limit && chain.containsKey(currentWord)) {
             if (!chain.get(currentWord).getAfter().isEmpty()) {
                 currentWord = chain.get(currentWord).getRandomAfter();
                 genChain.append(' ').append(currentWord);
