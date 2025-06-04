@@ -1,6 +1,8 @@
 package joseta.events;
 
 import joseta.*;
+import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
@@ -45,18 +47,42 @@ public class WelcomeMessage extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+        ConfigEntry config = ConfigDatabase.getConfigEntry(event.getGuild().getIdLong());
+        TextChannel channel;
+        Role botRole, memberRole;
+        if (!config.welcomeEnabled) return;
+        if (config.welcomeChannelId == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.welcomeChannelId)) == null) {
+            JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+        if (config.newMemberRoleId == 0L || (memberRole = event.getGuild().getRoleById(config.newMemberRoleId)) == null) {
+            JosetaBot.logger.warn("WelcomeMessage - The new member role is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+        if (config.botRoleId == 0L || (botRole = event.getGuild().getRoleById(config.botRoleId)) == null) {
+            JosetaBot.logger.warn("WelcomeMessage - The bot role is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+
         User user = event.getUser();
 
-        if (imageLoaded) sendWelcomeImage(event.getGuild(), Vars.welcomeChannel, user);
-        else Vars.welcomeChannel.sendMessage("Bienvenue "+ event.getUser().getAsMention() + " !").queue();
+        if (imageLoaded) sendWelcomeImage(event.getGuild(), channel, user);
+        else channel.sendMessage("Bienvenue "+ event.getUser().getAsMention() + " !").queue();
 
-        if (user.isBot()) event.getGuild().addRoleToMember(user, Vars.botRole).queue();
-        else event.getGuild().addRoleToMember(user, Vars.memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
+        if (user.isBot()) event.getGuild().addRoleToMember(user, botRole).queue();
+        else event.getGuild().addRoleToMember(user, memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
     }
 
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        Vars.welcomeChannel.sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+        ConfigEntry config = ConfigDatabase.getConfigEntry(event.getGuild().getIdLong());
+        TextChannel channel;
+        if (!config.welcomeEnabled) return;
+        if (config.welcomeChannelId == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.welcomeChannelId))== null) {
+            JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+        channel.sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
     }
 
     private void sendWelcomeImage(Guild guild, TextChannel channel, User user) {

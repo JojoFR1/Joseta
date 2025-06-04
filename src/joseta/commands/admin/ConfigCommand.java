@@ -1,6 +1,8 @@
 package joseta.commands.admin;
 
 import joseta.commands.Command;
+import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -16,6 +18,9 @@ public class ConfigCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
+        ConfigEntry config = ConfigDatabase.getConfigEntry(event.getGuild().getIdLong());
+        
+
         event.reply("This command is not implemented yet.").setEphemeral(true).queue();
     }
     

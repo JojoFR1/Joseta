@@ -1,6 +1,8 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
+import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
 import joseta.utils.*;
 import joseta.utils.ModLog.*;
 
@@ -33,6 +35,12 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
+        ConfigEntry config = ConfigDatabase.getConfigEntry(event.getGuild().getIdLong());
+        
+        if (!config.modLogEnabled) {
+            event.reply("L'historique de modération est désactivé.").setEphemeral(true).queue();
+            return;
+        }
         sendEmbed(event, user, 1, (int) Math.ceil((double) ModLog.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
     }
 

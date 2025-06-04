@@ -77,10 +77,10 @@ public class JosetaBot {
         }
 
         initializeCommands();
-        Vars.initialize(bot.getGuildById(Vars.testGuildId)); // TODO another way than that pls (SHOULD be fixed with config later)
         WelcomeMessage.initialize();
         ModLog.initialize();
         MarkovMessagesDatabase.initialize();
+        ConfigDatabase.initialize();
     }
 
     private static void preLoad(String args[]) {
