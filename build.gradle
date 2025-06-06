@@ -37,4 +37,5 @@ dependencies{
 
 shadowJar {
     archiveFileName = "JosetaBot.jar"
+    minimize()
 }

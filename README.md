@@ -28,20 +28,20 @@ This bot is multipurpose and isn't centered around one thing, any features added
 
   | Category   | Commands       | Use                                                          |
   |:-----------|:---------------|:-------------------------------------------------------------|
-  | Admin      | `/admin`       | Only used for rules as of now.                               |
+  | Admin      | `/admin`       | Only used to send and update rules as of now.                |
   |            | `/config`      | Configure the bot variables for your server.                 |
-  | Misc.      | `/ping`        | Get the bot ping.                                            |
+  | Misc.      | `/ping`        | Get the bot current ping.                                    |
   |            | `/multi`       | Send the multiplayer help message manually.                  |
   |            | `/markov`      | Generate a random message using messages sent on the server. |
   | Moderation | `/modlog`      | Acces a member moderation history.                           |
-  |            | `/(un)warn`    | (Un)warn a member.                                           |
-  |            | `/(un)timeout` | (Un)timeout a member.                                        |
-  |            | `/kick`        | Kick a member.                                               |
   |            | `/(un)ban`     | (Un)ban a member.                                            |
+  |            | `/kick`        | Kick a member.                                               |
+  |            | `/(un)timeout` | (Un)timeout a member.                                        |
+  |            | `/(un)warn`    | (Un)warn a member.                                           |
 
 ## Plans
 
-Our current plans for the future are the following, in the order in which they will be made:
+Our current plans for the future are the following, in the likely order in which they will be made:
 
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart
@@ -59,6 +59,7 @@ Our current plans for the future are the following, in the order in which they w
   - Other implementation could be explored (but don't got any for now)
 
 - Add a Logging system (on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6))
+  - Log the warns of the bot.
 
 - Message leaderboard + levels?
 

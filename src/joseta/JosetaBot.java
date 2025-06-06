@@ -62,6 +62,7 @@ public class JosetaBot {
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
                                    new MarkovMessagesDatabase(),
+                                   new ConfigDatabase(),
                                    new ModAutoComplete(), //TODO fix
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
