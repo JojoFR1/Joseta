@@ -20,8 +20,8 @@ We could have used JavaScript or Python. But due to personal preferences, we hav
 
 This bot is multipurpose and isn't centered around one thing, any features added (removed or changed) are based on our needs. Here's a list of all the features this bot has:
 
-- An **Image based Welcome** for new members (not *yet* configurable)
-- A **Goodbye Message** for leaving members (not *yet* configurable)
+- An **Image based Welcome** for new members
+- A **Goodbye Message** for leaving members
 - **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
 - An **Auto Response** for common questions (not *yet* configurable)
 - Multiple commands:
@@ -48,15 +48,25 @@ Our current plans for the future are the following, in the order in which they w
   - Allow to un-hardcode values
   - Allow to be runnable outside of our server
 
+- Add more moderation commands:
+  - `/clear` to bulk delete messages.
+  - `/(un)lock` to (un)lock a channel.
+  
 - Send info to user DM about their sanction
 
-- Add a Logging system (on pause PR #6)
+- Refactor the Event system like the Command implementation
+  - Could do like one single `ListenerAdapter` and add in the appropriate event the function we want to execute?
+  - Other implementation could be explored (but don't got any for now)
+
+- Add a Logging system (on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6))
 
 - Message leaderboard + levels?
 
 - Support multi-server:
   - Mainly to make it useable outside of our server
   - Make it actually useable for others
+
+- Possible transition to Kotlin
 
 ## How to build
 
