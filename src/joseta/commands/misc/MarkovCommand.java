@@ -2,6 +2,7 @@ package joseta.commands.misc;
 
 import joseta.commands.Command;
 import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
 import joseta.utils.markov.*;
 
 import arc.files.*;
@@ -22,21 +23,26 @@ public class MarkovCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        InteractionHook hook = event.deferReply().complete();
+        ConfigEntry config = ConfigDatabase.getConfigEntry(event.getGuild().getIdLong());
+        if (!config.markovEnabled) {
+            event.reply("La génération de messages aléatoires est désactivée.").setEphemeral(true).queue();
+            return;
+        }
 
+        InteractionHook hook = event.deferReply().complete();
         Seq<MarkovMessagesDatabase.MessageEntry> entries = MarkovMessagesDatabase.getMessageEntries(event.getGuild().getIdLong()).retainAll(entry -> entry != null);
 
         if (entries.size < MIN_ENTRIES) {
             hook.editOriginal("Il n'y a pas assez de messages !").queue();
             return;
         }
-
+        
         Markov markov = new Markov(event.getGuild().getId() + event.getChannelId()+".pdo");
         markov.addToChain(entries.map(entry -> entry.content));
         String output = markov.generate();
-
+        
         hook.editOriginal(output).queue();
-
+        
         Fi fi = new Fi(event.getGuild().getId() + event.getChannelId()+".pdo");
         if (fi.exists()) fi.delete();
     }

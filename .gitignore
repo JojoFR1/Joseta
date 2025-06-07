@@ -8,4 +8,6 @@ bin/
 
 # Other
 logs/
-modlog.db
+*.db
+*.bat
+*.sh

@@ -28,11 +28,12 @@ public class JosetaBot {
     public static final Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
 
     public static final Seq<Command> commands = Seq.with(
+        new AdminCommand(),
+        new ConfigCommand(),
+
         new PingCommand(),
         new MultiInfoCommand(),
         new MarkovCommand(),
-
-        new AdminCommand(),
         
         new WarnCommand(),
         new UnwarnCommand(),
@@ -61,6 +62,7 @@ public class JosetaBot {
                                    new RulesAcceptEvent(),
                                    new ModLogButtonEvents(),
                                    new MarkovMessagesDatabase(),
+                                   new ConfigDatabase(),
                                    new ModAutoComplete(), //TODO fix
                                    new AutoResponse())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
@@ -76,10 +78,10 @@ public class JosetaBot {
         }
 
         initializeCommands();
-        Vars.initialize(bot.getGuildById(Vars.testGuildId)); // TODO another way than that pls (SHOULD be fixed with config later)
         WelcomeMessage.initialize();
         ModLog.initialize();
         MarkovMessagesDatabase.initialize();
+        ConfigDatabase.initialize();
     }
 
     private static void preLoad(String args[]) {
