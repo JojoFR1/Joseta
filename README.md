@@ -8,66 +8,66 @@ Joseta is a multi purpose, single server, Discord bot made with the [JDA](https:
 
 ### Why single server ?
 
-This bot original purpose is to be used in the official [Mindustry France](https://discord.com/invite/hzGPWhZSGV) Discord server only, and so it was made without any plans to support multiple servers nor to be a public bot. Features are also only made based of our needs as of now.
+This bot original purpose is to only be used in the official [Mindustry France](https://discord.com/invite/hzGPWhZSGV) Discord server only - so it was made without any plans to support multiple servers nor to be a public bot for now, this could change in the future. Features are only implemented based of our needs.
 
-This bot is not *yet* fully usable for personnal use due to multiple hardcoded values, but it is in our plan to make it usable outside of our server. If you wish to use it, we won't give any support for now.
+This bot is not *yet* fully usable for personnal use due to multiple hardcoded values that are mostly now removed with the configuration command. If you wish to use it you are free to do so buy we do not give any support as of now.
 
 ### Why Java and JDA?
 
-We could have used JavaScript or Python. But due to personal preferences, we have chosen Java and JDA, as it was a library we already had experience with.
+We could have used JavaScript or Python or litteraly any other languages, but due to personal preferences we have chosen Java and the JDA library as it was a library we already had experience with. Discussion for a possible Kotlin transition will be explored.
 
 ## Features
 
-This bot is multipurpose and isn't centered around one thing, any features added (removed or changed) are based on our needs. Here's a list of all the features this bot has:
+This is a multipurpose bot and is not centered around one specific category or idea, all features implemented (updated or removed) are based only on our needs. See below for a list of all the features this bot currently has:
 
-- An **Image based Welcome** for new members
-- A **Goodbye Message** for leaving members
-- **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable)
-- An **Auto Response** for common questions (not *yet* configurable)
+- An **Image based Welcome** for new members (or message in case image is disabled or not properly loaded).
+- A **Goodbye Message** for leaving members.
+- **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable).
+- An **Auto Response** for common questions (not *yet* configurable but can be disabled).
 - Multiple commands:
 
-  | Category   | Commands       | Use                                                          |
-  |:-----------|:---------------|:-------------------------------------------------------------|
-  | Admin      | `/admin`       | Only used to send and update rules as of now.                |
-  |            | `/config`      | Configure the bot variables for your server.                 |
-  | Misc.      | `/ping`        | Get the bot current ping.                                    |
-  |            | `/multi`       | Send the multiplayer help message manually.                  |
-  |            | `/markov`      | Generate a random message using messages sent on the server. |
-  | Moderation | `/modlog`      | Acces a member moderation history.                           |
-  |            | `/(un)ban`     | (Un)ban a member.                                            |
-  |            | `/kick`        | Kick a member.                                               |
-  |            | `/(un)timeout` | (Un)timeout a member.                                        |
-  |            | `/(un)warn`    | (Un)warn a member.                                           |
+  | Category   | Commands       | Use                                                                 |
+  |:-----------|:---------------|:--------------------------------------------------------------------|
+  | Admin      | `/admin`       | Only used to send and update rules.                                 |
+  | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                   |
+  |            | `/config`      | Configure the bot variables for your server.                        |
+  |            | `/multi`       | Manually send the multiplayer help message.                         |
+  |            | `/markov`      | Generate a pseudo-random message using messages sent on the server. |
+  | Moderation | `/modlog`      | Get a member current moderation history.                            |
+  |            | `/(un)ban`     | (Un)Ban a member from the server.                                   |
+  |            | `/kick`        | Kick a member from the server.                                      |
+  |            | `/(un)timeout` | (Un)Timeout a member on the server.                                 |
+  |            | `/(un)warn`    | (Un)Warn a member on the server.                                    |
 
 ## Plans
 
-Our current plans for the future are the following, in the likely order in which they will be made:
+The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
 - Add a `/config` command
   - Allow to change *some* variables without having to rebuild and restart
   - Allow to un-hardcode values
   - Allow to be runnable outside of our server
 
-- Add more moderation commands:
+- Add more & imrpove moderation commands:
   - `/clear` to bulk delete messages.
   - `/(un)lock` to (un)lock a channel.
-  
-- Send info to user DM about their sanction
+  - Send info to user DM about their sanction
 
-- Refactor the Event system like the Command implementation
-  - Could do like one single `ListenerAdapter` and add in the appropriate event the function we want to execute?
-  - Other implementation could be explored (but don't got any for now)
+- Refactor the Event system & SQL implementation
+  - Event | Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
+  - SQL | Either use existing library (JPA + Hibernate) or do my own implementation
+  - Other implementation could be explored (but I do not have any idea for now)
 
-- Add a Logging system (on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6))
+- Add a Logging system (currently on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6)):
   - Log the warns of the bot.
 
-- Message leaderboard + levels?
+- Message leaderboard + levels (?).
 
 - Support multi-server:
-  - Mainly to make it useable outside of our server
-  - Make it actually useable for others
+  - Mainly to make it useable outside of our server.
+  - Make it actually useable for others.
 
-- Possible transition to Kotlin
+- Possible transition to Kotlin.
 
 ## How to build
 
