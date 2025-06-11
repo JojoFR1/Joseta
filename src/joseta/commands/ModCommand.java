@@ -1,5 +1,7 @@
 package joseta.commands;
 
+import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
 import joseta.utils.*;
 
 import net.dv8tion.jda.api.entities.*;
@@ -49,6 +51,12 @@ public abstract class ModCommand extends Command {
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
+        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+        if (!config.moderationEnabled) {
+            event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();
+            return false;
+        }
+        
         if (user == null || member == null) {
             event.reply("Ce membre n'existe pas ou n'est pas présent sur le serveur. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
             return false;

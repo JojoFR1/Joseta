@@ -64,7 +64,7 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         int count = 0;
         JosetaBot.logger.debug("Populating the Markov Messages Database...");
         for (Guild guild : JosetaBot.bot.getGuilds()) {
-            ConfigEntry config = ConfigDatabase.getConfigEntry(guild.getIdLong());
+            ConfigEntry config = ConfigDatabase.getConfig(guild.getIdLong());
 
             for (TextChannel channel : guild.getTextChannels()) {
                 if (config.markovChannelBlackList.contains(channel.getIdLong())) continue;
@@ -161,7 +161,7 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         long guildId = guild.getIdLong();
         long channelId = channel.getIdLong();
 
-        ConfigEntry config = ConfigDatabase.getConfigEntry(guildId);
+        ConfigEntry config = ConfigDatabase.getConfig(guildId);
         
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return;
         if (config.markovChannelBlackList.contains(channelId)) return;
