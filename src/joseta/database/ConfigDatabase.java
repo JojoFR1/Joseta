@@ -38,7 +38,7 @@ public class ConfigDatabase extends ListenerAdapter {
     private static void initializeTable() throws SQLException {
         String configTable =
         """
-        CREATE TABLE configurations (
+        CREATE TABLE config (
             guildId BIGINT PRIMARY KEY,
             welcomeEnabled BOOLEAN DEFAULT FALSE,
             welcomeChannelId BIGINT DEFAULT 0,
@@ -94,7 +94,7 @@ public class ConfigDatabase extends ListenerAdapter {
         try (PreparedStatement pstmt = conn.prepareStatement(
             "UPDATE config SET welcomeEnabled = ?, welcomeChannelId = ?, welcomeImageEnabled = ?, welcomeImageUrl = ?, welcomeJoinMessage = ?, welcomeLeaveMessage = ?, newMemberRoleId = ?, newBotRoleId = ?,"
             + "markovEnabled = ?, markovChannelBlackList = ?, markovCategoryBlackList = ?, "
-            + "modLogEnabled = ?, autoResponseEnabled = ?, WHERE guildId = ?"
+            + "modLogEnabled = ?, autoResponseEnabled = ? WHERE guildId = ?"
         )) {
             int i = 1;
             pstmt.setBoolean(i++, entry.welcomeEnabled);
@@ -106,8 +106,8 @@ public class ConfigDatabase extends ListenerAdapter {
             pstmt.setLong(i++, entry.newMemberRoleId);
             pstmt.setLong(i++, entry.newBotRoleId);
             pstmt.setBoolean(i++, entry.markovEnabled);
-            pstmt.setString(i++, String.join(",", entry.markovChannelBlackList.toArray(String.class)));
-            pstmt.setString(i++, String.join(",", entry.markovCategoryBlackList.toArray(String.class)));
+            pstmt.setString(i++, entry.markovChannelBlackList.size != 0 ? Strings.join(",", entry.markovChannelBlackList.map(String::valueOf)) : "");
+            pstmt.setString(i++, entry.markovCategoryBlackList.size != 0 ? Strings.join(",", entry.markovCategoryBlackList.map(String::valueOf)) : "");
             pstmt.setBoolean(i++, entry.moderationEnabled);
             pstmt.setBoolean(i++, entry.autoResponseEnabled);
             pstmt.setLong(i++, entry.guildId);
@@ -158,7 +158,7 @@ public class ConfigDatabase extends ListenerAdapter {
     private static Seq<Long> parseLongArray(String[] values) {
         Seq<Long> result = new Seq<>(values.length);
         for (String value : values) {
-            result.add(Long.parseLong(value));
+            if (!value.isEmpty()) result.add(Long.parseLong(value));
         }
 
         return result;
@@ -220,6 +220,41 @@ public class ConfigDatabase extends ListenerAdapter {
             this.moderationEnabled = moderationEnabled;
 
             this.autoResponseEnabled = autoResponseEnabled;
+        }
+
+        public ConfigEntry setWelcomeEnabled(boolean welcomeEnabled) { this.welcomeEnabled = welcomeEnabled; return this; }
+        public ConfigEntry setWelcomeChannelId(long welcomeChannelId) { this.welcomeChannelId = welcomeChannelId; return this; }
+        public ConfigEntry setWelcomeImageEnabled(boolean welcomeImageEnabled) { this.welcomeImageEnabled = welcomeImageEnabled; return this; }
+        public ConfigEntry setWelcomeImageUrl(URL welcomeImageUrl) { this.welcomeImageUrl = welcomeImageUrl; return this; }
+        public ConfigEntry setWelcomeJoinMessage(String welcomeJoinMessage) { this.welcomeJoinMessage = welcomeJoinMessage; return this; }
+        public ConfigEntry setWelcomeLeaveMessage(String welcomeLeaveMessage) { this.welcomeLeaveMessage = welcomeLeaveMessage; return this; }
+        public ConfigEntry setNewMemberRoleId(long newMemberRoleId) { this.newMemberRoleId = newMemberRoleId; return this; }
+        public ConfigEntry setNewBotRoleId(long newBotRoleId) { this.newBotRoleId = newBotRoleId; return this; }
+        public ConfigEntry setMarkovEnabled(boolean markovEnabled) { this.markovEnabled = markovEnabled; return this; }
+        public ConfigEntry setMarkovChannelBlackList(Seq<Long> markovChannelBlackList) { this.markovChannelBlackList = markovChannelBlackList; return this; }
+        public ConfigEntry setMarkovCategoryBlackList(Seq<Long> markovCategoryBlackList) { this.markovCategoryBlackList = markovCategoryBlackList; return this; }
+        public ConfigEntry setModerationEnabled(boolean moderationEnabled) { this.moderationEnabled = moderationEnabled; return this; }
+        public ConfigEntry setAutoResponseEnabled(boolean autoResponseEnabled) { this.autoResponseEnabled = autoResponseEnabled; return this; }
+
+        public ConfigEntry addMarkovChannelBlackList(long channelId) {
+            if (!markovChannelBlackList.contains(channelId) && channelId != 0L) {
+                markovChannelBlackList.add(channelId);
+            }
+            return this;
+        }
+        public ConfigEntry removeMarkovChannelBlackList(long channelId) {
+            if (channelId != 0L) markovChannelBlackList.remove(channelId);
+            return this;
+        }
+        public ConfigEntry addMarkovCategoryBlackList(long categoryId) {
+            if (!markovCategoryBlackList.contains(categoryId) &&categoryId != 0L) {
+                markovCategoryBlackList.add(categoryId);
+            }
+            return this;
+        }
+        public ConfigEntry removeMarkovCategoryBlackList(long categoryId) {
+            if (categoryId != 0L) markovCategoryBlackList.remove(categoryId);
+            return this;
         }
     }
 }
