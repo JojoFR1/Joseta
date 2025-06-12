@@ -104,7 +104,7 @@ public class JosetaBot {
 
     private static void initializeCommands() {
         Seq<CommandData> commandsData = new Seq<>();
-        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroupsData).addOptions(cmd.options).setDefaultPermissions(cmd.defaultPermissions)));
+        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addOptions(cmd.options).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroups).setDefaultPermissions(cmd.defaultPermissions)));
 
         // Add commands on a test guild - Instantly
         if (Vars.isDebug && Vars.testGuildId != -1)
