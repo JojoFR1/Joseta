@@ -46,8 +46,9 @@ public class ConfigDatabase extends ListenerAdapter {
             welcomeImageUrl TEXT DEFAULT NULL,
             welcomeJoinMessage TEXT DEFAULT 'Bienvenue {{user}} !',
             welcomeLeaveMessage TEXT DEFAULT '**{{userName}}** nous a quitté...',
-            newMemberRoleId BIGINT DEFAULT 0,
-            newBotRoleId BIGINT DEFAULT 0,
+            joinRoleId BIGINT DEFAULT 0,
+            joinBotRoleId BIGINT DEFAULT 0,
+            verifiedRoleId BIGINT DEFAULT 0,
             markovEnabled BOOLEAN DEFAULT FALSE,
             markovChannelBlackList TEXT DEFAULT '',
             markovCategoryBlackList TEXT DEFAULT '',
@@ -92,8 +93,8 @@ public class ConfigDatabase extends ListenerAdapter {
 
     public static boolean updateConfig(ConfigEntry entry) {
         try (PreparedStatement pstmt = conn.prepareStatement(
-            "UPDATE config SET welcomeEnabled = ?, welcomeChannelId = ?, welcomeImageEnabled = ?, welcomeImageUrl = ?, welcomeJoinMessage = ?, welcomeLeaveMessage = ?, newMemberRoleId = ?, newBotRoleId = ?,"
-            + "markovEnabled = ?, markovChannelBlackList = ?, markovCategoryBlackList = ?, "
+            "UPDATE config SET welcomeEnabled = ?, welcomeChannelId = ?, welcomeImageEnabled = ?, welcomeImageUrl = ?, welcomeJoinMessage = ?, welcomeLeaveMessage = ?,"
+            + "joinRoleId = ?, joinBotRoleId = ?, verifiedRoleId = ?, markovEnabled = ?, markovChannelBlackList = ?, markovCategoryBlackList = ?, "
             + "modLogEnabled = ?, autoResponseEnabled = ? WHERE guildId = ?"
         )) {
             int i = 1;
@@ -103,8 +104,9 @@ public class ConfigDatabase extends ListenerAdapter {
             pstmt.setString(i++, entry.welcomeImageUrl != null ? entry.welcomeImageUrl.toString() : null);
             pstmt.setString(i++, entry.welcomeJoinMessage);
             pstmt.setString(i++, entry.welcomeLeaveMessage);
-            pstmt.setLong(i++, entry.newMemberRoleId);
-            pstmt.setLong(i++, entry.newBotRoleId);
+            pstmt.setLong(i++, entry.joinRoleId);
+            pstmt.setLong(i++, entry.joinBotRoleId);
+            pstmt.setLong(i++, entry.verifiedRoleId);
             pstmt.setBoolean(i++, entry.markovEnabled);
             pstmt.setString(i++, entry.markovChannelBlackList.size != 0 ? Strings.join(",", entry.markovChannelBlackList.map(String::valueOf)) : "");
             pstmt.setString(i++, entry.markovCategoryBlackList.size != 0 ? Strings.join(",", entry.markovCategoryBlackList.map(String::valueOf)) : "");
@@ -136,8 +138,9 @@ public class ConfigDatabase extends ListenerAdapter {
                     rs.getString("welcomeImageUrl") != null ? URI.create(rs.getString("welcomeImageUrl")).toURL() : null,
                     rs.getString("welcomeJoinMessage"),
                     rs.getString("welcomeLeaveMessage"),
-                    rs.getLong("newMemberRoleId"),
-                    rs.getLong("newBotRoleId"),
+                    rs.getLong("joinRoleId"),
+                    rs.getLong("joinBotRoleId"),
+                    rs.getLong("verifiedRoleId"),
                     rs.getBoolean("markovEnabled"),
                     parseLongArray(rs.getString("markovChannelBlackList").split(",")),
                     parseLongArray(rs.getString("markovCategoryBlackList").split(",")),
@@ -175,8 +178,9 @@ public class ConfigDatabase extends ListenerAdapter {
         public URL welcomeImageUrl; //todo hard to implement with text position (especially when only text config is available).
         public String welcomeJoinMessage;
         public String welcomeLeaveMessage;
-        public long newMemberRoleId;
-        public long newBotRoleId;
+        public long joinRoleId;
+        public long joinBotRoleId;
+        public long verifiedRoleId;
         //#endregion
 
         //#region Markov
@@ -194,7 +198,7 @@ public class ConfigDatabase extends ListenerAdapter {
 
             boolean welcomeEnabled, long welcomeChannelId, boolean welcomeImageEnabled,
             URL welcomeImageUrl, String welcomeJoinMessage, String welcomeLeaveMessage,
-            long newMemberRoleId, long newBotRoleId,
+            long joinRoleId, long joinBotRoleId, long verifiedRoleId,
 
             boolean markovEnabled, Seq<Long> markovChannelBlackList, Seq<Long> markovCategoryBlackList,
 
@@ -210,8 +214,9 @@ public class ConfigDatabase extends ListenerAdapter {
             this.welcomeImageUrl = welcomeImageUrl;
             this.welcomeJoinMessage = welcomeJoinMessage;
             this.welcomeLeaveMessage = welcomeLeaveMessage;
-            this.newMemberRoleId = newMemberRoleId;
-            this.newBotRoleId = newBotRoleId;
+            this.joinRoleId = joinRoleId;
+            this.joinBotRoleId = joinBotRoleId;
+            this.verifiedRoleId = verifiedRoleId;
 
             this.markovEnabled = markovEnabled;
             this.markovChannelBlackList = markovChannelBlackList;
@@ -228,8 +233,9 @@ public class ConfigDatabase extends ListenerAdapter {
         public ConfigEntry setWelcomeImageUrl(URL welcomeImageUrl) { this.welcomeImageUrl = welcomeImageUrl; return this; }
         public ConfigEntry setWelcomeJoinMessage(String welcomeJoinMessage) { this.welcomeJoinMessage = welcomeJoinMessage; return this; }
         public ConfigEntry setWelcomeLeaveMessage(String welcomeLeaveMessage) { this.welcomeLeaveMessage = welcomeLeaveMessage; return this; }
-        public ConfigEntry setNewMemberRoleId(long newMemberRoleId) { this.newMemberRoleId = newMemberRoleId; return this; }
-        public ConfigEntry setNewBotRoleId(long newBotRoleId) { this.newBotRoleId = newBotRoleId; return this; }
+        public ConfigEntry setJoinRoleId(long joinRoleId) { this.joinRoleId = joinRoleId; return this; }
+        public ConfigEntry setJoinBotRoleId(long joinBotRoleId) { this.joinBotRoleId = joinBotRoleId; return this; }
+        public ConfigEntry setVerifiedRoleId(long verifiedRoleId) { this.verifiedRoleId = verifiedRoleId; return this; }
         public ConfigEntry setMarkovEnabled(boolean markovEnabled) { this.markovEnabled = markovEnabled; return this; }
         public ConfigEntry setMarkovChannelBlackList(Seq<Long> markovChannelBlackList) { this.markovChannelBlackList = markovChannelBlackList; return this; }
         public ConfigEntry setMarkovCategoryBlackList(Seq<Long> markovCategoryBlackList) { this.markovCategoryBlackList = markovCategoryBlackList; return this; }

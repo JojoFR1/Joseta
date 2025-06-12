@@ -58,11 +58,11 @@ public class WelcomeMessage extends ListenerAdapter {
             JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
             return;
         }
-        if (!user.isBot() && (config.newMemberRoleId == 0L || (memberRole = event.getGuild().getRoleById(config.newMemberRoleId)) == null)) {
+        if (!user.isBot() && (config.joinRoleId == 0L || (memberRole = event.getGuild().getRoleById(config.joinRoleId)) == null)) {
             JosetaBot.logger.warn("WelcomeMessage - The new member role is not set or does not exist in the guild: " + event.getGuild().getName());
             return;
         }
-        if (user.isBot() && (config.newBotRoleId == 0L || (botRole = event.getGuild().getRoleById(config.newBotRoleId)) == null)) {
+        if (user.isBot() && (config.joinBotRoleId == 0L || (botRole = event.getGuild().getRoleById(config.joinBotRoleId)) == null)) {
             JosetaBot.logger.warn("WelcomeMessage - The bot role is not set or does not exist in the guild: " + event.getGuild().getName());
             return;
         }

@@ -24,8 +24,9 @@ public class ConfigCommand extends Command {
                 .addOption(OptionType.BOOLEAN, "image_enabled", "Enable or disable the welcome image.")
                 .addOption(OptionType.STRING, "join_message", "The message sent when a user joins the server.")
                 .addOption(OptionType.STRING, "leave_message", "The message sent when a user leaves the server.")
-                .addOption(OptionType.ROLE, "new_member_role", "The role given to new members.")
-                .addOption(OptionType.ROLE, "new_bot_role", "The role given to new bots."),
+                .addOption(OptionType.ROLE, "join_role", "The role given to new members.")
+                .addOption(OptionType.ROLE, "join_bot_role", "The role given to new bots.")
+                .addOption(OptionType.ROLE, "verified_role", "The role given to verified member."),
             new SubcommandData("markov", "Markov")
                 .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the Markov chain.")
                 .addOption(OptionType.CHANNEL, "add_to_channel_blacklist", "The channel to add to the Markov chain blacklist.")
@@ -52,8 +53,9 @@ public class ConfigCommand extends Command {
                     .setWelcomeImageEnabled(event.getOption("image_enabled", config.welcomeImageEnabled, OptionMapping::getAsBoolean))
                     .setWelcomeJoinMessage(event.getOption("join_message", config.welcomeJoinMessage, OptionMapping::getAsString))
                     .setWelcomeLeaveMessage(event.getOption("leave_message", config.welcomeLeaveMessage, OptionMapping::getAsString))
-                    .setNewMemberRoleId(event.getOption("new_member_role", config.newMemberRoleId, OptionMapping::getAsLong))
-                    .setNewBotRoleId(event.getOption("new_bot_role", config.newBotRoleId, OptionMapping::getAsLong));
+                    .setJoinRoleId(event.getOption("join_role", config.joinRoleId, OptionMapping::getAsLong))
+                    .setJoinBotRoleId(event.getOption("join_bot_role", config.joinBotRoleId, OptionMapping::getAsLong))
+                    .setVerifiedRoleId(event.getOption("verified_role", config.joinBotRoleId, OptionMapping::getAsLong));
                 break;
             case "markov":
                 config.setMarkovEnabled(event.getOption("enabled", config.markovEnabled, OptionMapping::getAsBoolean))
