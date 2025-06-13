@@ -1,5 +1,9 @@
 package joseta.events;
 
+import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
+
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
 import net.dv8tion.jda.api.hooks.*;
 
@@ -9,8 +13,18 @@ public class RulesAcceptEvent extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         if (!event.getComponentId().equals("b-rules_accept")) return;
 
-        event.getGuild().addRoleToMember(event.getUser(), event.getGuild().getRoleById(1235571503412543552L)).queue();
-        event.getGuild().removeRoleFromMember(event.getUser(), event.getGuild().getRoleById(1259874357384056852L)).queue();
+        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+
+        Role joinRole, verifiedRole;
+        if (config.joinRoleId == 0L || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) {
+            return;
+        }
+        if (config.verifiedRoleId == 0L || (verifiedRole = event.getGuild().getRoleById(config.verifiedRoleId)) == null) {
+            return;
+        }
+
+        event.getGuild().addRoleToMember(event.getUser(), verifiedRole).queue();
+        event.getGuild().removeRoleFromMember(event.getUser(), joinRole).queue();
         event.deferEdit().queue();
     }
 }

@@ -20,21 +20,27 @@ compileJava.options.encoding = "UTF-8"
 
 repositories{
     mavenCentral()
-    maven{ url 'https://maven.xpdustry.fr/releases' }
-    maven{ url 'https://www.jitpack.io' }
+    maven{ url 'https://maven.xpdustry.com/anuken' }
     maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
+    maven{ url 'https://www.jitpack.io' }
 }
 
 dependencies{
-    implementation("net.dv8tion:JDA:5.2.3") {
+    implementation("net.dv8tion:JDA:5.6.1") {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java`
       exclude module: 'opus-java'
+      exclude module: 'tink'
     }
-    implementation("ch.qos.logback:logback-classic:1.5.12")
-    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
     implementation("com.github.Anuken.Arc:arc-core:v146")
 }
 
+
 shadowJar {
     archiveFileName = "JosetaBot.jar"
+    minimize() {
+        exclude(dependency("ch.qos.logback:logback-classic"))
+        exclude(dependency("org.xerial:sqlite-jdbc"))
+    }
 }

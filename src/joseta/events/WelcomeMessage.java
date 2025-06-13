@@ -1,6 +1,8 @@
 package joseta.events;
 
 import joseta.*;
+import joseta.database.*;
+import joseta.database.ConfigDatabase.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
@@ -20,13 +22,14 @@ import javax.imageio.*;
 public class WelcomeMessage extends ListenerAdapter {
     private static Font font;
     private static BufferedImage welcomeImage;
-    private static boolean imageLoaded = true;
+    private static boolean imageLoaded;
 
     public static void initialize() {
         Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
         
         try {
             welcomeImage = ImageIO.read(cachedImagePath.toFile());
+            imageLoaded = true;
         } catch (IOException e) {
             JosetaBot.logger.error("WelcomeMessage - An error occured while reading the base welcome image or font.", e);
             imageLoaded = false;
@@ -45,18 +48,43 @@ public class WelcomeMessage extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
         User user = event.getUser();
 
-        if (imageLoaded) sendWelcomeImage(event.getGuild(), Vars.welcomeChannel, user);
-        else Vars.welcomeChannel.sendMessage("Bienvenue "+ event.getUser().getAsMention() + " !").queue();
+        TextChannel channel;
+        Role botRole = null, memberRole = null; // Safe to be null, no check needed
+        if (!config.welcomeEnabled) return;
+        if (config.welcomeChannelId == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.welcomeChannelId)) == null) {
+            JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+        if (!user.isBot() && (config.joinRoleId == 0L || (memberRole = event.getGuild().getRoleById(config.joinRoleId)) == null)) {
+            JosetaBot.logger.warn("WelcomeMessage - The new member role is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+        if (user.isBot() && (config.joinBotRoleId == 0L || (botRole = event.getGuild().getRoleById(config.joinBotRoleId)) == null)) {
+            JosetaBot.logger.warn("WelcomeMessage - The bot role is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
 
-        if (user.isBot()) event.getGuild().addRoleToMember(user, Vars.botRole).queue();
-        else event.getGuild().addRoleToMember(user, Vars.memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
+        if (imageLoaded && config.welcomeImageEnabled) sendWelcomeImage(event.getGuild(), channel, user);
+        else if (!config.welcomeJoinMessage.isEmpty()) channel.sendMessage(config.welcomeJoinMessage.replace("{{user}}", event.getUser().getAsMention())).queue();
+
+        if (user.isBot()) event.getGuild().addRoleToMember(user, botRole).queue();
+        else event.getGuild().addRoleToMember(user, memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
     }
 
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        Vars.welcomeChannel.sendMessage("**"+ event.getUser().getName() + "** nous a quitté...").queue();
+        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+        TextChannel channel;
+        if (!config.welcomeEnabled) return;
+        if (config.welcomeChannelId == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.welcomeChannelId))== null) {
+            JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
+            return;
+        }
+
+         if (!config.welcomeLeaveMessage.isEmpty()) channel.sendMessage(config.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
     }
 
     private void sendWelcomeImage(Guild guild, TextChannel channel, User user) {
