@@ -1,4 +1,4 @@
-package joseta.events;
+package joseta.events.misc;
 
 import joseta.*;
 import joseta.database.*;
@@ -6,11 +6,10 @@ import joseta.database.ConfigDatabase.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.*;
-import net.dv8tion.jda.api.hooks.*;
 
 import java.util.regex.*;
 
-public class AutoResponse extends ListenerAdapter {
+public class AutoResponseEvent {
     private static final Pattern patternQuestion = Pattern.compile(
         "(?:\\b|[.,?!;:])(?:com*[ea]nt?|pos*ible|m(?:oyen|ani[èeé]re)|fa[cç]on)(?:\\b|[.,?!;:])",
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
@@ -20,9 +19,8 @@ public class AutoResponse extends ListenerAdapter {
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
     );
     public static final String message = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
-    
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
+
+    public static void execute(MessageReceivedEvent event) {
         ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
         if (!config.autoResponseEnabled) return;
         
@@ -33,5 +31,6 @@ public class AutoResponse extends ListenerAdapter {
             JosetaBot.logger.debug("Multiplayer regex match.");
             msg.reply(message + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
         }
+
     }
 }

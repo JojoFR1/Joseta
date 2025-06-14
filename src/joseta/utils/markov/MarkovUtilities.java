@@ -28,7 +28,7 @@ public class MarkovUtilities {
             Json json = new Json();
             return json.fromJson(new ObjectMap<String, MarkovLink>().getClass(), file);
         } else {
-            JosetaBot.logger.warn("No PDO detected. Returning blank Dictionary<String, MarkovLink>.");
+            // JosetaBot.logger.warn("No PDO detected. Returning blank Dictionary<String, MarkovLink>.");
             return new ObjectMap<String, MarkovLink>();
         }
     }

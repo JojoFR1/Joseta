@@ -5,13 +5,9 @@ import joseta.database.*;
 import joseta.database.ConfigDatabase.*;
 
 import net.dv8tion.jda.api.*;
-import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-
-import java.awt.*;
-import java.time.*;
 
 public class ConfigCommand extends Command {
 

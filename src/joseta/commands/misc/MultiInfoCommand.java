@@ -1,7 +1,7 @@
 package joseta.commands.misc;
 
 import joseta.commands.*;
-import joseta.events.*;
+import joseta.events.misc.*;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
 
@@ -13,6 +13,6 @@ public class MultiInfoCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        event.reply(AutoResponse.message).queue();
+        event.reply(AutoResponseEvent.message).queue();
     }
 }

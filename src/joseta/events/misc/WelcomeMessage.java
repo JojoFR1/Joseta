@@ -1,4 +1,4 @@
-package joseta.events;
+package joseta.events.misc;
 
 import joseta.*;
 import joseta.database.*;
@@ -7,7 +7,6 @@ import joseta.database.ConfigDatabase.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.events.guild.member.*;
-import net.dv8tion.jda.api.hooks.*;
 import net.dv8tion.jda.api.utils.*;
 
 import java.awt.*;
@@ -19,7 +18,7 @@ import java.nio.file.*;
 
 import javax.imageio.*;
 
-public class WelcomeMessage extends ListenerAdapter {
+public class WelcomeMessage {
     private static Font font;
     private static BufferedImage welcomeImage;
     private static boolean imageLoaded;
@@ -46,8 +45,7 @@ public class WelcomeMessage extends ListenerAdapter {
         }
     }
 
-    @Override
-    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+    public static void executeGuildMemberJoin(GuildMemberJoinEvent event) {
         ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
         User user = event.getUser();
 
@@ -74,8 +72,7 @@ public class WelcomeMessage extends ListenerAdapter {
         else event.getGuild().addRoleToMember(user, memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
     }
 
-    @Override
-    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
+    public static void executeGuildMemberRemove(GuildMemberRemoveEvent event) {
         ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
         TextChannel channel;
         if (!config.welcomeEnabled) return;
@@ -87,7 +84,7 @@ public class WelcomeMessage extends ListenerAdapter {
          if (!config.welcomeLeaveMessage.isEmpty()) channel.sendMessage(config.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
     }
 
-    private void sendWelcomeImage(Guild guild, TextChannel channel, User user) {
+    private static void sendWelcomeImage(Guild guild, TextChannel channel, User user) {
         String name = "@"+user.getName();
         String userName = user.getGlobalName() != null ? user.getGlobalName() + " ("+ name +")" : name;        
         
@@ -105,7 +102,7 @@ public class WelcomeMessage extends ListenerAdapter {
         }
     }
 
-    private BufferedImage getUserAvatar(User user, int size) throws IOException {
+    private static BufferedImage getUserAvatar(User user, int size) throws IOException {
         BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=" + size));
 
         if (avatar.getWidth() > 128 || avatar.getHeight() > 128) avatar = resizeAvatar(avatar);
@@ -113,7 +110,7 @@ public class WelcomeMessage extends ListenerAdapter {
         return makeCircularAvatar(avatar);
     }
 
-    private BufferedImage resizeAvatar(BufferedImage avatar) {
+    private static BufferedImage resizeAvatar(BufferedImage avatar) {
         BufferedImage resized = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2d = resized.createGraphics();
@@ -130,7 +127,7 @@ public class WelcomeMessage extends ListenerAdapter {
         return resized;
     }
 
-    private BufferedImage makeCircularAvatar(BufferedImage avatar) {
+    private static BufferedImage makeCircularAvatar(BufferedImage avatar) {
         BufferedImage circular = new BufferedImage(avatar.getWidth(), avatar.getWidth(), BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g2d = circular.createGraphics();
@@ -150,7 +147,7 @@ public class WelcomeMessage extends ListenerAdapter {
         return circular;
     }
 
-    private ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
+    private static ByteArrayInputStream createWelcomeImage(String userName, int guildMemberCount, BufferedImage userAvatar) throws IOException {
         BufferedImage processedImage = new BufferedImage(
             welcomeImage.getWidth(),
             welcomeImage.getHeight(),

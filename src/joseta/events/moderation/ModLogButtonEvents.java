@@ -1,17 +1,13 @@
-package joseta.events;
+package joseta.events.moderation;
 
 import joseta.commands.moderation.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
-import net.dv8tion.jda.api.hooks.*;
 
-public class ModLogButtonEvents extends ListenerAdapter {
+public class ModLogButtonEvents {
 
-    @Override
-    public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (!event.getComponentId().startsWith("modlog-page-b-")) return;
-
+    public static void execute(ButtonInteractionEvent event) {
         String[] embedTitle = event.getMessage().getEmbeds().get(0).getTitle().split("/");
         int currentPage = Integer.parseInt(embedTitle[0].split("Page ")[1]);
         int lastPage = Integer.parseInt(embedTitle[1]);

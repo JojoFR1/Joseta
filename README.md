@@ -29,8 +29,8 @@ This is a multipurpose bot and is not centered around one specific category or i
   | Category   | Commands       | Use                                                                 |
   |:-----------|:---------------|:--------------------------------------------------------------------|
   | Admin      | `/admin`       | Only used to send and update rules.                                 |
-  | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                   |
   |            | `/config`      | Configure the bot variables for your server.                        |
+  | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                   |
   |            | `/multi`       | Manually send the multiplayer help message.                         |
   |            | `/markov`      | Generate a pseudo-random message using messages sent on the server. |
   | Moderation | `/modlog`      | Get a member current moderation history.                            |
@@ -43,19 +43,19 @@ This is a multipurpose bot and is not centered around one specific category or i
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
-- Add a `/config` command
-  - Allow to change *some* variables without having to rebuild and restart
-  - Allow to un-hardcode values
-  - Allow to be runnable outside of our server
+- Refactor the Event system
+  - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
+  - Other implementation could be explored (but I do not have any idea for now)
 
 - Add more & imrpove moderation commands:
   - `/clear` to bulk delete messages.
   - `/(un)lock` to (un)lock a channel.
   - Send info to user DM about their sanction
 
-- Refactor the Event system & SQL implementation
-  - Event | Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
-  - SQL | Either use existing library (JPA + Hibernate) or do my own implementation
+- Rework config command to use embed instead of multiple arguments command
+
+- Refactor the SQL implementation
+  - Either use existing library (JPA + Hibernate) or do my own implementation
   - Other implementation could be explored (but I do not have any idea for now)
 
 - Add a Logging system (currently on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6)):

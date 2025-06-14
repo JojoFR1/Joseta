@@ -31,7 +31,6 @@ public class Markov {
         this.chain = chain;
     }
 
-    @SuppressWarnings({ "unused", "unchecked" })
     private ObjectMap<String, MarkovLink> readChain() {
         Fi file = new Fi(filename);
         Json json = new Json();

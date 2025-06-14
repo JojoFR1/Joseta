@@ -1,18 +1,14 @@
-package joseta.events;
+package joseta.events.admin;
 
 import joseta.database.*;
 import joseta.database.ConfigDatabase.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
-import net.dv8tion.jda.api.hooks.*;
 
-public class RulesAcceptEvent extends ListenerAdapter {
+public class RulesAcceptEvent {
     
-    @Override
-    public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (!event.getComponentId().equals("b-rules_accept")) return;
-
+    public static void execute(ButtonInteractionEvent event) {
         ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
 
         Role joinRole, verifiedRole;

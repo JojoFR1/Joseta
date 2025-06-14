@@ -1,14 +1,13 @@
-package joseta.commands;
+package joseta.events;
 
 import joseta.*;
+import joseta.commands.*;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.hooks.*;
 
-public class CommandExecutor extends ListenerAdapter {
+public class CommandExecutor {
     
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+    public static void execute(SlashCommandInteractionEvent event) {
         Command command = JosetaBot.commands.find(cmd -> cmd.name.equals(event.getName()));
 
         if (command != null) command.run(event);

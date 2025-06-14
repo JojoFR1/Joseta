@@ -7,13 +7,11 @@ import arc.struct.*;
 import arc.util.*;
 
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.guild.*;
-import net.dv8tion.jda.api.hooks.*;
 
 import java.net.*;
 import java.sql.*;
 
-public class ConfigDatabase extends ListenerAdapter {
+public class ConfigDatabase {
     private static final String dbFileName = "resources/database/config.db";
     private static Connection conn;
 
@@ -71,16 +69,6 @@ public class ConfigDatabase extends ListenerAdapter {
             JosetaBot.logger.error("Could not populate the config table.", e);
         }
     }
-
-    @Override
-    public void onGuildJoin(GuildJoinEvent event) {
-        long guildId = event.getGuild().getIdLong();
-        if (getConfig(guildId) != null) return; // Guild already has a config.
-     
-        addNewConfig(guildId);
-        JosetaBot.logger.info("Added new config for guild ID: " + guildId);
-    }
-
 
     public static void addNewConfig(long guildId) {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO config (guildId) VALUES (?)")) {

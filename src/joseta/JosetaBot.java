@@ -6,6 +6,8 @@ import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.database.*;
 import joseta.events.*;
+import joseta.events.misc.*;
+import joseta.events.moderation.*;
 import joseta.utils.*;
 
 import arc.struct.*;
@@ -57,14 +59,7 @@ public class JosetaBot {
                 .enableIntents(GatewayIntent.GUILD_MESSAGES,
                                GatewayIntent.GUILD_MEMBERS,
                                GatewayIntent.MESSAGE_CONTENT)
-                .addEventListeners(new CommandExecutor(),
-                                   new WelcomeMessage(),
-                                   new RulesAcceptEvent(),
-                                   new ModLogButtonEvents(),
-                                   new MarkovMessagesDatabase(),
-                                   new ConfigDatabase(),
-                                   new ModAutoComplete(), //TODO fix
-                                   new AutoResponse())
+                .addEventListeners(new EventHandler())
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.watching("🇫🇷 Mindustry France."))
                 .build();

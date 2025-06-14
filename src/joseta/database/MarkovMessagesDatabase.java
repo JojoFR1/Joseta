@@ -9,16 +9,13 @@ import arc.struct.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
-import net.dv8tion.jda.api.events.channel.*;
-import net.dv8tion.jda.api.events.message.*;
-import net.dv8tion.jda.api.hooks.*;
 
 import java.io.*;
 import java.sql.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
-public class MarkovMessagesDatabase extends ListenerAdapter {
+public class MarkovMessagesDatabase {
     private static final String dbFileName =  "resources/database/markov_messages.db";
     private static Connection conn;
 
@@ -97,66 +94,7 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         return count;
     }
 
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        if (!event.isFromGuild()) return; // Ignore DMs
-        
-        long authorId = event.getAuthor().getIdLong();
-        String content = event.getMessage().getContentRaw();
-        String timestamp = event.getMessage().getTimeCreated().toString();
-
-        addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
-    }
-
-    @Override
-    public void onMessageUpdate(MessageUpdateEvent event) {
-        if (!event.isFromGuild()) return; // Ignore DMs
-        
-        long id = event.getMessageIdLong();
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
-        String content = event.getMessage().getContentRaw();
-
-        updateMessage(id, guildId, channelId, content);
-    }
-
-    @Override
-    public void onMessageDelete(MessageDeleteEvent event) {
-        if (!event.isFromGuild()) return; // Ignore DMs
-
-        long id = event.getMessageIdLong();
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
-
-        deleteMessage(id, guildId, channelId);
-    }
-
-    @Override
-    public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
-
-        for (String id : event.getMessageIds()) {
-            deleteMessage(Long.parseLong(id), guildId, channelId);
-        }
-    }
-
-    @Override
-    public void onChannelDelete(ChannelDeleteEvent event) {
-        long guildId = event.getGuild().getIdLong();
-        long channelId = event.getChannel().getIdLong();
-
-        // Remove all messages from the deleted channel
-        try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM messages WHERE channelId = ? AND guildId = ?")) {
-            pstmt.setLong(1, channelId);
-            pstmt.setLong(2, guildId);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            JosetaBot.logger.error("Could not delete messages from a deleted channel.", e);
-        }
-    }
-
-    private static void addNewMessage(Message message, Guild guild, GuildMessageChannel channel, long authorId, String content, String timestamp) {
+    public static void addNewMessage(Message message, Guild guild, GuildMessageChannel channel, long authorId, String content, String timestamp) {
         long id = message.getIdLong();
         long guildId = guild.getIdLong();
         long channelId = channel.getIdLong();
@@ -218,6 +156,18 @@ public class MarkovMessagesDatabase extends ListenerAdapter {
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not delete a message.", e);
         }
+    }
+
+    public static void deleteChannelMessages(long guildId, long channelId) {
+        // Remove all messages from the deleted channel
+        try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM messages WHERE channelId = ? AND guildId = ?")) {
+            pstmt.setLong(1, channelId);
+            pstmt.setLong(2, guildId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not delete messages from a deleted channel.", e);
+        }
+
     }
 
     public static MessageEntry getMessageEntry(long id, long guildId, long channelId) {
