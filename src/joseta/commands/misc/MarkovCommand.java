@@ -1,8 +1,8 @@
 package joseta.commands.misc;
 
-import joseta.commands.Command;
+import joseta.commands.*;
 import joseta.database.*;
-import joseta.database.ConfigDatabase.*;
+import joseta.database.entry.*;
 import joseta.utils.markov.*;
 
 import arc.files.*;
@@ -30,7 +30,7 @@ public class MarkovCommand extends Command {
         }
 
         InteractionHook hook = event.deferReply().complete();
-        Seq<MarkovMessagesDatabase.MessageEntry> entries = MarkovMessagesDatabase.getMessageEntries(event.getGuild().getIdLong()).retainAll(entry -> entry != null);
+        Seq<MessageEntry> entries = MarkovMessagesDatabase.getMessageEntries(event.getGuild().getIdLong()).retainAll(entry -> entry != null);
 
         if (entries.size < MIN_ENTRIES) {
             hook.editOriginal("Il n'y a pas assez de messages !").queue();

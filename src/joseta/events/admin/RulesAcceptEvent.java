@@ -1,7 +1,7 @@
 package joseta.events.admin;
 
 import joseta.database.*;
-import joseta.database.ConfigDatabase.*;
+import joseta.database.entry.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.component.*;

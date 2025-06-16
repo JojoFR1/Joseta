@@ -1,8 +1,8 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
-import joseta.utils.*;
-import joseta.utils.ModLog.*;
+import joseta.database.*;
+import joseta.database.entry.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -23,14 +23,14 @@ public class UnwarnCommand extends ModCommand {
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        Sanction sanction = null;
+        SanctionEntry sanction = null;
         if (warnId == -1)
-            sanction = ModLog.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), SanctionType.WARN);
+            sanction = ModLogDatabase.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), SanctionType.WARN);
         else 
             //TODO support giving an ID 
-            sanction = ModLog.getSanctionById(warnId, SanctionType.WARN);
+            sanction = ModLogDatabase.getSanctionById(warnId, SanctionType.WARN);
 
-        ModLog.removeSanction(sanction);
+        ModLogDatabase.removeSanction(sanction);
 
         event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
     }    

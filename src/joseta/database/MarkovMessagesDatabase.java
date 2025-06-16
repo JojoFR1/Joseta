@@ -1,7 +1,7 @@
 package joseta.database;
 
 import joseta.*;
-import joseta.database.ConfigDatabase.*;
+import joseta.database.entry.*;
 
 import arc.files.*;
 import arc.struct.*;
@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.*;
 
 import java.io.*;
 import java.sql.*;
+import java.time.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
@@ -184,7 +185,7 @@ public class MarkovMessagesDatabase {
                     rs.getLong("channelId"),
                     rs.getLong("authorId"),
                     rs.getString("content"),
-                    rs.getString("timestamp")
+                   Instant.parse(rs.getString("timestamp"))
                 );
             }
             pstmt.close();
@@ -208,30 +209,12 @@ public class MarkovMessagesDatabase {
                     rs.getLong("channelId"),
                     rs.getLong("authorId"),
                     rs.getString("content"),
-                    rs.getString("timestamp")
+                    Instant.parse(rs.getString("timestamp"))
                 ));
             }
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not retrieve message entries.", e);
         }
         return entries;
-    }
-
-    public static class MessageEntry {
-        public final long id;
-        public final long guildId;
-        public final long channelId;
-        public final long authorId;
-        public final String content;
-        public final String timestamp;
-
-        public MessageEntry(long id, long guildId, long channelId, long authorId, String content, String timestamp) {
-            this.id = id;
-            this.guildId = guildId;
-            this.channelId = channelId;
-            this.authorId = authorId;
-            this.content = content;
-            this.timestamp = timestamp;
-        }
     }
 }

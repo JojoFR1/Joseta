@@ -2,7 +2,7 @@ package joseta.commands.moderation;
 
 import joseta.*;
 import joseta.commands.*;
-import joseta.utils.*;
+import joseta.database.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -24,7 +24,7 @@ public class UnbanCommand extends ModCommand {
                 event.reply("Le membre a bien été débani.").setEphemeral(true).queue();
 
                 // A user can't have 2 ban active at the same time.
-                ModLog.removeSanction(ModLog.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), SanctionType.BAN));
+                ModLogDatabase.removeSanction(ModLogDatabase.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), SanctionType.BAN));
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();

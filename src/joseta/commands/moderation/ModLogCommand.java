@@ -1,8 +1,9 @@
 package joseta.commands.moderation;
 
 import joseta.commands.*;
+import joseta.database.*;
+import joseta.database.entry.*;
 import joseta.utils.*;
-import joseta.utils.ModLog.*;
 
 import arc.struct.*;
 
@@ -32,7 +33,7 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        sendEmbed(event, user, 1, (int) Math.ceil((double) ModLog.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
+        sendEmbed(event, user, 1, (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
     }
 
     public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
@@ -60,8 +61,8 @@ public class ModLogCommand extends ModCommand {
     }
 
     public static MessageEmbed generateEmbed(Guild guild, User user, long guildId, int currentPage) {
-        Seq<Sanction> sanctions = ModLog.getUserLog(user.getIdLong(), guildId, currentPage, SANCTION_PER_PAGE);
-        int totalPages = (int) Math.ceil((double) ModLog.getUserTotalSanctions(user.getIdLong(), guildId) / SANCTION_PER_PAGE);
+        Seq<SanctionEntry> sanctions = ModLogDatabase.getUserLog(user.getIdLong(), guildId, currentPage, SANCTION_PER_PAGE);
+        int totalPages = (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), guildId) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
             .setTitle("Historique de modération de " + user.getName() + " ┃ Page "+ currentPage +"/"+ totalPages)
@@ -72,7 +73,7 @@ public class ModLogCommand extends ModCommand {
         String description = "";
         if (sanctions.isEmpty()) description = "Oh ! Cet utilisateur n'a aucune sanction !";
 
-        else for (Sanction sanction : sanctions) {
+        else for (SanctionEntry sanction : sanctions) {
             int sanctionTypeId = Integer.parseInt(Long.toString(sanction.id).substring(0,2));
             String sanctionType = sanctionTypeId == SanctionType.WARN ? "Warn"
                                 : sanctionTypeId == SanctionType.MUTE ? "Mute"

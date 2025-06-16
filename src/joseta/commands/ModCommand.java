@@ -1,7 +1,7 @@
 package joseta.commands;
 
 import joseta.database.*;
-import joseta.database.ConfigDatabase.*;
+import joseta.database.entry.*;
 import joseta.utils.*;
 
 import net.dv8tion.jda.api.entities.*;

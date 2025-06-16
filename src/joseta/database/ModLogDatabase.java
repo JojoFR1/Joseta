@@ -1,7 +1,8 @@
-package joseta.utils;
+package joseta.database;
 
 import joseta.*;
 import joseta.commands.ModCommand.*;
+import joseta.database.entry.*;
 
 import arc.struct.*;
 
@@ -12,7 +13,7 @@ import java.sql.*;
 import java.time.*;
 import java.util.concurrent.*;
 
-public final class ModLog {
+public final class ModLogDatabase {
     private static final String urlDb = "jdbc:sqlite:resources/database/modlog.db";
     private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
     private static Connection conn;
@@ -36,7 +37,7 @@ public final class ModLog {
             JosetaBot.logger.error("Could not create the 'modlog.db' file.", e);
         }
 
-        scheduler.scheduleAtFixedRate(ModLog::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(ModLogDatabase::checkExpiredSanctions, 0, 60, TimeUnit.SECONDS);
     }
 
     private static void initializeTable() throws SQLException {
@@ -88,7 +89,7 @@ public final class ModLog {
         }
     }
 
-    public static void log(int sanctionTypeId, long userId, long moderatorId, long guildId, String reason, long time) {
+    public static void addSanction(int sanctionTypeId, long userId, long moderatorId, long guildId, String reason, long time) {
         String sanctionType = sanctionTypes[sanctionTypeId/10 - 1];
         
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO sanctions "
@@ -112,8 +113,8 @@ public final class ModLog {
         }
     }
 
-    public static Seq<Sanction> getUserLog(long userId, long guildId, int page, int maxPerPage) {
-        Seq<Sanction> sanctions = new Seq<>();
+    public static Seq<SanctionEntry> getUserLog(long userId, long guildId, int page, int maxPerPage) {
+        Seq<SanctionEntry> sanctions = new Seq<>();
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ? AND guildId = ?")) {
             pstmt.setLong(1, userId);
@@ -128,7 +129,7 @@ public final class ModLog {
                 i++;
                 if (i < startIndex) continue;
                 if (i >= endIndex) break;
-                sanctions.add(new Sanction(
+                sanctions.add(new SanctionEntry(
                     rs.getLong("id"),
                     rs.getLong("userId"),
                     rs.getLong("moderatorId"),
@@ -145,8 +146,8 @@ public final class ModLog {
         return sanctions;
     }
 
-    public static Sanction getLatestSanction(long userId, long guildId, int sanctionTypeId) {
-        Sanction sanction = null;
+    public static SanctionEntry getLatestSanction(long userId, long guildId, int sanctionTypeId) {
+        SanctionEntry sanction = null;
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE userId = ? AND guildId = ? AND id LIKE ? ORDER BY id DESC LIMIT 1")) {
             pstmt.setLong(1, userId);
@@ -155,7 +156,7 @@ public final class ModLog {
 
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                sanction = new Sanction(
+                sanction = new SanctionEntry(
                     rs.getLong("id"),
                     rs.getLong("userId"),
                     rs.getLong("moderatorId"),
@@ -173,15 +174,15 @@ public final class ModLog {
         return sanction;
     }
 
-    public static Sanction getSanctionById(int sanctionId, int sanctionTypeId) {
-        Sanction sanction = null;
+    public static SanctionEntry getSanctionById(int sanctionId, int sanctionTypeId) {
+        SanctionEntry sanction = null;
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE id = ?")) {
             pstmt.setInt(1, Integer.parseInt(sanctionTypeId + "" + sanctionId));
 
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                sanction = new Sanction(
+                sanction = new SanctionEntry(
                     rs.getLong("id"),
                     rs.getLong("userId"),
                     rs.getLong("moderatorId"),
@@ -199,8 +200,8 @@ public final class ModLog {
         return sanction;
     }
 
-    public static Seq<Sanction> getExpiredSanctions() {
-        Seq<Sanction> sanctions = new Seq<>();
+    public static Seq<SanctionEntry> getExpiredSanctions() {
+        Seq<SanctionEntry> sanctions = new Seq<>();
 
         try (PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM sanctions WHERE for >= 1 AND expired != TRUE")) {
             ResultSet rs = pstmt.executeQuery();
@@ -208,7 +209,7 @@ public final class ModLog {
                 Instant at = Instant.parse(rs.getString("at"));
                 long forTime = rs.getLong("for");
                 if (at.plusSeconds(forTime).isBefore(Instant.now())) {
-                    sanctions.add(new Sanction(
+                    sanctions.add(new SanctionEntry(
                         rs.getLong("id"),
                         rs.getLong("userId"),
                         rs.getLong("moderatorId"),
@@ -226,41 +227,13 @@ public final class ModLog {
         return sanctions;
     }
 
-    public static void removeSanction(Sanction sanction) {
+    public static void removeSanction(SanctionEntry sanction) {
         try (PreparedStatement pstmt = conn.prepareStatement("UPDATE sanctions SET expired = TRUE WHERE id = ? AND guildId = ?")) {
             pstmt.setLong(1, sanction.id);
             pstmt.setLong(2, sanction.guildId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not remove the sanction.", e);
-        }
-    }
-
-    public static class Sanction {
-        public final long id;
-        public final long userId;
-        public final long moderatorId;
-        public final long guildId;
-        public final String reason;
-        public final Instant at;
-        public final long time; 
-
-        public Sanction(long id, long userId, long moderatorId, long guildId, String reason, Instant at, long time) {
-            this.id = id;
-            this.userId = userId;
-            this.moderatorId = moderatorId;
-            this.guildId = guildId;
-            this.reason = reason;
-            this.at = at;
-            this.time = time;
-        }
-
-        public int getSanctionTypeId() {
-            return Integer.parseInt(Long.toString(id).substring(0, 2));
-        }
-
-        public boolean isExpired() {
-            return at.plusSeconds(time).isBefore(Instant.now()) && time >= 1;
         }
     }
 
@@ -305,7 +278,7 @@ public final class ModLog {
     }
 
     private static void checkExpiredSanctions() {
-        ModLog.getExpiredSanctions().each(sanction -> {
+        ModLogDatabase.getExpiredSanctions().each(sanction -> {
             if (sanction.getSanctionTypeId() == SanctionType.BAN) {
                 Guild guild = JosetaBot.bot.getGuildById(sanction.guildId);
                 guild.retrieveBanList().queue(bans -> {
@@ -315,7 +288,7 @@ public final class ModLog {
                     });
                 });
             }
-            ModLog.removeSanction(sanction);
+            ModLogDatabase.removeSanction(sanction);
         });
     }
 }

@@ -7,7 +7,6 @@ import joseta.commands.moderation.*;
 import joseta.database.*;
 import joseta.events.*;
 import joseta.events.misc.*;
-import joseta.utils.*;
 
 import arc.struct.*;
 
@@ -73,7 +72,7 @@ public class JosetaBot {
 
         initializeCommands();
         WelcomeMessage.initialize();
-        ModLog.initialize();
+        ModLogDatabase.initialize();
         MarkovMessagesDatabase.initialize();
         ConfigDatabase.initialize();
     }
