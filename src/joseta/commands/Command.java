@@ -8,13 +8,13 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public abstract class Command {
     protected String name;
     protected String description;
-    protected DefaultMemberPermissions defaultPermissions;
-    protected OptionData[] options;
-    protected SubcommandData[] subcommands;
-    protected SubcommandGroupData[] subcommandGroups;
-    protected boolean isNSFW;
-    protected InteractionContextType[] contexts;
-    protected IntegrationType[] integrationTypes;
+    protected DefaultMemberPermissions defaultPermissions = DefaultMemberPermissions.ENABLED;
+    protected OptionData[] options = new OptionData[0];
+    protected SubcommandData[] subcommands = new SubcommandData[0];
+    protected SubcommandGroupData[] subcommandGroups = new SubcommandGroupData[0];
+    protected boolean isNSFW = false;
+    protected InteractionContextType[] contexts = new InteractionContextType[0];
+    protected IntegrationType[] integrationTypes = new IntegrationType[0];
 
     public Command() {}
 
