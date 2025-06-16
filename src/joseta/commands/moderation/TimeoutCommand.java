@@ -15,7 +15,7 @@ public class TimeoutCommand extends ModCommand {
 
     public TimeoutCommand() {
         super("timeout", "Exclue des salons le membre.");
-        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
             .addOptions(
                 new OptionData(OptionType.USER, "user", "Le membre a mute.", true),
                 new OptionData(OptionType.STRING, "reason", "La raison du mute."),

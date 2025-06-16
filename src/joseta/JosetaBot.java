@@ -96,7 +96,7 @@ public class JosetaBot {
     }
 
     private static void initializeCommands() {
-        SlashCommandData[] commandsData = commands.map(cmd -> cmd.build()).toArray(SlashCommandData.class);
+        SlashCommandData[] commandsData = commands.map(cmd -> cmd.getCommandData()).toArray(SlashCommandData.class);
         
         bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
         bot.updateCommands().addCommands(commandsData).queue();

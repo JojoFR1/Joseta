@@ -13,7 +13,7 @@ public class UntimeoutCommand extends ModCommand {
     
     public UntimeoutCommand() {
         super("untimeout", "Retire l'exclusion des salons du membre.");
-        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
             .addOptions(new OptionData(OptionType.USER, "user", "Le membre a unmute.", true));
     }
 

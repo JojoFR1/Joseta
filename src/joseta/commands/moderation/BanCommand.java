@@ -17,7 +17,7 @@ public class BanCommand extends ModCommand {
     
     public BanCommand() {
         super("ban", "Bannir un membre.");
-        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
             .addOptions(
                 new OptionData(OptionType.USER, "user", "Le membre a bannir.", true),
                 new OptionData(OptionType.STRING, "reason", "La raison du bannisement."),

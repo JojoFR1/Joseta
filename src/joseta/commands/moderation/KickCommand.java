@@ -13,7 +13,7 @@ public class KickCommand extends ModCommand {
     
     public KickCommand() {
         super("kick", "Exclue du serveur le membre .");
-        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS))
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.KICK_MEMBERS))
             .addOptions(
                 new OptionData(OptionType.USER, "user", "Le membre a bannir.", true),
                 new OptionData(OptionType.STRING, "reason", "La raison de l'exclusion.")
