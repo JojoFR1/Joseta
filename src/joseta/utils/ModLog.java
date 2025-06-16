@@ -20,7 +20,7 @@ public final class ModLog {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static void initialize() {
-        File dbFile = new File("resources/modlog.db");
+        File dbFile = new File("resources/database/modlog.db");
         try {
             if (!dbFile.exists()) {
                 dbFile.createNewFile();
