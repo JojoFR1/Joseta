@@ -13,7 +13,7 @@ public class ConfigCommand extends Command {
 
     public ConfigCommand() {
         super("config","Configurez les paramètres du bot pour ce serveur.");
-        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
             .addSubcommands(
                 new SubcommandData("welcome", "Welcome")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the welcome join and leave.")

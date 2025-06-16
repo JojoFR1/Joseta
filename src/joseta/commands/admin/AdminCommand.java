@@ -25,7 +25,7 @@ public class AdminCommand extends Command {
     
     public AdminCommand() {
         super("admin", "Commande administratives.");
-        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
             .addSubcommandGroups(
                 new SubcommandGroupData("rules", "Catégorie règles")
                     .addSubcommands(
