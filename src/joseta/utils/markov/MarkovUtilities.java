@@ -1,7 +1,5 @@
 package joseta.utils.markov;
 
-import joseta.*;
-
 import arc.files.*;
 import arc.math.*;
 import arc.struct.*;

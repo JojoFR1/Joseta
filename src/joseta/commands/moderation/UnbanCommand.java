@@ -12,10 +12,9 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class UnbanCommand extends ModCommand {
     
     public UnbanCommand() {
-        super("unban", "Débanir un membre.",
-            DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS),
-            new OptionData(OptionType.STRING, "user", "L'utilisateur a débanir.", true, true)
-        );
+        super("unban", "Débanir un membre.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
+            .addOptions(new OptionData(OptionType.STRING, "user", "L'utilisateur a débanir.", true, true));
     }
 
     @Override

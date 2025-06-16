@@ -13,11 +13,12 @@ public class UnwarnCommand extends ModCommand {
     private int warnId;
     
     public UnwarnCommand() {
-        super("unwarn", "Retire l'avertissement d'un membre.",
-            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre a unwarn.", true),
-            new OptionData(OptionType.STRING, "warn_id", "L'identifiant du warn. Plus récent par défaut.", false, true)
-        );        
+        super("unwarn", "Retire l'avertissement d'un membre.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
+            .addOptions(
+                new OptionData(OptionType.USER, "user", "Le membre a unwarn.", true),
+                new OptionData(OptionType.STRING, "warn_id", "L'identifiant du warn. Plus récent par défaut.", false, true)
+            );
     }
 
     @Override

@@ -12,28 +12,29 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class ConfigCommand extends Command {
 
     public ConfigCommand() {
-        super("config","Configurez les paramètres du bot pour ce serveur.",
-            DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER),
-            new SubcommandData("welcome", "Welcome")
-                .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the welcome join and leave.")
-                .addOption(OptionType.CHANNEL, "channel", "The channel where the welcome message will be sent.")
-                .addOption(OptionType.BOOLEAN, "image_enabled", "Enable or disable the welcome image.")
-                .addOption(OptionType.STRING, "join_message", "The message sent when a user joins the server.")
-                .addOption(OptionType.STRING, "leave_message", "The message sent when a user leaves the server.")
-                .addOption(OptionType.ROLE, "join_role", "The role given to new members.")
-                .addOption(OptionType.ROLE, "join_bot_role", "The role given to new bots.")
-                .addOption(OptionType.ROLE, "verified_role", "The role given to verified member."),
-            new SubcommandData("markov", "Markov")
-                .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the Markov chain.")
-                .addOption(OptionType.CHANNEL, "add_to_channel_blacklist", "The channel to add to the Markov chain blacklist.")
-                .addOption(OptionType.CHANNEL, "add_to_category_blacklist", "The category to add to the Markov chain blacklist.")
-                .addOption(OptionType.CHANNEL, "remove_from_channel_blacklist", "The channel to remove from the Markov chain blacklist.")
-                .addOption(OptionType.CHANNEL, "remove_from_category_blacklist", "The category to remove from the Markov chain blacklist."),
-            new SubcommandData("moderation", "Moderation")
-                .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the moderation features."),
-            new SubcommandData("auto_response", "Auto Response")
-                .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the auto response features.")
-        );
+        super("config","Configurez les paramètres du bot pour ce serveur.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
+            .addSubcommands(
+                new SubcommandData("welcome", "Welcome")
+                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the welcome join and leave.")
+                    .addOption(OptionType.CHANNEL, "channel", "The channel where the welcome message will be sent.")
+                    .addOption(OptionType.BOOLEAN, "image_enabled", "Enable or disable the welcome image.")
+                    .addOption(OptionType.STRING, "join_message", "The message sent when a user joins the server.")
+                    .addOption(OptionType.STRING, "leave_message", "The message sent when a user leaves the server.")
+                    .addOption(OptionType.ROLE, "join_role", "The role given to new members.")
+                    .addOption(OptionType.ROLE, "join_bot_role", "The role given to new bots.")
+                    .addOption(OptionType.ROLE, "verified_role", "The role given to verified member."),
+                new SubcommandData("markov", "Markov")
+                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the Markov chain.")
+                    .addOption(OptionType.CHANNEL, "add_to_channel_blacklist", "The channel to add to the Markov chain blacklist.")
+                    .addOption(OptionType.CHANNEL, "add_to_category_blacklist", "The category to add to the Markov chain blacklist.")
+                    .addOption(OptionType.CHANNEL, "remove_from_channel_blacklist", "The channel to remove from the Markov chain blacklist.")
+                    .addOption(OptionType.CHANNEL, "remove_from_category_blacklist", "The category to remove from the Markov chain blacklist."),
+                new SubcommandData("moderation", "Moderation")
+                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the moderation features."),
+                new SubcommandData("auto_response", "Auto Response")
+                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the auto response features.")
+            );
     }
 
     @Override

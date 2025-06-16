@@ -15,13 +15,15 @@ public class BanCommand extends ModCommand {
     private int clearTime;
     
     public BanCommand() {
-        super("ban", "Bannir un membre.",
-            DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre a bannir.", true),
-            new OptionData(OptionType.STRING, "reason", "La raison du bannisement."),
-            new OptionData(OptionType.STRING, "time", "La durée du bannisement (s, m, h, d, w)"),
-            new OptionData(OptionType.STRING, "clear_time", "La période des messages a supprime du membre (s, m, h, d)")
-        );
+        super("ban", "Bannir un membre.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.BAN_MEMBERS))
+            .addOptions(
+                new OptionData(OptionType.USER, "user", "Le membre a bannir.", true),
+                new OptionData(OptionType.STRING, "reason", "La raison du bannisement."),
+                new OptionData(OptionType.STRING, "time", "La durée du bannisement (s, m, h, d, w)"),
+                new OptionData(OptionType.STRING, "clear_time", "La période des messages a supprime du membre (s, m, h, d)")
+            );
+        
         defaultTime = "inf";
     }
 

@@ -12,10 +12,9 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 public class UntimeoutCommand extends ModCommand {
     
     public UntimeoutCommand() {
-        super("untimeout", "Retire l'exclusion des salons du membre.",
-            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre a unmute.", true)
-        );
+        super("untimeout", "Retire l'exclusion des salons du membre.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
+            .addOptions(new OptionData(OptionType.USER, "user", "Le membre a unmute.", true));
     }
 
     @Override

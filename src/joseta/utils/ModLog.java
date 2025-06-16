@@ -13,7 +13,7 @@ import java.time.*;
 import java.util.concurrent.*;
 
 public final class ModLog {
-    private static final String urlDb = "jdbc:sqlite:resources/modlog.db";
+    private static final String urlDb = "jdbc:sqlite:resources/database/modlog.db";
     private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
     private static Connection conn;
 

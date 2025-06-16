@@ -7,7 +7,6 @@ import joseta.commands.moderation.*;
 import joseta.database.*;
 import joseta.events.*;
 import joseta.events.misc.*;
-import joseta.events.moderation.*;
 import joseta.utils.*;
 
 import arc.struct.*;
@@ -98,17 +97,10 @@ public class JosetaBot {
     }
 
     private static void initializeCommands() {
-        Seq<CommandData> commandsData = new Seq<>();
-        commands.each(cmd -> commandsData.add(Commands.slash(cmd.name, cmd.description).addOptions(cmd.options).addSubcommands(cmd.subcommands).addSubcommandGroups(cmd.subcommandGroups).setDefaultPermissions(cmd.defaultPermissions)));
-
-        // Add commands on a test guild - Instantly
-        if (Vars.isDebug && Vars.testGuildId != -1)
-            bot.getGuildById(Vars.testGuildId).updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
-        // Add global commands - Takes time
-        else {
-            bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
-            bot.updateCommands().addCommands(commandsData.toArray(CommandData.class)).queue();
-        }
+        SlashCommandData[] commandsData = commands.map(cmd -> cmd.build()).toArray(SlashCommandData.class);
+        
+        bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
+        bot.updateCommands().addCommands(commandsData).queue();
     }
 
     private static void registerShutdown() {

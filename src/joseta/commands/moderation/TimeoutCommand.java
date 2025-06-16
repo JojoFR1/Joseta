@@ -14,12 +14,13 @@ import java.util.concurrent.*;
 public class TimeoutCommand extends ModCommand {
 
     public TimeoutCommand() {
-        super("timeout", "Exclue des salons le membre.",
-            DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS),
-            new OptionData(OptionType.USER, "user", "Le membre a mute.", true),
-            new OptionData(OptionType.STRING, "reason", "La raison du mute."),
-            new OptionData(OptionType.STRING, "time", "La durée du mute (s, m, h, d, w).")
-        );
+        super("timeout", "Exclue des salons le membre.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MODERATE_MEMBERS))
+            .addOptions(
+                new OptionData(OptionType.USER, "user", "Le membre a mute.", true),
+                new OptionData(OptionType.STRING, "reason", "La raison du mute."),
+                new OptionData(OptionType.STRING, "time", "La durée du mute (s, m, h, d, w).")
+            );
     }
     
     @Override

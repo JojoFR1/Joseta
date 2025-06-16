@@ -24,17 +24,18 @@ public class AdminCommand extends Command {
     private long messageId;
     
     public AdminCommand() {
-        super("admin", "Commande administratives.",
-            DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER),
-            new SubcommandGroupData("rules", "Catégorie règles")
-                .addSubcommands(
-                    new SubcommandData("send", "Envoie les règles dans un salon.")
-                        .addOption(OptionType.CHANNEL, "channel", "Le salon où envoyez les règles.", true),
-                    new SubcommandData("update", "Envoie les règles dans un salon.")
-                        .addOption(OptionType.CHANNEL,  "channel", "Le salon où envoyez les règles.", true)
-                        .addOption(OptionType.STRING,  "message_id", "L'identifiant du message où vous voulez envoyez règles.", true)
-                )
-        );
+        super("admin", "Commande administratives.");
+        this.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
+            .addSubcommandGroups(
+                new SubcommandGroupData("rules", "Catégorie règles")
+                    .addSubcommands(
+                        new SubcommandData("send", "Envoie les règles dans un salon.")
+                            .addOption(OptionType.CHANNEL, "channel", "Le salon où envoyez les règles.", true),
+                        new SubcommandData("update", "Envoie les règles dans un salon.")
+                            .addOption(OptionType.CHANNEL,  "channel", "Le salon où envoyez les règles.", true)
+                            .addOption(OptionType.STRING,  "message_id", "L'identifiant du message où vous voulez envoyez règles.", true)
+                    )
+            );
     }
 
     @Override
