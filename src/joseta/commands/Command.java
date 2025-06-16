@@ -29,9 +29,11 @@ public abstract class Command {
             .addOptions(options)
             .addSubcommands(subcommands)
             .addSubcommandGroups(subcommandGroups)
-            .setNSFW(isNSFW)
-            .setContexts(contexts)
-            .setIntegrationTypes(integrationTypes);
+            .setNSFW(isNSFW);
+
+        // Those are the only one that'll throw an error if they're empty.
+        if (contexts.length > 0) commandData.setContexts(contexts);
+        if (integrationTypes.length > 0) commandData.setIntegrationTypes(integrationTypes);
 
         return commandData;
     }
