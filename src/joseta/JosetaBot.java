@@ -71,10 +71,11 @@ public class JosetaBot {
         }
 
         initializeCommands();
+        
+        ConfigDatabase.initialize();
         WelcomeMessage.initialize();
         ModLogDatabase.initialize();
         MarkovMessagesDatabase.initialize();
-        ConfigDatabase.initialize();
     }
 
     private static void preLoad(String args[]) {

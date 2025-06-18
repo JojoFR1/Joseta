@@ -4,6 +4,7 @@ import joseta.*;
 import joseta.commands.ModCommand.*;
 import joseta.database.entry.*;
 
+import arc.files.*;
 import arc.struct.*;
 
 import net.dv8tion.jda.api.entities.*;
@@ -13,23 +14,23 @@ import java.sql.*;
 import java.time.*;
 import java.util.concurrent.*;
 
-public final class ModLogDatabase {
-    private static final String urlDb = "jdbc:sqlite:resources/database/modlog.db";
+public class ModLogDatabase {
+    private static final String dbFileName =  "resources/database/modlog.db";
     private static final String[] sanctionTypes = {"warn", "mute", "kick", "ban"};
     private static Connection conn;
 
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static void initialize() {
-        File dbFile = new File("resources/database/modlog.db");
+        Fi dbFile = new Fi("resources/database/modlog.db");
         try {
             if (!dbFile.exists()) {
-                dbFile.createNewFile();
+                dbFile.write().close();
                 
-                conn = DriverManager.getConnection(urlDb);
+                conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
 
                 initializeTable();
-            } else conn = DriverManager.getConnection(urlDb);
+            } else conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
             
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not initialize the SQL table.", e);

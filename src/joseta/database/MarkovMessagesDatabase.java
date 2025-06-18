@@ -83,7 +83,7 @@ public class MarkovMessagesDatabase {
             for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {                
                 long authorId = message.getAuthor().getIdLong();
                 String content = message.getContentRaw();
-                String timestamp = message.getTimeCreated().toString();
+                String timestamp = message.getTimeCreated().toInstant().toString();
 
                 addNewMessage(message, guild, channel, authorId, content, timestamp);
                 count++;
@@ -185,7 +185,7 @@ public class MarkovMessagesDatabase {
                     rs.getLong("channelId"),
                     rs.getLong("authorId"),
                     rs.getString("content"),
-                   Instant.parse(rs.getString("timestamp"))
+                    Instant.parse(rs.getString("timestamp"))
                 );
             }
             pstmt.close();
