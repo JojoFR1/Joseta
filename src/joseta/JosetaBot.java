@@ -59,6 +59,13 @@ public class JosetaBot {
     public static void main(String[] args) {
         registerShutdown();
         preLoad(args);
+
+        try {
+            Databases.getInstance(); // Should do the first initialization.
+        } catch (SQLException e) {
+            throw new RuntimeException("Database initialization failed.", e)
+        }
+        
         
         bot = JDABuilder.createDefault(Vars.token)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -79,13 +86,6 @@ public class JosetaBot {
         }
 
         initializeCommands();
-        
-        Databases databases = Databases.getInstance(); // Should do the first initialization.
-        if (!databases.initialize()) {
-            JosetaBot.logger.error("Database initialization failed.");
-            System.exit(1);
-        }
-
         WelcomeMessage.initialize();
     }
 

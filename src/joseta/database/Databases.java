@@ -1,6 +1,5 @@
 package joseta.database;
 
-import joseta.*;
 import joseta.database.entry.*;
 
 import java.sql.*;
@@ -16,71 +15,42 @@ public class Databases {
     
     private ConnectionSource connectionSource;
 
-    private Dao<ConfigEntry, Long> configDao;
-    private Dao<GuildEntry, Long> guildDao;
-    private Dao<UserEntry, Long> userDao;
-    private Dao<MessageEntry, Long> messageDao;
-    private Dao<SanctionEntry, Long> sanctionDao;
+    private Databases() throws SQLException {
+        connectionSource = new JdbcConnectionSource(databaseUrl);
+        
+        TableUtils.createTableIfNotExists(connectionSource, ConfigEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, GuildEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, UserEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, MessageEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, SanctionEntry.class);
+    }
 
-    private Databases() {}
-
-    public static Databases getInstance() {
+    public static Databases getInstance() throws SQLException {
         if (instance == null) {
             instance = new Databases();
         }
         return instance;
     }
 
-    public boolean initialize() {
-        if (connectionSource != null) {
-            JosetaBot.logger.warn("Database connection already was initialized but was reinitialized. Initializiong will be skipped.");
-            return true;
-        }
+    public ConnectionSource getConnectionSource() { return connectionSource; }
 
-        try {
-            connectionSource = new JdbcConnectionSource(databaseUrl);
-            TableInfo.
-            TableUtils.createTableIfNotExists(connectionSource, ConfigEntry.class);
-            configDao = DaoManager.createDao(connectionSource, ConfigEntry.class);
-
-            TableUtils.createTableIfNotExists(connectionSource, GuildEntry.class);
-            TableUtils.createTableIfNotExists(connectionSource, UserEntry.class);
-            TableUtils.createTableIfNotExists(connectionSource, MessageEntry.class);
-            TableUtils.createTableIfNotExists(connectionSource, SanctionEntry.class);
-
-            guildDao = DaoManager.createDao(connectionSource, GuildEntry.class);
-            userDao = DaoManager.createDao(connectionSource, UserEntry.class);
-            messageDao = DaoManager.createDao(connectionSource, MessageEntry.class);
-            sanctionDao = DaoManager.createDao(connectionSource, SanctionEntry.class);
-        } catch (SQLException e) {
-            JosetaBot.logger.error("Could not initialize the database connection.", e);
-            return false;
-        }
-
-        return true;
+    public Dao<ConfigEntry, Long> getConfigDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, ConfigEntry.class);
     }
 
-    public ConnectionSource getConnectionSource() {
-        return connectionSource;
+    public Dao<GuildEntry, Long> getGuildDao() throws SQLException{
+        return DaoManager.createDao(connectionSource, GuildEntry.class);
     }
 
-    public Dao<ConfigEntry, Long> getConfigDao() {
-        return configDao;
+    public Dao<UserEntry, Long> getUserDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, UserEntry.class);
     }
 
-    public Dao<GuildEntry, Long> getGuildDao() {
-        return guildDao;
+    public Dao<MessageEntry, Long> getMessageDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, MessageEntry.class);
     }
 
-    public Dao<UserEntry, Long> getUserDao() {
-        return userDao;
-    }
-
-    public Dao<MessageEntry, Long> getMessageDao() {
-        return messageDao;
-    }
-
-    public Dao<SanctionEntry, Long> getSanctionDao() {
-        return sanctionDao;
+    public Dao<SanctionEntry, Long> getSanctionDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, SanctionEntry.class);
     }
 }
