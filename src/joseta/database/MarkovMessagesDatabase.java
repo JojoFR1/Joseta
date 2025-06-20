@@ -24,39 +24,6 @@ public class MarkovMessagesDatabase {
     private static final Pattern CLEAN_COPY_PATTERN = Pattern.compile("[^a-z0-9.?!,;\\-()~\"'&$€£ \\]\\[àáâãäåæçèéêëìíîïñòóôõöùúûüýÿ ]+", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     private static final Pattern SPACED_PATTERN = Pattern.compile("\\s+");
 
-    public static void initialize() {
-        Fi dbFile = new Fi(dbFileName);
-        try {
-            if (!dbFile.exists()) {
-                dbFile.write().close();
-                
-                conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
-
-                initializeTable();
-                populateNewTable();
-            } else conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
-            
-        } catch (SQLException e) {
-            JosetaBot.logger.error("Could not initialize the SQL table.", e);
-        } catch (IOException e) {
-            JosetaBot.logger.error("Could not create the 'markov_messages.db' file.", e);
-        }
-    }
-
-    private static void initializeTable() throws SQLException {
-        String messageTable = "CREATE TABLE messages ("
-                            + "id BIGINT PRIMARY KEY,"
-                            + "guildId BIGINT,"
-                            + "channelId BIGINT,"
-                            + "authorId BIGINT,"
-                            + "content TEXT,"
-                            + "timestamp TEXT"
-                            + ")";
-
-        Statement stmt = conn.createStatement();
-        stmt.execute(messageTable);
-        stmt.close();
-    }
 
     private static void populateNewTable() {
         int count = 0;

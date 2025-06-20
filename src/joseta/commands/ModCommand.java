@@ -1,5 +1,6 @@
 package joseta.commands;
 
+import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.utils.*;
@@ -7,6 +8,8 @@ import joseta.utils.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
+
+import java.sql.*;
 
 public abstract class ModCommand extends Command {
     protected User user;
@@ -29,8 +32,16 @@ public abstract class ModCommand extends Command {
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
-        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
-        if (!config.moderationEnabled) {
+        ConfigEntry config;
+        try {
+            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
+            return false;
+        }
+        
+        if (!config.isModerationEnabled()) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();
             return false;
         }

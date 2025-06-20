@@ -15,51 +15,7 @@ import java.sql.*;
 public class ConfigDatabase {
     private static final String dbFileName = "resources/database/config.db";
     private static Connection conn;
-
-    public static void initialize() {
-        Fi dbFile = new Fi(dbFileName);
-        try {
-            if (!dbFile.exists()) {
-                dbFile.write();
-
-                conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
-                initializeTable();
-                populateTable();
-            }
-            else conn = DriverManager.getConnection("jdbc:sqlite:" + dbFileName);
-        } catch (SQLException e) {
-            JosetaBot.logger.error("Could not initialize the SQL table.", e);
-        } catch (ArcRuntimeException e) {
-            JosetaBot.logger.error("Could not create the 'config.db' file.", e);
-        }
-    }
-
-    private static void initializeTable() throws SQLException {
-        String configTable =
-        """
-        CREATE TABLE config (
-            guildId BIGINT PRIMARY KEY,
-            welcomeEnabled BOOLEAN DEFAULT FALSE,
-            welcomeChannelId BIGINT DEFAULT 0,
-            welcomeImageEnabled BOOLEAN DEFAULT FALSE,
-            welcomeImageUrl TEXT DEFAULT NULL,
-            welcomeJoinMessage TEXT DEFAULT 'Bienvenue {{user}} !',
-            welcomeLeaveMessage TEXT DEFAULT '**{{userName}}** nous a quitté...',
-            joinRoleId BIGINT DEFAULT 0,
-            joinBotRoleId BIGINT DEFAULT 0,
-            verifiedRoleId BIGINT DEFAULT 0,
-            markovEnabled BOOLEAN DEFAULT FALSE,
-            markovChannelBlackList TEXT DEFAULT '',
-            markovCategoryBlackList TEXT DEFAULT '',
-            modLogEnabled BOOLEAN DEFAULT FALSE,
-            autoResponseEnabled BOOLEAN DEFAULT FALSE
-        )""";
-
-        Statement stmt = conn.createStatement();
-        stmt.execute(configTable);
-        stmt.close();
-    }
-
+    
     private static void populateTable() {
         try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO config (guildId) VALUES (?)")) {
             for (Guild guild : JosetaBot.bot.getGuilds()) {
@@ -145,14 +101,5 @@ public class ConfigDatabase {
         }
 
         return null;
-    }
-
-    private static Seq<Long> parseLongArray(String[] values) {
-        Seq<Long> result = new Seq<>(values.length);
-        for (String value : values) {
-            if (!value.isEmpty()) result.add(Long.parseLong(value));
-        }
-
-        return result;
     }
 }

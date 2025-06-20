@@ -80,12 +80,13 @@ public class JosetaBot {
 
         initializeCommands();
         
-        ConfigDatabase.initialize();
-        WelcomeMessage.initialize();
-        ModLogDatabase.initialize();
-        MarkovMessagesDatabase.initialize();
+        Databases databases = Databases.getInstance(); // Should do the first initialization.
+        if (!databases.initialize()) {
+            JosetaBot.logger.error("Database initialization failed.");
+            System.exit(1);
+        }
 
-        databaseTest();
+        WelcomeMessage.initialize();
     }
 
     // TODO: Remove this method when the database is fully implemented. TEMPORARY!
