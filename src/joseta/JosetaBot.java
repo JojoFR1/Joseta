@@ -5,6 +5,7 @@ import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.database.*;
+import joseta.database.entry.*;
 import joseta.events.*;
 import joseta.events.misc.*;
 
@@ -18,6 +19,13 @@ import net.dv8tion.jda.api.utils.*;
 
 import org.slf4j.*;
 
+import com.j256.ormlite.dao.*;
+import com.j256.ormlite.jdbc.*;
+import com.j256.ormlite.support.*;
+import com.j256.ormlite.table.*;
+
+import java.sql.*;
+import java.time.*;
 import java.util.concurrent.*;
 
 import ch.qos.logback.classic.*;
@@ -76,6 +84,32 @@ public class JosetaBot {
         WelcomeMessage.initialize();
         ModLogDatabase.initialize();
         MarkovMessagesDatabase.initialize();
+
+        databaseTest();
+    }
+
+    // TODO: Remove this method when the database is fully implemented. TEMPORARY!
+    private static void databaseTest() {
+        String databaseUrl = "jdbc:sqlite:resources/bot.db";
+
+        try (ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl)) {
+            TableUtils.createTableIfNotExists(connectionSource, MessageEntry.class);
+
+            // Create a Data Access Object (DAO) for the MessageEntry class
+            Dao<MessageEntry, Long> messageDao = DaoManager.createDao(connectionSource, MessageEntry.class);
+
+            MessageEntry testmsg = new MessageEntry(123L, 456L, 789L, 147L, "Hi good sir.", Instant.now());
+            messageDao.create(testmsg);
+
+            MessageEntry query = messageDao.queryForId(123L);
+            System.out.println(query);
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
 
     private static void preLoad(String args[]) {

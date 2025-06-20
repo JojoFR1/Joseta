@@ -32,7 +32,10 @@ dependencies{
       exclude module: 'tink'
     }
     implementation("ch.qos.logback:logback-classic:1.5.18")
+    
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("com.j256.ormlite:ormlite-jdbc:6.1")
+
     implementation("com.github.Anuken.Arc:arc-core:v146")
 }
 

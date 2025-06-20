@@ -38,7 +38,7 @@ public class MarkovCommand extends Command {
         }
         
         Markov markov = new Markov(event.getGuild().getId() + event.getChannelId()+".pdo");
-        markov.addToChain(entries.map(entry -> entry.content));
+        markov.addToChain(entries.map(entry -> entry.getContent()));
         String output = markov.generate();
         
         hook.editOriginal(output).queue();
