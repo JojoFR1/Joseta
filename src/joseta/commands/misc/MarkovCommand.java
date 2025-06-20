@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.interactions.*;
 import java.sql.*;
 
 /**
- * Original idea by l4p1n in <a href=https://git.l4p1n.ch/l4p1n-bot/bot-rust/src/branch/trunk/bot/AppCommands/MarkovCommand.cs>l4p1n-bot/MarkovCommand.cs</a>
+ * Original idea by l4p1n in <a href=https://git.l4p1n.ch/l4p1n-bot/bot-rust/src/commit/8afea76f37fa1468e829c37366534e6b345bdc94/bot/AppCommands/MarkovCommand.cs>l4p1n-bot/MarkovCommand.cs</a>
  */
 public class MarkovCommand extends Command {
     private final int MIN_ENTRIES = 100;
@@ -34,7 +34,7 @@ public class MarkovCommand extends Command {
             event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
             return;
         }
-        
+
         if (!config.isMarkovEnabled()) {
             event.reply("La génération de messages aléatoires est désactivée sur ce serveur.").setEphemeral(true).queue();
             return;
