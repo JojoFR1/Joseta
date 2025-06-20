@@ -3,6 +3,7 @@ secret.cfg
 
 # Build
 .gradle/
+.idea/
 build/
 bin/
 
