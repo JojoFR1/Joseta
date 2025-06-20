@@ -56,16 +56,11 @@ public class JosetaBot {
     /* Load - Before the bot load
      * Initialize - After the bot load (after awaitReady)
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         registerShutdown();
         preLoad(args);
 
-        try {
-            Databases.getInstance(); // Should do the first initialization.
-        } catch (SQLException e) {
-            throw new RuntimeException("Database initialization failed.", e)
-        }
-        
+        Databases.getInstance(); // Should do the first initialization.        
         
         bot = JDABuilder.createDefault(Vars.token)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)

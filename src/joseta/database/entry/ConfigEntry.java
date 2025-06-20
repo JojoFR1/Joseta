@@ -49,8 +49,8 @@ public class ConfigEntry {
     @DatabaseField(defaultValue = "false")
     private boolean autoResponseEnabled;
 
-    // A no-arg constructor is required by ORMLite
-    private ConfigEntry() {}
+    // A no-arg constructor is required by ORMLite & for base initialization
+    public ConfigEntry() {}
 
     public ConfigEntry(
         long guildId,

@@ -22,7 +22,6 @@ import net.dv8tion.jda.api.requests.restaction.interactions.*;
 import java.awt.*;
 import java.sql.*;
 import java.time.*;
-import java.util.*;
 import java.util.List;
 
 import com.j256.ormlite.stmt.*;
@@ -90,6 +89,7 @@ public class ModLogCommand extends ModCommand {
                 .build();
         }
 
+        // TODO change
         int totalPages = (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), guild.getIdLong()) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
