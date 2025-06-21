@@ -2,7 +2,7 @@ package joseta.commands.moderation;
 
 import joseta.*;
 import joseta.commands.*;
-import joseta.database.*;
+import joseta.database.helper.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -26,7 +26,7 @@ public class KickCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été expulsé.").queue();
 
-                ModLogDatabase.addSanction(SanctionType.KICK, member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);        
+                SanctionDatabaseHelper.addSanction('K', member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);        
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();

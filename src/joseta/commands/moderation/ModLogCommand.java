@@ -4,6 +4,7 @@ import joseta.*;
 import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+import joseta.database.helper.*;
 import joseta.utils.*;
 
 import arc.struct.*;
@@ -38,7 +39,7 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        sendEmbed(event, user, 1, (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
+        sendEmbed(event, user, 1, (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
     }
 
     public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
@@ -90,7 +91,7 @@ public class ModLogCommand extends ModCommand {
         }
 
         // TODO change
-        int totalPages = (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), guild.getIdLong()) / SANCTION_PER_PAGE);
+        int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(user.getIdLong(), guild.getIdLong()) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
             .setTitle("Historique de modération de " + user.getName() + " ┃ Page "+ currentPage +"/"+ totalPages)
@@ -102,19 +103,13 @@ public class ModLogCommand extends ModCommand {
         if (sanctions.isEmpty()) description = "Oh ! Cet utilisateur n'a aucune sanction !";
 
         else for (SanctionEntry sanction : sanctions) {
-            int sanctionTypeId = Integer.parseInt(Long.toString(sanction.getId()).substring(0,2));
-            String sanctionType = sanctionTypeId == SanctionType.WARN ? "Warn"
-                                : sanctionTypeId == SanctionType.MUTE ? "Mute"
-                                : sanctionTypeId == SanctionType.KICK ? "Kick"
-                                : "Ban";
-
-            description += "### "+ sanctionType +" - "+ sanction.getId();
+            description += "### "+ sanction.getSanctionTypeId() +" - #"+ sanction.getFullSanctionId();
             if (sanction.isExpired()) description += " (Expirée)";
 
             description += "\n>   - Responsable: <@"+ sanction.getModeratorId() +"> (`"+ sanction.getModeratorId() +"`)"
                          + "\n>   - Le: <t:"+ sanction.getTimestamp().getEpochSecond() +":F>";
             
-            if (sanctionTypeId != SanctionType.KICK && sanction.getExpiryTime() >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.getExpiryTime());
+            if (sanction.getSanctionTypeId() != 'K' && sanction.getExpiryTime() >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.getExpiryTime());
 
             description += "\n>   - Raison: " + sanction.getReason() + "\n\n";
         }

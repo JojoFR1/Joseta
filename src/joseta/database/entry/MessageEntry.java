@@ -34,32 +34,21 @@ public class MessageEntry {
     }
 
     public long getMessageId() { return messageId; }
+    public MessageEntry setMessageId(long messageId) { this.messageId = messageId; return this; }
 
     public long getGuildId() { return guildId; }
-    public void setGuildId(long guildId) { this.guildId = guildId; }
+    public MessageEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
 
     public long getChannelId() { return channelId; }
-    public void setChannelId(long channelId) { this.channelId = channelId; }
+    public MessageEntry setChannelId(long channelId) { this.channelId = channelId; return this; }
 
     public long getAuthorId() { return authorId; }
-    public void setAuthorId(long authorId) { this.authorId = authorId; }
+    public MessageEntry setAuthorId(long authorId) { this.authorId = authorId; return this; }
 
     public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public MessageEntry setContent(String content) { this.content = content; return this; }
 
     public Instant getTimestamp() { return timestamp.toInstant(); }
-    public void setTimestamp(Instant timestamp) { this.timestamp = Timestamp.from(timestamp); }
-
-    @Override
-    public String toString() {
-        return "MessageEntry{" +
-                "messageId=" + messageId +
-                ", guildId=" + guildId +
-                ", channelId=" + channelId +
-                ", authorId=" + authorId +
-                ", content='" + content + '\'' +
-                ", timestamp=" + timestamp +
-                '}';
-    }
+    public MessageEntry setTimestamp(Instant timestamp) { this.timestamp = Timestamp.from(timestamp); return this; }
 }
 

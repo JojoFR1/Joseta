@@ -1,5 +1,6 @@
 package joseta.events;
 
+import joseta.database.helper.*;
 import joseta.events.admin.*;
 import joseta.events.database.*;
 import joseta.events.misc.*;
@@ -27,6 +28,7 @@ public class EventHandler extends ListenerAdapter {
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         WelcomeMessage.executeGuildMemberJoin(event);
+        UserDatabaseHelper.addUser(event.getMember());
     }
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {

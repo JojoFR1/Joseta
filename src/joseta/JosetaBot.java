@@ -6,6 +6,7 @@ import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+import joseta.database.helper.*;
 import joseta.events.*;
 import joseta.events.misc.*;
 
@@ -82,6 +83,7 @@ public class JosetaBot {
 
         initializeCommands();
         WelcomeMessage.initialize();
+        SanctionDatabaseHelper.startScheduler();
     }
 
     // TODO: Remove this method when the database is fully implemented. TEMPORARY!

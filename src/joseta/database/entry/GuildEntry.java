@@ -16,17 +16,19 @@ public class GuildEntry {
     @DatabaseField
     private long ownerId;
     @DatabaseField(defaultValue = "-1")
-    private int lastWarnId;
-    @DatabaseField(defaultValue = "-1")
-    private int lastTimeoutId;
-    @DatabaseField(defaultValue = "-1")
-    private int lastKickId;
-    @DatabaseField(defaultValue = "-1")
-    private int lastBanId;
+    private int lastSanctionId;
 
     
     // A no-arg constructor is required by ORMLite
     private GuildEntry() {}
+
+    public GuildEntry(GuildEntry other) {
+        this.guildId = other.guildId;
+        this.name = other.name;
+        this.iconUrl = other.iconUrl;
+        this.ownerId = other.ownerId;
+        this.lastSanctionId = other.lastSanctionId;
+    }
 
     public GuildEntry(long guildId, String name, String iconUrl, long ownerId) {
         this.guildId = guildId;
@@ -42,4 +44,20 @@ public class GuildEntry {
             guild.getOwnerIdLong()
         );
     }
+
+    public long getGuildId() { return guildId; }
+    public GuildEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
+
+    public String getName() { return name; }
+    public GuildEntry setName(String name) { this.name = name; return this; }
+
+    public String getIconUrl() { return iconUrl; }
+    public GuildEntry setIconUrl(String iconUrl) { this.iconUrl = iconUrl; return this; }
+
+    public long getOwnerId() { return ownerId; }
+    public GuildEntry setOwnerId(long ownerId) { this.ownerId = ownerId; return this; }
+
+    public int getLastSanctionId() { return lastSanctionId; }
+    public GuildEntry setLastSanctionId(int lastSanctionId) { this.lastSanctionId = lastSanctionId; return this; }
+    public GuildEntry incrementLastSanctionId() { this.lastSanctionId++; return this; }
 }

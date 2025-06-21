@@ -18,11 +18,12 @@ public class Databases {
     private Databases() throws SQLException {
         connectionSource = new JdbcConnectionSource(databaseUrl);
         
-        TableUtils.createTableIfNotExists(connectionSource, ConfigEntry.class);
         TableUtils.createTableIfNotExists(connectionSource, GuildEntry.class);
         TableUtils.createTableIfNotExists(connectionSource, UserEntry.class);
-        TableUtils.createTableIfNotExists(connectionSource, MessageEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, ConfigEntry.class); //! Has to be first
         TableUtils.createTableIfNotExists(connectionSource, SanctionEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, MessageEntry.class);
+        TableUtils.createTableIfNotExists(connectionSource, MarkovMessageEntry.class);
     }
 
     public static Databases getInstance() throws SQLException {
@@ -34,10 +35,6 @@ public class Databases {
 
     public ConnectionSource getConnectionSource() { return connectionSource; }
 
-    public Dao<ConfigEntry, Long> getConfigDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, ConfigEntry.class);
-    }
-
     public Dao<GuildEntry, Long> getGuildDao() throws SQLException{
         return DaoManager.createDao(connectionSource, GuildEntry.class);
     }
@@ -46,11 +43,19 @@ public class Databases {
         return DaoManager.createDao(connectionSource, UserEntry.class);
     }
 
-    public Dao<MessageEntry, Long> getMessageDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, MessageEntry.class);
+    public Dao<ConfigEntry, Long> getConfigDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, ConfigEntry.class);
     }
 
     public Dao<SanctionEntry, Long> getSanctionDao() throws SQLException {
         return DaoManager.createDao(connectionSource, SanctionEntry.class);
+    }
+
+    public Dao<MessageEntry, Long> getMessageDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, MessageEntry.class);
+    }
+
+    public Dao<MarkovMessageEntry, Long> getMarkovMessageDao() throws SQLException {
+        return DaoManager.createDao(connectionSource, MarkovMessageEntry.class);
     }
 }

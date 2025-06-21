@@ -73,11 +73,4 @@ public abstract class ModCommand extends Command {
 
         return super.check(event);
     }
-
-    public final class SanctionType {
-        public static final int WARN = 10;
-        public static final int MUTE = 20;
-        public static final int KICK = 30;
-        public static final int BAN = 40;
-    }
 }

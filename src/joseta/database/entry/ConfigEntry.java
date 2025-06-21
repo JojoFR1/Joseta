@@ -52,41 +52,29 @@ public class ConfigEntry {
     // A no-arg constructor is required by ORMLite & for base initialization
     public ConfigEntry() {}
 
-    public ConfigEntry(
-        long guildId,
+    public ConfigEntry(ConfigEntry other) {
+        this.guildId = other.guildId;
 
-        boolean welcomeEnabled, long welcomeChannelId, boolean welcomeImageEnabled,
-        URL welcomeImageUrl, String welcomeJoinMessage, String welcomeLeaveMessage,
-        long joinRoleId, long joinBotRoleId, long verifiedRoleId,
+        this.welcomeEnabled = other.welcomeEnabled;
+        this.welcomeChannelId = other.welcomeChannelId;
+        this.welcomeImageEnabled = other.welcomeImageEnabled;
+        this.welcomeImageUrl = other.welcomeImageUrl;
+        this.welcomeJoinMessage = other.welcomeJoinMessage;
+        this.welcomeLeaveMessage = other.welcomeLeaveMessage;
+        this.joinRoleId = other.joinRoleId;
+        this.joinBotRoleId = other.joinBotRoleId;
+        this.verifiedRoleId = other.verifiedRoleId;
 
-        boolean markovEnabled, Seq<Long> markovBlackList, Seq<Long> markovCategoryBlackList,
+        this.markovEnabled = other.markovEnabled;
+        this.markovBlackList = new Seq<>(other.markovBlackList);
 
-        boolean moderationEnabled,
+        this.moderationEnabled = other.moderationEnabled;
 
-        boolean autoResponseEnabled
-    ) {
-        this.guildId = guildId;
-
-        this.welcomeEnabled = welcomeEnabled;
-        this.welcomeChannelId = welcomeChannelId;
-        this.welcomeImageEnabled = welcomeImageEnabled;
-        this.welcomeImageUrl = welcomeImageUrl.toString();
-        this.welcomeJoinMessage = welcomeJoinMessage;
-        this.welcomeLeaveMessage = welcomeLeaveMessage;
-        this.joinRoleId = joinRoleId;
-        this.joinBotRoleId = joinBotRoleId;
-        this.verifiedRoleId = verifiedRoleId;
-
-        this.markovEnabled = markovEnabled;
-        this.markovBlackList = markovBlackList;
-        
-        this.moderationEnabled = moderationEnabled;
-
-        this.autoResponseEnabled = autoResponseEnabled;
+        this.autoResponseEnabled = other.autoResponseEnabled;
     }
 
-
     public long getGuildId() { return guildId; }
+    public ConfigEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
 
     public ConfigEntry setWelcomeEnabled(boolean welcomeEnabled) { this.welcomeEnabled = welcomeEnabled; return this; }
     public boolean isWelcomeEnabled() { return welcomeEnabled; }
