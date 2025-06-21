@@ -30,7 +30,7 @@ public class UnwarnCommand extends ModCommand {
         try {
             SanctionEntry entry;
             Databases databases = Databases.getInstance();
-            // A user can't have 2 ban active at the same time.
+
             if (warnId == -1) entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'W');
             else entry = databases.getSanctionDao().queryForId(warnId);
 

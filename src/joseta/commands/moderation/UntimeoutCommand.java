@@ -27,10 +27,9 @@ public class UntimeoutCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été untimeout.").setEphemeral(true).queue();
 
-                // A member can't have 2 mute actie at the same time.
                 try {
                     Databases databases = Databases.getInstance();
-                    // A user can't have 2 ban active at the same time.
+                    // A member can't have 2 mute actie at the same time.
                     SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'T');
                     databases.getSanctionDao().delete(entry);
                 } catch (SQLException e) {

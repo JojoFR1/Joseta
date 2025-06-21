@@ -30,7 +30,7 @@ public class UnbanCommand extends ModCommand {
                 try {
                     Databases databases = Databases.getInstance();
                     // A user can't have 2 ban active at the same time.
-                    SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'U');
+                    SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'B');
                     databases.getSanctionDao().delete(entry);
                 } catch (SQLException e) {
                     JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e);
