@@ -18,8 +18,8 @@ public class ModLogButtonEvents {
                     : eventId.endsWith("next")  ? currentPage + 1
                     : lastPage;
 
-        User user = ModLogCommand.userOfMessage.get(event.getMessageIdLong());
+        Member member = ModLogCommand.userOfMessage.get(event.getMessageIdLong());
         
-        ModLogCommand.sendEmbed(event, user, newPage, lastPage);
+        ModLogCommand.sendEmbed(event, member, newPage, lastPage);
     }
 }

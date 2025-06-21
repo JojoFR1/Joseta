@@ -17,7 +17,7 @@ public class SanctionDatabaseHelper {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     public static void startScheduler() { scheduler.scheduleAtFixedRate(SanctionDatabaseHelper::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES); }
 
-    public static void addSanction(char sanctionType, long userId, long moderatorId, long guildId, String reason, long time) {
+    public static void addSanction(char sanctionType, Member member, long moderatorId, long guildId, String reason, long time) {
         try {
             Databases databases = Databases.getInstance();
             GuildEntry entry = databases.getGuildDao().queryForId(guildId);
@@ -25,7 +25,7 @@ public class SanctionDatabaseHelper {
                 new SanctionEntry(
                     entry.getLastSanctionId() + 1,
                     sanctionType,
-                    userId,
+                    member.getIdLong(),
                     moderatorId,
                     guildId,
                     reason,
@@ -35,7 +35,7 @@ public class SanctionDatabaseHelper {
             );
 
             databases.getGuildDao().update(entry.incrementLastSanctionId());
-            UserDatabaseHelper.updateUserSanctionCount(userId, guildId);
+            UserDatabaseHelper.updateUserSanctionCount(member, guildId);
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not add sanction.", e);
         }

@@ -39,7 +39,7 @@ public class Databases {
         return DaoManager.createDao(connectionSource, GuildEntry.class);
     }
 
-    public Dao<UserEntry, Long> getUserDao() throws SQLException {
+    public Dao<UserEntry, String> getUserDao() throws SQLException {
         return DaoManager.createDao(connectionSource, UserEntry.class);
     }
 

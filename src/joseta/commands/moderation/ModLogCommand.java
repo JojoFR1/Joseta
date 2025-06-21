@@ -29,7 +29,7 @@ import com.j256.ormlite.stmt.*;
 
 public class ModLogCommand extends ModCommand {
     private static final int SANCTION_PER_PAGE = 5;
-    public static ObjectMap<Long, User> userOfMessage = new ObjectMap<>();
+    public static ObjectMap<Long, Member> userOfMessage = new ObjectMap<>();
 
     public ModLogCommand() {
         super("modlog", "Obtient l'historique de modérations d'un membre");
@@ -39,11 +39,11 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        sendEmbed(event, user, 1, (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
+        sendEmbed(event, member, 1, (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(member, event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
     }
 
-    public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
-        MessageEmbed embed = generateEmbed(event.getGuild(), user, page);
+    public static void sendEmbed(GenericInteractionCreateEvent event, Member member, int page, int lastPage) {
+        MessageEmbed embed = generateEmbed(event.getGuild(), member, page);
         ItemComponent[] buttons = {
             Button.secondary("modlog-page-b-first", "⏪").withDisabled(page == 1),
             Button.secondary("modlog-page-b-prev", "◀️").withDisabled(page <= 1),
@@ -59,19 +59,19 @@ public class ModLogCommand extends ModCommand {
 
             Message msg = callback.complete().retrieveOriginal().complete();
 
-            userOfMessage.put(msg.getIdLong(), user);
+            userOfMessage.put(msg.getIdLong(), member);
         }
         if (event instanceof ButtonInteractionEvent bevent) {
             bevent.editMessageEmbeds(embed).setActionRow(buttons).queue();
         }
     }
 
-    public static MessageEmbed generateEmbed(Guild guild, User user, int currentPage) {
+    public static MessageEmbed generateEmbed(Guild guild, Member member, int currentPage) {
         List<SanctionEntry> sanctions;
         try {
             QueryBuilder<SanctionEntry, Long> queryBuilder = Databases.getInstance().getSanctionDao().queryBuilder();
             queryBuilder.where()
-                .eq("userId", user.getIdLong())
+                .eq("userId", member.getIdLong())
                 .and()
                 .eq("guildId", guild.getIdLong());
 
@@ -82,7 +82,7 @@ public class ModLogCommand extends ModCommand {
             sanctions = queryBuilder.query();
 
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la récupération des sanctions pour l'utilisateur {} dans le serveur {} : {}", user.getId(), guild.getId(), e.getMessage());
+            JosetaBot.logger.error("Erreur lors de la récupération des sanctions pour l'utilisateur {} dans le serveur {} : {}", member.getId(), guild.getId(), e.getMessage());
             return new EmbedBuilder()
                 .setTitle("Erreur")
                 .setDescription("Une erreur est survenue lors de la récupération des sanctions.")
@@ -91,10 +91,10 @@ public class ModLogCommand extends ModCommand {
         }
 
         // TODO change... change what past me ?
-        int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(user.getIdLong(), guild.getIdLong()) / SANCTION_PER_PAGE);
+        int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(member, guild.getIdLong()) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
-            .setTitle("Historique de modération de " + user.getName() + " ┃ Page "+ currentPage +"/"+ totalPages)
+            .setTitle("Historique de modération de " + member.getEffectiveName() + " ┃ Page "+ currentPage +"/"+ totalPages)
             .setColor(Color.BLUE)
             .setFooter(guild.getName(), guild.getIconUrl())
             .setTimestamp(Instant.now());
@@ -103,7 +103,7 @@ public class ModLogCommand extends ModCommand {
         if (sanctions.isEmpty()) description = "Oh ! Cet utilisateur n'a aucune sanction !";
 
         else for (SanctionEntry sanction : sanctions) {
-            description += "### "+ sanction.getSanctionTypeId() +" - #"+ sanction.getFullSanctionId();
+            description += "### "+ sanction.getSanctionType() +" - #"+ sanction.getFullSanctionId();
             if (sanction.isExpired()) description += " (Expirée)";
 
             description += "\n>   - Responsable: <@"+ sanction.getModeratorId() +"> (`"+ sanction.getModeratorId() +"`)"

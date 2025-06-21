@@ -26,7 +26,7 @@ public class KickCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été expulsé.").queue();
 
-                SanctionDatabaseHelper.addSanction('K', member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);        
+                SanctionDatabaseHelper.addSanction('K', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);        
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();

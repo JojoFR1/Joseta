@@ -9,6 +9,11 @@ import com.j256.ormlite.field.types.*;
 import com.j256.ormlite.support.*;
 
 public class LongSeqPersister extends StringType {
+    private static final LongSeqPersister singleton = new LongSeqPersister();
+
+    public static LongSeqPersister getSingleton() {
+        return singleton;
+    }
 
     private LongSeqPersister() {
         super(SqlType.STRING, new Class<?>[] { Seq.class });
@@ -27,7 +32,7 @@ public class LongSeqPersister extends StringType {
 
     @Override
     public Object sqlArgToJava(FieldType fieldType, Object sqlArg, int columnPos) throws SQLException {
-        String string = (String) sqlArg;
+        String string = sqlArg.toString();
         return stringToSeq(string);
     }
 
@@ -38,7 +43,7 @@ public class LongSeqPersister extends StringType {
     }
 
     private String seqToString(Seq<Long> seq) {
-        if (seq == null ||seq.isEmpty()) return "";
+        if (seq == null || seq.isEmpty()) return "";
 
         StringBuilder sb = new StringBuilder();
         for (long item : seq) {
@@ -51,6 +56,7 @@ public class LongSeqPersister extends StringType {
 
     private Seq<Long> stringToSeq(String str) {
         Seq<Long> seq = new Seq<>();
+        str = str.replace('[', '\0').replace(']', '\0');
         if (str == null || str.isEmpty()) return seq;
 
         String[] items = str.split(",");

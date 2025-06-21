@@ -79,13 +79,19 @@ public class JosetaBot {
         WelcomeMessage.initialize();
         SanctionDatabaseHelper.startScheduler();
 
+        // TODO that ugly, pls help pinpin
         for (Guild guild : bot.getGuilds()) {
-            if (Databases.getInstance().getMessageDao().queryForEq("guildId", guild.getIdLong()).size() > 0) continue;
-            MessagesDatabaseHelper.populateNewGuild(guild);
-            MarkovMessagesDatabaseHelper.populateNewGuild(guild);
+            if (Databases.getInstance().getGuildDao().queryForEq("guildId", guild.getIdLong()).isEmpty())
+                Databases.getInstance().getGuildDao().create(new GuildEntry(guild));
 
             if (Databases.getInstance().getConfigDao().queryForEq("guildId", guild.getIdLong()).isEmpty())
                 Databases.getInstance().getConfigDao().create(new ConfigEntry(guild.getIdLong()));
+
+            //TODO populate with config disabled by default + no markov black list defined
+            if (Databases.getInstance().getMessageDao().queryForEq("guildId", guild.getIdLong()).isEmpty()) {
+                MessagesDatabaseHelper.populateNewGuild(guild);
+                MarkovMessagesDatabaseHelper.populateNewGuild(guild);
+            }
         }
     }
 

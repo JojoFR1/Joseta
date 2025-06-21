@@ -34,7 +34,7 @@ public class BanCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
 
-                SanctionDatabaseHelper.addSanction('B', member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);        
+                SanctionDatabaseHelper.addSanction('B', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);        
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();

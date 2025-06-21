@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
 
 import java.sql.*;
+import java.time.*;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -34,7 +35,7 @@ public class MarkovMessagesDatabaseHelper {
             JosetaBot.logger.error("Could not retrieve the config for guild: " + guild.getIdLong(), e);
             return;
         }
-        
+
         for (TextChannel channel : guild.getTextChannels()) {
             Seq<Long> markovBlackList = config.getMarkovBlackList();
             if (channel.isNSFW()
@@ -54,7 +55,7 @@ public class MarkovMessagesDatabaseHelper {
         try {
             // TODO alternative for the hardcoded 10000 limit?
             for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {                
-                addNewMessage(message, guild, channel, message.getContentRaw());
+                addNewMessage(message, guild, channel, message.getAuthor().getIdLong(), message.getContentRaw(), message.getTimeCreated().toInstant().toString());
                 count++;
             }
         } catch (Exception e) {
@@ -64,7 +65,7 @@ public class MarkovMessagesDatabaseHelper {
         return count;
     }
 
-    public static void addNewMessage(Message message, Guild guild, GuildMessageChannel channel, String content) {
+    public static void addNewMessage(Message message, Guild guild, GuildMessageChannel channel, long authorId, String content, String timestamp) {
         long id = message.getIdLong();
         long guildId = guild.getIdLong();
 
@@ -75,13 +76,15 @@ public class MarkovMessagesDatabaseHelper {
             JosetaBot.logger.error("Could not retrieve the config for guild: " + guildId, e);
             return;
         }
-
+        
         Seq<Long> markovBlackList = config.getMarkovBlackList();
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return;
         if (markovBlackList.contains(channel.getIdLong())
-            || markovBlackList.contains(message.getAuthor().getIdLong())
-            || markovBlackList.containsAll(Seq.with(message.getMember().getRoles()).map(role -> role.getIdLong()))) return;
+            || markovBlackList.contains(message.getAuthor().getIdLong())) return;
+
+        if (message.getMember() != null && markovBlackList.containsAll(Seq.with(message.getMember().getRoles()).map(role -> role.getIdLong()))) return; 
         
+            
         if (channel instanceof TextChannel textChannel &&
             (textChannel.isNSFW() || markovBlackList.contains(textChannel.getParentCategoryIdLong()))) return;
         
@@ -89,8 +92,11 @@ public class MarkovMessagesDatabaseHelper {
             Databases.getInstance().getMarkovMessageDao().createIfNotExists(
                 new MarkovMessageEntry(
                     id,
-                    Databases.getInstance().getMessageDao().queryForId(id),
-                    cleanMessage(content)
+                    guildId,
+                    channel.getIdLong(),
+                    authorId,
+                    cleanMessage(content),
+                    Instant.parse(timestamp)
                 )
             );
         } catch (SQLException e) {
@@ -99,29 +105,31 @@ public class MarkovMessagesDatabaseHelper {
     }
 
     public static void updateMessage(long id, long guildId, long channelId, String content) {
+        if (getMessageEntry(id, guildId, channelId) == null) return; // Entry does not exist, no need to update
         try {
             Databases databases = Databases.getInstance();
-            MessageEntry entry = databases.getMessageDao().queryBuilder()
+            MarkovMessageEntry entry = databases.getMarkovMessageDao().queryBuilder()
                 .where()
-                .eq("id", id)
+                .eq("messageId", id)
                 .and()
                 .eq("guildId", guildId)
                 .and()
                 .eq("channelId", channelId)
                 .queryForFirst();
             
-            databases.getMessageDao().update(entry.setContent(cleanMessage(content)));
+            databases.getMarkovMessageDao().update(entry.setContent(cleanMessage(content)));
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not update a message.", e);
         }
     }
 
     public static void deleteMessage(long id, long guildId, long channelId) {
+        if (getMessageEntry(id, guildId, channelId) == null) return; // Entry does not exist, no need to delete
         try {
-            DeleteBuilder<MessageEntry, Long> deleteBuilder = Databases.getInstance().getMessageDao().deleteBuilder();
+            DeleteBuilder<MarkovMessageEntry, Long> deleteBuilder = Databases.getInstance().getMarkovMessageDao().deleteBuilder();
             
             deleteBuilder.where()
-                .eq("id", id)
+                .eq("messageId", id)
                 .and()
                 .eq("guildId", guildId)
                 .and()
@@ -134,8 +142,9 @@ public class MarkovMessagesDatabaseHelper {
     }
 
     public static void deleteChannelMessages(long guildId, long channelId) {
+        if (getMessageEntriesByChannel(guildId, channelId).isEmpty()) return; // No entries to delete
         try {
-            DeleteBuilder<MessageEntry, Long> deleteBuilder = Databases.getInstance().getMessageDao().deleteBuilder();
+            DeleteBuilder<MarkovMessageEntry, Long> deleteBuilder = Databases.getInstance().getMarkovMessageDao().deleteBuilder();
             
             deleteBuilder.where()
                 .eq("guildId", guildId)
@@ -148,12 +157,12 @@ public class MarkovMessagesDatabaseHelper {
         }
     }
 
-    public static MessageEntry getMessageEntry(long id, long guildId, long channelId) {
-        MessageEntry entry;
+    public static MarkovMessageEntry getMessageEntry(long id, long guildId, long channelId) {
+        MarkovMessageEntry entry;
         try {
-            entry = Databases.getInstance().getMessageDao().queryBuilder()
+            entry = Databases.getInstance().getMarkovMessageDao().queryBuilder()
                 .where()
-                .eq("id", id)
+                .eq("messageId", id)
                 .and()
                 .eq("guildId", guildId)
                 .and()
@@ -167,10 +176,27 @@ public class MarkovMessagesDatabaseHelper {
         return entry;
     }
 
-    public static Seq<MessageEntry> getMessageEntries(long guildId) {
-        List<MessageEntry> entry;
+    public static Seq<MarkovMessageEntry> getMessageEntriesByChannel(long guildId, long channelId) {
+        List<MarkovMessageEntry> entry;
         try {
-            entry = Databases.getInstance().getMessageDao().queryForEq("guildId", guildId);
+            entry = Databases.getInstance().getMarkovMessageDao().queryBuilder()
+                .where()
+                .eq("guildId", guildId)
+                .and()
+                .eq("channeld", channelId)
+                .query();
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not retrieve message entries for channel: " + channelId, e);
+            return null;
+        }
+
+        return Seq.with(entry);
+    }
+
+    public static Seq<MarkovMessageEntry> getMessageEntriesByGuild(long guildId) {
+        List<MarkovMessageEntry> entry;
+        try {
+            entry = Databases.getInstance().getMarkovMessageDao().queryForEq("guildId", guildId);
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not retrieve message entries for guild: " + guildId, e);
             return null;

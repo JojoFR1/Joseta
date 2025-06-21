@@ -42,7 +42,7 @@ public class MarkovCommand extends Command {
         }
 
         InteractionHook hook = event.deferReply().complete();
-        Seq<MessageEntry> entries = MarkovMessagesDatabaseHelper.getMessageEntries(event.getGuild().getIdLong()).retainAll(entry -> entry != null);
+        Seq<MarkovMessageEntry> entries = MarkovMessagesDatabaseHelper.getMessageEntriesByGuild(event.getGuild().getIdLong()).retainAll(entry -> entry != null);
 
         if (entries.size < MIN_ENTRIES) {
             hook.editOriginal("Il n'y a pas assez de messages !").queue();

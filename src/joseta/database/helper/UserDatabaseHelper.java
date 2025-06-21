@@ -20,15 +20,14 @@ public class UserDatabaseHelper {
         }
     }
     
-    public static int getUserSanctionCount(long userId, long guildId) {
+    public static int getUserSanctionCount(Member member, long guildId) {
         try {
             Databases databases = Databases.getInstance();
-            UserEntry entry = databases.getUserDao().queryBuilder()
-                .where()
-                .eq("id", userId)
-                .and()
-                .eq("guildId", guildId)
-                .queryForFirst();
+            UserEntry entry = databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId));
+            if (entry == null) {
+                entry = new UserEntry(member);
+                databases.getUserDao().create(entry);
+            }
 
             return entry.getSanctionCount();
         } catch (SQLException e) {
@@ -37,20 +36,20 @@ public class UserDatabaseHelper {
         }
     }
 
-    public static void updateUserSanctionCount(long userId, long guildId) {
+    public static void updateUserSanctionCount(Member member, long guildId) {
         try {
             Databases databases = Databases.getInstance();
+
+            if (databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId)) == null)
+                UserDatabaseHelper.addUser(member);
+            
             databases.getUserDao().update(
-                databases.getUserDao().queryBuilder()
-                    .where()
-                    .eq("id", userId)
-                    .and()
-                    .eq("guildId", guildId)
-                    .queryForFirst()
-                .incrementSanctionCount()
+                databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId)).incrementSanctionCount()
             );
         } catch (SQLException e) {
             JosetaBot.logger.error("Could not update user sanction count.", e);
         }
     }
+
+    public static String getComposedId(long userId, long guildId) { return userId + "-" + guildId; }
 }

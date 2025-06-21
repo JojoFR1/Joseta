@@ -70,12 +70,12 @@ public class MessagesDatabaseHelper {
         }
     }
 
-    public static void updateMessage(long id, long guildId, long channelId, String content) {
+    public static void updateMessage(long messageId, long guildId, long channelId, String content) {
         try {
             Databases databases = Databases.getInstance();
             MessageEntry entry = databases.getMessageDao().queryBuilder()
                 .where()
-                .eq("id", id)
+                .eq("messageId", messageId)
                 .and()
                 .eq("guildId", guildId)
                 .and()

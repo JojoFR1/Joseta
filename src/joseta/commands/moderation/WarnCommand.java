@@ -24,7 +24,7 @@ public class WarnCommand extends ModCommand {
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
         //TODO faillure?
-        SanctionDatabaseHelper.addSanction('W', member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+        SanctionDatabaseHelper.addSanction('W', member, user.getIdLong(), event.getGuild().getIdLong(), reason, time);
         
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
     }

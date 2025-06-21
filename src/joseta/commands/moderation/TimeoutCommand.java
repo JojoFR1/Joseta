@@ -29,7 +29,7 @@ public class TimeoutCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été mute").setEphemeral(true).queue();
 
-                SanctionDatabaseHelper.addSanction('T', member.getIdLong(), event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
+                SanctionDatabaseHelper.addSanction('T', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();

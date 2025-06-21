@@ -15,7 +15,7 @@ public class MessageEvents {
         String timestamp = event.getMessage().getTimeCreated().toString();
 
         MessagesDatabaseHelper.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
-        MarkovMessagesDatabaseHelper.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), content);
+        MarkovMessagesDatabaseHelper.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
     }
 
     public static void executeMessageUpdate(MessageUpdateEvent event) {
