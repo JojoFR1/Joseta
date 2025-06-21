@@ -5,6 +5,7 @@ import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.database.*;
+import joseta.database.entry.*;
 import joseta.database.helper.*;
 import joseta.events.*;
 import joseta.events.misc.*;
@@ -82,6 +83,9 @@ public class JosetaBot {
             if (Databases.getInstance().getMessageDao().queryForEq("guildId", guild.getIdLong()).size() > 0) continue;
             MessagesDatabaseHelper.populateNewGuild(guild);
             MarkovMessagesDatabaseHelper.populateNewGuild(guild);
+
+            if (Databases.getInstance().getConfigDao().queryForEq("guildId", guild.getIdLong()).isEmpty())
+                Databases.getInstance().getConfigDao().create(new ConfigEntry(guild.getIdLong()));
         }
     }
 

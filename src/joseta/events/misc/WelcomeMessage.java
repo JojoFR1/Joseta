@@ -81,7 +81,15 @@ public class WelcomeMessage {
     }
 
     public static void executeGuildMemberRemove(GuildMemberRemoveEvent event) {
-        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+        ConfigEntry config;
+        try {
+            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            // event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur.").queue();
+            return;
+        }
+        
         TextChannel channel;
         if (!config.isWelcomeEnabled()) return;
         if (config.getWelcomeChannelId() == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.getWelcomeChannelId()))== null) {

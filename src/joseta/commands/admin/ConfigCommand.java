@@ -47,9 +47,6 @@ public class ConfigCommand extends Command {
         try {
             configDao = Databases.getInstance().getConfigDao();
             config = configDao.queryForId(event.getGuild().getIdLong());
-            
-            // If SOMEHOW the config is null, create a new one.
-            if (config == null) configDao.create(new ConfigEntry());
         } catch (SQLException e) {
             JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
             event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
@@ -82,21 +79,14 @@ public class ConfigCommand extends Command {
             default: break;
         }
 
-
-        if (!ConfigDatabase.updateConfig(config)) {
-            event.reply("An error occurred while updating the configuration.").setEphemeral(true).queue();
+        try {
+            Databases.getInstance().getConfigDao().createOrUpdate(config);
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Erreur lors de la mise à jour de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            event.reply("Une erreur est survenue lors de la mise à jour de la configuration du serveur.").setEphemeral(true).queue();
             return;
         }
 
         event.reply("Configuration of the server updated succesfully.").setEphemeral(true).queue();
     }
-    
-    // private MessageEmbed getEmbed(Color color, Guild guild) {
-    //     EmbedBuilder embed = new EmbedBuilder()
-    //         .setColor(color)
-    //         .setFooter(guild.getName(), guild.getIconUrl())
-    //         .setTimestamp(Instant.now());
-
-    //     return embed.build();
-    // }
 }

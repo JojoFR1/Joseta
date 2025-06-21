@@ -27,7 +27,14 @@ public class MarkovMessagesDatabaseHelper {
         int count = 0;
         JosetaBot.logger.debug("Populating the Messages Database...");
 
-        ConfigEntry config = ConfigDatabase.getConfig(guild.getIdLong());
+        ConfigEntry config;
+        try {
+            config = Databases.getInstance().getConfigDao().queryForId(guild.getIdLong());
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not retrieve the config for guild: " + guild.getIdLong(), e);
+            return;
+        }
+        
         for (TextChannel channel : guild.getTextChannels()) {
             Seq<Long> markovBlackList = config.getMarkovBlackList();
             if (channel.isNSFW()
@@ -61,7 +68,14 @@ public class MarkovMessagesDatabaseHelper {
         long id = message.getIdLong();
         long guildId = guild.getIdLong();
 
-        ConfigEntry config = ConfigDatabase.getConfig(guildId);
+        ConfigEntry config;
+        try {
+            config = Databases.getInstance().getConfigDao().queryForId(guildId);
+        } catch (SQLException e) {
+            JosetaBot.logger.error("Could not retrieve the config for guild: " + guildId, e);
+            return;
+        }
+
         Seq<Long> markovBlackList = config.getMarkovBlackList();
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return;
         if (markovBlackList.contains(channel.getIdLong())

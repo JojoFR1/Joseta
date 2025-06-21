@@ -50,7 +50,9 @@ public class ConfigEntry {
     private boolean autoResponseEnabled;
 
     // A no-arg constructor is required by ORMLite & for base initialization
-    public ConfigEntry() {}
+    private ConfigEntry() {}
+    
+    public ConfigEntry(long guildId) { this.guildId = guildId; }
 
     public ConfigEntry(ConfigEntry other) {
         this.guildId = other.guildId;
