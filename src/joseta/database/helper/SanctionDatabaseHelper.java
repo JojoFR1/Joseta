@@ -4,6 +4,8 @@ import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
 
+import arc.struct.*;
+
 import net.dv8tion.jda.api.entities.*;
 
 import java.sql.*;
@@ -60,7 +62,7 @@ public class SanctionDatabaseHelper {
         }
     }
 
-    public static List<SanctionEntry> getExpiredSanctions() {
+    public static Seq<SanctionEntry> getExpiredSanctions() {
         List<SanctionEntry> entries;
         try {
             entries = Databases.getInstance().getSanctionDao().queryBuilder()
@@ -74,7 +76,7 @@ public class SanctionDatabaseHelper {
             return null;
         }
 
-        return entries;
+        return Seq.with(entries);
     }
 
     private static void checkExpiredSanctions() {

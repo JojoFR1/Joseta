@@ -90,7 +90,7 @@ public class ModLogCommand extends ModCommand {
                 .build();
         }
 
-        // TODO change
+        // TODO change... change what past me ?
         int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(user.getIdLong(), guild.getIdLong()) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
