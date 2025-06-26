@@ -7,7 +7,7 @@ import arc.struct.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.*;
+import net.dv8tion.jda.api.entities.channel.middleman.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -20,7 +20,7 @@ import java.nio.charset.*;
 import java.time.*;
 
 public class AdminCommand extends Command {
-    private TextChannel channel;
+    private StandardGuildMessageChannel channel;
     private long messageId;
     
     public AdminCommand() {
@@ -110,7 +110,7 @@ public class AdminCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        channel = event.getOption("channel", null, OptionMapping::getAsChannel).asTextChannel();
+        channel = event.getOption("channel", null, OptionMapping::getAsChannel).asStandardGuildMessageChannel();
         if (event.getSubcommandName().equals("update")) messageId = Long.parseLong(event.getOption("message_id", null, OptionMapping::getAsString));
     }
 }
