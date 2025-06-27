@@ -46,6 +46,8 @@ The current plans and ideas for this bot are the following, in the likely order 
 - Finish the Database refactor
 - Check constitency after refactor
 
+- Add a reminder command
+
 - Refactor the Event system
   - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
   - Other implementations could be explored (but I do not have any idea for now)
