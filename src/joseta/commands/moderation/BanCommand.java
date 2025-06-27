@@ -1,9 +1,10 @@
 package joseta.commands.moderation;
 
-import joseta.*;
 import joseta.commands.*;
 import joseta.database.helper.*;
 import joseta.utils.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -38,7 +39,7 @@ public class BanCommand extends ModCommand {
             },
             failure -> {
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();
-                JosetaBot.logger.error("Error while executing a command ('ban').", failure);
+                Log.err("Error while executing a command ('ban').", failure);
             }
         );
     }

@@ -11,6 +11,8 @@ import joseta.events.*;
 import joseta.events.misc.*;
 
 import arc.struct.*;
+import arc.util.*;
+import arc.util.Log.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -23,12 +25,11 @@ import org.slf4j.*;
 import java.sql.*;
 import java.util.concurrent.*;
 
-import ch.qos.logback.classic.*;
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
 public class JosetaBot {
-    public static JDA bot;
-    public static final Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
+    private static JDA bot;
 
     public static final Seq<Command> commands = Seq.with(
         new AdminCommand(),
@@ -68,16 +69,17 @@ public class JosetaBot {
                 .build();
         
         // Required to access guild and register commands.
-        try {
-            bot.awaitReady();
-        } catch (InterruptedException e) {
-            JosetaBot.logger.error("An error occured while waiting for the bot to connect.", e);
+        try { bot.awaitReady(); } catch (InterruptedException e) {
+            Log.err("An error occured while waiting for the bot to be ready (connected).", e);
             System.exit(1);
         }
 
-        initializeCommands();
-        WelcomeMessage.initialize();
-        SanctionDatabaseHelper.startScheduler();
+        SlashCommandData[] commandsData = commands.map(cmd -> cmd.getCommandData()).toArray(SlashCommandData.class);
+        bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
+        bot.updateCommands().addCommands(commandsData).queue();
+
+        WelcomeMessage.initialize(); //TODO Maybe chane that?
+        SanctionDatabaseHelper.startScheduler(15); // Check expired sanctions every 15 minutes.
 
         // TODO that ugly, pls help pinpin
         for (Guild guild : bot.getGuilds()) {
@@ -102,27 +104,45 @@ public class JosetaBot {
         }
 
         Vars.loadSecrets();
+        
+        // Disable ORMLite debug logs, because it's spamming
+        com.j256.ormlite.logger.Logger.setGlobalLogLevel(com.j256.ormlite.logger.Level.WARNING);
 
+        Log.useColors = false;
+        Log.logger = new Log.LogHandler() {
+            @Override public void log(LogLevel level, String text) {
+                Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
+                
+                switch (level) {
+                    case debug: logger.debug(text); break;
+                    case info: logger.info(text); break;
+                    case warn: logger.warn(text); break;
+                    case err: logger.error(text); break;
+                    case none: default: break;
+                };
+        }};
+
+        // com.j256.ormlite.logger.Logger.;
         if (Vars.isDebug || Vars.isServer) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             rootLogger.setLevel(Level.DEBUG);
+            Log.level = LogLevel.debug;
             
+            ((Logger) LoggerFactory.getLogger("log4j.logger.com.j256.ormlite")).setLevel(Level.INFO);
+
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
             if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
     }
 
-    private static void initializeCommands() {
-        SlashCommandData[] commandsData = commands.map(cmd -> cmd.getCommandData()).toArray(SlashCommandData.class);
-        
-        bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
-        bot.updateCommands().addCommands(commandsData).queue();
+    public static JDA getBot() {
+        return bot;
     }
 
     private static void registerShutdown() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            JosetaBot.logger.info("Shutting down...");
+            Log.info("Shutting down...");
             
             if (bot != null) {
                 bot.setAutoReconnect(false);
@@ -130,12 +150,12 @@ public class JosetaBot {
 
                 try {
                     if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
-                        JosetaBot.logger.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
+                        Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
                         bot.shutdownNow();
                         bot.awaitShutdown();
                     }
                 } catch (InterruptedException e) {
-                    JosetaBot.logger.error("An error occured while waitin for the bot to shutdown. Force shutting down...", e);
+                    Log.err("An error occured while waitin for the bot to shutdown. Force shutting down...", e);
                     bot.shutdownNow();
                 }
             }

@@ -5,6 +5,7 @@ import joseta.database.*;
 import joseta.database.entry.*;
 
 import arc.struct.*;
+import arc.util.*;
 
 import net.dv8tion.jda.api.entities.*;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.*;
 
 public class SanctionDatabaseHelper {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    public static void startScheduler() { scheduler.scheduleAtFixedRate(SanctionDatabaseHelper::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES); }
+    public static void startScheduler(int minutes) { scheduler.scheduleAtFixedRate(SanctionDatabaseHelper::checkExpiredSanctions, 0, minutes, TimeUnit.MINUTES); }
 
     public static void addSanction(char sanctionType, Member member, long moderatorId, long guildId, String reason, long time) {
         try {
@@ -37,7 +38,7 @@ public class SanctionDatabaseHelper {
             databases.getGuildDao().update(entry.incrementLastSanctionId());
             UserDatabaseHelper.updateUserSanctionCount(member, guildId);
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not add sanction.", e);
+            Log.err("Could not add sanction.", e);
         }
     }
 
@@ -57,7 +58,7 @@ public class SanctionDatabaseHelper {
 
             return entry;
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not get latest sanction.", e);
+            Log.err("Could not get latest sanction.", e);
             return null;
         }
     }
@@ -72,7 +73,7 @@ public class SanctionDatabaseHelper {
                 .eq("expired", false)
                 .query();
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not get expired sanctions.", e);
+            Log.err("Could not get expired sanctions.", e);
             return null;
         }
 
@@ -84,7 +85,7 @@ public class SanctionDatabaseHelper {
             Databases databases = Databases.getInstance();
             SanctionDatabaseHelper.getExpiredSanctions().forEach(sanction -> {
                 if (sanction.getSanctionTypeId() == 'B') {
-                    Guild guild = JosetaBot.bot.getGuildById(sanction.getGuildId());
+                    Guild guild = JosetaBot.getBot().getGuildById(sanction.getGuildId());
                     guild.retrieveBanList().queue(bans -> {
                         bans.forEach(ban -> {
                             if (ban.getUser().getIdLong() == sanction.getUserId())
@@ -95,11 +96,11 @@ public class SanctionDatabaseHelper {
                 try {
                     databases.getSanctionDao().update(sanction.setExpired(true));
                 } catch (SQLException e) {
-                    JosetaBot.logger.error("Error while updating expired sanction.", e);
+                    Log.err("Error while updating expired sanction.", e);
                 }
             });
         } catch (SQLException e) {
-            JosetaBot.logger.error("Error while checking expired sanctions.", e);
+            Log.err("Error while checking expired sanctions.", e);
         }
     }
 }

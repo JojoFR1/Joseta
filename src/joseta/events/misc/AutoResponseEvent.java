@@ -1,8 +1,9 @@
 package joseta.events.misc;
 
-import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.*;
@@ -19,6 +20,7 @@ public class AutoResponseEvent {
         "(?:\\b|[.,?!;:])(?:multi[ -]?(?:joueu?r|playeu?r)?|co*p(?:eration|[ea]?ins?)?|amis?|pot[oe]s?|(?:[aà] (?:deux|[2-9]|[1-9]+|plu?si?e?u?rs?)))(?:\\b|[.,?!;:])",
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
     );
+    //TODO unhardcode message & emoji
     public static final String message = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
 
     public static void execute(MessageReceivedEvent event) {
@@ -26,7 +28,7 @@ public class AutoResponseEvent {
         try {
             config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            Log.err("Erreur lors de la récupération de la configuration du serveur @ : @", event.getGuild().getId(), e.getMessage());
             event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur.").queue();
             return;
         }
@@ -37,7 +39,7 @@ public class AutoResponseEvent {
         String text = msg.getContentRaw();
         
         if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find()) {
-            JosetaBot.logger.debug("Multiplayer regex match.");
+            Log.debug("Multiplayer regex match.");
             msg.reply(message + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
         }
 

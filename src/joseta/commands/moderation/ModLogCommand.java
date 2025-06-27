@@ -1,6 +1,5 @@
 package joseta.commands.moderation;
 
-import joseta.*;
 import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
@@ -8,6 +7,7 @@ import joseta.database.helper.*;
 import joseta.utils.*;
 
 import arc.struct.*;
+import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -82,7 +82,7 @@ public class ModLogCommand extends ModCommand {
             sanctions = queryBuilder.query();
 
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la récupération des sanctions pour l'utilisateur {} dans le serveur {} : {}", member.getId(), guild.getId(), e.getMessage());
+            Log.err("Error retrieving sanctions for the user @ (@) in server @ (@): @", member.getEffectiveName(), member.getId(), guild.getName(), guild.getId(), e.getMessage());
             return new EmbedBuilder()
                 .setTitle("Erreur")
                 .setDescription("Une erreur est survenue lors de la récupération des sanctions.")

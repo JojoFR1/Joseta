@@ -1,9 +1,10 @@
 package joseta.commands.admin;
 
-import joseta.*;
 import joseta.commands.Command;
 import joseta.database.*;
 import joseta.database.entry.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -48,7 +49,7 @@ public class ConfigCommand extends Command {
             configDao = Databases.getInstance().getConfigDao();
             config = configDao.queryForId(event.getGuild().getIdLong());
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            Log.err("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
             event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
             return;
         }
@@ -82,7 +83,7 @@ public class ConfigCommand extends Command {
         try {
             Databases.getInstance().getConfigDao().createOrUpdate(config);
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la mise à jour de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
             event.reply("Une erreur est survenue lors de la mise à jour de la configuration du serveur.").setEphemeral(true).queue();
             return;
         }

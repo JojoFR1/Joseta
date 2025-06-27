@@ -1,10 +1,11 @@
 package joseta.commands.moderation;
 
-import joseta.*;
 import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.database.helper.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -42,7 +43,7 @@ public class UnwarnCommand extends ModCommand {
             databases.getSanctionDao().delete(entry);
             event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e);
+            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
             event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur. Veuillez contacter un administrateur.").setEphemeral(true).queue();
             return;
         }

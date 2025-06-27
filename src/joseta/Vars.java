@@ -1,5 +1,7 @@
 package joseta;
 
+import arc.util.*;
+
 import java.io.*;
 import java.util.*;
 
@@ -15,7 +17,7 @@ public class Vars {
         try (FileInputStream fi = new FileInputStream("secret.cfg")) {
             secret.load(fi);
         } catch (IOException e) {
-            JosetaBot.logger.error("Could not open the secret config file.", e);
+            Log.err("Could not open the secret config file.", e);
             System.exit(1);
         }
 

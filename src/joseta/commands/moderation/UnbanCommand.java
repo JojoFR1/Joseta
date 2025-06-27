@@ -1,10 +1,11 @@
 package joseta.commands.moderation;
 
-import joseta.*;
 import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.database.helper.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
@@ -33,14 +34,14 @@ public class UnbanCommand extends ModCommand {
                     SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'B');
                     databases.getSanctionDao().delete(entry);
                 } catch (SQLException e) {
-                    JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e);
+                    Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
                     event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur. Veuillez contacter un administrateur.").queue();
                     return;
                 }
             },
             failure -> {
+                Log.err("Error while executing a command ('unban').", failure);
                 event.reply("Une erreur est survenue lors de l'éxecution de la commande. Veuillez contacter un administrateur.").setEphemeral(true).queue();
-                JosetaBot.logger.error("Error while executing a command ('unban').", failure);
             }
         );
     }

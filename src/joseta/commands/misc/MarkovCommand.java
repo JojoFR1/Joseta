@@ -1,6 +1,5 @@
 package joseta.commands.misc;
 
-import joseta.*;
 import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
@@ -9,6 +8,7 @@ import joseta.utils.markov.*;
 
 import arc.files.*;
 import arc.struct.*;
+import arc.util.*;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.*;
@@ -31,7 +31,7 @@ public class MarkovCommand extends Command {
         try {
             config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
         } catch (SQLException e) {
-            JosetaBot.logger.error("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
+            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
             event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
             return;
         }

@@ -1,10 +1,10 @@
 package joseta.database.helper;
 
-import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
 
 import arc.struct.*;
+import arc.util.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
@@ -21,13 +21,13 @@ public class MessagesDatabaseHelper {
 
     public static void populateNewGuild(Guild guild) {
         int count = 0;
-        JosetaBot.logger.debug("Populating the Messages Database...");
+        Log.debug("Populating the Messages Database...");
         for (TextChannel channel : guild.getTextChannels()) {
             for (ThreadChannel thread : channel.getThreadChannels()) count += addChannelMessageHistory(thread, guild);
             count += addChannelMessageHistory(channel, guild);
         }
 
-        JosetaBot.logger.debug("Populated Markov Messages Database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
+        Log.debug("Populated Markov Messages Database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
     }
 
     private static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild) {
@@ -43,7 +43,7 @@ public class MessagesDatabaseHelper {
                 count++;
             }
         } catch (Exception e) {
-            JosetaBot.logger.error("Could not populate the Messages database.", e);
+            Log.err("Could not populate the Messages database.", e);
         }
 
         return count;
@@ -55,7 +55,7 @@ public class MessagesDatabaseHelper {
         long channelId = channel.getIdLong();
         
         try {
-            Databases.getInstance().getMessageDao().createIfNotExists(
+            Databases.getInstance().getMessageDao().create(
                 new MessageEntry(
                     id,
                     guildId,
@@ -66,7 +66,7 @@ public class MessagesDatabaseHelper {
                 )
             );
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not add a new message to the Markov database.", e);
+            Log.err("Could not add a new message to the Markov database.", e);
         }
     }
 
@@ -84,7 +84,7 @@ public class MessagesDatabaseHelper {
             
             databases.getMessageDao().update(entry.setContent(content));
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not update a message.", e);
+            Log.err("Could not update a message.", e);
         }
     }
 
@@ -101,7 +101,7 @@ public class MessagesDatabaseHelper {
 
             deleteBuilder.delete();
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not delete a message.", e);
+            Log.err("Could not delete a message.", e);
         }
     }
 
@@ -116,7 +116,7 @@ public class MessagesDatabaseHelper {
 
             deleteBuilder.delete();
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not delete a message.", e);
+            Log.err("Could not delete a message.", e);
         }
     }
 
@@ -132,7 +132,7 @@ public class MessagesDatabaseHelper {
                 .eq("channelId", channelId)
                 .queryForFirst();
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not retrieve message entry.", e);
+            Log.err("Could not retrieve message entry.", e);
             return null;
         }
 
@@ -144,7 +144,7 @@ public class MessagesDatabaseHelper {
         try {
             entry = Databases.getInstance().getMessageDao().queryForEq("guildId", guildId);
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not retrieve message entries for guild: " + guildId, e);
+            Log.err("Could not retrieve message entries for guild: " + guildId, e);
             return null;
         }
 

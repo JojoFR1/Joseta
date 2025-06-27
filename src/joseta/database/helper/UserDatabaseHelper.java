@@ -1,8 +1,9 @@
 package joseta.database.helper;
 
-import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.entities.*;
 
@@ -16,7 +17,7 @@ public class UserDatabaseHelper {
             UserEntry entry = new UserEntry(user);
             databases.getUserDao().createOrUpdate(entry);
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not add user to database.", e);
+            Log.err("Could not add user to database.", e);
         }
     }
     
@@ -31,7 +32,7 @@ public class UserDatabaseHelper {
 
             return entry.getSanctionCount();
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not get user total sanctions.", e);
+            Log.err("Could not get user total sanctions.", e);
             return -1;
         }
     }
@@ -47,7 +48,7 @@ public class UserDatabaseHelper {
                 databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId)).incrementSanctionCount()
             );
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not update user sanction count.", e);
+            Log.err("Could not update user sanction count.", e);
         }
     }
 

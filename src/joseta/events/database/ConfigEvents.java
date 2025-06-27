@@ -1,8 +1,9 @@
 package joseta.events.database;
 
-import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.events.guild.*;
 
@@ -15,9 +16,9 @@ public class ConfigEvents {
         try {
             if (Databases.getInstance().getConfigDao().queryForId(guildId) != null) return; // Guild already has a config.
             Databases.getInstance().getConfigDao().create(new ConfigEntry(guildId));
-            JosetaBot.logger.info("Added new config for guild ID: " + guildId);
+            Log.info("Added new config for guild @ (@)", event.getGuild().getName(), guildId);
         } catch (SQLException e) {
-            JosetaBot.logger.error("Could not create a new config for guild ID: " + guildId, e);
+            Log.err("Could not create a new config for guild @ (@): @", event.getGuild().getName(), guildId, e.getMessage());
         } 
     }
 }
