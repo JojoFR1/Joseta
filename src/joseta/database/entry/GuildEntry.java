@@ -2,25 +2,25 @@ package joseta.database.entry;
 
 import net.dv8tion.jda.api.entities.*;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;
+import org.hibernate.annotations.*;
 
-@DatabaseTable(tableName = "guilds")
+import jakarta.persistence.*;
+
+@Entity @Table(name = "guilds")
 public class GuildEntry {
-    @DatabaseField(id = true, generatedId = false)
+    @Id
     private long guildId;
-    @DatabaseField
+    @Column
     private String name;
-    @DatabaseField
+    @Column
     private String iconUrl;
-    @DatabaseField
+    @Column
     private long ownerId;
-    @DatabaseField(defaultValue = "-1")
+    @Column @ColumnDefault("-1")
     private int lastSanctionId;
-
     
-    // A no-arg constructor is required by ORMLite
-    private GuildEntry() {}
+    // A no-arg constructor is required by JPA
+    protected GuildEntry() {}
 
     public GuildEntry(GuildEntry other) {
         this.guildId = other.guildId;

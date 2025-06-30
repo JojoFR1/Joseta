@@ -60,9 +60,6 @@ public class JosetaBot {
         registerShutdown();
         preLoad(args);
 
-        dbTets();
-        System.exit(0);
-        
         Databases.getInstance(); // Should do the first initialization.        
         
         bot = JDABuilder.createDefault(Vars.token)
@@ -90,6 +87,9 @@ public class JosetaBot {
 
         // TODO that ugly, pls help pinpin
         for (Guild guild : bot.getGuilds()) {
+            Databases databases = Databases.getInstance();
+            // databases.
+            // databases.get(GuildEntry.class, guild.getIdLong());
             if (Databases.getInstance().getGuildDao().queryForEq("guildId", guild.getIdLong()).isEmpty())
                 Databases.getInstance().getGuildDao().create(new GuildEntry(guild));
 
@@ -102,61 +102,6 @@ public class JosetaBot {
                 MarkovMessagesDatabaseHelper.populateNewGuild(guild);
             }
         }
-    }
-
-    public static void dbTets() {
-        Configuration configuration = new Configuration();
-        
-        configuration.addAnnotatedClass(TestTable.class);
-        configuration.setProperty("hibernate.connection.driver_class", "org.sqlite.JDBC");
-        configuration.setProperty("hibernate.connection.url", "jdbc:sqlite:resources/test.db");
-        configuration.setProperty("hibernate.dialect", "org.hibernate.community.dialect.SQLiteDialect");
-        configuration.setProperty("hibernate.hbm2ddl.auto", "update");
-        configuration.setProperty("hibernate.show_sql", "true");
-        
-        StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
-        SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
-
-        Session s = sessionFactory.openSession();
-        Transaction tx = s.beginTransaction();
-        s.persist(new TestTable(9, "Test", "This is a test table."));
-        
-        tx.commit();
-    }
-
-    @Entity
-    public static class TestTable {
-        @Id
-        private long id;
-        private String name;
-        private String description;
-
-        public TestTable() {}
-        public TestTable(long id, String name, String description) {
-            this.id = id;
-            this.name = name;
-            this.description = description;
-        }
-        
-        public long getId() {
-            return id;
-        }
-        public void setId(long id) {
-            this.id = id;
-        }
-        public String getName() {
-            return name;
-        }
-        public void setName(String name) {
-            this.name = name;
-        }
-        public String getDescription() {
-            return description;
-        }
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
     }
 
     private static void preLoad(String args[]) {

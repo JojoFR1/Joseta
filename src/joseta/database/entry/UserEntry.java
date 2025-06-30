@@ -5,28 +5,27 @@ import net.dv8tion.jda.api.entities.*;
 import java.sql.*;
 import java.time.*;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;
+import jakarta.persistence.*;
 
-@DatabaseTable(tableName = "users")
+@Entity @Table(name = "users")
 public class UserEntry {
-    @DatabaseField(id = true, generatedId = false)
+    @Id
     private String id;
-    @DatabaseField
+    @Column
     private long userId;
-    @DatabaseField
+    @Column
     private long guildId;
-    @DatabaseField
+    @Column
     private String username;
-    @DatabaseField
+    @Column
     private String avatarUrl;
-    @DatabaseField
+    @Column
     private Timestamp createdAt;
-    @DatabaseField
+    @Column
     private int sanctionCount;
     
-    // A no-arg constructor is required by ORMLite
-    private UserEntry() {}
+    // A no-arg constructor is required by JPA
+    protected UserEntry() {}
 
     public UserEntry(long userId, long guildId, String username, String avatarUrl, Instant createdAt) {
         this.id = userId + "-" + guildId; // Unique ID combining userId and guildId

@@ -1,52 +1,51 @@
 package joseta.database.entry;
 
-import joseta.database.persister.*;
-
 import arc.struct.*;
 
 import java.net.*;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;
+import org.hibernate.annotations.*;
 
-@DatabaseTable(tableName = "config")
+import jakarta.persistence.*;
+
+@Entity @Table(name = "config")
 public class ConfigEntry {
-    @DatabaseField(id = true, generatedId = false)
+    @Id
     private long guildId;
 
     //#region Welcome
-    @DatabaseField (defaultValue = "false")
+    @Column @ColumnDefault("false")
     private boolean welcomeEnabled; // TODO maybe separate the leave and join enabled? + global enable?
-    @DatabaseField(defaultValue = "0")
+    @Column @ColumnDefault("0")
     private long welcomeChannelId;
-    @DatabaseField(defaultValue = "false")
+    @Column @ColumnDefault("false")
     private boolean welcomeImageEnabled;
     //TODO adapt welcome message for url
-    @DatabaseField
+    @Column
     private String welcomeImageUrl; //todo hard to implement with text position (especially when only text config is available).
-    @DatabaseField(defaultValue = "Bienvenue {{user}} !")
+    @Column @ColumnDefault("Bienvenue {{user}} !")
     private String welcomeJoinMessage;
-    @DatabaseField(defaultValue = "**{{userName}}** nous a quitté...")
+    @Column @ColumnDefault("**{{userName}}** nous a quitté...")
     private String welcomeLeaveMessage;
-    @DatabaseField(defaultValue = "0")
+    @Column @ColumnDefault("0")
     private long joinRoleId;
-    @DatabaseField(defaultValue = "0")
+    @Column @ColumnDefault("0")
     private long joinBotRoleId;
-    @DatabaseField(defaultValue = "0")
+    @Column @ColumnDefault("0")
     private long verifiedRoleId;
     //#endregion
 
     //#region Markov
-    @DatabaseField(defaultValue = "false")
+    @Column @ColumnDefault("false")
     private boolean markovEnabled;
-    @DatabaseField(defaultValue = "", persisterClass = LongSeqPersister.class)
+    @Column @ColumnDefault("[]")
     private Seq<Long> markovBlackList;
     //#endregion
     
-    @DatabaseField(defaultValue = "false")
+    @Column @ColumnDefault("false")
     private boolean moderationEnabled;
 
-    @DatabaseField(defaultValue = "false")
+    @Column @ColumnDefault("false")
     private boolean autoResponseEnabled;
 
     // A no-arg constructor is required by ORMLite & for base initialization
@@ -66,7 +65,6 @@ public class ConfigEntry {
         this.joinRoleId = other.joinRoleId;
         this.joinBotRoleId = other.joinBotRoleId;
         this.verifiedRoleId = other.verifiedRoleId;
-
         this.markovEnabled = other.markovEnabled;
         this.markovBlackList = new Seq<>(other.markovBlackList);
 
@@ -124,6 +122,13 @@ public class ConfigEntry {
         }
 
         return result;
+    }
+
+    public static Seq<Long> seqFromString(String str) {
+        if (str == null || str.isEmpty() || str.equals("[]")) return new Seq<>();
+        str = str.replace("[", "").replace("]", "").trim();
+        String[] values = str.split(",");
+        return parseLongArray(values);
     }
 
     public ConfigEntry addMarkovBlackList(long channelId) {

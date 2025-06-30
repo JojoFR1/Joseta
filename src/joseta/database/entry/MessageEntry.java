@@ -3,26 +3,25 @@ package joseta.database.entry;
 import java.sql.*;
 import java.time.*;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;;
+import jakarta.persistence.*;;
 
-@DatabaseTable(tableName = "messages")
+@Entity @Table(name = "messages")
 public class MessageEntry {
-    @DatabaseField(id = true, generatedId = false)
+    @Id
     private long messageId;
-    @DatabaseField
+    @Column
     private long guildId;
-    @DatabaseField
+    @Column
     private long channelId;
-    @DatabaseField
+    @Column
     private long authorId;
-    @DatabaseField
+    @Column
     private String content;
-    @DatabaseField
+    @Column
     private Timestamp timestamp;
 
-    // A no-arg constructor is required by ORMLite
-    private MessageEntry() {}
+    // A no-arg constructor is required by JPA
+    protected MessageEntry() {}
 
     public MessageEntry(long messageId, long guildId, long channelId, long authorId, String content, Instant timestamp) {
         this.messageId = messageId;

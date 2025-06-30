@@ -3,22 +3,21 @@ package joseta.database.entry;
 import java.sql.*;
 import java.time.*;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;
+import jakarta.persistence.*;
 
-@DatabaseTable(tableName = "markov_messages")
+@Entity @Table(name = "markov_messages")
 public class MarkovMessageEntry {
-    @DatabaseField(id = true, generatedId = false)
+    @Id
     private long messageId;
-    @DatabaseField
+    @Column
     private long guildId;
-    @DatabaseField
+    @Column
     private long channelId;
-    @DatabaseField
+    @Column
     private long authorId;
-    @DatabaseField
+    @Column
     private String content;
-    @DatabaseField
+    @Column
     private Timestamp timestamp;
 
     // No-arg constructor required by ORMLite

@@ -2,60 +2,66 @@ package joseta.database;
 
 import joseta.database.entry.*;
 
-import java.sql.*;
-
-import com.j256.ormlite.dao.*;
-import com.j256.ormlite.jdbc.*;
-import com.j256.ormlite.support.*;
-import com.j256.ormlite.table.*;
+import org.hibernate.*;
+import org.hibernate.boot.registry.*;
+import org.hibernate.cfg.*;
 
 public class Databases {
-    private static final String databaseUrl = "jdbc:sqlite:resources/bot.db";
     private static Databases instance;
-    
-    private ConnectionSource connectionSource;
+    private final String databaseUrl = "jdbc:sqlite:resources/test.db";
 
-    private Databases() throws SQLException {
-        connectionSource = new JdbcConnectionSource(databaseUrl);
+    private Session session;
+
+    private Databases() {
+        Configuration configuration = new Configuration();
         
-        TableUtils.createTableIfNotExists(connectionSource, GuildEntry.class);
-        TableUtils.createTableIfNotExists(connectionSource, UserEntry.class);
-        TableUtils.createTableIfNotExists(connectionSource, ConfigEntry.class); //! Has to be first
-        TableUtils.createTableIfNotExists(connectionSource, SanctionEntry.class);
-        TableUtils.createTableIfNotExists(connectionSource, MessageEntry.class);
-        TableUtils.createTableIfNotExists(connectionSource, MarkovMessageEntry.class);
+        configuration.addAnnotatedClasses(GuildEntry.class,
+                                          UserEntry.class,
+                                          ConfigEntry.class,
+                                          SanctionEntry.class,
+                                          MessageEntry.class,
+                                          MarkovMessageEntry.class);
+        configuration.setProperty("hibernate.connection.driver_class", org.sqlite.JDBC.class)
+            .setProperty("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class)
+            .setProperty("hibernate.connection.url", databaseUrl)
+            .setProperty("hibernate.hbm2ddl.auto", "update")
+            .setProperty("hibernate.show_sql", "false");
+
+ 
+        StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
+        SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
+        session = sessionFactory.openSession();
     }
 
-    public static Databases getInstance() throws SQLException {
+    public static Databases getInstance() {
         if (instance == null) {
             instance = new Databases();
         }
         return instance;
     }
 
-    public ConnectionSource getConnectionSource() { return connectionSource; }
+    public Session getSession() { return session; }
 
-    public Dao<GuildEntry, Long> getGuildDao() throws SQLException{
-        return DaoManager.createDao(connectionSource, GuildEntry.class);
+    public void create(Object object) {
+        Transaction transaction = session.beginTransaction();
+        session.persist(object);
+        transaction.commit();
     }
 
-    public Dao<UserEntry, String> getUserDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, UserEntry.class);
+    public <E> E createOrUpdate(E object) {
+        Transaction transaction = session.beginTransaction();
+        E persistent = session.merge(object);
+        transaction.commit();
+        return persistent;
     }
 
-    public Dao<ConfigEntry, Long> getConfigDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, ConfigEntry.class);
+    public void delete(Object object) {
+        Transaction transaction = session.beginTransaction();
+        session.remove(object);
+        transaction.commit();
     }
 
-    public Dao<SanctionEntry, Long> getSanctionDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, SanctionEntry.class);
-    }
-
-    public Dao<MessageEntry, Long> getMessageDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, MessageEntry.class);
-    }
-
-    public Dao<MarkovMessageEntry, Long> getMarkovMessageDao() throws SQLException {
-        return DaoManager.createDao(connectionSource, MarkovMessageEntry.class);
+    public <E> E get (Class<E> clazz, long id) {
+        return session.find(clazz, id);
     }
 }

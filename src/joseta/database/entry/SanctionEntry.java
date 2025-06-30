@@ -3,30 +3,31 @@ package joseta.database.entry;
 import java.sql.*;
 import java.time.*;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;
+import org.hibernate.annotations.*;
 
-@DatabaseTable(tableName = "sanctions")
+import jakarta.persistence.*;
+
+@Entity @Table(name = "sanctions")
 public class SanctionEntry {
-    @DatabaseField(id = true, generatedId = false)
+    @Id
     private String sanctionId;
-    @DatabaseField
+    @Column
     private long userId;
-    @DatabaseField
+    @Column
     private long moderatorId;
-    @DatabaseField
+    @Column
     private long guildId;
-    @DatabaseField
+    @Column
     private String reason;
-    @DatabaseField
+    @Column
     private Timestamp timestamp;
-    @DatabaseField
+    @Column
     private long expiryTime;
-    @DatabaseField(defaultValue = "false")
+    @Column @ColumnDefault("false")
     private boolean isExpired;
 
-    // A no-arg constructor is required by ORMLite
-    private SanctionEntry() {};
+    // A no-arg constructor is required by JPA
+    protected SanctionEntry() {};
 
     public SanctionEntry(long sanctionId, char sanctionType, long userId, long moderatorId, long guildId, String reason, Instant timestamp, long expiryTime) {
         this.sanctionId = sanctionType + Long.toString(sanctionId);
