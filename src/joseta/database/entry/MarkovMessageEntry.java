@@ -20,8 +20,8 @@ public class MarkovMessageEntry {
     @Column
     private Timestamp timestamp;
 
-    // No-arg constructor required by ORMLite
-    private MarkovMessageEntry() {}
+    // A no-arg constructor is required by JPA
+    protected MarkovMessageEntry() {}
 
     public MarkovMessageEntry(long messageId, long guildId, long channelId, long authorId, String content, Instant timestamp) {
         this.messageId = messageId;

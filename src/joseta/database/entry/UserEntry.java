@@ -6,15 +6,16 @@ import java.sql.*;
 import java.time.*;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity @Table(name = "users")
 public class UserEntry {
-    @Id
-    private String id;
-    @Column
-    private long userId;
-    @Column
-    private long guildId;
+    @Embeddable
+    protected record UserId(long userId, long guildId) {}
+
+    
+    @EmbeddedId @NotNull
+    private UserId userId;
     @Column
     private String username;
     @Column
@@ -28,9 +29,7 @@ public class UserEntry {
     protected UserEntry() {}
 
     public UserEntry(long userId, long guildId, String username, String avatarUrl, Instant createdAt) {
-        this.id = userId + "-" + guildId; // Unique ID combining userId and guildId
-        this.userId = userId;
-        this.guildId = guildId;
+        this.userId = new UserId(userId, guildId); // Unique ID combining userId and guildId
         this.username = username;
         this.avatarUrl = avatarUrl;
         this.createdAt = Timestamp.from(createdAt);
@@ -46,14 +45,8 @@ public class UserEntry {
         );
     }
 
-    public String getId() { return id; }
-    public UserEntry setId(long userId, long guildId) { this.id = userId + "-" + guildId; return this; }
-
-    public long getUserId() { return userId; }
-    public UserEntry setUserId(long userId) { this.userId = userId; return this; }
-
-    public long getGuildId() { return guildId; }
-    public UserEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
+    public UserId getUserId() { return userId; }
+    public UserEntry setUserId(long userId, long guildId) { this.userId = new UserId(userId, guildId); return this; }
 
     public String getUsername() { return username; }
     public UserEntry setUsername(String username) { this.username = username; return this; }

@@ -48,8 +48,8 @@ public class ConfigEntry {
     @Column @ColumnDefault("false")
     private boolean autoResponseEnabled;
 
-    // A no-arg constructor is required by ORMLite & for base initialization
-    private ConfigEntry() {}
+    // A no-arg constructor is required by JPA
+    protected ConfigEntry() {}
     
     public ConfigEntry(long guildId) { this.guildId = guildId; }
 
