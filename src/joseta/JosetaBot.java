@@ -20,9 +20,6 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
 
-import org.hibernate.*;
-import org.hibernate.boot.registry.*;
-import org.hibernate.cfg.*;
 import org.slf4j.*;
 
 import java.sql.*;
@@ -30,7 +27,6 @@ import java.util.concurrent.*;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import jakarta.persistence.*;
 
 public class JosetaBot {
     private static JDA bot;
@@ -88,16 +84,15 @@ public class JosetaBot {
         // TODO that ugly, pls help pinpin
         for (Guild guild : bot.getGuilds()) {
             Databases databases = Databases.getInstance();
-            // databases.
-            // databases.get(GuildEntry.class, guild.getIdLong());
-            if (Databases.getInstance().getGuildDao().queryForEq("guildId", guild.getIdLong()).isEmpty())
-                Databases.getInstance().getGuildDao().create(new GuildEntry(guild));
 
-            if (Databases.getInstance().getConfigDao().queryForEq("guildId", guild.getIdLong()).isEmpty())
-                Databases.getInstance().getConfigDao().create(new ConfigEntry(guild.getIdLong()));
+            if (databases.get(GuildEntry.class, guild.getIdLong()) == null)
+                databases.create(new GuildEntry(guild));
+
+            if (databases.get(ConfigEntry.class, guild.getIdLong()) == null)
+                databases.create(new ConfigEntry(guild.getIdLong()));
 
             //TODO populate with config disabled by default + no markov black list defined
-            if (Databases.getInstance().getMessageDao().queryForEq("guildId", guild.getIdLong()).isEmpty()) {
+            if (databases.get(MessageEntry.class, guild.getIdLong()) == null) {
                 MessagesDatabaseHelper.populateNewGuild(guild);
                 MarkovMessagesDatabaseHelper.populateNewGuild(guild);
             }
@@ -111,9 +106,6 @@ public class JosetaBot {
         }
 
         Vars.loadSecrets();
-        
-        // Disable ORMLite debug logs, because it's spamming
-        com.j256.ormlite.logger.Logger.setGlobalLogLevel(com.j256.ormlite.logger.Level.WARNING);
 
         Log.useColors = false;
         Log.logger = new Log.LogHandler() {

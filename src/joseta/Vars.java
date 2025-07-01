@@ -7,8 +7,8 @@ import java.util.*;
 
 public class Vars {
     public static String token = null;
-    public static long testGuildId = 0;
     public static String[] ownersId; // Not a long because it requires a loop
+    public static String sqlUrl, sqlUsername, sqlPassword;
     
     public static boolean isDebug, isServer = false;
 
@@ -20,10 +20,14 @@ public class Vars {
             Log.err("Could not open the secret config file.", e);
             System.exit(1);
         }
-
-        token = secret.getProperty(isDebug ? "tokenDebug" : "token");
-        testGuildId = Long.parseLong(secret.getProperty(isDebug ? "testGuildIdDebug" : "testGuildId", "-1"));
-        ownersId = secret.getProperty(isDebug ? "adminsDebug" : "admins").split(" ");
+        
+        String suffix = isDebug ? "-dev" : "";
+        
+        token = secret.getProperty("token" + suffix);
+        ownersId = secret.getProperty("admins" + suffix).split(" ");
+        sqlUsername = secret.getProperty("sqlUrl" + suffix);
+        sqlUsername = secret.getProperty("sqlUsername" + suffix);
+        sqlPassword = secret.getProperty("sqlPassword" + suffix);
     }
     
     public static void setDebug(boolean debug) {
