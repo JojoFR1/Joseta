@@ -7,33 +7,27 @@ import net.dv8tion.jda.api.entities.*;
 
 public class UserDatabaseHelper {
 
-    public static void addUser(Member user) {
+    public static UserEntry addUser(Member user) {
         Databases databases = Databases.getInstance();
         UserEntry entry = new UserEntry(user);
-        databases.createOrUpdate(entry);
+        return databases.createOrUpdate(entry);
     }
     
     public static int getUserSanctionCount(Member member, long guildId) {
-        Databases databases = Databases.getInstance();
-        UserEntry entry = databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId));
-        if (entry == null) {
-            entry = new UserEntry(member);
-            databases.create(entry);
-        }
-
-        return entry.getSanctionCount();
+        return getOrCreateUserEntry(member, guildId).getSanctionCount();
     }
 
     public static void updateUserSanctionCount(Member member, long guildId) {
         Databases databases = Databases.getInstance();
-
-        if (databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId)) == null)
-            UserDatabaseHelper.addUser(member);
-        
-        databases.createOrUpdate(
-            databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId)).incrementSanctionCount()
-        );
+        UserEntry entry = getOrCreateUserEntry(member, guildId);
+        databases.createOrUpdate(entry.incrementSanctionCount());
     }
 
     public static String getComposedId(long userId, long guildId) { return userId + "-" + guildId; }
+
+    private static UserEntry getOrCreateUserEntry(Member member, long guildId) {
+        Databases databases = Databases.getInstance();
+        UserEntry entry = databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId));
+        return entry == null ? addUser(member) : entry;
+    }
 }
