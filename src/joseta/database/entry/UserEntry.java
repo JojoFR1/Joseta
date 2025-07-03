@@ -12,7 +12,7 @@ import jakarta.validation.constraints.*;
 public class UserEntry {
     @Embeddable
     protected record UserId(long userId, long guildId) {}
-
+    public static UserId getUserId(long userId, long guildId) { return new UserId(userId, guildId); }
     
     @EmbeddedId @NotNull
     private UserId userId;

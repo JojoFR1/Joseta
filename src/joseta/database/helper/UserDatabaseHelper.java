@@ -23,11 +23,9 @@ public class UserDatabaseHelper {
         databases.createOrUpdate(entry.incrementSanctionCount());
     }
 
-    public static String getComposedId(long userId, long guildId) { return userId + "-" + guildId; }
-
     private static UserEntry getOrCreateUserEntry(Member member, long guildId) {
         Databases databases = Databases.getInstance();
-        UserEntry entry = databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId));
+        UserEntry entry = databases.get(UserEntry.class, UserEntry.getUserId(member.getIdLong(), guildId));
         return entry == null ? addUser(member) : entry;
     }
 }
