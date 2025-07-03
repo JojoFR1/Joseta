@@ -4,16 +4,10 @@ import joseta.commands.Command;
 import joseta.database.*;
 import joseta.database.entry.*;
 
-import arc.util.*;
-
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-
-import java.sql.*;
-
-import com.j256.ormlite.dao.*;
 
 public class ConfigCommand extends Command {
 
@@ -43,17 +37,8 @@ public class ConfigCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        Dao<ConfigEntry, Long> configDao;
-        ConfigEntry config;
-        try {
-            configDao = Databases.getInstance().getConfigDao();
-            config = configDao.queryForId(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            Log.err("Erreur lors de la récupération de la configuration du serveur {} : {}", event.getGuild().getId(), e.getMessage());
-            event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
-            return;
-        }
-
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
+        
         switch (event.getSubcommandName()) {
             case "welcome":
                 config.setWelcomeEnabled(event.getOption("enabled", config.isWelcomeEnabled(), OptionMapping::getAsBoolean))
@@ -80,13 +65,7 @@ public class ConfigCommand extends Command {
             default: break;
         }
 
-        try {
-            Databases.getInstance().getConfigDao().createOrUpdate(config);
-        } catch (SQLException e) {
-            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
-            event.reply("Une erreur est survenue lors de la mise à jour de la configuration du serveur.").setEphemeral(true).queue();
-            return;
-        }
+        Databases.getInstance().createOrUpdate(config);
 
         event.reply("Configuration of the server updated succesfully.").setEphemeral(true).queue();
     }

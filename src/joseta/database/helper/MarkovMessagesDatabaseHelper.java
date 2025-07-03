@@ -10,13 +10,14 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
 
-import java.sql.*;
 import java.time.*;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
 
-import com.j256.ormlite.stmt.*;
+import org.hibernate.query.criteria.*;
+
+import jakarta.persistence.criteria.*;
 
 /** Copy of {@link MarkovMessagesHelper} but for the special Markov messages */
 public class MarkovMessagesDatabaseHelper {
@@ -28,14 +29,8 @@ public class MarkovMessagesDatabaseHelper {
         int count = 0;
         Log.debug("Populating the Messages Database...");
 
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(guild.getIdLong());
-        } catch (SQLException e) {
-            Log.err("Could not retrieve the config for guild: " + guild.getIdLong(), e);
-            return;
-        }
-
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, guild.getIdLong());
+        
         for (TextChannel channel : guild.getTextChannels()) {
             Seq<Long> markovBlackList = config.getMarkovBlackList();
             if (channel.isNSFW()
@@ -69,13 +64,7 @@ public class MarkovMessagesDatabaseHelper {
         long id = message.getIdLong();
         long guildId = guild.getIdLong();
 
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(guildId);
-        } catch (SQLException e) {
-            Log.err("Could not retrieve the config for guild: " + guildId, e);
-            return;
-        }
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, guildId);
         
         Seq<Long> markovBlackList = config.getMarkovBlackList();
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return;
@@ -88,121 +77,112 @@ public class MarkovMessagesDatabaseHelper {
         if (channel instanceof TextChannel textChannel &&
             (textChannel.isNSFW() || markovBlackList.contains(textChannel.getParentCategoryIdLong()))) return;
         
-        try {
-            Databases.getInstance().getMarkovMessageDao().createIfNotExists(
-                new MarkovMessageEntry(
-                    id,
-                    guildId,
-                    channel.getIdLong(),
-                    authorId,
-                    cleanMessage(content),
-                    Instant.parse(timestamp)
-                )
-            );
-        } catch (SQLException e) {
-            Log.err("Could not add a new message to the Markov database.", e);
-        }
+        Databases.getInstance().create(
+            new MarkovMessageEntry(
+                id,
+                guildId,
+                channel.getIdLong(),
+                authorId,
+                cleanMessage(content),
+                Instant.parse(timestamp)
+            )
+        );
     }
 
-    public static void updateMessage(long id, long guildId, long channelId, String content) {
-        if (getMessageEntry(id, guildId, channelId) == null) return; // Entry does not exist, no need to update
-        try {
-            Databases databases = Databases.getInstance();
-            MarkovMessageEntry entry = databases.getMarkovMessageDao().queryBuilder()
-                .where()
-                .eq("messageId", id)
-                .and()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId)
-                .queryForFirst();
-            
-            databases.getMarkovMessageDao().update(entry.setContent(cleanMessage(content)));
-        } catch (SQLException e) {
-            Log.err("Could not update a message.", e);
-        }
+    public static void updateMessage(long messageId, long guildId, long channelId, String content) {
+        if (getMessageEntry(messageId, guildId, channelId) == null) return; // Entry does not exist, no need to update
+        
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
+        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.messageId), messageId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
+        query.select(root).where(where);
+
+        MarkovMessageEntry entry = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList().get(0);
+
+        Databases.getInstance().createOrUpdate(entry.setContent(cleanMessage(content)));
     }
 
-    public static void deleteMessage(long id, long guildId, long channelId) {
-        if (getMessageEntry(id, guildId, channelId) == null) return; // Entry does not exist, no need to delete
-        try {
-            DeleteBuilder<MarkovMessageEntry, Long> deleteBuilder = Databases.getInstance().getMarkovMessageDao().deleteBuilder();
-            
-            deleteBuilder.where()
-                .eq("messageId", id)
-                .and()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId);
+    public static void deleteMessage(long messageId, long guildId, long channelId) {
+        if (getMessageEntry(messageId, guildId, channelId) == null) return; // Entry does not exist, no need to delete
 
-            deleteBuilder.delete();
-        } catch (SQLException e) {
-            Log.err("Could not delete a message.", e);
-        }
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaDelete<MarkovMessageEntry> query = criteriaBuilder.createCriteriaDelete(MarkovMessageEntry.class);
+        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.messageId), messageId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
+        query.where(where);
+
+        Databases.getInstance().getSession().createMutationQuery(query).executeUpdate();
     }
 
     public static void deleteChannelMessages(long guildId, long channelId) {
         if (getMessageEntriesByChannel(guildId, channelId).isEmpty()) return; // No entries to delete
-        try {
-            DeleteBuilder<MarkovMessageEntry, Long> deleteBuilder = Databases.getInstance().getMarkovMessageDao().deleteBuilder();
-            
-            deleteBuilder.where()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId);
+        
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaDelete<MarkovMessageEntry> query = criteriaBuilder.createCriteriaDelete(MarkovMessageEntry.class);
+        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
+        query.where(where);
 
-            deleteBuilder.delete();
-        } catch (SQLException e) {
-            Log.err("Could not delete a message.", e);
-        }
+        Databases.getInstance().getSession().createMutationQuery(query).executeUpdate();
+
     }
 
-    public static MarkovMessageEntry getMessageEntry(long id, long guildId, long channelId) {
-        MarkovMessageEntry entry;
-        try {
-            entry = Databases.getInstance().getMarkovMessageDao().queryBuilder()
-                .where()
-                .eq("messageId", id)
-                .and()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId)
-                .queryForFirst();
-        } catch (SQLException e) {
-            Log.err("Could not retrieve message entry.", e);
-            return null;
-        }
+    public static MarkovMessageEntry getMessageEntry(long messageId, long guildId, long channelId) {
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
+        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.messageId), messageId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
+        query.select(root).where(where);
+
+        MarkovMessageEntry entry = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList().get(0);
 
         return entry;
     }
 
     public static Seq<MarkovMessageEntry> getMessageEntriesByChannel(long guildId, long channelId) {
-        List<MarkovMessageEntry> entry;
-        try {
-            entry = Databases.getInstance().getMarkovMessageDao().queryBuilder()
-                .where()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channeld", channelId)
-                .query();
-        } catch (SQLException e) {
-            Log.err("Could not retrieve message entries for channel: " + channelId, e);
-            return null;
-        }
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
+        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
+        query.select(root).where(where);
 
-        return Seq.with(entry);
+        List<MarkovMessageEntry> entries = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList();
+
+        return Seq.with(entries);
     }
 
     public static Seq<MarkovMessageEntry> getMessageEntriesByGuild(long guildId) {
-        List<MarkovMessageEntry> entry;
-        try {
-            entry = Databases.getInstance().getMarkovMessageDao().queryForEq("guildId", guildId);
-        } catch (SQLException e) {
-            Log.err("Could not retrieve message entries for guild: " + guildId, e);
-            return null;
-        }
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
+        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
+        Predicate where = criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId);
+        query.select(root).where(where);
 
-        return Seq.with(entry);
+        List<MarkovMessageEntry> entries = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList();
+
+        return Seq.with(entries);
     }
 
     private static String cleanMessage(String string) {

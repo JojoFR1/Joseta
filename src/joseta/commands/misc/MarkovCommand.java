@@ -8,12 +8,9 @@ import joseta.utils.markov.*;
 
 import arc.files.*;
 import arc.struct.*;
-import arc.util.*;
 
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.*;
-
-import java.sql.*;
 
 /**
  * Original idea by l4p1n in <a href=https://git.l4p1n.ch/l4p1n-bot/bot-rust/src/commit/8afea76f37fa1468e829c37366534e6b345bdc94/bot/AppCommands/MarkovCommand.cs>l4p1n-bot/MarkovCommand.cs</a>
@@ -27,14 +24,7 @@ public class MarkovCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
-            event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
-            return;
-        }
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
 
         if (!config.isMarkovEnabled()) {
             event.reply("La génération de messages aléatoires est désactivée sur ce serveur.").setEphemeral(true).queue();

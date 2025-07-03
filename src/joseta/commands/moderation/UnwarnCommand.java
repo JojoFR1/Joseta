@@ -5,14 +5,10 @@ import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.database.helper.*;
 
-import arc.util.*;
-
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-
-import java.sql.*;
 
 public class UnwarnCommand extends ModCommand {
     private long warnId;
@@ -28,25 +24,19 @@ public class UnwarnCommand extends ModCommand {
 
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
-        try {
-            SanctionEntry entry;
-            Databases databases = Databases.getInstance();
+        SanctionEntry entry;
+        Databases databases = Databases.getInstance();
 
-            if (warnId == -1) entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'W');
-            else entry = databases.getSanctionDao().queryForId(warnId);
+        if (warnId == -1) entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'W');
+        else entry = databases.get(SanctionEntry.class, warnId);
 
-            if (entry.getSanctionTypeId() != 'W') {
-                event.reply("L'identifiant de l'avertissement n'est pas valide.").setEphemeral(true).queue();
-                return;
-            }
-
-            databases.getSanctionDao().delete(entry);
-            event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
-        } catch (SQLException e) {
-            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
-            event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur. Veuillez contacter un administrateur.").setEphemeral(true).queue();
+        if (entry.getSanctionTypeId() != 'W') {
+            event.reply("L'identifiant de l'avertissement n'est pas valide.").setEphemeral(true).queue();
             return;
         }
+
+        databases.delete(entry);
+        event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
     }    
 
 

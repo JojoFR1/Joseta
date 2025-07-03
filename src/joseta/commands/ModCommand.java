@@ -4,13 +4,9 @@ import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.utils.*;
 
-import arc.util.*;
-
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
-
-import java.sql.*;
 
 public abstract class ModCommand extends Command {
     protected User user;
@@ -33,14 +29,7 @@ public abstract class ModCommand extends Command {
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
-            event.reply("Une erreur est survenue lors de la récupération de la configuration du serveur.").setEphemeral(true).queue();
-            return false;
-        }
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
         
         if (!config.isModerationEnabled()) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();

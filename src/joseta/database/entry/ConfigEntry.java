@@ -22,7 +22,7 @@ public class ConfigEntry {
     private boolean welcomeImageEnabled;
     //TODO adapt welcome message for url
     @Column
-    private String welcomeImageUrl; //todo hard to implement with text position (especially when only text config is available).
+    private String welcomeImageUrl; //TODO hard to implement with text position (especially when only text config is available).
     @Column @ColumnDefault("Bienvenue {{user}} !")
     private String welcomeJoinMessage;
     @Column @ColumnDefault("**{{userName}}** nous a quitté...")

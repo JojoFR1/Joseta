@@ -16,7 +16,6 @@ import java.awt.image.*;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
-import java.sql.*;
 
 import javax.imageio.*;
 
@@ -48,14 +47,7 @@ public class WelcomeMessage {
     }
 
     public static void executeGuildMemberJoin(GuildMemberJoinEvent event) {
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            Log.err("Erreur lors de la récupération de la configuration du serveur @ : @", event.getGuild().getId(), e.getMessage());
-            // event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur.").queue();
-            return;
-        }
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
         User user = event.getUser();
 
         TextChannel channel;
@@ -82,18 +74,11 @@ public class WelcomeMessage {
     }
 
     public static void executeGuildMemberRemove(GuildMemberRemoveEvent event) {
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
-            // event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur.").queue();
-            return;
-        }
+        ConfigEntry config  = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
         
         TextChannel channel;
         if (!config.isWelcomeEnabled()) return;
-        if (config.getWelcomeChannelId() == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.getWelcomeChannelId()))== null) {
+        if (config.getWelcomeChannelId() == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.getWelcomeChannelId())) == null) {
             Log.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild @ (@)", event.getGuild().getName(), event.getGuild().getId());
             return;
         }

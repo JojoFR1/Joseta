@@ -8,10 +8,10 @@ import arc.util.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.*;
 
-import java.sql.*;
 import java.util.regex.*;
 
 public class AutoResponseEvent {
+    // TODO improve, too many false positives
     private static final Pattern patternQuestion = Pattern.compile(
         "(?:\\b|[.,?!;:])(?:com*[ea]nt?|pos*ible|m(?:oyen|ani[èeé]re)|fa[cç]on)(?:\\b|[.,?!;:])",
         Pattern.CASE_INSENSITIVE|Pattern.CANON_EQ
@@ -24,15 +24,7 @@ public class AutoResponseEvent {
     public static final String message = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
 
     public static void execute(MessageReceivedEvent event) {
-        ConfigEntry config;
-        try {
-            config = Databases.getInstance().getConfigDao().queryForId(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            Log.err("Erreur lors de la récupération de la configuration du serveur @ : @", event.getGuild().getId(), e.getMessage());
-            event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur.").queue();
-            return;
-        }
-        
+        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
         if (!config.isAutoResponseEnabled()) return;
         
         Message msg = event.getMessage();

@@ -10,12 +10,13 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
 
-import java.sql.*;
 import java.time.*;
 import java.util.*;
 import java.util.stream.*;
 
-import com.j256.ormlite.stmt.*;
+import org.hibernate.query.criteria.*;
+
+import jakarta.persistence.criteria.*;
 
 public class MessagesDatabaseHelper {
 
@@ -54,100 +55,89 @@ public class MessagesDatabaseHelper {
         long guildId = guild.getIdLong();
         long channelId = channel.getIdLong();
         
-        try {
-            Databases.getInstance().getMessageDao().create(
-                new MessageEntry(
-                    id,
-                    guildId,
-                    channelId,
-                    authorId,
-                    content,
-                    Instant.parse(timestamp)
-                )
-            );
-        } catch (SQLException e) {
-            Log.err("Could not add a new message to the Markov database.", e);
-        }
+        Databases.getInstance().create(
+            new MessageEntry(
+                id,
+                guildId,
+                channelId,
+                authorId,
+                content,
+                Instant.parse(timestamp)
+            )
+        );
     }
 
     public static void updateMessage(long messageId, long guildId, long channelId, String content) {
-        try {
-            Databases databases = Databases.getInstance();
-            MessageEntry entry = databases.getMessageDao().queryBuilder()
-                .where()
-                .eq("messageId", messageId)
-                .and()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId)
-                .queryForFirst();
-            
-            databases.getMessageDao().update(entry.setContent(content));
-        } catch (SQLException e) {
-            Log.err("Could not update a message.", e);
-        }
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
+        Root<MessageEntry> root = query.from(MessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.messageId), messageId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
+        query.select(root).where(where);
+
+        MessageEntry entry = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList().get(0);
+        
+        Databases.getInstance().createOrUpdate(entry.setContent(content));
     }
 
-    public static void deleteMessage(long id, long guildId, long channelId) {
-        try {
-            DeleteBuilder<MessageEntry, Long> deleteBuilder = Databases.getInstance().getMessageDao().deleteBuilder();
-            
-            deleteBuilder.where()
-                .eq("id", id)
-                .and()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId);
+    public static void deleteMessage(long messageId, long guildId, long channelId) {
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaDelete<MessageEntry> query = criteriaBuilder.createCriteriaDelete(MessageEntry.class);
+        Root<MessageEntry> root = query.from(MessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.messageId), messageId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
+        query.where(where);
 
-            deleteBuilder.delete();
-        } catch (SQLException e) {
-            Log.err("Could not delete a message.", e);
-        }
+        Databases.getInstance().getSession().createMutationQuery(query).executeUpdate();
     }
 
     public static void deleteChannelMessages(long guildId, long channelId) {
-        try {
-            DeleteBuilder<MessageEntry, Long> deleteBuilder = Databases.getInstance().getMessageDao().deleteBuilder();
-            
-            deleteBuilder.where()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId);
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaDelete<MessageEntry> query = criteriaBuilder.createCriteriaDelete(MessageEntry.class);
+        Root<MessageEntry> root = query.from(MessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
+        query.where(where);
 
-            deleteBuilder.delete();
-        } catch (SQLException e) {
-            Log.err("Could not delete a message.", e);
-        }
+        Databases.getInstance().getSession().createMutationQuery(query).executeUpdate();
+
     }
 
-    public static MessageEntry getMessageEntry(long id, long guildId, long channelId) {
-        MessageEntry entry;
-        try {
-            entry = Databases.getInstance().getMessageDao().queryBuilder()
-                .where()
-                .eq("id", id)
-                .and()
-                .eq("guildId", guildId)
-                .and()
-                .eq("channelId", channelId)
-                .queryForFirst();
-        } catch (SQLException e) {
-            Log.err("Could not retrieve message entry.", e);
-            return null;
-        }
+    public static MessageEntry getMessageEntry(long messageId, long guildId, long channelId) {
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
+        Root<MessageEntry> root = query.from(MessageEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.messageId), messageId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.guildId), guildId));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
+        query.select(root).where(where);
 
+        MessageEntry entry = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList().get(0);
+        
         return entry;
     }
 
     public static Seq<MessageEntry> getMessageEntries(long guildId) {
-        List<MessageEntry> entry;
-        try {
-            entry = Databases.getInstance().getMessageDao().queryForEq("guildId", guildId);
-        } catch (SQLException e) {
-            Log.err("Could not retrieve message entries for guild: " + guildId, e);
-            return null;
-        }
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
+        Root<MessageEntry> root = query.from(MessageEntry.class);
+        Predicate where = criteriaBuilder.equal(root.get(MessageEntry_.guildId), guildId);
+        query.select(root).where(where);
 
-        return Seq.with(entry);
+        List<MessageEntry> entries = Databases.getInstance().getSession()
+            .createSelectionQuery(query)
+            .getResultList();
+
+        return Seq.with(entries);
     }
 }

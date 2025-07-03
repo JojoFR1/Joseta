@@ -44,71 +44,49 @@ public class Databases {
     }
 
     public Session getSession() { return sessionFactory.openSession(); }
+    public HibernateCriteriaBuilder getCriteriaBuilder() { return sessionFactory.getCriteriaBuilder(); }
+
 
     public void create(Object object) {
-        Session session = this.getSession();
-        Transaction transaction = session.beginTransaction();
-        session.persist(object);
-        transaction.commit();
+        try (Session session = this.getSession();) {
+            Transaction transaction = session.beginTransaction();
+            session.persist(object);
+            transaction.commit();
+        }
     }
 
     public void create(Object... objects) {
-        Session session = this.getSession();
-        Transaction transaction = session.beginTransaction();
-        for (Object object : objects) session.persist(object);
-        transaction.commit();
+        try (Session session = this.getSession()) {
+            Transaction transaction = session.beginTransaction();
+            for (Object object : objects) session.persist(object);
+            transaction.commit();
+        }
     }
 
     public <E> E createOrUpdate(E object) {
-        Session session = this.getSession();
-        Transaction transaction = session.beginTransaction();
-        E persistent = session.merge(object);
-        transaction.commit();
-        return persistent;
+        try (Session session = this.getSession()) {
+            Transaction transaction = session.beginTransaction();
+            E persistent = session.merge(object);
+            transaction.commit();
+            return persistent;
+        }
     }
 
     public void delete(Object object) {
-        Session session = getSession();
-        Transaction transaction = session.beginTransaction();
-        session.remove(object);
-        transaction.commit();
+        try (Session session = this.getSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.remove(object);
+            transaction.commit();
+        }
     }
 
     public <E> E get (Class<E> clazz, Object id) {
-        Session session = getSession();
-        return session.find(clazz, id);
+        try (Session session = getSession()) { return session.find(clazz, id); }
     }
 
     public <E> List<E> getAll(Class<E> clazz) {
         HibernateCriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
         CriteriaQuery<E> query = criteriaBuilder.createQuery(clazz);
         return this.getSession().createSelectionQuery(query).getResultList();
-    }
-
-    private <E> void test(Class<E> clazz) {
-        HibernateCriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
-        // criteriaBuilder.at
-        CriteriaQuery<E> query = criteriaBuilder.createQuery(clazz);
-        
-        this.getSession().createSelectionQuery(query).getResultList();
-
-        CriteriaDelete<E> deleteQuery = criteriaBuilder.createCriteriaDelete(clazz);
-        this.getSession().createMutationQuery(deleteQuery).executeUpdate();
-
-        CriteriaUpdate<E> updateQuery = criteriaBuilder.createCriteriaUpdate(clazz);
-        this.getSession().createMutationQuery(updateQuery).executeUpdate();
-    
-        sessionFactory.inTransaction(session -> {
-            session.persist(new GuildEntry(0L, "Test Guild", null, 10L));
-        });
-
-        // sessionFactory.inSession(session -> {
-        //     var builder = sessionFactory.getCriteriaBuilder();
-        //     var queryA = builder.createQuery(String.class);
-        //     var book = queryA.from(GuildEntry.class);
-        //     query.select(builder.concat(builder.concat(book.get(GuildEntry_.guildId), builder.literal(": ")),
-        //             book.get(Book_.title)));
-        //     out.println(session.createSelectionQuery(query).getSingleResult());
-        // });
     }
 }

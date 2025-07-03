@@ -7,7 +7,6 @@ import joseta.database.helper.*;
 import joseta.utils.*;
 
 import arc.struct.*;
-import arc.util.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -21,11 +20,13 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.restaction.interactions.*;
 
 import java.awt.*;
-import java.sql.*;
 import java.time.*;
 import java.util.List;
 
-import com.j256.ormlite.stmt.*;
+import org.hibernate.query.criteria.*;
+
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 
 public class ModLogCommand extends ModCommand {
     private static final int SANCTION_PER_PAGE = 5;
@@ -67,28 +68,20 @@ public class ModLogCommand extends ModCommand {
     }
 
     public static MessageEmbed generateEmbed(Guild guild, Member member, int currentPage) {
-        List<SanctionEntry> sanctions;
-        try {
-            QueryBuilder<SanctionEntry, Long> queryBuilder = Databases.getInstance().getSanctionDao().queryBuilder();
-            queryBuilder.where()
-                .eq("userId", member.getIdLong())
-                .and()
-                .eq("guildId", guild.getIdLong());
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        CriteriaQuery<SanctionEntry> query = criteriaBuilder.createQuery(SanctionEntry.class);
+        Root<SanctionEntry> root = query.from(SanctionEntry.class);
+        Predicate where = criteriaBuilder.conjunction();
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.userId), member.getIdLong()));
+        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.guildId), guild.getIdLong()));
+        query.select(root).where(where);
 
-            long offset = (currentPage - 1) * SANCTION_PER_PAGE;
+        int offset = (currentPage - 1) * SANCTION_PER_PAGE;
+        TypedQuery<SanctionEntry> typedQuery = Databases.getInstance().getSession().createQuery(query);
+        typedQuery.setFirstResult(offset).setMaxResults(SANCTION_PER_PAGE);
 
-            queryBuilder.offset(offset).limit((long) SANCTION_PER_PAGE);
-
-            sanctions = queryBuilder.query();
-
-        } catch (SQLException e) {
-            Log.err("Error retrieving sanctions for the user @ (@) in server @ (@): @", member.getEffectiveName(), member.getId(), guild.getName(), guild.getId(), e.getMessage());
-            return new EmbedBuilder()
-                .setTitle("Erreur")
-                .setDescription("Une erreur est survenue lors de la récupération des sanctions.")
-                .setColor(Color.RED)
-                .build();
-        }
+        List<SanctionEntry> sanctions = Databases.getInstance().getSession()
+            .createSelectionQuery(query).getResultList();
 
         // TODO change... change what past me ?
         int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(member, guild.getIdLong()) / SANCTION_PER_PAGE);

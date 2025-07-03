@@ -3,53 +3,36 @@ package joseta.database.helper;
 import joseta.database.*;
 import joseta.database.entry.*;
 
-import arc.util.*;
-
 import net.dv8tion.jda.api.entities.*;
-
-import java.sql.*;
 
 public class UserDatabaseHelper {
 
     public static void addUser(Member user) {
-        try {
-            Databases databases = Databases.getInstance();
-            UserEntry entry = new UserEntry(user);
-            databases.getUserDao().createOrUpdate(entry);
-        } catch (SQLException e) {
-            Log.err("Could not add user to database.", e);
-        }
+        Databases databases = Databases.getInstance();
+        UserEntry entry = new UserEntry(user);
+        databases.createOrUpdate(entry);
     }
     
     public static int getUserSanctionCount(Member member, long guildId) {
-        try {
-            Databases databases = Databases.getInstance();
-            UserEntry entry = databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId));
-            if (entry == null) {
-                entry = new UserEntry(member);
-                databases.getUserDao().create(entry);
-            }
-
-            return entry.getSanctionCount();
-        } catch (SQLException e) {
-            Log.err("Could not get user total sanctions.", e);
-            return -1;
+        Databases databases = Databases.getInstance();
+        UserEntry entry = databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId));
+        if (entry == null) {
+            entry = new UserEntry(member);
+            databases.create(entry);
         }
+
+        return entry.getSanctionCount();
     }
 
     public static void updateUserSanctionCount(Member member, long guildId) {
-        try {
-            Databases databases = Databases.getInstance();
+        Databases databases = Databases.getInstance();
 
-            if (databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId)) == null)
-                UserDatabaseHelper.addUser(member);
-            
-            databases.getUserDao().update(
-                databases.getUserDao().queryForId(getComposedId(member.getIdLong(), guildId)).incrementSanctionCount()
-            );
-        } catch (SQLException e) {
-            Log.err("Could not update user sanction count.", e);
-        }
+        if (databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId)) == null)
+            UserDatabaseHelper.addUser(member);
+        
+        databases.createOrUpdate(
+            databases.get(UserEntry.class, getComposedId(member.getIdLong(), guildId)).incrementSanctionCount()
+        );
     }
 
     public static String getComposedId(long userId, long guildId) { return userId + "-" + guildId; }

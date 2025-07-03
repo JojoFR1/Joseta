@@ -12,8 +12,6 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
-import java.sql.*;
-
 public class UnbanCommand extends ModCommand {
     
     public UnbanCommand() {
@@ -28,16 +26,9 @@ public class UnbanCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été débani.").setEphemeral(true).queue();
 
-                try {
-                    Databases databases = Databases.getInstance();
-                    // A user can't have 2 ban active at the same time.
-                    SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'B');
-                    databases.getSanctionDao().delete(entry);
-                } catch (SQLException e) {
-                    Log.err("Error retrieving server configuration for guild @ (@): @", event.getGuild().getName(), event.getGuild().getId(), e.getMessage());
-                    event.getChannel().sendMessage("Une erreur est survenue lors de la récupération de la configuration du serveur. Veuillez contacter un administrateur.").queue();
-                    return;
-                }
+                // A user can't have 2 ban active at the same time.
+                SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'B');
+                Databases.getInstance().delete(entry);
             },
             failure -> {
                 Log.err("Error while executing a command ('unban').", failure);
