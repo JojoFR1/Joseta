@@ -8,9 +8,8 @@ import net.dv8tion.jda.api.entities.*;
 public class UserDatabaseHelper {
 
     public static UserEntry addUser(Member user) {
-        Databases databases = Databases.getInstance();
         UserEntry entry = new UserEntry(user);
-        return databases.createOrUpdate(entry);
+        return Databases.createOrUpdate(entry);
     }
     
     public static int getUserSanctionCount(Member member, long guildId) {
@@ -18,14 +17,12 @@ public class UserDatabaseHelper {
     }
 
     public static void updateUserSanctionCount(Member member, long guildId) {
-        Databases databases = Databases.getInstance();
         UserEntry entry = getOrCreateUserEntry(member, guildId);
-        databases.createOrUpdate(entry.incrementSanctionCount());
+        Databases.createOrUpdate(entry.incrementSanctionCount());
     }
 
     private static UserEntry getOrCreateUserEntry(Member member, long guildId) {
-        Databases databases = Databases.getInstance();
-        UserEntry entry = databases.get(UserEntry.class, UserEntry.getUserId(member.getIdLong(), guildId));
+        UserEntry entry = Databases.get(UserEntry.class, UserEntry.getUserId(member.getIdLong(), guildId));
         return entry == null ? addUser(member) : entry;
     }
 }

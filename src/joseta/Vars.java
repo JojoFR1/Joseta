@@ -8,7 +8,7 @@ import java.util.*;
 public class Vars {
     public static String token = null;
     public static String[] ownersId; // Not a long because it requires a loop
-    public static String sqlUrl, sqlUsername, sqlPassword;
+    public static String sqlFilePath, sqlUrl, sqlUsername, sqlPassword;
     
     public static boolean isDebug, isServer = false;
 
@@ -25,7 +25,8 @@ public class Vars {
         
         token = secret.getProperty("token" + suffix);
         ownersId = secret.getProperty("admins" + suffix).split(" ");
-        sqlUsername = secret.getProperty("sqlUrl" + suffix);
+        sqlFilePath = secret.getProperty("sqlFilePath" + suffix );
+        sqlUrl = secret.getProperty("sqlDriver" + suffix) + sqlFilePath;
         sqlUsername = secret.getProperty("sqlUsername" + suffix);
         sqlPassword = secret.getProperty("sqlPassword" + suffix);
     }

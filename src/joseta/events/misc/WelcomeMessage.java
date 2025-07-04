@@ -47,7 +47,7 @@ public class WelcomeMessage {
     }
 
     public static void executeGuildMemberJoin(GuildMemberJoinEvent event) {
-        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
         User user = event.getUser();
 
         TextChannel channel;
@@ -74,7 +74,7 @@ public class WelcomeMessage {
     }
 
     public static void executeGuildMemberRemove(GuildMemberRemoveEvent event) {
-        ConfigEntry config  = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config  = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
         
         TextChannel channel;
         if (!config.isWelcomeEnabled()) return;

@@ -25,17 +25,16 @@ public class UnwarnCommand extends ModCommand {
     @Override
     public void runImpl(SlashCommandInteractionEvent event) {
         SanctionEntry entry;
-        Databases databases = Databases.getInstance();
 
-        if (warnId == -1) entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), 'W');
-        else entry = databases.get(SanctionEntry.class, warnId);
+        if (warnId == -1) entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), "W");
+        else entry = Databases.get(SanctionEntry.class, warnId);
 
         if (entry.getSanctionTypeId() != 'W') {
             event.reply("L'identifiant de l'avertissement n'est pas valide.").setEphemeral(true).queue();
             return;
         }
 
-        databases.delete(entry);
+        Databases.delete(entry);
         event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
     }    
 

@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
 
+import org.hibernate.query.criteria.*;
 import org.slf4j.*;
 
 import java.sql.*;
@@ -27,6 +28,7 @@ import java.util.concurrent.*;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import jakarta.persistence.criteria.*;
 
 public class JosetaBot {
     private static JDA bot;
@@ -55,8 +57,6 @@ public class JosetaBot {
     public static void main(String[] args) throws SQLException {
         registerShutdown();
         preLoad(args);
-
-        Databases.getInstance(); // Should do the first initialization.        
         
         bot = JDABuilder.createDefault(Vars.token)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -78,21 +78,27 @@ public class JosetaBot {
         bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
         bot.updateCommands().addCommands(commandsData).queue();
 
-        WelcomeMessage.initialize(); //TODO Maybe chane that?
+        WelcomeMessage.initialize(); //TODO Maybe change that?
         SanctionDatabaseHelper.startScheduler(15); // Check expired sanctions every 15 minutes.
 
-        // TODO that ugly, pls help pinpin
         for (Guild guild : bot.getGuilds()) {
-            Databases databases = Databases.getInstance();
 
-            if (databases.get(GuildEntry.class, guild.getIdLong()) == null)
-                databases.create(new GuildEntry(guild));
+            if (Databases.get(GuildEntry.class, guild.getIdLong()) == null)
+                Databases.create(new GuildEntry(guild));
 
-            if (databases.get(ConfigEntry.class, guild.getIdLong()) == null)
-                databases.create(new ConfigEntry(guild.getIdLong()));
+            if (Databases.get(ConfigEntry.class, guild.getIdLong()) == null)
+                Databases.create(new ConfigEntry(guild.getIdLong()));
 
             //TODO populate with config disabled by default + no markov black list defined
-            if (databases.get(MessageEntry.class, guild.getIdLong()) == null) {
+            
+            HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+            CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
+            Root<MessageEntry> root = query.from(MessageEntry.class);
+            Predicate where = criteriaBuilder.equal(root.get(MessageEntry_.guildId), guild.getIdLong());
+            query.select(root).where(where);
+
+            if (Databases.getSession().createQuery(query).getResultList().size() == 0) {
+                Log.debug("Populating the Messages Database for guild: " + guild.getName() + " (" + guild.getId() + ")");
                 MessagesDatabaseHelper.populateNewGuild(guild);
                 MarkovMessagesDatabaseHelper.populateNewGuild(guild);
             }
@@ -131,7 +137,7 @@ public class JosetaBot {
 
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
-            if (!Vars.isServer) rootLogger.detachAppender("FILE");
+            // if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
     }
 

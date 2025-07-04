@@ -24,7 +24,7 @@ public class MarkovCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
 
         if (!config.isMarkovEnabled()) {
             event.reply("La génération de messages aléatoires est désactivée sur ce serveur.").setEphemeral(true).queue();

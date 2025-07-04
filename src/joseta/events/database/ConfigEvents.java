@@ -11,9 +11,9 @@ public class ConfigEvents {
     
     public static void executeGuildJoin(GuildJoinEvent event) {
         long guildId = event.getGuild().getIdLong();
-        if (Databases.getInstance().get(ConfigEntry.class, guildId) != null) return; // Guild already has a config.
+        if (Databases.get(ConfigEntry.class, guildId) != null) return; // Guild already has a config.
         
-        Databases.getInstance().create(new ConfigEntry(guildId));
+        Databases.create(new ConfigEntry(guildId));
         Log.info("Added new config for guild @ (@)", event.getGuild().getName(), guildId);
     }
 }

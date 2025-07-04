@@ -29,7 +29,7 @@ public class MarkovMessagesDatabaseHelper {
         int count = 0;
         Log.debug("Populating the Messages Database...");
 
-        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, guild.getIdLong());
+        ConfigEntry config = Databases.get(ConfigEntry.class, guild.getIdLong());
         
         for (TextChannel channel : guild.getTextChannels()) {
             Seq<Long> markovBlackList = config.getMarkovBlackList();
@@ -64,7 +64,7 @@ public class MarkovMessagesDatabaseHelper {
         long id = message.getIdLong();
         long guildId = guild.getIdLong();
 
-        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, guildId);
+        ConfigEntry config = Databases.get(ConfigEntry.class, guildId);
         
         Seq<Long> markovBlackList = config.getMarkovBlackList();
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return;
@@ -77,7 +77,7 @@ public class MarkovMessagesDatabaseHelper {
         if (channel instanceof TextChannel textChannel &&
             (textChannel.isNSFW() || markovBlackList.contains(textChannel.getParentCategoryIdLong()))) return;
         
-        Databases.getInstance().create(
+        Databases.createOrUpdate(
             new MarkovMessageEntry(
                 id,
                 guildId,
@@ -92,7 +92,7 @@ public class MarkovMessagesDatabaseHelper {
     public static void updateMessage(long messageId, long guildId, long channelId, String content) {
         if (getMessageEntry(messageId, guildId, channelId) == null) return; // Entry does not exist, no need to update
         
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
         CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
         Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -101,17 +101,17 @@ public class MarkovMessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
         query.select(root).where(where);
 
-        MarkovMessageEntry entry = Databases.getInstance().getSession()
+        MarkovMessageEntry entry = Databases.getSession()
             .createSelectionQuery(query)
             .getResultList().get(0);
 
-        Databases.getInstance().createOrUpdate(entry.setContent(cleanMessage(content)));
+        Databases.createOrUpdate(entry.setContent(cleanMessage(content)));
     }
 
     public static void deleteMessage(long messageId, long guildId, long channelId) {
         if (getMessageEntry(messageId, guildId, channelId) == null) return; // Entry does not exist, no need to delete
 
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
         CriteriaDelete<MarkovMessageEntry> query = criteriaBuilder.createCriteriaDelete(MarkovMessageEntry.class);
         Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -120,13 +120,13 @@ public class MarkovMessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
         query.where(where);
 
-        Databases.getInstance().getSession().createMutationQuery(query).executeUpdate();
+        Databases.getSession().createMutationQuery(query).executeUpdate();
     }
 
     public static void deleteChannelMessages(long guildId, long channelId) {
         if (getMessageEntriesByChannel(guildId, channelId).isEmpty()) return; // No entries to delete
         
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
         CriteriaDelete<MarkovMessageEntry> query = criteriaBuilder.createCriteriaDelete(MarkovMessageEntry.class);
         Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -134,12 +134,12 @@ public class MarkovMessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
         query.where(where);
 
-        Databases.getInstance().getSession().createMutationQuery(query).executeUpdate();
+        Databases.getSession().createMutationQuery(query).executeUpdate();
 
     }
 
     public static MarkovMessageEntry getMessageEntry(long messageId, long guildId, long channelId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
         CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
         Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -148,7 +148,7 @@ public class MarkovMessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
         query.select(root).where(where);
 
-        MarkovMessageEntry entry = Databases.getInstance().getSession()
+        MarkovMessageEntry entry = Databases.getSession()
             .createSelectionQuery(query)
             .getResultList().get(0);
 
@@ -156,7 +156,7 @@ public class MarkovMessagesDatabaseHelper {
     }
 
     public static Seq<MarkovMessageEntry> getMessageEntriesByChannel(long guildId, long channelId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
         CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
         Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -164,7 +164,7 @@ public class MarkovMessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
         query.select(root).where(where);
 
-        List<MarkovMessageEntry> entries = Databases.getInstance().getSession()
+        List<MarkovMessageEntry> entries = Databases.getSession()
             .createSelectionQuery(query)
             .getResultList();
 
@@ -172,13 +172,13 @@ public class MarkovMessagesDatabaseHelper {
     }
 
     public static Seq<MarkovMessageEntry> getMessageEntriesByGuild(long guildId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getInstance().getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
         CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
         Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
         Predicate where = criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId);
         query.select(root).where(where);
 
-        List<MarkovMessageEntry> entries = Databases.getInstance().getSession()
+        List<MarkovMessageEntry> entries = Databases.getSession()
             .createSelectionQuery(query)
             .getResultList();
 

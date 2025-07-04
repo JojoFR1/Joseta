@@ -1,5 +1,7 @@
 package joseta.database.entry;
 
+import joseta.database.type.*;
+
 import arc.struct.*;
 
 import java.net.*;
@@ -23,9 +25,9 @@ public class ConfigEntry {
     //TODO adapt welcome message for url
     @Column
     private String welcomeImageUrl; //TODO hard to implement with text position (especially when only text config is available).
-    @Column @ColumnDefault("Bienvenue {{user}} !")
+    @Column @ColumnDefault("\"Bienvenue {{user}} !\"")
     private String welcomeJoinMessage;
-    @Column @ColumnDefault("**{{userName}}** nous a quitté...")
+    @Column @ColumnDefault("\"**{{userName}}** nous a quitté...\"")
     private String welcomeLeaveMessage;
     @Column @ColumnDefault("0")
     private long joinRoleId;
@@ -38,7 +40,7 @@ public class ConfigEntry {
     //#region Markov
     @Column @ColumnDefault("false")
     private boolean markovEnabled;
-    @Column @ColumnDefault("[]")
+    @Column @ColumnDefault("\"[]\"") @JdbcType(SeqLongType.class)
     private Seq<Long> markovBlackList;
     //#endregion
     
@@ -114,22 +116,6 @@ public class ConfigEntry {
 
     public ConfigEntry setAutoResponseEnabled(boolean autoResponseEnabled) { this.autoResponseEnabled = autoResponseEnabled; return this; }
     public boolean isAutoResponseEnabled() { return autoResponseEnabled; }
-
-    private static Seq<Long> parseLongArray(String[] values) {
-        Seq<Long> result = new Seq<>(values.length);
-        for (String value : values) {
-            if (!value.isEmpty()) result.add(Long.parseLong(value));
-        }
-
-        return result;
-    }
-
-    public static Seq<Long> seqFromString(String str) {
-        if (str == null || str.isEmpty() || str.equals("[]")) return new Seq<>();
-        str = str.replace("[", "").replace("]", "").trim();
-        String[] values = str.split(",");
-        return parseLongArray(values);
-    }
 
     public ConfigEntry addMarkovBlackList(long channelId) {
         if (!markovBlackList.contains(channelId) && channelId != 0L) {

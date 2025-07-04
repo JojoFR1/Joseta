@@ -24,7 +24,7 @@ public class AutoResponseEvent {
     public static final String message = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
 
     public static void execute(MessageReceivedEvent event) {
-        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
         if (!config.isAutoResponseEnabled()) return;
         
         Message msg = event.getMessage();

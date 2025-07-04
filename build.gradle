@@ -25,17 +25,20 @@ repositories{
 
 dependencies{
     implementation("net.dv8tion:JDA:5.6.1") {
-      // Optionally disable audio natives to reduce jar size by excluding `opus-java`
+      // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
     }
     implementation("ch.qos.logback:logback-classic:1.5.18")
     
     implementation("org.xerial:sqlite-jdbc:3.50.1.0")
-
     implementation("org.hibernate:hibernate-core:7.0.4.Final")
+    // Community Dialects for SQLite
     implementation("org.hibernate:hibernate-community-dialects:7.0.4.Final")
+    // Hibernate Validator
     implementation("org.hibernate.validator:hibernate-validator:9.0.1.Final")
+    implementation("org.glassfish:jakarta.el:4.0.2")
+    // Hibernate Processor for annotation processing
     annotationProcessor("org.hibernate.orm:hibernate-processor:7.0.4.Final")
 
     implementation("com.github.Anuken.Arc:arc-core:v146")

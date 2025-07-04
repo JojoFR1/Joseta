@@ -37,7 +37,7 @@ public class ConfigCommand extends Command {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        ConfigEntry config = Databases.getInstance().get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
         
         switch (event.getSubcommandName()) {
             case "welcome":
@@ -65,7 +65,7 @@ public class ConfigCommand extends Command {
             default: break;
         }
 
-        Databases.getInstance().createOrUpdate(config);
+        Databases.createOrUpdate(config);
 
         event.reply("Configuration of the server updated succesfully.").setEphemeral(true).queue();
     }
