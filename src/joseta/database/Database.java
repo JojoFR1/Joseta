@@ -19,7 +19,7 @@ import jakarta.persistence.criteria.*;
 public class Database {
     private static SessionFactory sessionFactory;
 
-    private Database() {
+    private static void initializeSessionFactory() {
         Fi file = Fi.get(Vars.sqlFilePath);
         if (!file.exists())
             try { file.write().close(); }
@@ -44,17 +44,16 @@ public class Database {
     }
 
     public static Session getSession() {
-        if (sessionFactory == null) new Database(); // Initialize the session factory if it has not been initialized yet
+        if (sessionFactory == null) initializeSessionFactory();
         return sessionFactory.openSession();
     }
     public static HibernateCriteriaBuilder getCriteriaBuilder() {
-        if (sessionFactory == null) new Database(); // Initialize the session factory if it has not been initialized yet
+        if (sessionFactory == null) initializeSessionFactory();
         return sessionFactory.getCriteriaBuilder();
     }
 
-
     public static void create(Object object) {
-        try (Session session = getSession();) {
+        try (Session session = getSession()) {
             Transaction transaction = session.beginTransaction();
             session.persist(object);
             transaction.commit();
