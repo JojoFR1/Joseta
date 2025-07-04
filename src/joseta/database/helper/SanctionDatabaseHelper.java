@@ -23,8 +23,8 @@ public class SanctionDatabaseHelper {
     public static void startScheduler(int minutes) { scheduler.scheduleAtFixedRate(SanctionDatabaseHelper::checkExpiredSanctions, 0, minutes, TimeUnit.MINUTES); }
 
     public static void addSanction(char sanctionType, Member member, long moderatorId, long guildId, String reason, long time) {
-        GuildEntry entry = Databases.get(GuildEntry.class, guildId);
-        Databases.create(
+        GuildEntry entry = Database.get(GuildEntry.class, guildId);
+        Database.create(
             new SanctionEntry(
                 entry.getLastSanctionId() + 1,
                 sanctionType,
@@ -37,12 +37,12 @@ public class SanctionDatabaseHelper {
             )
         );
 
-        Databases.createOrUpdate(entry.incrementLastSanctionId());
+        Database.createOrUpdate(entry.incrementLastSanctionId());
         UserDatabaseHelper.updateUserSanctionCount(member, guildId);
     }
 
     public static SanctionEntry getLatestSanction(long userId, long guildId, String sanctionType) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaQuery<SanctionEntry> query = criteriaBuilder.createQuery(SanctionEntry.class);
         Root<SanctionEntry> root = query.from(SanctionEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -51,7 +51,7 @@ public class SanctionDatabaseHelper {
         where = criteriaBuilder.and(where, Restriction.startsWith(SanctionEntry_.sanctionId, sanctionType).toPredicate(root, criteriaBuilder));
         query.select(root).where(where).orderBy(criteriaBuilder.desc(root.get(SanctionEntry_.sanctionId)));
 
-        TypedQuery<SanctionEntry> typedQuery = Databases.getSession().createQuery(query);
+        TypedQuery<SanctionEntry> typedQuery = Database.getSession().createQuery(query);
         typedQuery.setMaxResults(1);
 
         SanctionEntry entry = typedQuery.getSingleResult();
@@ -60,7 +60,7 @@ public class SanctionDatabaseHelper {
     }
 
     public static Seq<SanctionEntry> getExpiredSanctions() {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaQuery<SanctionEntry> query = criteriaBuilder.createQuery(SanctionEntry.class);
         Root<SanctionEntry> root = query.from(SanctionEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -68,7 +68,7 @@ public class SanctionDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.isExpired), false));
         query.select(root).where(where);
 
-        List<SanctionEntry> entries = Databases.getSession()
+        List<SanctionEntry> entries = Database.getSession()
             .createSelectionQuery(query)
             .getResultList();
         
@@ -86,7 +86,7 @@ public class SanctionDatabaseHelper {
                     });
                 });
             }
-            Databases.createOrUpdate(sanction.setExpired(true));
+            Database.createOrUpdate(sanction.setExpired(true));
         });
     }
 }

@@ -29,7 +29,7 @@ public abstract class ModCommand extends Command {
     
     @Override
     protected boolean check(SlashCommandInteractionEvent event) {
-        ConfigEntry config = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
         
         if (!config.isModerationEnabled()) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();

@@ -27,14 +27,14 @@ public class UnwarnCommand extends ModCommand {
         SanctionEntry entry;
 
         if (warnId == -1) entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), "W");
-        else entry = Databases.get(SanctionEntry.class, warnId);
+        else entry = Database.get(SanctionEntry.class, warnId);
 
         if (entry.getSanctionTypeId() != 'W') {
             event.reply("L'identifiant de l'avertissement n'est pas valide.").setEphemeral(true).queue();
             return;
         }
 
-        Databases.delete(entry);
+        Database.delete(entry);
         event.reply("Le membre a bien été unwarn.").setEphemeral(true).queue();
     }    
 

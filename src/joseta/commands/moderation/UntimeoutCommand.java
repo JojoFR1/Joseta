@@ -28,7 +28,7 @@ public class UntimeoutCommand extends ModCommand {
 
                 // A member can't have 2 mute actie at the same time.
                 SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), "T");
-                Databases.delete(entry);
+                Database.delete(entry);
             },
             failure -> {
                 Log.err("Error while executing a command ('untimeout').", failure);

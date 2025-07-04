@@ -55,7 +55,7 @@ public class MessagesDatabaseHelper {
         long guildId = guild.getIdLong();
         long channelId = channel.getIdLong();
         
-        Databases.createOrUpdate(
+        Database.createOrUpdate(
             new MessageEntry(
                 id,
                 guildId,
@@ -68,7 +68,7 @@ public class MessagesDatabaseHelper {
     }
 
     public static void updateMessage(long messageId, long guildId, long channelId, String content) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
         Root<MessageEntry> root = query.from(MessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -77,15 +77,15 @@ public class MessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
         query.select(root).where(where);
 
-        MessageEntry entry = Databases.getSession()
+        MessageEntry entry = Database.getSession()
             .createSelectionQuery(query)
             .getResultList().get(0);
         
-        Databases.createOrUpdate(entry.setContent(content));
+        Database.createOrUpdate(entry.setContent(content));
     }
 
     public static void deleteMessage(long messageId, long guildId, long channelId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaDelete<MessageEntry> query = criteriaBuilder.createCriteriaDelete(MessageEntry.class);
         Root<MessageEntry> root = query.from(MessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -94,11 +94,11 @@ public class MessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
         query.where(where);
 
-        Databases.getSession().createMutationQuery(query).executeUpdate();
+        Database.getSession().createMutationQuery(query).executeUpdate();
     }
 
     public static void deleteChannelMessages(long guildId, long channelId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaDelete<MessageEntry> query = criteriaBuilder.createCriteriaDelete(MessageEntry.class);
         Root<MessageEntry> root = query.from(MessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -106,12 +106,12 @@ public class MessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
         query.where(where);
 
-        Databases.getSession().createMutationQuery(query).executeUpdate();
+        Database.getSession().createMutationQuery(query).executeUpdate();
 
     }
 
     public static MessageEntry getMessageEntry(long messageId, long guildId, long channelId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
         Root<MessageEntry> root = query.from(MessageEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -120,7 +120,7 @@ public class MessagesDatabaseHelper {
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MessageEntry_.channelId), channelId));
         query.select(root).where(where);
 
-        MessageEntry entry = Databases.getSession()
+        MessageEntry entry = Database.getSession()
             .createSelectionQuery(query)
             .getResultList().get(0);
         
@@ -128,13 +128,13 @@ public class MessagesDatabaseHelper {
     }
 
     public static Seq<MessageEntry> getMessageEntries(long guildId) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
         Root<MessageEntry> root = query.from(MessageEntry.class);
         Predicate where = criteriaBuilder.equal(root.get(MessageEntry_.guildId), guildId);
         query.select(root).where(where);
 
-        List<MessageEntry> entries = Databases.getSession()
+        List<MessageEntry> entries = Database.getSession()
             .createSelectionQuery(query)
             .getResultList();
 

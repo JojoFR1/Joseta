@@ -28,7 +28,7 @@ public class UnbanCommand extends ModCommand {
 
                 // A user can't have 2 ban active at the same time.
                 SanctionEntry entry = SanctionDatabaseHelper.getLatestSanction(user.getIdLong(), event.getGuild().getIdLong(), "B");
-                Databases.delete(entry);
+                Database.delete(entry);
             },
             failure -> {
                 Log.err("Error while executing a command ('unban').", failure);

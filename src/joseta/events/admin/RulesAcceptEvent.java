@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.interaction.component.*;
 public class RulesAcceptEvent {
     
     public static void execute(ButtonInteractionEvent event) {
-        ConfigEntry config = Databases.get(ConfigEntry.class, event.getGuild().getIdLong());
+        ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
 
         Role joinRole, verifiedRole;
         if (config.getJoinRoleId() == 0L || (joinRole = event.getGuild().getRoleById(config.getJoinRoleId())) == null) {

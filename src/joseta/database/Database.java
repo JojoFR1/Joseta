@@ -16,10 +16,10 @@ import org.hibernate.tool.schema.*;
 
 import jakarta.persistence.criteria.*;
 
-public class Databases {
+public class Database {
     private static SessionFactory sessionFactory;
 
-    private Databases() {
+    private Database() {
         Fi file = Fi.get(Vars.sqlFilePath);
         if (!file.exists())
             try { file.write().close(); }
@@ -44,11 +44,11 @@ public class Databases {
     }
 
     public static Session getSession() {
-        if (sessionFactory == null) new Databases(); // Initialize the session factory if it has not been initialized yet
+        if (sessionFactory == null) new Database(); // Initialize the session factory if it has not been initialized yet
         return sessionFactory.openSession();
     }
     public static HibernateCriteriaBuilder getCriteriaBuilder() {
-        if (sessionFactory == null) new Databases(); // Initialize the session factory if it has not been initialized yet
+        if (sessionFactory == null) new Database(); // Initialize the session factory if it has not been initialized yet
         return sessionFactory.getCriteriaBuilder();
     }
 

@@ -68,7 +68,7 @@ public class ModLogCommand extends ModCommand {
     }
 
     public static MessageEmbed generateEmbed(Guild guild, Member member, int currentPage) {
-        HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaQuery<SanctionEntry> query = criteriaBuilder.createQuery(SanctionEntry.class);
         Root<SanctionEntry> root = query.from(SanctionEntry.class);
         Predicate where = criteriaBuilder.conjunction();
@@ -77,10 +77,10 @@ public class ModLogCommand extends ModCommand {
         query.select(root).where(where);
 
         int offset = (currentPage - 1) * SANCTION_PER_PAGE;
-        TypedQuery<SanctionEntry> typedQuery = Databases.getSession().createQuery(query);
+        TypedQuery<SanctionEntry> typedQuery = Database.getSession().createQuery(query);
         typedQuery.setFirstResult(offset).setMaxResults(SANCTION_PER_PAGE);
 
-        List<SanctionEntry> sanctions = Databases.getSession()
+        List<SanctionEntry> sanctions = Database.getSession()
             .createSelectionQuery(query).getResultList();
 
         // TODO change... change what past me ?

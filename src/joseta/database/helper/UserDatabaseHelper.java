@@ -9,7 +9,7 @@ public class UserDatabaseHelper {
 
     public static UserEntry addUser(Member user) {
         UserEntry entry = new UserEntry(user);
-        return Databases.createOrUpdate(entry);
+        return Database.createOrUpdate(entry);
     }
     
     public static int getUserSanctionCount(Member member, long guildId) {
@@ -18,11 +18,11 @@ public class UserDatabaseHelper {
 
     public static void updateUserSanctionCount(Member member, long guildId) {
         UserEntry entry = getOrCreateUserEntry(member, guildId);
-        Databases.createOrUpdate(entry.incrementSanctionCount());
+        Database.createOrUpdate(entry.incrementSanctionCount());
     }
 
     private static UserEntry getOrCreateUserEntry(Member member, long guildId) {
-        UserEntry entry = Databases.get(UserEntry.class, UserEntry.getUserId(member.getIdLong(), guildId));
+        UserEntry entry = Database.get(UserEntry.class, UserEntry.getUserId(member.getIdLong(), guildId));
         return entry == null ? addUser(member) : entry;
     }
 }

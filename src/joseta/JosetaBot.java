@@ -83,21 +83,21 @@ public class JosetaBot {
 
         for (Guild guild : bot.getGuilds()) {
 
-            if (Databases.get(GuildEntry.class, guild.getIdLong()) == null)
-                Databases.create(new GuildEntry(guild));
+            if (Database.get(GuildEntry.class, guild.getIdLong()) == null)
+                Database.create(new GuildEntry(guild));
 
-            if (Databases.get(ConfigEntry.class, guild.getIdLong()) == null)
-                Databases.create(new ConfigEntry(guild.getIdLong()));
+            if (Database.get(ConfigEntry.class, guild.getIdLong()) == null)
+                Database.create(new ConfigEntry(guild.getIdLong()));
 
             //TODO populate with config disabled by default + no markov black list defined
             
-            HibernateCriteriaBuilder criteriaBuilder = Databases.getCriteriaBuilder();
+            HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
             CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
             Root<MessageEntry> root = query.from(MessageEntry.class);
             Predicate where = criteriaBuilder.equal(root.get(MessageEntry_.guildId), guild.getIdLong());
             query.select(root).where(where);
 
-            if (Databases.getSession().createQuery(query).getResultList().size() == 0) {
+            if (Database.getSession().createQuery(query).getResultList().size() == 0) {
                 Log.debug("Populating the Messages Database for guild: " + guild.getName() + " (" + guild.getId() + ")");
                 MessagesDatabaseHelper.populateNewGuild(guild);
                 MarkovMessagesDatabaseHelper.populateNewGuild(guild);
