@@ -40,8 +40,8 @@ public class ConfigEntry {
     //#region Markov
     @Column @ColumnDefault("false")
     private boolean markovEnabled;
-    @Column @ColumnDefault("\"[]\"") @JdbcType(SeqLongType.class)
-    private Seq<Long> markovBlackList;
+    @Column @JdbcType(SeqLongType.class)
+    private Seq<Long> markovBlackList = new Seq<>();
     //#endregion
     
     @Column @ColumnDefault("false")
@@ -117,14 +117,14 @@ public class ConfigEntry {
     public ConfigEntry setAutoResponseEnabled(boolean autoResponseEnabled) { this.autoResponseEnabled = autoResponseEnabled; return this; }
     public boolean isAutoResponseEnabled() { return autoResponseEnabled; }
 
-    public ConfigEntry addMarkovBlackList(long channelId) {
-        if (!markovBlackList.contains(channelId) && channelId != 0L) {
-            markovBlackList.add(channelId);
+    public ConfigEntry addMarkovBlackList(long mentionableId) {
+        if (!markovBlackList.contains(mentionableId) && mentionableId != 0L) {
+            markovBlackList.add(mentionableId);
         }
         return this;
     }
-    public ConfigEntry removeMarkovBlackList(long channelId) {
-        if (channelId != 0L) markovBlackList.remove(channelId);
+    public ConfigEntry removeMarkovBlackList(long mentionableId) {
+        if (mentionableId != 0L) markovBlackList.remove(mentionableId);
         return this;
     }
 }

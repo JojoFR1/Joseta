@@ -11,4 +11,5 @@ bin/
 logs/
 *.db
 *.bat
+*.ps1
 *.sh

@@ -20,7 +20,6 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
 
-import org.hibernate.query.criteria.*;
 import org.slf4j.*;
 
 import java.sql.*;
@@ -28,7 +27,6 @@ import java.util.concurrent.*;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import jakarta.persistence.criteria.*;
 
 public class JosetaBot {
     private static JDA bot;
@@ -70,7 +68,7 @@ public class JosetaBot {
         
         // Required to access guild and register commands.
         try { bot.awaitReady(); } catch (InterruptedException e) {
-            Log.err("An error occured while waiting for the bot to be ready (connected).", e);
+            Log.err("An error occurred while waiting for the bot to be ready (connected).", e);
             System.exit(1);
         }
 
@@ -90,14 +88,9 @@ public class JosetaBot {
                 Database.create(new ConfigEntry(guild.getIdLong()));
 
             //TODO populate with config disabled by default + no markov black list defined
-            
-            HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-            CriteriaQuery<MessageEntry> query = criteriaBuilder.createQuery(MessageEntry.class);
-            Root<MessageEntry> root = query.from(MessageEntry.class);
-            Predicate where = criteriaBuilder.equal(root.get(MessageEntry_.guildId), guild.getIdLong());
-            query.select(root).where(where);
 
-            if (Database.getSession().createQuery(query).getResultList().size() == 0) {
+            if (Database.querySelect(MessageEntry.class, (cb, rt) -> cb.equal(rt.get(MessageEntry_.guildId), guild.getIdLong()))
+                    .getResultList().isEmpty()) {
                 Log.debug("Populating the Messages Database for guild: " + guild.getName() + " (" + guild.getId() + ")");
                 MessagesDatabaseHelper.populateNewGuild(guild);
                 MarkovMessagesDatabaseHelper.populateNewGuild(guild);
@@ -105,7 +98,7 @@ public class JosetaBot {
         }
     }
 
-    private static void preLoad(String args[]) {
+    private static void preLoad(String[] args) {
         if (args.length > 0) {
             Vars.setDebug(args[0].equals("--debug"));
             Vars.setServer(args[0].equals("--server"));
@@ -160,7 +153,7 @@ public class JosetaBot {
                         bot.awaitShutdown();
                     }
                 } catch (InterruptedException e) {
-                    Log.err("An error occured while waitin for the bot to shutdown. Force shutting down...", e);
+                    Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);
                     bot.shutdownNow();
                 }
             }

@@ -5,7 +5,7 @@
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%gray([%d{dd-MM-yyyy HH:mm:ss.SSS}]) %levelColor([%.-1level]) %green(%-24([%thread])) %magenta([%logger{0}]) %messageColor(%msg%n)</pattern>
+            <pattern>%gray([%d{dd-MM-yyyy HH:mm:ss.SSS}]) %levelColor([%.-1level]) %green([%thread]) %magenta([%logger{0}]) %messageColor(%msg%n)</pattern>
         </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import org.hibernate.query.criteria.*;
-import org.hibernate.query.restriction.*;
 
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
@@ -48,8 +47,14 @@ public class SanctionDatabaseHelper {
         Predicate where = criteriaBuilder.conjunction();
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.userId), userId));
         where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.guildId), guildId));
-        where = criteriaBuilder.and(where, Restriction.startsWith(SanctionEntry_.sanctionId, sanctionType).toPredicate(root, criteriaBuilder));
+        where = criteriaBuilder.and(where, criteriaBuilder.like(root.get(SanctionEntry_.sanctionId), sanctionType));
         query.select(root).where(where).orderBy(criteriaBuilder.desc(root.get(SanctionEntry_.sanctionId)));
+        
+        criteriaBuilder.and(
+            criteriaBuilder.equal(root.get(SanctionEntry_.userId), userId),
+            criteriaBuilder.equal(root.get(SanctionEntry_.guildId), guildId),
+            criteriaBuilder.like(root.get(SanctionEntry_.sanctionId), sanctionType)
+        );
 
         TypedQuery<SanctionEntry> typedQuery = Database.getSession().createQuery(query);
         typedQuery.setMaxResults(1);
