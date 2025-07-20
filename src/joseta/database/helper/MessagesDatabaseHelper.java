@@ -23,7 +23,7 @@ public class MessagesDatabaseHelper {
             count += addChannelMessageHistory(channel, guild);
         }
 
-        Log.debug("Populated Markov Messages Database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
+        Log.debug("Populated Messages Database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
     }
 
     private static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild) {
