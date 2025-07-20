@@ -80,7 +80,6 @@ public class JosetaBot {
         SanctionDatabaseHelper.startScheduler(15); // Check expired sanctions every 15 minutes.
 
         for (Guild guild : bot.getGuilds()) {
-
             if (Database.get(GuildEntry.class, guild.getIdLong()) == null)
                 Database.create(new GuildEntry(guild));
 

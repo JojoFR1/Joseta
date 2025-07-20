@@ -12,11 +12,6 @@ import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import org.hibernate.query.criteria.*;
-
-import jakarta.persistence.*;
-import jakarta.persistence.criteria.*;
-
 public class SanctionDatabaseHelper {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     public static void startScheduler(int minutes) { scheduler.scheduleAtFixedRate(SanctionDatabaseHelper::checkExpiredSanctions, 0, minutes, TimeUnit.MINUTES); }
@@ -41,42 +36,23 @@ public class SanctionDatabaseHelper {
     }
 
     public static SanctionEntry getLatestSanction(long userId, long guildId, String sanctionType) {
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaQuery<SanctionEntry> query = criteriaBuilder.createQuery(SanctionEntry.class);
-        Root<SanctionEntry> root = query.from(SanctionEntry.class);
-        Predicate where = criteriaBuilder.conjunction();
-        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.userId), userId));
-        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.guildId), guildId));
-        where = criteriaBuilder.and(where, criteriaBuilder.like(root.get(SanctionEntry_.sanctionId), sanctionType));
-        query.select(root).where(where).orderBy(criteriaBuilder.desc(root.get(SanctionEntry_.sanctionId)));
-        
-        criteriaBuilder.and(
-            criteriaBuilder.equal(root.get(SanctionEntry_.userId), userId),
-            criteriaBuilder.equal(root.get(SanctionEntry_.guildId), guildId),
-            criteriaBuilder.like(root.get(SanctionEntry_.sanctionId), sanctionType)
-        );
-
-        TypedQuery<SanctionEntry> typedQuery = Database.getSession().createQuery(query);
-        typedQuery.setMaxResults(1);
-
-        SanctionEntry entry = typedQuery.getSingleResult();
+        SanctionEntry entry = Database.querySelect(SanctionEntry.class,
+                (cb, rt) ->
+                        cb.and(cb.equal(rt.get(SanctionEntry_.userId), userId),
+                                cb.equal(rt.get(SanctionEntry_.guildId), guildId),
+                                cb.like(rt.get(SanctionEntry_.sanctionId), sanctionType)),
+                (cb, rt) -> cb.desc(rt.get(SanctionEntry_.sanctionId))
+        ).setMaxResults(1).getSingleResult();
 
         return entry;
     }
 
     public static Seq<SanctionEntry> getExpiredSanctions() {
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaQuery<SanctionEntry> query = criteriaBuilder.createQuery(SanctionEntry.class);
-        Root<SanctionEntry> root = query.from(SanctionEntry.class);
-        Predicate where = criteriaBuilder.conjunction();
-        where = criteriaBuilder.and(where, criteriaBuilder.ge(root.get(SanctionEntry_.expiryTime), 1L));
-        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(SanctionEntry_.isExpired), false));
-        query.select(root).where(where);
+        List<SanctionEntry> entries = Database.querySelect(SanctionEntry.class, (cb, rt) ->
+                cb.and(cb.ge(rt.get(SanctionEntry_.expiryTime), 1L),
+                        cb.equal(rt.get(SanctionEntry_.isExpired), false))
+        ).getResultList();
 
-        List<SanctionEntry> entries = Database.getSession()
-            .createSelectionQuery(query)
-            .getResultList();
-        
         return Seq.with(entries);
     }
 

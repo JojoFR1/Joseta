@@ -29,19 +29,20 @@ public class Database {
             catch (IOException e) { Log.err("Could not create the SQL file at '@': @", file.absolutePath(), e); }
 
         HibernatePersistenceConfiguration configuration = new HibernatePersistenceConfiguration("BotDatabase")
-            .managedClasses(GuildEntry.class,
-                            UserEntry.class,
-                            ConfigEntry.class,
-                            SanctionEntry.class,
-                            MessageEntry.class,
-                            MarkovMessageEntry.class)
-            .jdbcDriver("org.sqlite.JDBC")
-            .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
-            .jdbcUrl(Vars.sqlUrl)
-            .showSql(true, true, true)
-            .schemaToolingAction(Action.UPDATE) //TODO still tries to create table
+                .managedClasses(GuildEntry.class,
+                                UserEntry.class,
+                                ConfigEntry.class,
+                                SanctionEntry.class,
+                                MessageEntry.class,
+                                MarkovMessageEntry.class)
+                .jdbcDriver("org.sqlite.JDBC")
+                .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
+                .jdbcUrl(Vars.sqlUrl)
+                .showSql(true, true, true)
+                .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class)
+                .schemaToolingAction(Action.UPDATE) //TODO still tries to create table
+                .property("spring.jpa.hibernate.ddl-auto", "update");
 
-            .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class);
         sessionFactory = configuration.createEntityManagerFactory();
         sessionFactory.getSchemaManager().create(true);
     }

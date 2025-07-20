@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.*;
 import java.time.*;
 import java.util.*;
 import java.util.regex.*;
-import java.util.stream.*;
 
 import org.hibernate.query.criteria.*;
 
@@ -45,11 +44,11 @@ public class MarkovMessagesDatabaseHelper {
         Log.debug("Populated Markov Messages Database with "+ count +" messages for guild: " + guild.getName() + " (" + guild.getId() + ")");
     }
 
+    // TODO maybe find a way to reduce redundancy by combining with MessageDatabaseHelper?gpgconf
     private static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild) {
         int count = 0;
         try {
-            // TODO alternative for the hardcoded 10000 limit?
-            for (Message message : channel.getIterableHistory().takeAsync(10000).thenApply(list -> list.stream().collect(Collectors.toList())).get()) {
+            for (Message message : channel.getIterableHistory().stream().toList()) {
                 addNewMessage(message, guild, channel, message.getAuthor().getIdLong(), message.getContentRaw(), message.getTimeCreated().toInstant().toString());
                 count++;
             }
