@@ -44,7 +44,7 @@ public class SanctionEntry {
     public char getSanctionTypeId() { return sanctionId.charAt(0); }
     public String getSanctionType() {
         return getSanctionTypeId() == 'W' ? "Warn"
-             : getSanctionTypeId() == 'M' ? "Mute"
+             : getSanctionTypeId() == 'T' ? "Timeout"
              : getSanctionTypeId() == 'K' ? "Kick"
              : getSanctionTypeId() == 'B' ? "Kick"
              : "Inconnu";
