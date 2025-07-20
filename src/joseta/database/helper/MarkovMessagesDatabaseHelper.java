@@ -90,19 +90,12 @@ public class MarkovMessagesDatabaseHelper {
 
     public static void updateMessage(long messageId, long guildId, long channelId, String content) {
         if (getMessageEntry(messageId, guildId, channelId) == null) return; // Entry does not exist, no need to update
-        
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaQuery<MarkovMessageEntry> query = criteriaBuilder.createQuery(MarkovMessageEntry.class);
-        Root<MarkovMessageEntry> root = query.from(MarkovMessageEntry.class);
-        Predicate where = criteriaBuilder.conjunction();
-        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.messageId), messageId));
-        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.guildId), guildId));
-        where = criteriaBuilder.and(where, criteriaBuilder.equal(root.get(MarkovMessageEntry_.channelId), channelId));
-        query.select(root).where(where);
 
-        MarkovMessageEntry entry = Database.getSession()
-            .createSelectionQuery(query)
-            .getResultList().get(0);
+        MarkovMessageEntry entry = Database.querySelect(MarkovMessageEntry.class, (cb, rt) ->
+                cb.and(cb.equal(rt.get(MarkovMessageEntry_.messageId), messageId),
+                        cb.equal(rt.get(MarkovMessageEntry_.guildId), guildId),
+                        cb.equal(rt.get(MarkovMessageEntry_.channelId), channelId))
+        ).getResultList().get(0);
 
         Database.createOrUpdate(entry.setContent(cleanMessage(content)));
     }

@@ -38,7 +38,7 @@ public class Database {
                 .jdbcDriver("org.sqlite.JDBC")
                 .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
                 .jdbcUrl(Vars.sqlUrl)
-                .showSql(true, true, true)
+                .showSql(false, true, true)
                 .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class)
                 .schemaToolingAction(Action.UPDATE) //TODO still tries to create table
                 .property("spring.jpa.hibernate.ddl-auto", "update");
