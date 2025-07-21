@@ -37,11 +37,9 @@ public class Database {
                 .jdbcDriver("org.sqlite.JDBC")
                 .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
                 .jdbcUrl(Vars.sqlUrl)
-                .showSql(false, true, true)
+                .showSql(true, true, true)
                 .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class)
-                .schemaToolingAction(Action.UPDATE) //TODO still tries to create table
-                .property("spring.jpa.hibernate.ddl-auto", "update")
-                .property("hbm2ddl.auto", "update");
+                .schemaToolingAction(Action.UPDATE);
 
         sessionFactory = configuration.createEntityManagerFactory();
         sessionFactory.getSchemaManager().create(true);
@@ -123,13 +121,13 @@ public class Database {
         return getSession().createMutationQuery(update);
     }
 
-    public static <E> MutationQuery queryDelete(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func) {
+    public static <E> MutationQuery queryDelete(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func, Session session) {
         HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaDelete<E> delete = criteriaBuilder.createCriteriaDelete(clazz);
         Root<E> root = delete.from(clazz);
         Predicate where = func.get(criteriaBuilder, root);
         delete.where(where);
 
-        return getSession().createMutationQuery(delete);
+        return session.createMutationQuery(delete);
     }
 }

@@ -9,6 +9,7 @@ import arc.util.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
+import org.hibernate.*;
 
 import java.time.*;
 import java.util.*;
@@ -46,6 +47,8 @@ public class MessagesDatabaseHelper {
     }
 
     public static void addNewMessage(Message message, Guild guild, GuildMessageChannel channel, long authorId, String content, Instant timestamp) {
+        if (content.isEmpty()) return;
+
         long id = message.getIdLong();
         long guildId = guild.getIdLong();
         long channelId = channel.getIdLong();
@@ -88,18 +91,28 @@ public class MessagesDatabaseHelper {
     }
 
     public static void deleteMessage(long messageId, long guildId, long channelId) {
-        Database.queryDelete(MessageEntry.class, (cb, rt) ->
-            cb.and(cb.equal(rt.get(MessageEntry_.messageId), messageId),
-                    cb.equal(rt.get(MessageEntry_.guildId), guildId),
-                    cb.equal(rt.get(MessageEntry_.channelId), channelId))
-        ).executeUpdate();
+        try (Session session = Database.getSession()) {
+            Transaction transaction = session.beginTransaction();
+            Database.queryDelete(MessageEntry.class, (cb, rt) ->
+                    cb.and(cb.equal(rt.get(MessageEntry_.messageId), messageId),
+                            cb.equal(rt.get(MessageEntry_.guildId), guildId),
+                            cb.equal(rt.get(MessageEntry_.channelId), channelId)),
+                    session
+            ).executeUpdate();
+            transaction.commit();
+        }
     }
 
     public static void deleteChannelMessages(long guildId, long channelId) {
-        Database.queryDelete(MessageEntry.class, (cb, rt) ->
-                cb.and(cb.equal(rt.get(MessageEntry_.guildId), guildId),
-                        cb.equal(rt.get(MessageEntry_.channelId), channelId))
-        ).executeUpdate();
+        try (Session session = Database.getSession()) {
+            Transaction transaction = session.beginTransaction();
+            Database.queryDelete(MessageEntry.class, (cb, rt) ->
+                    cb.and(cb.equal(rt.get(MessageEntry_.guildId), guildId),
+                            cb.equal(rt.get(MessageEntry_.channelId), channelId)),
+                    session
+            ).executeUpdate();
+            transaction.commit();
+        }
     }
 
     public static MessageEntry getMessageEntry(long messageId, long guildId, long channelId) {
