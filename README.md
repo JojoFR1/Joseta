@@ -43,9 +43,6 @@ This is a multipurpose bot and is not centered around one specific category or i
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
-- Finish the Database refactor
-- Check constitency after refactor
-
 - Add a reminder command
 
 - Refactor the Event system

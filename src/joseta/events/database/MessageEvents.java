@@ -5,6 +5,8 @@ import joseta.database.helper.*;
 import net.dv8tion.jda.api.events.channel.*;
 import net.dv8tion.jda.api.events.message.*;
 
+import java.time.*;
+
 public class MessageEvents {
 
     public static void executeMessageReceived(MessageReceivedEvent event) {
@@ -12,10 +14,9 @@ public class MessageEvents {
         
         long authorId = event.getAuthor().getIdLong();
         String content = event.getMessage().getContentRaw();
-        String timestamp = event.getMessage().getTimeCreated().toString();
+        Instant timestamp = event.getMessage().getTimeCreated().toInstant();
 
         MessagesDatabaseHelper.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
-        MarkovMessagesDatabaseHelper.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
     }
 
     public static void executeMessageUpdate(MessageUpdateEvent event) {
@@ -27,7 +28,6 @@ public class MessageEvents {
         String content = event.getMessage().getContentRaw();
 
         MessagesDatabaseHelper.updateMessage(id, guildId, channelId, content);
-        MarkovMessagesDatabaseHelper.updateMessage(id, guildId, channelId, content);
     }
 
     public static void executeMessageDelete(MessageDeleteEvent event) {
@@ -38,7 +38,6 @@ public class MessageEvents {
         long channelId = event.getChannel().getIdLong();
 
         MessagesDatabaseHelper.deleteMessage(id, guildId, channelId);
-        MarkovMessagesDatabaseHelper.deleteMessage(id, guildId, channelId);
     }
 
     public static void executeMessageBulkDelete(MessageBulkDeleteEvent event) {
@@ -47,7 +46,6 @@ public class MessageEvents {
 
         for (String id : event.getMessageIds()) {
             MessagesDatabaseHelper.deleteMessage(Long.parseLong(id), guildId, channelId);
-            MarkovMessagesDatabaseHelper.deleteMessage(Long.parseLong(id), guildId, channelId);
         }
     }
     
@@ -56,6 +54,5 @@ public class MessageEvents {
         long channelId = event.getChannel().getIdLong();
 
         MessagesDatabaseHelper.deleteChannelMessages(guildId, channelId);
-        MarkovMessagesDatabaseHelper.deleteChannelMessages(guildId, channelId);
     }
 }

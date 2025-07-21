@@ -67,7 +67,11 @@ public class SanctionDatabaseHelper {
                     });
                 });
             }
-            Database.createOrUpdate(sanction.setExpired(true));
+
+            Database.queryUpdate(SanctionEntry.class, (cb, rt) ->
+                cb.and(cb.equal(rt.get(SanctionEntry_.sanctionId), sanction.getFullSanctionId()),
+                        cb.equal(rt.get(SanctionEntry_.guildId), sanction.getGuildId()))
+            ).setParameter(SanctionEntry_.isExpired.getName(), true).executeUpdate();
         });
     }
 }
