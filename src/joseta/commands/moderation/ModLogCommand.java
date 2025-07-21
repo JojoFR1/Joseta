@@ -77,13 +77,13 @@ public class ModLogCommand extends ModCommand {
         query.select(root).where(where);
 
         int offset = (currentPage - 1) * SANCTION_PER_PAGE;
-        TypedQuery<SanctionEntry> typedQuery = Database.getSession().createQuery(query);
-        typedQuery.setFirstResult(offset).setMaxResults(SANCTION_PER_PAGE);
+        List<SanctionEntry> sanctions = Database.querySelect(SanctionEntry.class, (cb, rt) ->
+                cb.and(cb.equal(rt.get(SanctionEntry_.userId), member.getIdLong()),
+                    cb.equal(rt.get(SanctionEntry_.guildId), guild.getIdLong())
+        )).setFirstResult(offset).setMaxResults(SANCTION_PER_PAGE)
+                .getResultList();
 
-        List<SanctionEntry> sanctions = Database.getSession()
-            .createSelectionQuery(query).getResultList();
-
-        // TODO change... change what past me ?
+        // TODO change... change what past me ? i still don't know what i meant to change...
         int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(member, guild.getIdLong()) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
