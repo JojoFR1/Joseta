@@ -11,6 +11,7 @@ import java.io.*;
 import java.util.*;
 
 import org.hibernate.*;
+import org.hibernate.cfg.*;
 import org.hibernate.jpa.*;
 import org.hibernate.query.*;
 import org.hibernate.query.criteria.*;
@@ -37,12 +38,12 @@ public class Database {
                 .jdbcDriver("org.sqlite.JDBC")
                 .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
                 .jdbcUrl(Vars.sqlUrl)
-                .showSql(true, true, true)
-                .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class)
-                .schemaToolingAction(Action.UPDATE);
+                .schemaToolingAction(Action.UPDATE)
+                .showSql(false, true, true)
+                .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class);
 
         sessionFactory = configuration.createEntityManagerFactory();
-        sessionFactory.getSchemaManager().create(true);
+        // sessionFactory.getSchemaManager().upd(false);
     }
 
     public static Session getSession() {
