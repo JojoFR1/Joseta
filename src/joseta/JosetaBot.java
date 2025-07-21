@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.utils.*;
 import org.slf4j.*;
 
 import java.sql.*;
+import java.time.*;
 import java.util.concurrent.*;
 
 import ch.qos.logback.classic.Level;
@@ -92,7 +93,6 @@ public class JosetaBot {
                     .getResultList().isEmpty()) {
                 Log.debug("Populating the Messages Database for guild: " + guild.getName() + " (" + guild.getId() + ")");
                 MessagesDatabaseHelper.populateNewGuild(guild);
-                MarkovMessagesDatabaseHelper.populateNewGuild(guild);
             }
         }
     }
@@ -119,17 +119,14 @@ public class JosetaBot {
                 };
         }};
 
-        // com.j256.ormlite.logger.Logger.;
         if (Vars.isDebug || Vars.isServer) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             rootLogger.setLevel(Level.DEBUG);
             Log.level = LogLevel.debug;
-            
-            ((Logger) LoggerFactory.getLogger("log4j.logger.com.j256.ormlite")).setLevel(Level.INFO);
 
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
-            // if (!Vars.isServer) rootLogger.detachAppender("FILE");
+            if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
     }
 
@@ -140,6 +137,8 @@ public class JosetaBot {
     private static void registerShutdown() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Log.info("Shutting down...");
+
+            Database.getSession().close();
             
             if (bot != null) {
                 bot.setAutoReconnect(false);
@@ -149,7 +148,7 @@ public class JosetaBot {
                     if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
                         Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
                         bot.shutdownNow();
-                        bot.awaitShutdown();
+                        bot.awaitShutdown(Duration.ofSeconds(30));
                     }
                 } catch (InterruptedException e) {
                     Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);

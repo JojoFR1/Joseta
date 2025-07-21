@@ -18,17 +18,20 @@ public class MessageEntry {
     @Column
     private String content;
     @Column
+    private String markovContent;
+    @Column
     private Timestamp timestamp;
 
     // A no-arg constructor is required by JPA
     protected MessageEntry() {}
 
-    public MessageEntry(long messageId, long guildId, long channelId, long authorId, String content, Instant timestamp) {
+    public MessageEntry(long messageId, long guildId, long channelId, long authorId, String content, String markovContent, Instant timestamp) {
         this.messageId = messageId;
         this.guildId = guildId;
         this.channelId = channelId;
         this.authorId = authorId;
         this.content = content;
+        this.markovContent = markovContent;
         this.timestamp = Timestamp.from(timestamp);
     }
 
@@ -46,6 +49,9 @@ public class MessageEntry {
 
     public String getContent() { return content; }
     public MessageEntry setContent(String content) { this.content = content; return this; }
+
+    public String getMarkovContent() { return markovContent; }
+    public MessageEntry setMarkovContent(String markovContent) { this.markovContent = markovContent; return this; }
 
     public Instant getTimestamp() { return timestamp.toInstant(); }
     public MessageEntry setTimestamp(Instant timestamp) { this.timestamp = Timestamp.from(timestamp); return this; }

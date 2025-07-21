@@ -33,15 +33,15 @@ public class Database {
                                 UserEntry.class,
                                 ConfigEntry.class,
                                 SanctionEntry.class,
-                                MessageEntry.class,
-                                MarkovMessageEntry.class)
+                                MessageEntry.class)
                 .jdbcDriver("org.sqlite.JDBC")
                 .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
                 .jdbcUrl(Vars.sqlUrl)
                 .showSql(false, true, true)
                 .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class)
                 .schemaToolingAction(Action.UPDATE) //TODO still tries to create table
-                .property("spring.jpa.hibernate.ddl-auto", "update");
+                .property("spring.jpa.hibernate.ddl-auto", "update")
+                .property("hbm2ddl.auto", "update");
 
         sessionFactory = configuration.createEntityManagerFactory();
         sessionFactory.getSchemaManager().create(true);
@@ -115,21 +115,21 @@ public class Database {
 
     public static <E> MutationQuery queryUpdate(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func) {
         HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaUpdate<E> query = criteriaBuilder.createCriteriaUpdate(clazz);
-        Root<E> root = query.from(clazz);
+        CriteriaUpdate<E> update = criteriaBuilder.createCriteriaUpdate(clazz);
+        Root<E> root = update.from(clazz);
         Predicate where = func.get(criteriaBuilder, root);
-        query.where(where);
+        update.where(where);
 
-        return getSession().createMutationQuery(query);
+        return getSession().createMutationQuery(update);
     }
 
     public static <E> MutationQuery queryDelete(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func) {
         HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaDelete<E> query = criteriaBuilder.createCriteriaDelete(clazz);
-        Root<E> root = query.from(clazz);
+        CriteriaDelete<E> delete = criteriaBuilder.createCriteriaDelete(clazz);
+        Root<E> root = delete.from(clazz);
         Predicate where = func.get(criteriaBuilder, root);
-        query.where(where);
+        delete.where(where);
 
-        return getSession().createMutationQuery(query);
+        return getSession().createMutationQuery(delete);
     }
 }

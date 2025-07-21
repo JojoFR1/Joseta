@@ -32,20 +32,20 @@ public class MarkovCommand extends Command {
         }
 
         InteractionHook hook = event.deferReply().complete();
-        Seq<MarkovMessageEntry> entries = MarkovMessagesDatabaseHelper.getMessageEntriesByGuild(event.getGuild().getIdLong()).retainAll(entry -> entry != null);
+        Seq<MessageEntry> entries = MessagesDatabaseHelper.getMessageEntriesByGuild(event.getGuild().getIdLong()).retainAll(msg -> msg.getMarkovContent() != null);
 
         if (entries.size < MIN_ENTRIES) {
             hook.editOriginal("Il n'y a pas assez de messages !").queue();
             return;
         }
         
-        Markov markov = new Markov(event.getGuild().getId() + event.getChannelId()+".pdo");
-        markov.addToChain(entries.map(entry -> entry.getContent()));
+        Markov markov = new Markov(event.getGuild().getId() + event.getChannelId() + ".pdo");
+        markov.addToChain(entries.map(entry -> entry.getMarkovContent()));
         String output = markov.generate();
         
         hook.editOriginal(output).queue();
         
-        Fi fi = new Fi(event.getGuild().getId() + event.getChannelId()+".pdo");
+        Fi fi = new Fi(event.getGuild().getId() + event.getChannelId() + ".pdo");
         if (fi.exists()) fi.delete();
     }
 }
