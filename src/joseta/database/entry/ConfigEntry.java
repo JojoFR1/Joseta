@@ -26,9 +26,9 @@ public class ConfigEntry {
     @Column
     private String welcomeImageUrl; //TODO hard to implement with text position (especially when only text config is available).
     @Column @ColumnDefault("\"Bienvenue {{user}} !\"")
-    private String welcomeJoinMessage;
+    private String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column @ColumnDefault("\"**{{userName}}** nous a quitté...\"")
-    private String welcomeLeaveMessage;
+    private String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
     @Column @ColumnDefault("0")
     private long joinRoleId;
     @Column @ColumnDefault("0")
