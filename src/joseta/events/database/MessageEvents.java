@@ -1,20 +1,22 @@
 package joseta.events.database;
 
-import joseta.database.*;
+import joseta.database.helper.*;
 
 import net.dv8tion.jda.api.events.channel.*;
 import net.dv8tion.jda.api.events.message.*;
 
-public class MarkovMessageEvents {
+import java.time.*;
+
+public class MessageEvents {
 
     public static void executeMessageReceived(MessageReceivedEvent event) {
         if (!event.isFromGuild()) return; // Ignore DMs
         
         long authorId = event.getAuthor().getIdLong();
         String content = event.getMessage().getContentRaw();
-        String timestamp = event.getMessage().getTimeCreated().toString();
+        Instant timestamp = event.getMessage().getTimeCreated().toInstant();
 
-        MarkovMessagesDatabase.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
+        MessagesDatabaseHelper.addNewMessage(event.getMessage(), event.getGuild(), event.getChannel().asGuildMessageChannel(), authorId, content, timestamp);
     }
 
     public static void executeMessageUpdate(MessageUpdateEvent event) {
@@ -25,7 +27,7 @@ public class MarkovMessageEvents {
         long channelId = event.getChannel().getIdLong();
         String content = event.getMessage().getContentRaw();
 
-        MarkovMessagesDatabase.updateMessage(id, guildId, channelId, content);
+        MessagesDatabaseHelper.updateMessage(id, guildId, channelId, content);
     }
 
     public static void executeMessageDelete(MessageDeleteEvent event) {
@@ -35,7 +37,7 @@ public class MarkovMessageEvents {
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
 
-        MarkovMessagesDatabase.deleteMessage(id, guildId, channelId);
+        MessagesDatabaseHelper.deleteMessage(id, guildId, channelId);
     }
 
     public static void executeMessageBulkDelete(MessageBulkDeleteEvent event) {
@@ -43,7 +45,7 @@ public class MarkovMessageEvents {
         long channelId = event.getChannel().getIdLong();
 
         for (String id : event.getMessageIds()) {
-            MarkovMessagesDatabase.deleteMessage(Long.parseLong(id), guildId, channelId);
+            MessagesDatabaseHelper.deleteMessage(Long.parseLong(id), guildId, channelId);
         }
     }
     
@@ -51,7 +53,6 @@ public class MarkovMessageEvents {
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
 
-        MarkovMessagesDatabase.deleteChannelMessages(guildId, channelId);
+        MessagesDatabaseHelper.deleteChannelMessages(guildId, channelId);
     }
-
 }

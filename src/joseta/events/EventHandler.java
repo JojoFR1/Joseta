@@ -1,5 +1,6 @@
 package joseta.events;
 
+import joseta.database.helper.*;
 import joseta.events.admin.*;
 import joseta.events.database.*;
 import joseta.events.misc.*;
@@ -27,6 +28,7 @@ public class EventHandler extends ListenerAdapter {
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         WelcomeMessage.executeGuildMemberJoin(event);
+        UserDatabaseHelper.addUser(event.getMember());
     }
     @Override
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
@@ -41,24 +43,25 @@ public class EventHandler extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         AutoResponseEvent.execute(event);
-        MarkovMessageEvents.executeMessageReceived(event);
+        
+        MessageEvents.executeMessageReceived(event);
     }
     @Override
     public void onMessageUpdate(MessageUpdateEvent event) {
-        MarkovMessageEvents.executeMessageUpdate(event);
+        MessageEvents.executeMessageUpdate(event);
     }
     @Override
     public void onMessageDelete(MessageDeleteEvent event) {
-        MarkovMessageEvents.executeMessageDelete(event);
+        MessageEvents.executeMessageDelete(event);
     }
     @Override
     public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-        MarkovMessageEvents.executeMessageBulkDelete(event);
+        MessageEvents.executeMessageBulkDelete(event);
     }
     
     @Override
     public void onChannelDelete(ChannelDeleteEvent event) {
-        MarkovMessageEvents.executeChannelDelete(event);
+        MessageEvents.executeChannelDelete(event);
     }
 
     @Override

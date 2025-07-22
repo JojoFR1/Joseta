@@ -3,6 +3,7 @@ package joseta.commands.moderation;
 import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+import joseta.database.helper.*;
 import joseta.utils.*;
 
 import arc.struct.*;
@@ -20,10 +21,16 @@ import net.dv8tion.jda.api.requests.restaction.interactions.*;
 
 import java.awt.*;
 import java.time.*;
+import java.util.List;
+
+import org.hibernate.query.criteria.*;
+
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 
 public class ModLogCommand extends ModCommand {
     private static final int SANCTION_PER_PAGE = 5;
-    public static ObjectMap<Long, User> userOfMessage = new ObjectMap<>();
+    public static ObjectMap<Long, Member> userOfMessage = new ObjectMap<>();
 
     public ModLogCommand() {
         super("modlog", "Obtient l'historique de modérations d'un membre");
@@ -33,11 +40,11 @@ public class ModLogCommand extends ModCommand {
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        sendEmbed(event, user, 1, (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
+        sendEmbed(event, member, 1, (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(member, event.getGuild().getIdLong()) / SANCTION_PER_PAGE));
     }
 
-    public static void sendEmbed(GenericInteractionCreateEvent event, User user, int page, int lastPage) {
-        MessageEmbed embed = generateEmbed(event.getGuild(), user, event.getGuild().getIdLong(), page);
+    public static void sendEmbed(GenericInteractionCreateEvent event, Member member, int page, int lastPage) {
+        MessageEmbed embed = generateEmbed(event.getGuild(), member, page);
         ItemComponent[] buttons = {
             Button.secondary("modlog-page-b-first", "⏪").withDisabled(page == 1),
             Button.secondary("modlog-page-b-prev", "◀️").withDisabled(page <= 1),
@@ -53,19 +60,26 @@ public class ModLogCommand extends ModCommand {
 
             Message msg = callback.complete().retrieveOriginal().complete();
 
-            userOfMessage.put(msg.getIdLong(), user);
+            userOfMessage.put(msg.getIdLong(), member);
         }
         if (event instanceof ButtonInteractionEvent bevent) {
             bevent.editMessageEmbeds(embed).setActionRow(buttons).queue();
         }
     }
 
-    public static MessageEmbed generateEmbed(Guild guild, User user, long guildId, int currentPage) {
-        Seq<SanctionEntry> sanctions = ModLogDatabase.getUserLog(user.getIdLong(), guildId, currentPage, SANCTION_PER_PAGE);
-        int totalPages = (int) Math.ceil((double) ModLogDatabase.getUserTotalSanctions(user.getIdLong(), guildId) / SANCTION_PER_PAGE);
+    public static MessageEmbed generateEmbed(Guild guild, Member member, int currentPage) {
+        int offset = (currentPage - 1) * SANCTION_PER_PAGE;
+        List<SanctionEntry> sanctions = Database.querySelect(SanctionEntry.class, (cb, rt) ->
+                cb.and(cb.equal(rt.get(SanctionEntry_.userId), member.getIdLong()),
+                    cb.equal(rt.get(SanctionEntry_.guildId), guild.getIdLong())
+        )).setFirstResult(offset).setMaxResults(SANCTION_PER_PAGE)
+                .getResultList();
+
+        // TODO change... change what past me ? i still don't know what i meant to change...
+        int totalPages = (int) Math.ceil((double) UserDatabaseHelper.getUserSanctionCount(member, guild.getIdLong()) / SANCTION_PER_PAGE);
 
         EmbedBuilder embed = new EmbedBuilder()
-            .setTitle("Historique de modération de " + user.getName() + " ┃ Page "+ currentPage +"/"+ totalPages)
+            .setTitle("Historique de modération de " + member.getEffectiveName() + " ┃ Page "+ currentPage +"/"+ totalPages)
             .setColor(Color.BLUE)
             .setFooter(guild.getName(), guild.getIconUrl())
             .setTimestamp(Instant.now());
@@ -74,21 +88,15 @@ public class ModLogCommand extends ModCommand {
         if (sanctions.isEmpty()) description = "Oh ! Cet utilisateur n'a aucune sanction !";
 
         else for (SanctionEntry sanction : sanctions) {
-            int sanctionTypeId = Integer.parseInt(Long.toString(sanction.id).substring(0,2));
-            String sanctionType = sanctionTypeId == SanctionType.WARN ? "Warn"
-                                : sanctionTypeId == SanctionType.MUTE ? "Mute"
-                                : sanctionTypeId == SanctionType.KICK ? "Kick"
-                                : "Ban";
-
-            description += "### "+ sanctionType +" - "+ sanction.id;
+            description += "### "+ sanction.getSanctionType() +" - #"+ sanction.getFullSanctionId();
             if (sanction.isExpired()) description += " (Expirée)";
 
-            description += "\n>   - Responsable: <@"+ sanction.moderatorId +"> (`"+ sanction.moderatorId +"`)"
-                         + "\n>   - Le: <t:"+ sanction.at.getEpochSecond() +":F>";
+            description += "\n>   - Responsable: <@"+ sanction.getModeratorId() +"> (`"+ sanction.getModeratorId() +"`)"
+                         + "\n>   - Le: <t:"+ sanction.getTimestamp().getEpochSecond() +":F>";
             
-            if (sanctionTypeId != SanctionType.KICK && sanction.time >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.time);
+            if (sanction.getSanctionTypeId() != 'K' && sanction.getExpiryTime() >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.getExpiryTime());
 
-            description += "\n>   - Raison: " + sanction.reason + "\n\n";
+            description += "\n>   - Raison: " + sanction.getReason() + "\n\n";
         }
 
         embed.setDescription(description);

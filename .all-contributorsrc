@@ -38,6 +38,17 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lapin-b",
+      "name": "l4p1n (Mathias B.)",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3647174?v=4",
+      "profile": "https://l4p1n.ch/",
+      "contributions": [
+        "code",
+        "ideas",
+        "mentoring"
+      ]
     }
   ],
   "contributorsPerLine": 7,

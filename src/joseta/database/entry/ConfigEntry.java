@@ -1,102 +1,130 @@
 package joseta.database.entry;
 
+import joseta.database.type.*;
+
 import arc.struct.*;
 
 import java.net.*;
 
+import org.hibernate.annotations.*;
+
+import jakarta.persistence.*;
+
+@Entity @Table(name = "config")
 public class ConfigEntry {
-    public long guildId;
+    @Id
+    private long guildId;
 
     //#region Welcome
-    public boolean welcomeEnabled; // TODO maybe separate the leave and join enabled? + global enable?
-    public long welcomeChannelId;
-    public boolean welcomeImageEnabled;
-    //TODO adapt welcome message for url & var like {{var}}
-    public URL welcomeImageUrl; //todo hard to implement with text position (especially when only text config is available).
-    public String welcomeJoinMessage;
-    public String welcomeLeaveMessage;
-    public long joinRoleId;
-    public long joinBotRoleId;
-    public long verifiedRoleId;
+    @Column @ColumnDefault("false")
+    private boolean welcomeEnabled; // TODO maybe separate the leave and join enabled? + global enable?
+    @Column @ColumnDefault("0")
+    private long welcomeChannelId;
+    @Column @ColumnDefault("false")
+    private boolean welcomeImageEnabled;
+    //TODO adapt welcome message for url
+    @Column
+    private String welcomeImageUrl; //TODO hard to implement with text position (especially when only text config is available).
+    @Column @ColumnDefault("\"Bienvenue {{user}} !\"")
+    private String welcomeJoinMessage = "Bienvenue {{user}} !";
+    @Column @ColumnDefault("\"**{{userName}}** nous a quitté...\"")
+    private String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
+    @Column @ColumnDefault("0")
+    private long joinRoleId;
+    @Column @ColumnDefault("0")
+    private long joinBotRoleId;
+    @Column @ColumnDefault("0")
+    private long verifiedRoleId;
     //#endregion
 
     //#region Markov
-    public boolean markovEnabled;
-    public Seq<Long> markovChannelBlackList;
-    public Seq<Long> markovCategoryBlackList;
+    @Column @ColumnDefault("false")
+    private boolean markovEnabled;
+    @Column @JdbcType(SeqLongType.class)
+    private Seq<Long> markovBlackList = new Seq<>();
     //#endregion
     
-    public boolean moderationEnabled;
+    @Column @ColumnDefault("false")
+    private boolean moderationEnabled;
 
-    public boolean autoResponseEnabled;
+    @Column @ColumnDefault("false")
+    private boolean autoResponseEnabled;
 
-    public ConfigEntry(
-        long guildId,
+    // A no-arg constructor is required by JPA
+    protected ConfigEntry() {}
+    
+    public ConfigEntry(long guildId) { this.guildId = guildId; }
 
-        boolean welcomeEnabled, long welcomeChannelId, boolean welcomeImageEnabled,
-        URL welcomeImageUrl, String welcomeJoinMessage, String welcomeLeaveMessage,
-        long joinRoleId, long joinBotRoleId, long verifiedRoleId,
+    public ConfigEntry(ConfigEntry other) {
+        this.guildId = other.guildId;
 
-        boolean markovEnabled, Seq<Long> markovChannelBlackList, Seq<Long> markovCategoryBlackList,
+        this.welcomeEnabled = other.welcomeEnabled;
+        this.welcomeChannelId = other.welcomeChannelId;
+        this.welcomeImageEnabled = other.welcomeImageEnabled;
+        this.welcomeImageUrl = other.welcomeImageUrl;
+        this.welcomeJoinMessage = other.welcomeJoinMessage;
+        this.welcomeLeaveMessage = other.welcomeLeaveMessage;
+        this.joinRoleId = other.joinRoleId;
+        this.joinBotRoleId = other.joinBotRoleId;
+        this.verifiedRoleId = other.verifiedRoleId;
+        this.markovEnabled = other.markovEnabled;
+        this.markovBlackList = new Seq<>(other.markovBlackList);
 
-        boolean moderationEnabled,
+        this.moderationEnabled = other.moderationEnabled;
 
-        boolean autoResponseEnabled
-    ) {
-        this.guildId = guildId;
-
-        this.welcomeEnabled = welcomeEnabled;
-        this.welcomeChannelId = welcomeChannelId;
-        this.welcomeImageEnabled = welcomeImageEnabled;
-        this.welcomeImageUrl = welcomeImageUrl;
-        this.welcomeJoinMessage = welcomeJoinMessage;
-        this.welcomeLeaveMessage = welcomeLeaveMessage;
-        this.joinRoleId = joinRoleId;
-        this.joinBotRoleId = joinBotRoleId;
-        this.verifiedRoleId = verifiedRoleId;
-
-        this.markovEnabled = markovEnabled;
-        this.markovChannelBlackList = markovChannelBlackList;
-        this.markovCategoryBlackList = markovCategoryBlackList;
-        
-        this.moderationEnabled = moderationEnabled;
-
-        this.autoResponseEnabled = autoResponseEnabled;
+        this.autoResponseEnabled = other.autoResponseEnabled;
     }
+
+    public long getGuildId() { return guildId; }
+    public ConfigEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
 
     public ConfigEntry setWelcomeEnabled(boolean welcomeEnabled) { this.welcomeEnabled = welcomeEnabled; return this; }
+    public boolean isWelcomeEnabled() { return welcomeEnabled; }
+    
     public ConfigEntry setWelcomeChannelId(long welcomeChannelId) { this.welcomeChannelId = welcomeChannelId; return this; }
-    public ConfigEntry setWelcomeImageEnabled(boolean welcomeImageEnabled) { this.welcomeImageEnabled = welcomeImageEnabled; return this; }
-    public ConfigEntry setWelcomeImageUrl(URL welcomeImageUrl) { this.welcomeImageUrl = welcomeImageUrl; return this; }
-    public ConfigEntry setWelcomeJoinMessage(String welcomeJoinMessage) { this.welcomeJoinMessage = welcomeJoinMessage; return this; }
-    public ConfigEntry setWelcomeLeaveMessage(String welcomeLeaveMessage) { this.welcomeLeaveMessage = welcomeLeaveMessage; return this; }
-    public ConfigEntry setJoinRoleId(long joinRoleId) { this.joinRoleId = joinRoleId; return this; }
-    public ConfigEntry setJoinBotRoleId(long joinBotRoleId) { this.joinBotRoleId = joinBotRoleId; return this; }
-    public ConfigEntry setVerifiedRoleId(long verifiedRoleId) { this.verifiedRoleId = verifiedRoleId; return this; }
-    public ConfigEntry setMarkovEnabled(boolean markovEnabled) { this.markovEnabled = markovEnabled; return this; }
-    public ConfigEntry setMarkovChannelBlackList(Seq<Long> markovChannelBlackList) { this.markovChannelBlackList = markovChannelBlackList; return this; }
-    public ConfigEntry setMarkovCategoryBlackList(Seq<Long> markovCategoryBlackList) { this.markovCategoryBlackList = markovCategoryBlackList; return this; }
-    public ConfigEntry setModerationEnabled(boolean moderationEnabled) { this.moderationEnabled = moderationEnabled; return this; }
-    public ConfigEntry setAutoResponseEnabled(boolean autoResponseEnabled) { this.autoResponseEnabled = autoResponseEnabled; return this; }
+    public long getWelcomeChannelId() { return welcomeChannelId; }
 
-    public ConfigEntry addMarkovChannelBlackList(long channelId) {
-        if (!markovChannelBlackList.contains(channelId) && channelId != 0L) {
-            markovChannelBlackList.add(channelId);
+    public ConfigEntry setWelcomeImageEnabled(boolean welcomeImageEnabled) { this.welcomeImageEnabled = welcomeImageEnabled; return this; }
+    public boolean isWelcomeImageEnabled() { return welcomeImageEnabled; }
+
+    public ConfigEntry setWelcomeImageUrl(URL welcomeImageUrl) { this.welcomeImageUrl = welcomeImageUrl.toString(); return this; }
+    public URL getWelcomeImageUrl() throws MalformedURLException { return URI.create(welcomeImageUrl).toURL(); }
+
+    public ConfigEntry setWelcomeJoinMessage(String welcomeJoinMessage) { this.welcomeJoinMessage = welcomeJoinMessage; return this; }
+    public String getWelcomeJoinMessage() { return welcomeJoinMessage; }
+
+    public ConfigEntry setWelcomeLeaveMessage(String welcomeLeaveMessage) { this.welcomeLeaveMessage = welcomeLeaveMessage; return this; }
+    public String getWelcomeLeaveMessage() { return welcomeLeaveMessage; }
+
+    public ConfigEntry setJoinRoleId(long joinRoleId) { this.joinRoleId = joinRoleId; return this; }
+    public long getJoinRoleId() { return joinRoleId; }
+
+    public ConfigEntry setJoinBotRoleId(long joinBotRoleId) { this.joinBotRoleId = joinBotRoleId; return this; }
+    public long getJoinBotRoleId() { return joinBotRoleId; }
+
+    public ConfigEntry setVerifiedRoleId(long verifiedRoleId) { this.verifiedRoleId = verifiedRoleId; return this; }
+    public long getVerifiedRoleId() { return verifiedRoleId; }
+
+    public ConfigEntry setMarkovEnabled(boolean markovEnabled) { this.markovEnabled = markovEnabled; return this; }
+    public boolean isMarkovEnabled() { return markovEnabled; }
+
+    public ConfigEntry setMarkovBlackList(Seq<Long> markovBlackList) { this.markovBlackList = markovBlackList; return this; }
+    public Seq<Long> getMarkovBlackList() { return markovBlackList; }
+
+    public ConfigEntry setModerationEnabled(boolean moderationEnabled) { this.moderationEnabled = moderationEnabled; return this; }
+    public boolean isModerationEnabled() { return moderationEnabled; }
+
+    public ConfigEntry setAutoResponseEnabled(boolean autoResponseEnabled) { this.autoResponseEnabled = autoResponseEnabled; return this; }
+    public boolean isAutoResponseEnabled() { return autoResponseEnabled; }
+
+    public ConfigEntry addMarkovBlackList(long mentionableId) {
+        if (!markovBlackList.contains(mentionableId) && mentionableId != 0L) {
+            markovBlackList.add(mentionableId);
         }
         return this;
     }
-    public ConfigEntry removeMarkovChannelBlackList(long channelId) {
-        if (channelId != 0L) markovChannelBlackList.remove(channelId);
-        return this;
-    }
-    public ConfigEntry addMarkovCategoryBlackList(long categoryId) {
-        if (!markovCategoryBlackList.contains(categoryId) &&categoryId != 0L) {
-            markovCategoryBlackList.add(categoryId);
-        }
-        return this;
-    }
-    public ConfigEntry removeMarkovCategoryBlackList(long categoryId) {
-        if (categoryId != 0L) markovCategoryBlackList.remove(categoryId);
+    public ConfigEntry removeMarkovBlackList(long mentionableId) {
+        if (mentionableId != 0L) markovBlackList.remove(mentionableId);
         return this;
     }
 }

@@ -1,8 +1,9 @@
 package joseta.events.misc;
 
-import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
+
+import arc.util.*;
 
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.*;
@@ -30,58 +31,59 @@ public class WelcomeMessage {
             welcomeImage = ImageIO.read(cachedImagePath.toFile());
             imageLoaded = true;
         } catch (IOException e) {
-            JosetaBot.logger.error("WelcomeMessage - An error occured while reading the base welcome image or font.", e);
+            Log.err("WelcomeMessage - An error occured while reading the base welcome image or font.", e);
             imageLoaded = false;
         }
 
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
         } catch (IOException e) {
-            JosetaBot.logger.error("WelcomeMessage - The font could not be loaded. Defaulted to 'Arial'", e);
+            Log.err("WelcomeMessage - The font could not be loaded. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);        
         } catch (FontFormatException e) {
-            JosetaBot.logger.error("WelcomeMessage - The font has a wrong format. Defaulted to 'Arial'", e);
+            Log.err("WelcomeMessage - The font has a wrong format. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);
         }
     }
 
     public static void executeGuildMemberJoin(GuildMemberJoinEvent event) {
-        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+        ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
         User user = event.getUser();
 
         TextChannel channel;
         Role botRole = null, memberRole = null; // Safe to be null, no check needed
-        if (!config.welcomeEnabled) return;
-        if (config.welcomeChannelId == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.welcomeChannelId)) == null) {
-            JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
+        if (!config.isWelcomeEnabled()) return;
+        if (config.getWelcomeChannelId() == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.getWelcomeChannelId())) == null) {
+            Log.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: @", event.getGuild().getName());
             return;
         }
-        if (!user.isBot() && (config.joinRoleId == 0L || (memberRole = event.getGuild().getRoleById(config.joinRoleId)) == null)) {
-            JosetaBot.logger.warn("WelcomeMessage - The new member role is not set or does not exist in the guild: " + event.getGuild().getName());
+        if (!user.isBot() && (config.getJoinBotRoleId() == 0L || (memberRole = event.getGuild().getRoleById(config.getJoinRoleId())) == null)) {
+            Log.warn("WelcomeMessage - The new member role is not set or does not exist in the guild: @", event.getGuild().getName());
             return;
         }
-        if (user.isBot() && (config.joinBotRoleId == 0L || (botRole = event.getGuild().getRoleById(config.joinBotRoleId)) == null)) {
-            JosetaBot.logger.warn("WelcomeMessage - The bot role is not set or does not exist in the guild: " + event.getGuild().getName());
+        if (user.isBot() && (config.getJoinBotRoleId() == 0L || (botRole = event.getGuild().getRoleById(config.getJoinBotRoleId())) == null)) {
+            Log.warn("WelcomeMessage - The bot role is not set or does not exist in the guild: @", event.getGuild().getName());
             return;
         }
 
-        if (imageLoaded && config.welcomeImageEnabled) sendWelcomeImage(event.getGuild(), channel, user);
-        else if (!config.welcomeJoinMessage.isEmpty()) channel.sendMessage(config.welcomeJoinMessage.replace("{{user}}", event.getUser().getAsMention())).queue();
+        if (imageLoaded && config.isWelcomeImageEnabled()) sendWelcomeImage(event.getGuild(), channel, user);
+        else if (!config.getWelcomeJoinMessage().isEmpty()) channel.sendMessage(config.getWelcomeJoinMessage().replace("{{user}}", event.getUser().getAsMention())).queue();
 
         if (user.isBot()) event.getGuild().addRoleToMember(user, botRole).queue();
         else event.getGuild().addRoleToMember(user, memberRole).reason("Ajouter automatiquement lorsque le membre a rejoint.").queue();        
     }
 
     public static void executeGuildMemberRemove(GuildMemberRemoveEvent event) {
-        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+        ConfigEntry config  = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
+        
         TextChannel channel;
-        if (!config.welcomeEnabled) return;
-        if (config.welcomeChannelId == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.welcomeChannelId))== null) {
-            JosetaBot.logger.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild: " + event.getGuild().getName());
+        if (!config.isWelcomeEnabled()) return;
+        if (config.getWelcomeChannelId() == 0L || (channel = event.getGuild().getChannelById(TextChannel.class, config.getWelcomeChannelId())) == null) {
+            Log.warn("WelcomeMessage - The welcome channel is not set or does not exist in the guild @ (@)", event.getGuild().getName(), event.getGuild().getId());
             return;
         }
 
-         if (!config.welcomeLeaveMessage.isEmpty()) channel.sendMessage(config.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
+         if (!config.getWelcomeLeaveMessage().isEmpty()) channel.sendMessage(config.getWelcomeLeaveMessage().replace("{{userName}}", event.getUser().getName())).queue();
     }
 
     private static void sendWelcomeImage(Guild guild, TextChannel channel, User user) {
@@ -96,9 +98,9 @@ public class WelcomeMessage {
             
             Files.deleteIfExists(Paths.get("resources", "userAvatar.png"));    
         } catch (MalformedURLException e) {
-            JosetaBot.logger.error("WelcomeImage - An error occured with the user avatar URL.", e);
+            Log.err("WelcomeImage - An error occured with the user avatar URL.", e);
         } catch (IOException e) {
-            JosetaBot.logger.error("WelcomeImage - Could not read/write the base/generated image.", e);
+            Log.err("WelcomeImage - Could not read/write the base/generated image.", e);
         }
     }
 

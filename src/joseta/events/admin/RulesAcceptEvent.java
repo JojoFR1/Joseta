@@ -9,13 +9,13 @@ import net.dv8tion.jda.api.events.interaction.component.*;
 public class RulesAcceptEvent {
     
     public static void execute(ButtonInteractionEvent event) {
-        ConfigEntry config = ConfigDatabase.getConfig(event.getGuild().getIdLong());
+        ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
 
         Role joinRole, verifiedRole;
-        if (config.joinRoleId == 0L || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) {
+        if (config.getJoinRoleId() == 0L || (joinRole = event.getGuild().getRoleById(config.getJoinRoleId())) == null) {
             return;
         }
-        if (config.verifiedRoleId == 0L || (verifiedRole = event.getGuild().getRoleById(config.verifiedRoleId)) == null) {
+        if (config.getVerifiedRoleId() == 0L || (verifiedRole = event.getGuild().getRoleById(config.getVerifiedRoleId())) == null) {
             return;
         }
 

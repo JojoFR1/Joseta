@@ -5,10 +5,14 @@ import joseta.commands.admin.*;
 import joseta.commands.misc.*;
 import joseta.commands.moderation.*;
 import joseta.database.*;
+import joseta.database.entry.*;
+import joseta.database.helper.*;
 import joseta.events.*;
 import joseta.events.misc.*;
 
 import arc.struct.*;
+import arc.util.*;
+import arc.util.Log.*;
 
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -18,14 +22,15 @@ import net.dv8tion.jda.api.utils.*;
 
 import org.slf4j.*;
 
+import java.sql.*;
+import java.time.*;
 import java.util.concurrent.*;
 
-import ch.qos.logback.classic.*;
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
 public class JosetaBot {
-    public static JDA bot;
-    public static final Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
+    private static JDA bot;
 
     public static final Seq<Command> commands = Seq.with(
         new AdminCommand(),
@@ -48,7 +53,7 @@ public class JosetaBot {
     /* Load - Before the bot load
      * Initialize - After the bot load (after awaitReady)
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         registerShutdown();
         preLoad(args);
         
@@ -63,22 +68,36 @@ public class JosetaBot {
                 .build();
         
         // Required to access guild and register commands.
-        try {
-            bot.awaitReady();
-        } catch (InterruptedException e) {
-            JosetaBot.logger.error("An error occured while waiting for the bot to connect.", e);
+        try { bot.awaitReady(); } catch (InterruptedException e) {
+            Log.err("An error occurred while waiting for the bot to be ready (connected).", e);
             System.exit(1);
         }
 
-        initializeCommands();
-        
-        ConfigDatabase.initialize();
-        WelcomeMessage.initialize();
-        ModLogDatabase.initialize();
-        MarkovMessagesDatabase.initialize();
+        SlashCommandData[] commandsData = commands.map(cmd -> cmd.getCommandData()).toArray(SlashCommandData.class);
+        bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
+        bot.updateCommands().addCommands(commandsData).queue();
+
+        WelcomeMessage.initialize(); //TODO Maybe change that?
+        SanctionDatabaseHelper.startScheduler(15); // Check expired sanctions every 15 minutes.
+
+        for (Guild guild : bot.getGuilds()) {
+            if (Database.get(GuildEntry.class, guild.getIdLong()) == null)
+                Database.create(new GuildEntry(guild));
+
+            if (Database.get(ConfigEntry.class, guild.getIdLong()) == null)
+                Database.create(new ConfigEntry(guild.getIdLong()));
+
+            //TODO populate with config disabled by default + no markov black list defined
+
+            if (Database.querySelect(MessageEntry.class, (cb, rt) -> cb.equal(rt.get(MessageEntry_.guildId), guild.getIdLong()))
+                    .getResultList().isEmpty()) {
+                Log.debug("Populating the Messages Database for guild: " + guild.getName() + " (" + guild.getId() + ")");
+                MessagesDatabaseHelper.populateNewGuild(guild);
+            }
+        }
     }
 
-    private static void preLoad(String args[]) {
+    private static void preLoad(String[] args) {
         if (args.length > 0) {
             Vars.setDebug(args[0].equals("--debug"));
             Vars.setServer(args[0].equals("--server"));
@@ -86,38 +105,53 @@ public class JosetaBot {
 
         Vars.loadSecrets();
 
+        Log.useColors = false;
+        Log.logger = new Log.LogHandler() {
+            @Override public void log(LogLevel level, String text) {
+                Logger logger = (Logger) LoggerFactory.getLogger(JosetaBot.class);
+                
+                switch (level) {
+                    case debug: logger.debug(text); break;
+                    case info: logger.info(text); break;
+                    case warn: logger.warn(text); break;
+                    case err: logger.error(text); break;
+                    case none: default: break;
+                };
+        }};
+
         if (Vars.isDebug || Vars.isServer) {
             Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
             rootLogger.setLevel(Level.DEBUG);
-            
+            Log.level = LogLevel.debug;
+
             // The appender has to be referenced in logback.xml to 'exist', 
             // so instead of adding it if it's a server, it's removed if otherwise
             if (!Vars.isServer) rootLogger.detachAppender("FILE");
         }
     }
 
-    private static void initializeCommands() {
-        SlashCommandData[] commandsData = commands.map(cmd -> cmd.getCommandData()).toArray(SlashCommandData.class);
-        
-        bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
-        bot.updateCommands().addCommands(commandsData).queue();
+    public static JDA getBot() {
+        return bot;
     }
 
     private static void registerShutdown() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            JosetaBot.logger.info("Shutting down...");
+            Log.info("Shutting down...");
+
+            Database.getSession().close();
             
             if (bot != null) {
                 bot.setAutoReconnect(false);
                 bot.shutdown();
-                
+
                 try {
                     if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
-                        JosetaBot.logger.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
+                        Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
                         bot.shutdownNow();
+                        bot.awaitShutdown(Duration.ofSeconds(30));
                     }
                 } catch (InterruptedException e) {
-                    JosetaBot.logger.error("An error occured while waitin for the bot to shutdown. Force shutting down...", e);
+                    Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);
                     bot.shutdownNow();
                 }
             }

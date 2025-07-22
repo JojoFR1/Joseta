@@ -1,22 +1,20 @@
 plugins {
     id("java")
     id("application")
-    id("com.gradleup.shadow") version "8.3.5"
+    id("com.gradleup.shadow") version "9.0.0-rc1"
 }
-version = '1.1.0'
+version = '1.5.0'
 
 sourceSets.main.java.srcDirs = ["src"]
 sourceSets.main.resources.srcDirs = ["src"]
 
-application {
-    mainClass = "joseta.JosetaBot"
-}
-
 java {
     sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
-
 compileJava.options.encoding = "UTF-8"
+
+application { mainClass = "joseta.JosetaBot" }
 
 repositories{
     mavenCentral()
@@ -27,20 +25,25 @@ repositories{
 
 dependencies{
     implementation("net.dv8tion:JDA:5.6.1") {
-      // Optionally disable audio natives to reduce jar size by excluding `opus-java`
+      // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
     }
     implementation("ch.qos.logback:logback-classic:1.5.18")
-    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    
+    implementation("org.xerial:sqlite-jdbc:3.50.1.0")
+    implementation("org.hibernate:hibernate-core:7.0.6.Final")
+    // Community Dialects for SQLite
+    implementation("org.hibernate:hibernate-community-dialects:7.0.6.Final")
+    // Hibernate Validator
+    implementation("org.hibernate.validator:hibernate-validator:9.0.1.Final")
+    implementation("org.glassfish:jakarta.el:4.0.2")
+    // Hibernate Processor for annotation processing
+    annotationProcessor("org.hibernate.orm:hibernate-processor:7.0.6.Final")
+
     implementation("com.github.Anuken.Arc:arc-core:v146")
 }
 
-
 shadowJar {
     archiveFileName = "JosetaBot.jar"
-    minimize() {
-        exclude(dependency("ch.qos.logback:logback-classic"))
-        exclude(dependency("org.xerial:sqlite-jdbc"))
-    }
 }

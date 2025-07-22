@@ -4,25 +4,25 @@
 
 ## Project
 
-Joseta is a multi purpose, single server, Discord bot made with the [JDA](https://github.com/discord-jda/JDA) library.
+Joseta is a multipurpose, single server, Discord bot made with the [JDA](https://github.com/discord-jda/JDA) library.
 
-### Why single server ?
+### Why single server?
 
 This bot original purpose is to only be used in the official [Mindustry France](https://discord.com/invite/hzGPWhZSGV) Discord server only - so it was made without any plans to support multiple servers nor to be a public bot for now, this could change in the future. Features are only implemented based of our needs.
 
-This bot is not *yet* fully usable for personnal use due to multiple hardcoded values that are mostly now removed with the configuration command. If you wish to use it you are free to do so buy we do not give any support as of now.
+This bot is not *yet* fully usable for personal use due to multiple hardcoded values that are mostly now removed with the configuration command. If you wish to use it you are free to do so buy we do not give any support as of now.
 
 ### Why Java and JDA?
 
-We could have used JavaScript or Python or litteraly any other languages, but due to personal preferences we have chosen Java and the JDA library as it was a library we already had experience with. Discussion for a possible Kotlin transition will be explored.
+We could have used JavaScript or Python or literally any other languages, but due to personal preferences we have chosen Java and the JDA library as it was a library we already had experience with. Discussion for a possible Kotlin transition will be explored.
 
 ## Features
 
 This is a multipurpose bot and is not centered around one specific category or idea, all features implemented (updated or removed) are based only on our needs. See below for a list of all the features this bot currently has:
 
-- An **Image based Welcome** for new members (or message in case image is disabled or not properly loaded).
+- An **Image-based Welcome** for new members (or message in case the image is disabled or not properly loaded).
 - A **Goodbye Message** for leaving members.
-- **Rules** + an **Acceptation System**, acting as a verification too (not *yet* configurable).
+- **Rules** + an **Acceptation System**, acting as verification too (not *yet* configurable).
 - An **Auto Response** for common questions (not *yet* configurable but can be disabled).
 - Multiple commands:
 
@@ -43,20 +43,20 @@ This is a multipurpose bot and is not centered around one specific category or i
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
+- Add a reminder command
+
 - Refactor the Event system
   - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
-  - Other implementation could be explored (but I do not have any idea for now)
+  - Other implementations could be explored (but I do not have any idea for now)
 
-- Add more & imrpove moderation commands:
+- Add more and improve moderation commands:
   - `/clear` to bulk delete messages.
   - `/(un)lock` to (un)lock a channel.
   - Send info to user DM about their sanction
 
 - Rework config command to use embed instead of multiple arguments command
 
-- Refactor the SQL implementation
-  - Either use existing library (JPA + Hibernate) or do my own implementation
-  - Other implementation could be explored (but I do not have any idea for now)
+- Add translation for messages & logging (mainly to lower string repetions and to have it all in one file)
 
 - Add a Logging system (currently on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6)):
   - Log the warns of the bot.
@@ -64,8 +64,8 @@ The current plans and ideas for this bot are the following, in the likely order 
 - Message leaderboard + levels (?).
 
 - Support multi-server:
-  - Mainly to make it useable outside of our server.
-  - Make it actually useable for others.
+  - Mainly to make it usable outside our server.
+  - Make it actually usable for others.
 
 - Possible transition to Kotlin.
 
@@ -82,9 +82,9 @@ Once the build process is finished, the output will be present in `./build/libs/
 
 You will first need to follow the instructions in the `secret_template.cfg` file before being able to run the bot.
 
-After this, starting the bot is very easy. You just need to execute this command: `java -jar build/libs/JosetaBot.jar`
+After this, starting the bot is very easy. You need to execute this command: `java -jar build/libs/JosetaBot.jar`
 
-The following arguments (after the `.jar`)  are available to use:
+The following arguments (after the `.jar`) are available to use:
 
 - Default: run the bot normally. (Log level is info level)
 - `--debug`: run the bot in debug mode. (Log level is debug level & intended for testing)
@@ -103,6 +103,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/JojoFR1"><img src="https://avatars.githubusercontent.com/u/110781915?v=4?s=100" width="100px;" alt="Jojo"/><br /><sub><b>Jojo</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=JojoFR1" title="Code">💻</a> <a href="#ideas-JojoFR1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-JojoFR1" title="Maintenance">🚧</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://zetamap.fr/"><img src="https://avatars.githubusercontent.com/u/56844734?v=4?s=100" width="100px;" alt="ZetaMap"/><br /><sub><b>ZetaMap</b></sub></a><br /><a href="#infra-ZetaMap" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://xorblo-doitus.github.io/projects/"><img src="https://avatars.githubusercontent.com/u/75997617?v=4?s=100" width="100px;" alt="Patou"/><br /><sub><b>Patou</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=xorblo-doitus" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://l4p1n.ch/"><img src="https://avatars.githubusercontent.com/u/3647174?v=4?s=100" width="100px;" alt="l4p1n (Mathias B.)"/><br /><sub><b>l4p1n (Mathias B.)</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=lapin-b" title="Code">💻</a> <a href="#ideas-lapin-b" title="Ideas, Planning, & Feedback">🤔</a> <a href="#mentoring-lapin-b" title="Mentoring">🧑‍🏫</a></td>
     </tr>
   </tbody>
   <tfoot>
