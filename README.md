@@ -38,6 +38,7 @@ This is a multipurpose bot and is not centered around one specific category or i
   |            | `/kick`        | Kick a member from the server.                                      |
   |            | `/(un)timeout` | (Un)Timeout a member on the server.                                 |
   |            | `/(un)warn`    | (Un)Warn a member on the server.                                    |
+  |            | `/clear`       | Clear messages in the channel.                                      |
 
 ## Plans
 
@@ -50,7 +51,6 @@ The current plans and ideas for this bot are the following, in the likely order 
   - Other implementations could be explored (but I do not have any idea for now)
 
 - Add more and improve moderation commands:
-  - `/clear` to bulk delete messages.
   - `/(un)lock` to (un)lock a channel.
   - Send info to user DM about their sanction
 

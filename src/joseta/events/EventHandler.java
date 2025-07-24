@@ -68,7 +68,7 @@ public class EventHandler extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String componentId = event.getComponentId();
         if (componentId.equals("b-rules_accept")) RulesAcceptEvent.execute(event);
-        else if (componentId.startsWith("modlog-page-b-")) ModLogButtonEvents.execute(event);
+        else if (componentId.startsWith("mod-")) ModButtonEvents.execute(event);
     }
 
     // @Override

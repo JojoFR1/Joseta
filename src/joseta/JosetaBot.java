@@ -47,6 +47,7 @@ public class JosetaBot {
         new KickCommand(),
         new BanCommand(),
         new UnbanCommand(),
+        new ClearCommand(),
         new ModLogCommand()
     );
 
