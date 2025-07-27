@@ -50,13 +50,9 @@ The current plans and ideas for this bot are the following, in the likely order 
   - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
   - Other implementations could be explored (but I do not have any idea for now)
 
-- Add more and improve moderation commands:
-  - `/(un)lock` to (un)lock a channel.
-  - Send info to user DM about their sanction
-
 - Rework config command to use embed instead of multiple arguments command
 
-- Add translation for messages & logging (mainly to lower string repetions and to have it all in one file)
+- Add translation for messages & logging (mainly to lower string repetitions and to have it all in one file)
 
 - Add a Logging system (currently on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6)):
   - Log the warns of the bot.

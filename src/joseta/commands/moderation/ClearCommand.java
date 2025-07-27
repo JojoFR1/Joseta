@@ -2,12 +2,11 @@ package joseta.commands.moderation;
 
 import arc.struct.*;
 import arc.util.*;
-import joseta.commands.*;
+import joseta.commands.Command;
 import joseta.database.*;
 import joseta.database.entry.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.middleman.*;
 import net.dv8tion.jda.api.entities.channel.unions.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
@@ -17,15 +16,17 @@ import net.dv8tion.jda.api.interactions.components.buttons.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class ClearCommand extends ModCommand {
+public class ClearCommand extends Command {
     private int amount;
     public static ObjectIntMap<MessageChannelUnion> pendingClear = new ObjectIntMap<>();
 
     public ClearCommand() {
         super("clear", "Supprimer des messages dans le salon actuel.");
         commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MESSAGE_MANAGE))
-                .addOptions(new OptionData(OptionType.INTEGER, "amount", "Le nombre de messages à supprimer (1-100).", true)
-                        .setRequiredRange(1, 100));
+                .addOptions(
+                        new OptionData(OptionType.INTEGER, "amount", "Le nombre de messages à supprimer (1-100).", true)
+                            .setRequiredRange(1, 100)
+                );
     }
 
     @Override

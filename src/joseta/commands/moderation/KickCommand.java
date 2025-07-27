@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
+import java.time.*;
+
 public class KickCommand extends ModCommand {
     
     public KickCommand() {
@@ -26,6 +28,10 @@ public class KickCommand extends ModCommand {
         member.kick().reason(reason).queue(
             success -> {
                 event.reply("Le membre a bien été expulsé.").queue();
+
+                member.getUser().openPrivateChannel().queue(
+                        channel -> channel.sendMessage("Vous avez été expulsé sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes constestations doivent se faire avec le modérateur reponsable.***").queue()
+                );
 
                 SanctionDatabaseHelper.addSanction('K', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);        
             },

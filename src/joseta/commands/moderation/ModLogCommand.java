@@ -92,11 +92,12 @@ public class ModLogCommand extends ModCommand {
             if (sanction.isExpired()) description += " (Expirée)";
 
             description += "\n>   - Responsable: <@"+ sanction.getModeratorId() +"> (`"+ sanction.getModeratorId() +"`)"
+                         + "\n>   - Raison: " + sanction.getReason()
                          + "\n>   - Le: <t:"+ sanction.getTimestamp().getEpochSecond() +":F>";
-            
-            if (sanction.getSanctionTypeId() != 'K' && sanction.getExpiryTime() >= 1) description += "\n>  - Pendant: " + TimeParser.convertSecond(sanction.getExpiryTime());
 
-            description += "\n>   - Raison: " + sanction.getReason() + "\n\n";
+            if (sanction.getSanctionTypeId() != 'K' && sanction.getExpiryTime() >= 1) description += "\n>   - Jusqu'au: <t:" + (sanction.getTimestamp().getEpochSecond() + sanction.getExpiryTime()) + ":F>";
+
+            description += "\n";
         }
 
         embed.setDescription(description);

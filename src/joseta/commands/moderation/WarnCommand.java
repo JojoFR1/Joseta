@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 
+import java.time.*;
+
 public class WarnCommand extends ModCommand {
 
     public WarnCommand() {
@@ -27,5 +29,9 @@ public class WarnCommand extends ModCommand {
         SanctionDatabaseHelper.addSanction('W', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);
         
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
+
+        member.getUser().openPrivateChannel().queue(
+                channel -> channel.sendMessage("Vous avez été averti sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + time) + ":R>.\n\n-# ***Ceci est un message automatique. Toutes constestations doivent se faire avec le modérateur reponsable.***").queue()
+        );
     }
 }

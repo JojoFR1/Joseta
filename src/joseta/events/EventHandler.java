@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.events.interaction.component.*;
 import net.dv8tion.jda.api.events.message.*;
 import net.dv8tion.jda.api.hooks.*;
 
+// TODO rework this
 public class EventHandler extends ListenerAdapter {
     
     @Override
@@ -42,22 +43,23 @@ public class EventHandler extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (!event.isFromGuild()) return;
         AutoResponseEvent.execute(event);
         
         MessageEvents.executeMessageReceived(event);
     }
     @Override
     public void onMessageUpdate(MessageUpdateEvent event) {
+        if (!event.isFromGuild()) return;
         MessageEvents.executeMessageUpdate(event);
     }
     @Override
     public void onMessageDelete(MessageDeleteEvent event) {
+        if (!event.isFromGuild()) return;
         MessageEvents.executeMessageDelete(event);
     }
     @Override
-    public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
-        MessageEvents.executeMessageBulkDelete(event);
-    }
+    public void onMessageBulkDelete(MessageBulkDeleteEvent event) { MessageEvents.executeMessageBulkDelete(event); }
     
     @Override
     public void onChannelDelete(ChannelDeleteEvent event) {
