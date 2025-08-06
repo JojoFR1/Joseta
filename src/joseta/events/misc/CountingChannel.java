@@ -48,18 +48,18 @@ public class CountingChannel {
 
         if (!preCheck(channel, message)) return;
 
-        // Rule - Cannot count twice in a row
-        if (message.getAuthor().getIdLong() == lastAuthorId) {
-            message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(
+        // Rule - Cannot use non-numeric characters
+        if (!message.getContentStripped().matches("\\d+")) {
+            message.reply(message.getAuthor().getAsMention() + " vous devez uniquement utiliser des chiffres dans ce salon !").queue(
                     m -> m.delete().queueAfter(5, TimeUnit.SECONDS)
             );
             message.delete().queue();
             return;
         }
 
-        // Rule - Cannot use non-numeric characters
-        if (!message.getContentStripped().matches("\\d+")) {
-            message.reply(message.getAuthor().getAsMention() + " vous devez uniquement utiliser des chiffres dans ce salon !").queue(
+        // Rule - Cannot count twice in a row
+        if (message.getAuthor().getIdLong() == lastAuthorId) {
+            message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(
                     m -> m.delete().queueAfter(5, TimeUnit.SECONDS)
             );
             message.delete().queue();
