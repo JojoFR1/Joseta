@@ -50,6 +50,11 @@ public class ConfigEntry {
     @Column @ColumnDefault("false")
     private boolean autoResponseEnabled;
 
+    @Column @ColumnDefault("false")
+    private boolean countingEnabled;
+    @Column @ColumnDefault("0")
+    private long countingChannelId;
+
     // A no-arg constructor is required by JPA
     protected ConfigEntry() {}
     
@@ -73,6 +78,8 @@ public class ConfigEntry {
         this.moderationEnabled = other.moderationEnabled;
 
         this.autoResponseEnabled = other.autoResponseEnabled;
+        this.countingEnabled = other.countingEnabled;
+        this.countingChannelId = other.countingChannelId;
     }
 
     public long getGuildId() { return guildId; }
@@ -116,6 +123,12 @@ public class ConfigEntry {
 
     public ConfigEntry setAutoResponseEnabled(boolean autoResponseEnabled) { this.autoResponseEnabled = autoResponseEnabled; return this; }
     public boolean isAutoResponseEnabled() { return autoResponseEnabled; }
+
+    public ConfigEntry setCountingEnabled(boolean countingEnabled) { this.countingEnabled = countingEnabled; return this; }
+    public boolean isCountingEnabled() { return countingEnabled; }
+
+    public ConfigEntry setCountingChannelId(long countingChannelId) { this.countingChannelId = countingChannelId; return this; }
+    public long getCountingChannelId() { return countingChannelId; }
 
     public ConfigEntry addMarkovBlackList(long mentionableId) {
         if (!markovBlackList.contains(mentionableId) && mentionableId != 0L) {

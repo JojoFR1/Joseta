@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.*;
 
 public class ConfigCommand extends Command {
 
+    // TODO Change that, using an actual embed
     public ConfigCommand() {
         super("config","Configurez les paramètres du bot pour ce serveur.");
         commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_SERVER))
@@ -31,7 +32,10 @@ public class ConfigCommand extends Command {
                 new SubcommandData("moderation", "Moderation")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the moderation features."),
                 new SubcommandData("auto_response", "Auto Response")
-                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the auto response features.")
+                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the auto response features."),
+                new SubcommandData("counting", "Counting")
+                    .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the counting")
+                    .addOption(OptionType.CHANNEL, "channel", "The channel where the counting will take place.")
             );
     }
 
@@ -60,6 +64,10 @@ public class ConfigCommand extends Command {
                 break;
             case "auto_response":
                 config.setAutoResponseEnabled(event.getOption("enabled", config.isAutoResponseEnabled(), OptionMapping::getAsBoolean));
+                break;
+            case "counting":
+                config.setCountingEnabled(event.getOption("enabled", config.isCountingEnabled(), OptionMapping::getAsBoolean))
+                    .setCountingChannelId(event.getOption("channel", config.getCountingChannelId(), OptionMapping::getAsLong));
                 break;
         
             default: break;

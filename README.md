@@ -22,6 +22,7 @@ This is a multipurpose bot and is not centered around one specific category or i
 
 - An **Image-based Welcome** for new members (or message in case the image is disabled or not properly loaded).
 - A **Goodbye Message** for leaving members.
+- A **Counting Channel** to count until infinity.
 - **Rules** + an **Acceptation System**, acting as verification too (not *yet* configurable).
 - An **Auto Response** for common questions (not *yet* configurable but can be disabled).
 - Multiple commands:
@@ -48,6 +49,7 @@ The current plans and ideas for this bot are the following, in the likely order 
 
 - Refactor the Event system
   - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
+  - Maybe use annotations system (could do the same for commands)
   - Other implementations could be explored (but I do not have any idea for now)
 
 - Rework config command to use embed instead of multiple arguments command

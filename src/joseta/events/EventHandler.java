@@ -1,5 +1,7 @@
 package joseta.events;
 
+import joseta.database.*;
+import joseta.database.entry.*;
 import joseta.database.helper.*;
 import joseta.events.admin.*;
 import joseta.events.database.*;
@@ -44,7 +46,10 @@ public class EventHandler extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (!event.isFromGuild()) return;
-        AutoResponseEvent.execute(event);
+
+        ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
+        if (!event.getAuthor().isBot() && config.isCountingEnabled() && config.getCountingChannelId() == event.getChannel().getIdLong()) CountingChannel.check(event.getChannel(), event.getMessage());
+        if (config.isAutoResponseEnabled()) AutoResponseEvent.execute(event);
         
         MessageEvents.executeMessageReceived(event);
     }
