@@ -49,7 +49,7 @@ public class EventHandler extends ListenerAdapter {
 
         ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
         if (!event.getAuthor().isBot() && config.isCountingEnabled() && config.getCountingChannelId() == event.getChannel().getIdLong()) CountingChannel.check(event.getChannel(), event.getMessage());
-        if (config.isAutoResponseEnabled()) AutoResponseEvent.execute(event);
+        if (!event.getAuthor().isBot() && config.isAutoResponseEnabled()) AutoResponseEvent.execute(event);
         
         MessageEvents.executeMessageReceived(event);
     }
