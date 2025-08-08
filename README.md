@@ -47,19 +47,19 @@ The current plans and ideas for this bot are the following, in the likely order 
 
 - Add a reminder command
 
-- Refactor the Event system
-  - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
-  - Maybe use annotations system (could do the same for commands)
-  - Other implementations could be explored (but I do not have any idea for now)
+- Message leaderboard + levels (?).
 
 - Rework config command to use embed instead of multiple arguments command
 
 - Add translation for messages & logging (mainly to lower string repetitions and to have it all in one file)
 
+- Refactor the Event system
+  - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
+  - Maybe use annotations system (could do the same for commands)
+  - Other implementations could be explored (but I do not have any idea for now)
+
 - Add a Logging system (currently on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6)):
   - Log the warns of the bot.
-
-- Message leaderboard + levels (?).
 
 - Support multi-server:
   - Mainly to make it usable outside our server.

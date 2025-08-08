@@ -27,14 +27,17 @@ public class ConfigCommand extends Command {
                     .addOption(OptionType.ROLE, "verified_role", "The role given to verified member."),
                 new SubcommandData("markov", "Markov")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the Markov chain.")
-                    .addOption(OptionType.MENTIONABLE, "add_to_blacklist", "The channel, category, user or role to add to the Markov chain blacklist.")
-                    .addOption(OptionType.MENTIONABLE, "remove_from_blacklist", "The channel, category, user or role to remove from the Markov chain blacklist."),
+                    .addOption(OptionType.MENTIONABLE, "add_mentionable_blacklist", "The user or role to add to the Markov chain blacklist.")
+                    .addOption(OptionType.CHANNEL, "add_channel_blacklist", "The channel or category to add to the Markov chain blacklist.")
+                    .addOption(OptionType.MENTIONABLE, "remove_mentionable_blacklist", "The user or role to remove from the Markov chain blacklist.")
+                    .addOption(OptionType.CHANNEL, "remove_channel_blacklist", "The channel or category to remove from the Markov chain blacklist."),
                 new SubcommandData("moderation", "Moderation")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the moderation features."),
                 new SubcommandData("auto_response", "Auto Response")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the auto response features."),
                 new SubcommandData("counting", "Counting")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the counting")
+                    .addOption(OptionType.BOOLEAN, "comments_enabled", "Enable or disable the use of comments while counting")
                     .addOption(OptionType.CHANNEL, "channel", "The channel where the counting will take place.")
             );
     }
@@ -56,8 +59,10 @@ public class ConfigCommand extends Command {
                 break;
             case "markov":
                 config.setMarkovEnabled(event.getOption("enabled", config.isMarkovEnabled(), OptionMapping::getAsBoolean))
-                    .addMarkovBlackList(event.getOption("add_to_blacklist", 0L, OptionMapping::getAsLong))
-                    .removeMarkovBlackList(event.getOption("remove_from_blacklist", 0L, OptionMapping::getAsLong));
+                    .addMarkovBlackList(event.getOption("add_mentionable_blacklist", 0L, OptionMapping::getAsLong))
+                    .addMarkovBlackList(event.getOption("add_channel_blacklist", 0L, OptionMapping::getAsLong))
+                    .removeMarkovBlackList(event.getOption("remove_mentionable_blacklist", 0L, OptionMapping::getAsLong))
+                    .removeMarkovBlackList(event.getOption("remove_channel_blacklist", 0L, OptionMapping::getAsLong));
                 break;
             case "moderation":
                 config.setModerationEnabled(event.getOption("enabled", config.isModerationEnabled(), OptionMapping::getAsBoolean));
@@ -67,6 +72,7 @@ public class ConfigCommand extends Command {
                 break;
             case "counting":
                 config.setCountingEnabled(event.getOption("enabled", config.isCountingEnabled(), OptionMapping::getAsBoolean))
+                    .setCountingCommentsEnabled(event.getOption("comments_enabled", config.isCountingCommentsEnabled(), OptionMapping::getAsBoolean))
                     .setCountingChannelId(event.getOption("channel", config.getCountingChannelId(), OptionMapping::getAsLong));
                 break;
         

@@ -48,19 +48,21 @@ public class EventHandler extends ListenerAdapter {
         if (!event.isFromGuild()) return;
 
         ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
-        if (!event.getAuthor().isBot() && config.isCountingEnabled() && config.getCountingChannelId() == event.getChannel().getIdLong()) CountingChannel.check(event.getChannel(), event.getMessage());
-        if (!event.getAuthor().isBot() && config.isAutoResponseEnabled()) AutoResponseEvent.execute(event);
+        if (config.isCountingEnabled() && !event.getAuthor().isBot() && event.getChannel().getIdLong() == config.getCountingChannelId()) CountingChannel.check(event.getChannel(), event.getMessage());
+        if (config.isAutoResponseEnabled() && !event.getAuthor().isBot()) AutoResponseEvent.execute(event);
         
         MessageEvents.executeMessageReceived(event);
     }
     @Override
     public void onMessageUpdate(MessageUpdateEvent event) {
         if (!event.isFromGuild()) return;
+
         MessageEvents.executeMessageUpdate(event);
     }
     @Override
     public void onMessageDelete(MessageDeleteEvent event) {
         if (!event.isFromGuild()) return;
+
         MessageEvents.executeMessageDelete(event);
     }
     @Override
