@@ -5,6 +5,7 @@ import joseta.database.*;
 import joseta.database.entry.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.unions.*;
+import net.dv8tion.jda.api.entities.emoji.*;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -16,7 +17,8 @@ public class CountingChannel {
     private static long lastAuthorId = -1;
 
     // Start with a number
-    private static final Pattern numberRegex = Pattern.compile("^\\d+");
+    private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
+    private static final Emoji checkEmoji = Emoji.fromCustom("yes", 1350065422975766528L, false);
 
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch
@@ -97,6 +99,9 @@ public class CountingChannel {
 
         lastNumber += 1;
         lastAuthorId = message.getAuthor().getIdLong();
+        message.addReaction(checkEmoji).queue(
+                v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
+        );
     }
 
     private static long parseNumber(String message, boolean commentsEnabled) {
