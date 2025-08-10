@@ -60,7 +60,7 @@ public class MessagesDatabaseHelper {
         Seq<Long> markovBlackList = config.getMarkovBlackList();
         if (!((message.getAuthor().isBot() || message.getAuthor().isSystem())
                 || (message.getMember() != null && (markovBlackList.contains(message.getAuthor().getIdLong()) || markovBlackList.containsAll(Seq.with(message.getMember().getRoles()).map(role -> role.getIdLong()))))
-                || (channel instanceof TextChannel textChannel && (textChannel.isNSFW() || markovBlackList.contains(textChannel.getParentCategoryIdLong())))
+                || (channel instanceof TextChannel textChannel && (textChannel.isNSFW() || markovBlackList.contains(textChannel.getIdLong()) || markovBlackList.contains(textChannel.getParentCategoryIdLong())))
         )) markovContent = cleanMessage(content);
 
         Database.createOrUpdate(
