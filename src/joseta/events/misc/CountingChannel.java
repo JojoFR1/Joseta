@@ -12,7 +12,7 @@ import java.util.regex.*;
 
 public class CountingChannel {
     private static boolean autoCheck = true;
-    private static int lastNumber = -1;
+    private static long lastNumber = -1;
     private static long lastAuthorId = -1;
 
     // Start with a number
@@ -41,9 +41,16 @@ public class CountingChannel {
                 return false;
             }
 
+            ConfigEntry config = Database.get(ConfigEntry.class, message.getGuild().getIdLong());
             lastAuthorId = previousMessage.getAuthor().getIdLong();
-            lastNumber = Integer.parseInt(previousMessage.getContentStripped().replace(" ", ""));
-        };
+            lastNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.isCountingCommentsEnabled());
+
+            if (lastAuthorId == -1) {
+                channel.sendMessage("Le comptage n'a pas pu être initialiser. Contacter un administrateur et continuer (vérification manuelle).").queue();
+                autoCheck = false;
+                return false;
+            }
+        }
 
         return true;
     }
@@ -53,14 +60,9 @@ public class CountingChannel {
 
         if (!preCheck(channel, message)) return;
 
-        ConfigEntry config = Database.get(ConfigEntry.class, message.getGuild().getIdLong());
-        int number = -1;
-
         // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
-        Matcher numberMatcher = numberRegex.matcher(message.getContentRaw());
-        if ((!config.isCountingCommentsEnabled() && numberMatcher.matches()) || (config.isCountingCommentsEnabled() && numberMatcher.find()))
-            try { number = Integer.parseInt(numberMatcher.group()); }
-            catch (NumberFormatException e) { Log.err("Failed to parse the number from the counting message.", e); }
+        ConfigEntry config = Database.get(ConfigEntry.class, message.getGuild().getIdLong());
+        long number = parseNumber(message.getContentRaw().replace(" ", ""), config.isCountingCommentsEnabled());
 
         if (number == -1) {
             if (!config.isCountingCommentsEnabled())
@@ -95,5 +97,15 @@ public class CountingChannel {
 
         lastNumber += 1;
         lastAuthorId = message.getAuthor().getIdLong();
+    }
+
+    private static long parseNumber(String message, boolean commentsEnabled) {
+        long number = -1;
+        Matcher numberMatcher = numberRegex.matcher(message);
+        if ((!commentsEnabled && numberMatcher.matches()) || (commentsEnabled && numberMatcher.find()))
+            try { number = Long.parseLong(numberMatcher.group()); }
+            catch (NumberFormatException e) { Log.err("Failed to parse the number from the counting message.", e); }
+
+        return number;
     }
 }
