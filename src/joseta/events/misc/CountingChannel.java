@@ -113,4 +113,12 @@ public class CountingChannel {
 
         return number;
     }
+
+    public static void setNumber(long newNumber) {
+        lastNumber = newNumber;
+    }
+
+    public static void setAuthorId(long authorId) {
+        lastAuthorId = authorId;
+    }
 }

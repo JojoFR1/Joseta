@@ -6,6 +6,9 @@ import joseta.commands.Command;
 import arc.struct.*;
 import arc.util.*;
 
+import joseta.database.*;
+import joseta.database.entry.*;
+import joseta.events.misc.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.middleman.*;
@@ -35,41 +38,72 @@ public class AdminCommand extends Command {
                         new SubcommandData("update", "Envoie les règles dans un salon.")
                             .addOption(OptionType.CHANNEL,  "channel", "Le salon où envoyez les règles.", true)
                             .addOption(OptionType.STRING,  "message_id", "L'identifiant du message où vous voulez envoyez règles.", true)
+                    ),
+                new SubcommandGroupData("counting", "Catégorie comptage")
+                    .addSubcommands(
+                        new SubcommandData("set_number", "Remplace le dernier nombre du salon de comptage.")
+                            .addOption(OptionType.INTEGER, "number", "Le nombre à définir comme dernier nombre du salon de comptage.", true),
+                        new SubcommandData("reset_number", "Réinitialise le dernier nombre du salon de comptage a 0."),
+                        new SubcommandData("reset_author", "Réinitialise l'auteur du dernier message du salon de comptage.")
                     )
             );
     }
 
     @Override
     protected void runImpl(SlashCommandInteractionEvent event) {
-        MessageEmbed[] embeds = getEmbeds(event.getGuild());
+        switch (event.getSubcommandGroup()) {
+            case "rules" -> {
+                MessageEmbed[] embeds = getEmbeds(event.getGuild());
 
-        if (event.getSubcommandName().equals("update")) {
-            Message message = channel.retrieveMessageById(messageId).complete();
-            if (message == null) {
-                event.reply("Unknown message, please check the ID or the existence of this message.").setEphemeral(true).queue();
-                return;
-            }
-            if (message.getAuthor() != JosetaBot.getBot().getSelfUser()) {
-                event.reply("Message not sent by the bot.").setEphemeral(true).queue();
-                return;
-            }
-            message.editMessageEmbeds(embeds).setComponents(
-               ActionRow.of(Button.success("b-rules_accept", "Accepter"))
-            ).queue();
+                if (event.getSubcommandName().equals("update")) {
+                    Message message = channel.retrieveMessageById(messageId).complete();
+                    if (message == null) {
+                        event.reply("Unknown message, please check the ID or the existence of this message.").setEphemeral(true).queue();
+                        return;
+                    }
+                    if (message.getAuthor() != JosetaBot.getBot().getSelfUser()) {
+                        event.reply("Message not sent by the bot.").setEphemeral(true).queue();
+                        return;
+                    }
+                    message.editMessageEmbeds(embeds).setComponents(
+                        ActionRow.of(Button.success("b-rules_accept", "Accepter"))
+                    ).queue();
 
-            event.reply("Rules updated succesfully.").setEphemeral(true).queue();
-            return;
+                    event.reply("Rules updated succesfully.").setEphemeral(true).queue();
+                    return;
+                }
+
+                Message msg = channel.sendMessage("").setEmbeds(embeds).addActionRow(
+                    Button.success("b-rules_accept", "Accepter")
+                ).complete();
+
+                msg.getIdLong();
+                channel.getIdLong();
+
+                event.reply("Rules sent succesfully.").setEphemeral(true).queue();
+            }
+            case "counting" -> {
+                ConfigEntry config = Database.get(ConfigEntry.class, event.getGuild().getIdLong());
+                if (!config.isCountingEnabled()) {
+                    event.reply("Le salon de comptage n'est pas activé sur ce serveur.").setEphemeral(true).queue();
+                    return;
+                }
+
+                if (event.getSubcommandName().equals("reset_author")) {
+                    CountingChannel.setAuthorId(-1);
+                    event.reply("L'ID du dernier auteur dans comptage a été reinitialiser.").setEphemeral(true).queue();
+                    return;
+                }
+
+                long number = 0;
+
+                if (event.getSubcommandName().equals("set_number"))
+                    number = event.getOption("number", 0L, OptionMapping::getAsLong);
+
+                CountingChannel.setNumber(number);
+                event.reply("Le dernier nombre du salon de comptage a été mis à jour.").setEphemeral(true).queue();
+            }
         }
-
-
-        Message msg = channel.sendMessage("").setEmbeds(embeds).addActionRow(
-            Button.success("b-rules_accept", "Accepter")
-        ).complete();
-
-        msg.getIdLong();
-        channel.getIdLong();
-        
-        event.reply("Rules sent succesfully.").setEphemeral(true).queue();
     }
 
     private MessageEmbed[] getEmbeds(Guild guild) {
@@ -111,7 +145,9 @@ public class AdminCommand extends Command {
 
     @Override
     protected void getArgs(SlashCommandInteractionEvent event) {
-        channel = event.getOption("channel", null, OptionMapping::getAsChannel).asStandardGuildMessageChannel();
-        if (event.getSubcommandName().equals("update")) messageId = Long.parseLong(event.getOption("message_id", null, OptionMapping::getAsString));
+        if (event.getSubcommandName().equals("rules")) {
+            channel = event.getOption("channel", null, OptionMapping::getAsChannel).asStandardGuildMessageChannel();
+            if (event.getSubcommandName().equals("update")) messageId = Long.parseLong(event.getOption("message_id", null, OptionMapping::getAsString));
+        }
     }
 }

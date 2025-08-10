@@ -81,6 +81,6 @@ public class ConfigCommand extends Command {
 
         Database.createOrUpdate(config);
 
-        event.reply("Configuration of the server updated succesfully.").setEphemeral(true).queue();
+        event.reply("Configuration du serveur mise à jour avec succès.").setEphemeral(true).queue();
     }
 }
