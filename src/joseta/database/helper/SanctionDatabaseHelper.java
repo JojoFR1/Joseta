@@ -1,5 +1,6 @@
 package joseta.database.helper;
 
+import arc.util.*;
 import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
@@ -7,6 +8,7 @@ import joseta.database.entry.*;
 import arc.struct.*;
 
 import net.dv8tion.jda.api.entities.*;
+import org.hibernate.*;
 
 import java.time.*;
 import java.util.*;
@@ -26,7 +28,6 @@ public class SanctionDatabaseHelper {
                 moderatorId,
                 guildId,
                 reason,
-                Instant.now(),
                 time
             )
         );
@@ -49,11 +50,13 @@ public class SanctionDatabaseHelper {
 
     public static Seq<SanctionEntry> getExpiredSanctions() {
         List<SanctionEntry> entries = Database.querySelect(SanctionEntry.class, (cb, rt) ->
-                cb.and(cb.ge(rt.get(SanctionEntry_.expiryTime), 1L),
+                cb.and(cb.isNotNull(rt.get(SanctionEntry_.expiryTime)),
                         cb.equal(rt.get(SanctionEntry_.isExpired), false))
         ).getResultList();
 
-        return Seq.with(entries);
+        return Seq.with(entries).retainAll(
+            entry -> entry.getExpiryTime().isBefore(Instant.now())
+        );
     }
 
     private static void checkExpiredSanctions() {
@@ -68,10 +71,16 @@ public class SanctionDatabaseHelper {
                 });
             }
 
-            Database.queryUpdate(SanctionEntry.class, (cb, rt) ->
-                cb.and(cb.equal(rt.get(SanctionEntry_.sanctionId), sanction.getFullSanctionId()),
-                        cb.equal(rt.get(SanctionEntry_.guildId), sanction.getGuildId()))
-            ).setParameter(SanctionEntry_.isExpired.getName(), true).executeUpdate();
+            try (Session session = Database.getSession()) {
+                Transaction transaction = session.beginTransaction();
+                Database.queryUpdate(SanctionEntry.class, (cb, rt) ->
+                    cb.and(cb.equal(rt.get(SanctionEntry_.sanctionId), sanction.getFullSanctionId()),
+                        cb.equal(rt.get(SanctionEntry_.guildId), sanction.getGuildId())),
+                    (cb, rt) -> cb.set(rt.get(SanctionEntry_.isExpired), true),
+                    session
+                ).executeUpdate();
+                transaction.commit();
+            }
         });
     }
 }

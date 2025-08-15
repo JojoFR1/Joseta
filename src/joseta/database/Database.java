@@ -1,5 +1,6 @@
 package joseta.database;
 
+import arc.struct.*;
 import joseta.*;
 import joseta.database.entry.*;
 
@@ -34,6 +35,7 @@ public class Database {
                                 UserEntry.class,
                                 ConfigEntry.class,
                                 SanctionEntry.class,
+                                // ReminderEntry.class,
                                 MessageEntry.class)
                 .jdbcDriver("org.sqlite.JDBC")
                 .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
@@ -95,7 +97,8 @@ public class Database {
     public static <E> List<E> getAll(Class<E> clazz) {
         HibernateCriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
         CriteriaQuery<E> query = criteriaBuilder.createQuery(clazz);
-        return getSession().createSelectionQuery(query).getResultList();
+        query.from(clazz);
+        return getSession().createQuery(query).getResultList();
     }
 
     public static <E> SelectionQuery<E> querySelect(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func) {
@@ -112,14 +115,16 @@ public class Database {
         return getSession().createSelectionQuery(query);
     }
 
-    public static <E> MutationQuery queryUpdate(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func) {
+    public static <E> MutationQuery queryUpdate(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> whereFunc, Cons2<CriteriaUpdate<E>, Root<E>> setFunc, Session session) {
         HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
         CriteriaUpdate<E> update = criteriaBuilder.createCriteriaUpdate(clazz);
         Root<E> root = update.from(clazz);
-        Predicate where = func.get(criteriaBuilder, root);
+        Predicate where = whereFunc.get(criteriaBuilder, root);
         update.where(where);
+        setFunc.get(update, root); // The .get() method is just executing the lambda, there's nothing to return
 
-        return getSession().createMutationQuery(update);
+
+        return session.createMutationQuery(update);
     }
 
     public static <E> MutationQuery queryDelete(Class<E> clazz, Func2<HibernateCriteriaBuilder, Root<E>, Predicate> func, Session session) {

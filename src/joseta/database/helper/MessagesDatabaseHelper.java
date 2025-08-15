@@ -94,10 +94,10 @@ public class MessagesDatabaseHelper {
         try (Session session = Database.getSession()) {
             Transaction transaction = session.beginTransaction();
             Database.queryDelete(MessageEntry.class, (cb, rt) ->
-                    cb.and(cb.equal(rt.get(MessageEntry_.messageId), messageId),
-                            cb.equal(rt.get(MessageEntry_.guildId), guildId),
-                            cb.equal(rt.get(MessageEntry_.channelId), channelId)),
-                    session
+                cb.and(cb.equal(rt.get(MessageEntry_.messageId), messageId),
+                        cb.equal(rt.get(MessageEntry_.guildId), guildId),
+                        cb.equal(rt.get(MessageEntry_.channelId), channelId)),
+                session
             ).executeUpdate();
             transaction.commit();
         }
@@ -107,9 +107,9 @@ public class MessagesDatabaseHelper {
         try (Session session = Database.getSession()) {
             Transaction transaction = session.beginTransaction();
             Database.queryDelete(MessageEntry.class, (cb, rt) ->
-                    cb.and(cb.equal(rt.get(MessageEntry_.guildId), guildId),
-                            cb.equal(rt.get(MessageEntry_.channelId), channelId)),
-                    session
+                cb.and(cb.equal(rt.get(MessageEntry_.guildId), guildId),
+                        cb.equal(rt.get(MessageEntry_.channelId), channelId)),
+                session
             ).executeUpdate();
             transaction.commit();
         }

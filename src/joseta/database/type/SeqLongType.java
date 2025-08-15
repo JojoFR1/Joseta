@@ -40,7 +40,7 @@ public class SeqLongType implements JdbcType {
         };
     }
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public <X> ValueExtractor<X> getExtractor(JavaType<X> javaType) {
         return new ValueExtractor<X>() {
             @Override
