@@ -1,6 +1,5 @@
 package joseta.database.entry;
 
-import java.sql.*;
 import java.time.*;
 
 import org.hibernate.annotations.*;
@@ -9,14 +8,15 @@ import jakarta.persistence.*;
 
 @Entity @Table(name = "sanctions")
 public class SanctionEntry {
+    // Might need an EmbeddedId in the future?
     @Id
     private String sanctionId;
+    @Id
+    private long guildId;
     @Column
     private long userId;
     @Column
     private long moderatorId;
-    @Column
-    private long guildId;
     @Column
     private String reason;
     @Column
@@ -27,39 +27,38 @@ public class SanctionEntry {
     private boolean isExpired;
 
     // A no-arg constructor is required by JPA
-    protected SanctionEntry() {};
+    protected SanctionEntry() {}
 
-    public SanctionEntry(long sanctionId, char sanctionType, long userId, long moderatorId, long guildId, String reason, long expiryTime) {
-        this.sanctionId = sanctionType + Long.toString(sanctionId);
+    public SanctionEntry(long sanctionNumber, char sanctionType, long guildId, long userId, long moderatorId, String reason, long expiryTime) {
+        this.sanctionId = sanctionType + Long.toString(sanctionNumber);
+        this.guildId = guildId;
         this.userId = userId;
         this.moderatorId = moderatorId;
-        this.guildId = guildId;
         this.reason = reason;
         this.timestamp = Instant.now();
         this.expiryTime = timestamp.plusSeconds(expiryTime);
     }
 
-    public String getFullSanctionId() { return sanctionId; }
-    public long getSanctionId() { return Long.valueOf(sanctionId.substring(1)); }
+    public String getSanctionIdFull() { return sanctionId; }
+    public long getSanctionIdNumber() { return Long.valueOf(sanctionId.substring(1)); }
     public char getSanctionTypeId() { return sanctionId.charAt(0); }
     public String getSanctionType() {
-        return getSanctionTypeId() == 'W' ? "Warn"
-             : getSanctionTypeId() == 'T' ? "Timeout"
-             : getSanctionTypeId() == 'K' ? "Kick"
-             : getSanctionTypeId() == 'B' ? "Kick"
+        return getSanctionTypeId() == 'W' ? "Avertissement"
+             : getSanctionTypeId() == 'T' ? "Exclusion"
+             : getSanctionTypeId() == 'K' ? "Expulsion"
+             : getSanctionTypeId() == 'B' ? "Bannissement"
              : "Inconnu";
     }
-    public SanctionEntry setSanctionId(long sanctionId, char sanctionType) { this.sanctionId = sanctionType + Long.toString(sanctionId); return this; }
+
+    public long getGuildId() { return guildId; }
+    public SanctionEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
 
     public long getUserId() { return userId; }
     public SanctionEntry setUserId(long userId) { this.userId = userId; return this; }
     
     public long getModeratorId() { return moderatorId; }
     public SanctionEntry setModeratorId(long moderatorId) { this.moderatorId = moderatorId; return this; }
-    
-    public long getGuildId() { return guildId; }
-    public SanctionEntry setGuildId(long guildId) { this.guildId = guildId; return this; }
-    
+        
     public String getReason() { return reason; }
     public SanctionEntry setReason(String reason) { this.reason = reason; return this; }
     

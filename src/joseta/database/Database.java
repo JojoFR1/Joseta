@@ -45,7 +45,6 @@ public class Database {
                 .property("hibernate.dialect", org.hibernate.community.dialect.SQLiteDialect.class);
 
         sessionFactory = configuration.createEntityManagerFactory();
-        // sessionFactory.getSchemaManager().update(false);
     }
 
     public static Session getSession() {

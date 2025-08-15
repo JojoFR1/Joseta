@@ -1,6 +1,5 @@
 package joseta.database.helper;
 
-import arc.util.*;
 import joseta.*;
 import joseta.database.*;
 import joseta.database.entry.*;
@@ -24,9 +23,9 @@ public class SanctionDatabaseHelper {
             new SanctionEntry(
                 entry.getLastSanctionId() + 1,
                 sanctionType,
+                guildId,
                 member.getIdLong(),
                 moderatorId,
-                guildId,
                 reason,
                 time
             )
@@ -39,8 +38,8 @@ public class SanctionDatabaseHelper {
     public static SanctionEntry getLatestSanction(long userId, long guildId, String sanctionType) {
         SanctionEntry entry = Database.querySelect(SanctionEntry.class,
                 (cb, rt) ->
-                        cb.and(cb.equal(rt.get(SanctionEntry_.userId), userId),
-                                cb.equal(rt.get(SanctionEntry_.guildId), guildId),
+                        cb.and(cb.equal(rt.get(SanctionEntry_.guildId), guildId),
+                                cb.equal(rt.get(SanctionEntry_.userId), userId),
                                 cb.like(rt.get(SanctionEntry_.sanctionId), sanctionType)),
                 (cb, rt) -> cb.desc(rt.get(SanctionEntry_.sanctionId))
         ).setMaxResults(1).getSingleResult();
@@ -60,12 +59,13 @@ public class SanctionDatabaseHelper {
     }
 
     private static void checkExpiredSanctions() {
-        SanctionDatabaseHelper.getExpiredSanctions().forEach(sanction -> {
-            if (sanction.getSanctionTypeId() == 'B') {
-                Guild guild = JosetaBot.getBot().getGuildById(sanction.getGuildId());
+        SanctionDatabaseHelper.getExpiredSanctions().forEach(entry -> {
+            Guild guild = JosetaBot.getBot().getGuildById(entry.getGuildId());
+
+            if (entry.getSanctionTypeId() == 'B') {
                 guild.retrieveBanList().queue(bans -> {
                     bans.forEach(ban -> {
-                        if (ban.getUser().getIdLong() == sanction.getUserId())
+                        if (ban.getUser().getIdLong() == entry.getUserId())
                             guild.unban(ban.getUser()).queue();
                     });
                 });
@@ -74,13 +74,19 @@ public class SanctionDatabaseHelper {
             try (Session session = Database.getSession()) {
                 Transaction transaction = session.beginTransaction();
                 Database.queryUpdate(SanctionEntry.class, (cb, rt) ->
-                    cb.and(cb.equal(rt.get(SanctionEntry_.sanctionId), sanction.getFullSanctionId()),
-                        cb.equal(rt.get(SanctionEntry_.guildId), sanction.getGuildId())),
+                    cb.and(cb.equal(rt.get(SanctionEntry_.sanctionId), entry.getSanctionIdFull()),
+                            cb.equal(rt.get(SanctionEntry_.guildId), entry.getGuildId())),
                     (cb, rt) -> cb.set(rt.get(SanctionEntry_.isExpired), true),
                     session
                 ).executeUpdate();
                 transaction.commit();
             }
+
+            JosetaBot.getBot().retrieveUserById(entry.getUserId()).queue((user) ->
+               user.openPrivateChannel().queue((channel) ->
+                   channel.sendMessage("Votre __avertissement__ sur le serveur **`"+ guild.getName() +"`**  d'identifiant **`"+ entry.getSanctionIdFull() +"`** par <@"+ entry.getModeratorId() +"> du <t:"+ entry.getTimestamp().getEpochSecond() +":F> viens d'expirer.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***")
+               )
+            );
         });
     }
 }
