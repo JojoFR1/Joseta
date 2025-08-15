@@ -84,7 +84,7 @@ public class SanctionDatabaseHelper {
 
             JosetaBot.getBot().retrieveUserById(entry.getUserId()).queue((user) ->
                user.openPrivateChannel().queue((channel) ->
-                   channel.sendMessage("Votre __avertissement__ sur le serveur **`"+ guild.getName() +"`**  d'identifiant **`"+ entry.getSanctionIdFull() +"`** par <@"+ entry.getModeratorId() +"> du <t:"+ entry.getTimestamp().getEpochSecond() +":F> viens d'expirer.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***")
+                   channel.sendMessage("Votre __avertissement__ sur le serveur **`"+ guild.getName() +"`**  d'identifiant **`"+ entry.getSanctionIdFull() +"`** par <@"+ entry.getModeratorId() +"> du <t:"+ entry.getTimestamp().getEpochSecond() +":F> viens d'expirer.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***").queue()
                )
             );
         });
