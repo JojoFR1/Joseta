@@ -29,6 +29,11 @@ import java.util.concurrent.*;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
+/* TODO - IMPORTANT: need to minimize database user data to respect the GDPR
+    * - Remove all user data that is not needed for the bot to function (user that left a server)
+    * - Remove all message data that is not needed for the bot to function (all messages content as of now since logging is disabled)
+    * - Remove all guild data that is not needed for the bot to function (any guild that removed the bot)
+ */
 public class JosetaBot {
     private static JDA bot;
 
@@ -39,6 +44,7 @@ public class JosetaBot {
         new PingCommand(),
         new MultiInfoCommand(),
         new MarkovCommand(),
+        new ReminderCommand(),
         
         new WarnCommand(),
         new UnwarnCommand(),
@@ -80,6 +86,7 @@ public class JosetaBot {
 
         WelcomeMessage.initialize(); //TODO Maybe change that?
         SanctionDatabaseHelper.startScheduler(15); // Check expired sanctions every 15 minutes.
+        ReminderDatabaseHelper.startScheduler(1); // Check reminders every minute.
 
         for (Guild guild : bot.getGuilds()) {
             if (Database.get(GuildEntry.class, guild.getIdLong()) == null)

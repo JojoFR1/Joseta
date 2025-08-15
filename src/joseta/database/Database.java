@@ -35,7 +35,7 @@ public class Database {
                                 UserEntry.class,
                                 ConfigEntry.class,
                                 SanctionEntry.class,
-                                // ReminderEntry.class,
+                                ReminderEntry.class,
                                 MessageEntry.class)
                 .jdbcDriver("org.sqlite.JDBC")
                 .jdbcCredentials(Vars.sqlUsername, Vars.sqlPassword)
@@ -47,6 +47,10 @@ public class Database {
         sessionFactory = configuration.createEntityManagerFactory();
     }
 
+    public static SessionFactory getSessionFactory() {
+        if (sessionFactory == null) initializeSessionFactory();
+        return sessionFactory;
+    }
     public static Session getSession() {
         if (sessionFactory == null) initializeSessionFactory();
         return sessionFactory.openSession();
@@ -84,19 +88,21 @@ public class Database {
     public static void delete(Object object) {
         try (Session session = getSession()) {
             Transaction transaction = session.beginTransaction();
+            if(!session.contains(object)) object = session.merge(object);
             session.remove(object);
             transaction.commit();
         }
     }
 
-    public static <E> E get (Class<E> clazz, Object id) {
+    public static <E> E get(Class<E> clazz, Object id) {
         try (Session session = getSession()) { return session.find(clazz, id); }
     }
 
     public static <E> List<E> getAll(Class<E> clazz) {
-        HibernateCriteriaBuilder criteriaBuilder = sessionFactory.getCriteriaBuilder();
+        HibernateCriteriaBuilder criteriaBuilder = getSessionFactory().getCriteriaBuilder();
         CriteriaQuery<E> query = criteriaBuilder.createQuery(clazz);
-        query.from(clazz);
+        Root<E> root = query.from(clazz);
+        query.select(root);
         return getSession().createQuery(query).getResultList();
     }
 
