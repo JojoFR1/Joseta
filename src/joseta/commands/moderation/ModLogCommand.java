@@ -95,7 +95,7 @@ public class ModLogCommand extends ModCommand {
                          + "\n>   - Raison: " + sanction.getReason()
                          + "\n>   - Le: <t:"+ sanction.getTimestamp().getEpochSecond() +":F>";
 
-            if (sanction.getSanctionTypeId() != 'K' && sanction.getExpiryTime() >= 1) description += "\n>   - Jusqu'au: <t:" + (sanction.getTimestamp().getEpochSecond() + sanction.getExpiryTime()) + ":F>";
+            if (sanction.getSanctionTypeId() != 'K' && sanction.getExpiryTime() != null) description += "\n>   - Jusqu'au: <t:" + sanction.getExpiryTime().getEpochSecond() + ":F>";
 
             description += "\n";
         }

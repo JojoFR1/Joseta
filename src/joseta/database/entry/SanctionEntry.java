@@ -20,23 +20,23 @@ public class SanctionEntry {
     @Column
     private String reason;
     @Column
-    private Timestamp timestamp;
+    private Instant timestamp;
     @Column
-    private long expiryTime;
+    private Instant expiryTime;
     @Column @ColumnDefault("false")
     private boolean isExpired;
 
     // A no-arg constructor is required by JPA
     protected SanctionEntry() {};
 
-    public SanctionEntry(long sanctionId, char sanctionType, long userId, long moderatorId, long guildId, String reason, Instant timestamp, long expiryTime) {
+    public SanctionEntry(long sanctionId, char sanctionType, long userId, long moderatorId, long guildId, String reason, long expiryTime) {
         this.sanctionId = sanctionType + Long.toString(sanctionId);
         this.userId = userId;
         this.moderatorId = moderatorId;
         this.guildId = guildId;
         this.reason = reason;
-        this.timestamp = Timestamp.from(timestamp);
-        this.expiryTime = expiryTime;
+        this.timestamp = Instant.now();
+        this.expiryTime = timestamp.plusSeconds(expiryTime);
     }
 
     public String getFullSanctionId() { return sanctionId; }
@@ -63,11 +63,11 @@ public class SanctionEntry {
     public String getReason() { return reason; }
     public SanctionEntry setReason(String reason) { this.reason = reason; return this; }
     
-    public Instant getTimestamp() { return timestamp.toInstant(); }
-    public SanctionEntry setTimestamp(Instant timestamp) { this.timestamp = Timestamp.from(timestamp); return this; }
+    public Instant getTimestamp() { return timestamp; }
+    public SanctionEntry setTimestamp(Instant timestamp) { this.timestamp = timestamp; return this; }
     
-    public long getExpiryTime() { return expiryTime; }
-    public SanctionEntry setExpiryTime(long expiryTime) { this.expiryTime = expiryTime; return this; }
+    public Instant getExpiryTime() { return expiryTime; }
+    public SanctionEntry setExpiryTime(Instant expiryTime) { this.expiryTime = expiryTime; return this; }
 
     public boolean isExpired() { return isExpired; }
     public SanctionEntry setExpired(boolean isExpired) { this.isExpired = isExpired; return this; }
