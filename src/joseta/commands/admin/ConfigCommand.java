@@ -38,6 +38,7 @@ public class ConfigCommand extends Command {
                 new SubcommandData("counting", "Counting")
                     .addOption(OptionType.BOOLEAN, "enabled", "Enable or disable the counting")
                     .addOption(OptionType.BOOLEAN, "comments_enabled", "Enable or disable the use of comments while counting")
+                    .addOption(OptionType.BOOLEAN, "penalty_enabled", "Enable or disable the reset of the counting channel when a user fails to respect the rules")
                     .addOption(OptionType.CHANNEL, "channel", "The channel where the counting will take place.")
             );
     }
@@ -73,6 +74,7 @@ public class ConfigCommand extends Command {
             case "counting":
                 config.setCountingEnabled(event.getOption("enabled", config.isCountingEnabled(), OptionMapping::getAsBoolean))
                     .setCountingCommentsEnabled(event.getOption("comments_enabled", config.isCountingCommentsEnabled(), OptionMapping::getAsBoolean))
+                    .setCountingPenaltyEnabled(event.getOption("penalty_enabled", config.isCountingPenaltyEnabled(), OptionMapping::getAsBoolean))
                     .setCountingChannelId(event.getOption("channel", config.getCountingChannelId(), OptionMapping::getAsLong));
                 break;
         

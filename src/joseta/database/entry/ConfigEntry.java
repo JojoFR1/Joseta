@@ -54,6 +54,8 @@ public class ConfigEntry {
     private boolean countingEnabled;
     @Column @ColumnDefault("false")
     private boolean countingCommentsEnabled;
+    @Column @ColumnDefault("false")
+    private boolean countingPenaltyEnabled;
     @Column @ColumnDefault("0")
     private long countingChannelId;
 
@@ -82,6 +84,7 @@ public class ConfigEntry {
         this.autoResponseEnabled = other.autoResponseEnabled;
         this.countingEnabled = other.countingEnabled;
         this.countingCommentsEnabled = other.countingCommentsEnabled;
+        this.countingPenaltyEnabled = other.countingPenaltyEnabled;
         this.countingChannelId = other.countingChannelId;
     }
 
@@ -132,6 +135,9 @@ public class ConfigEntry {
 
     public ConfigEntry setCountingCommentsEnabled(boolean countingCommentsEnabled) { this.countingCommentsEnabled = countingCommentsEnabled; return this; }
     public boolean isCountingCommentsEnabled() { return countingCommentsEnabled; }
+
+    public ConfigEntry setCountingPenaltyEnabled(boolean countingPenaltyEnabled) { this.countingPenaltyEnabled = countingPenaltyEnabled; return this; }
+    public boolean isCountingPenaltyEnabled() { return countingPenaltyEnabled; }
 
     public ConfigEntry setCountingChannelId(long countingChannelId) { this.countingChannelId = countingChannelId; return this; }
     public long getCountingChannelId() { return countingChannelId; }

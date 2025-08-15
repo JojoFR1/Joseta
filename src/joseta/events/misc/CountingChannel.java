@@ -18,7 +18,9 @@ public class CountingChannel {
 
     // Start with a number
     private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
+    // TODO unhardcode the emojis
     private static final Emoji checkEmoji = Emoji.fromCustom("yes", 1350065422975766528L, false);
+    private static final Emoji crossEmoji = Emoji.fromCustom("no", 1350065407750443059L, false);
 
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch
@@ -67,33 +69,44 @@ public class CountingChannel {
         long number = parseNumber(message.getContentRaw().replace(" ", ""), config.isCountingCommentsEnabled());
 
         if (number == -1) {
-            if (!config.isCountingCommentsEnabled())
-                message.reply(message.getAuthor().getAsMention() + " vous devez uniquement utiliser des chiffres dans ce salon !").queue(
-                    m -> m.delete().queueAfter(5, TimeUnit.SECONDS)
+            String hasToString = config.isCountingCommentsEnabled() ? "commencer par" : "uniquement utiliser";
+            if (!config.isCountingPenaltyEnabled()) {
+
+                message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon !").queue(
+                    botMessage -> botMessage.delete().queueAfter(5, TimeUnit.SECONDS)
                 );
-            else
-                message.reply(message.getAuthor().getAsMention() + " vous devez commencer par des chiffres dans ce salon !").queue(
-                    m -> m.delete().queueAfter(5, TimeUnit.SECONDS)
-                );
-            message.delete().queue();
+                message.delete().queue();
+            } else {
+                lastNumber = 0;
+                message.addReaction(crossEmoji).queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres.\n\n-# Le comptage repart de 0.").queue();
+            }
             return;
         }
 
         // Rule - Must increment the last number by 1
         if (number != lastNumber + 1) {
-            message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(
-                m -> m.delete().queueAfter(5, TimeUnit.SECONDS)
-            );
-            message.delete().queue();
+            if (!config.isCountingPenaltyEnabled()) {
+                message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                message.delete().queue();
+            } else {
+                lastNumber = 0;
+                message.addReaction(crossEmoji).queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
+            }
             return;
         }
 
         // Rule - Cannot count twice in a row
         if (message.getAuthor().getIdLong() == lastAuthorId) {
-            message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(
-                    m -> m.delete().queueAfter(5, TimeUnit.SECONDS)
-            );
-            message.delete().queue();
+            if (!config.isCountingPenaltyEnabled()) {
+                message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                message.delete().queue();
+            } else {
+                lastNumber = 0;
+                message.addReaction(crossEmoji).queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
+            }
             return;
         }
 
