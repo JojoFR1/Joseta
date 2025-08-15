@@ -4,7 +4,6 @@ import joseta.commands.*;
 import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.database.helper.*;
-import joseta.utils.*;
 
 import arc.struct.*;
 
@@ -22,11 +21,6 @@ import net.dv8tion.jda.api.requests.restaction.interactions.*;
 import java.awt.*;
 import java.time.*;
 import java.util.List;
-
-import org.hibernate.query.criteria.*;
-
-import jakarta.persistence.*;
-import jakarta.persistence.criteria.*;
 
 public class ModLogCommand extends ModCommand {
     private static final int SANCTION_PER_PAGE = 5;
@@ -88,7 +82,7 @@ public class ModLogCommand extends ModCommand {
         if (sanctions.isEmpty()) description = "Oh ! Cet utilisateur n'a aucune sanction !";
 
         else for (SanctionEntry sanction : sanctions) {
-            description += "### "+ sanction.getSanctionType() +" - #"+ sanction.getFullSanctionId();
+            description += "### "+ sanction.getSanctionType() +" - #"+ sanction.getSanctionIdFull();
             if (sanction.isExpired()) description += " (Expirée)";
 
             description += "\n>   - Responsable: <@"+ sanction.getModeratorId() +"> (`"+ sanction.getModeratorId() +"`)"

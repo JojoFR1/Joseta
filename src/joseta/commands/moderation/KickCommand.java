@@ -30,7 +30,7 @@ public class KickCommand extends ModCommand {
                 event.reply("Le membre a bien été expulsé.").queue();
 
                 member.getUser().openPrivateChannel().queue(
-                        channel -> channel.sendMessage("Vous avez été expulsé sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes constestations doivent se faire avec le modérateur reponsable.***").queue()
+                        channel -> channel.sendMessage("Vous avez été expulsé sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***").queue()
                 );
 
                 SanctionDatabaseHelper.addSanction('K', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);        

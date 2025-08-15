@@ -36,7 +36,7 @@ public class BanCommand extends ModCommand {
             success -> {
                 event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
                 member.getUser().openPrivateChannel().queue(
-                        channel -> channel.sendMessage("Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + time) + ":R>.\n\n-# ***Ceci est un message automatique. Toutes constestations doivent se faire avec le modérateur reponsable.***").queue()
+                        channel -> channel.sendMessage("Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + time) + ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***").queue()
                 );
 
                 SanctionDatabaseHelper.addSanction('B', member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, time);        
