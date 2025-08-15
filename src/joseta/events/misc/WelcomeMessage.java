@@ -25,10 +25,8 @@ public class WelcomeMessage {
     private static boolean imageLoaded;
 
     public static void initialize() {
-        Path cachedImagePath = Paths.get("resources", "welcomeImageBase.png");
-        
         try {
-            welcomeImage = ImageIO.read(cachedImagePath.toFile());
+            welcomeImage = ImageIO.read(new File("resources/welcomeImageBase.png"));
             imageLoaded = true;
         } catch (IOException e) {
             Log.err("WelcomeMessage - An error occured while reading the base welcome image or font.", e);
@@ -37,12 +35,9 @@ public class WelcomeMessage {
 
         try {
             font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
-        } catch (IOException e) {
+        } catch (IOException | FontFormatException e) {
             Log.err("WelcomeMessage - The font could not be loaded. Defaulted to 'Arial'", e);
             font = new Font("Arial", Font.PLAIN, 30);        
-        } catch (FontFormatException e) {
-            Log.err("WelcomeMessage - The font has a wrong format. Defaulted to 'Arial'", e);
-            font = new Font("Arial", Font.PLAIN, 30);
         }
     }
 
@@ -101,11 +96,13 @@ public class WelcomeMessage {
             Log.err("WelcomeImage - An error occured with the user avatar URL.", e);
         } catch (IOException e) {
             Log.err("WelcomeImage - Could not read/write the base/generated image.", e);
+        } catch (URISyntaxException e) {
+            Log.err("WelcomeImage - An error occured with the user avatar URI.", e);
         }
     }
 
-    private static BufferedImage getUserAvatar(User user, int size) throws IOException {
-        BufferedImage avatar = ImageIO.read(new URL(user.getEffectiveAvatarUrl() + "?size=" + size));
+    private static BufferedImage getUserAvatar(User user, int size) throws IOException, URISyntaxException {
+        BufferedImage avatar = ImageIO.read(new URI(user.getEffectiveAvatarUrl() + "?size=" + size).toURL());
 
         if (avatar.getWidth() > 128 || avatar.getHeight() > 128) avatar = resizeAvatar(avatar);
 
