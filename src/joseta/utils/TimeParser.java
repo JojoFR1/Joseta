@@ -25,26 +25,30 @@ public class TimeParser {
     }
 
     
-    /** Parse a String and converts the time as seconds - Supports: w(eeks), d(ays), h(ours), m(inutes) and s(econds) */
+    /** Parse a String and converts the time as seconds - Supports: M(onths), w(eeks), d(ays), h(ours), m(inutes) and s(econds) */
     public static long parse(String time) {
         long parsedTime = 0;
-        int value = 0;
+        long value = 0;
 
-        if (time == "inf") return -1; 
+        if (time.equals("inf")) return -1;
         
         for (char c : time.toLowerCase().toCharArray()) {
             if (c >= '0' && c <= '9')
                 value = value * 10 + (c - '0');
             
-            else switch (c) {
-                                     // Day Hour Min. Sec.
-                case 'w': parsedTime += 7 * 24 * 60 * 60 * value; value = 0; break;
-                case 'd': parsedTime +=     24 * 60 * 60 * value; value = 0; break;
-                case 'h': parsedTime +=          60 * 60 * value; value = 0; break;
-                case 'm': parsedTime +=               60 * value; value = 0; break;
-                case 's': parsedTime +=                    value; value = 0; break;
-                default:  parsedTime +=                    value; value = 0; break;
-            }    
+            else {
+                parsedTime += switch (c) {
+                    //         Mon. Day Hour Min. Sec.
+                    case 'M' -> 4 * 7 * 24 * 60 * 60 * value;
+                    case 'w' -> 7 * 24 * 60 * 60 * value;
+                    case 'd' -> 24 * 60 * 60 * value;
+                    case 'h' -> 60 * 60 * value;
+                    case 'm' -> 60 * value;
+                    case 's' -> value;
+                    default -> 0;
+                };
+                value = 0;
+            }
         }
 
         return parsedTime;
