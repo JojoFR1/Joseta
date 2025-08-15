@@ -13,6 +13,11 @@ public abstract class Command {
     }
 
     public final void run(SlashCommandInteractionEvent event) {
+        if (event.getGuild() == null) {
+            event.reply("Cette commande n'est utilisable que sur un serveur.").setEphemeral(true).queue();
+            return;
+        }
+
         getArgs(event);
         if (!check(event)) return;
 
