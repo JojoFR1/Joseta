@@ -25,15 +25,17 @@ This is a multipurpose bot and is not centered around one specific category or i
 - A **Counting Channel** to count until infinity.
 - **Rules** + an **Acceptation System**, acting as verification too (not *yet* configurable).
 - An **Auto Response** for common questions (not *yet* configurable but can be disabled).
+- A **Counting Channel** to let users count until infinity.
 - Multiple commands:
 
   | Category   | Commands       | Use                                                                 |
   |:-----------|:---------------|:--------------------------------------------------------------------|
-  | Admin      | `/admin`       | Only used to send and update rules.                                 |
+  | Admin      | `/admin`       | Admin related commands (rules, counting managing).                  |
   |            | `/config`      | Configure the bot variables for your server.                        |
   | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                   |
   |            | `/multi`       | Manually send the multiplayer help message.                         |
   |            | `/markov`      | Generate a pseudo-random message using messages sent on the server. |
+  |            | `/reminder`    | Add or list reminders.                                              |
   | Moderation | `/modlog`      | Get a member current moderation history.                            |
   |            | `/(un)ban`     | (Un)Ban a member from the server.                                   |
   |            | `/kick`        | Kick a member from the server.                                      |
@@ -44,8 +46,6 @@ This is a multipurpose bot and is not centered around one specific category or i
 ## Plans
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
-
-- Add a reminder command
 
 - Message leaderboard + levels (?).
 
@@ -64,8 +64,6 @@ The current plans and ideas for this bot are the following, in the likely order 
 - Support multi-server:
   - Mainly to make it usable outside our server.
   - Make it actually usable for others.
-
-- Possible transition to Kotlin.
 
 ## How to build
 
@@ -99,9 +97,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/JojoFR1"><img src="https://avatars.githubusercontent.com/u/110781915?v=4?s=100" width="100px;" alt="Jojo"/><br /><sub><b>Jojo</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=JojoFR1" title="Code">💻</a> <a href="#ideas-JojoFR1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-JojoFR1" title="Maintenance">🚧</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://zetamap.fr/"><img src="https://avatars.githubusercontent.com/u/56844734?v=4?s=100" width="100px;" alt="ZetaMap"/><br /><sub><b>ZetaMap</b></sub></a><br /><a href="#infra-ZetaMap" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://zetamap.fr/"><img src="https://avatars.githubusercontent.com/u/56844734?v=4?s=100" width="100px;" alt="ZetaMap"/><br /><sub><b>ZetaMap</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=ZetaMap" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://xorblo-doitus.github.io/projects/"><img src="https://avatars.githubusercontent.com/u/75997617?v=4?s=100" width="100px;" alt="Patou"/><br /><sub><b>Patou</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=xorblo-doitus" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://l4p1n.ch/"><img src="https://avatars.githubusercontent.com/u/3647174?v=4?s=100" width="100px;" alt="l4p1n (Mathias B.)"/><br /><sub><b>l4p1n (Mathias B.)</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=lapin-b" title="Code">💻</a> <a href="#ideas-lapin-b" title="Ideas, Planning, & Feedback">🤔</a> <a href="#mentoring-lapin-b" title="Mentoring">🧑‍🏫</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://l4p1n.ch/"><img src="https://avatars.githubusercontent.com/u/3647174?v=4?s=100" width="100px;" alt="l4p1n (Mathias B.)"/><br /><sub><b>l4p1n (Mathias B.)</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=lapin-b" title="Code">💻</a> <a href="#ideas-lapin-b" title="Ideas, Planning, & Feedback">🤔</a> <a href="#mentoring-lapin-b" title="Mentoring">🧑‍🏫</a> <a href="#infra-lapin-b" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     </tr>
   </tbody>
   <tfoot>

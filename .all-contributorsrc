@@ -27,7 +27,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/56844734?v=4",
       "profile": "https://zetamap.fr/",
       "contributions": [
-        "infra"
+        "code"
       ]
     },
     {
@@ -47,7 +47,8 @@
       "contributions": [
         "code",
         "ideas",
-        "mentoring"
+        "mentoring",
+        "infra"
       ]
     }
   ],
