@@ -33,6 +33,9 @@ import ch.qos.logback.classic.Logger;
     * - Remove all user data that is not needed for the bot to function (user that left a server)
     * - Remove all message data that is not needed for the bot to function (all messages content as of now since logging is disabled)
     * - Remove all guild data that is not needed for the bot to function (any guild that removed the bot)
+    *
+    * LESS IMPORTANT:
+    * - Use ids instead of the actual elements (channel, emojis, role, user or message). It's recommended by JDA to retrieve them
  */
 public class JosetaBot {
     private static JDA bot;
@@ -83,6 +86,8 @@ public class JosetaBot {
         SlashCommandData[] commandsData = commands.map(cmd -> cmd.getCommandData()).toArray(SlashCommandData.class);
         bot.getGuilds().forEach(g -> g.updateCommands().addCommands().queue()); // Reset for the guilds command to avoid duplicates.
         bot.updateCommands().addCommands(commandsData).queue();
+
+        Database.initializeSessionFactory();
 
         WelcomeMessage.initialize(); //TODO Maybe change that?
         SanctionDatabaseHelper.startScheduler(15); // Check expired sanctions every 15 minutes.
@@ -156,7 +161,7 @@ public class JosetaBot {
                     if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
                         Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");    
                         bot.shutdownNow();
-                        bot.awaitShutdown(Duration.ofSeconds(30));
+                        bot.awaitShutdown();
                     }
                 } catch (InterruptedException e) {
                     Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);

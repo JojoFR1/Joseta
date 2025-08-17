@@ -29,7 +29,7 @@ public class ReminderEntry {
         this.channelId = channelId;
         this.userId = userId;
         this.message = message;
-        if (time > 0) this.time = Instant.now().plusSeconds(time);
+        this.time = Instant.now().plusSeconds(time);
     }
 
     public long getId() { return id; }

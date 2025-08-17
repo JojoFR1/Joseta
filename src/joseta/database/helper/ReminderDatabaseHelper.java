@@ -23,15 +23,19 @@ public class ReminderDatabaseHelper {
     }
 
     private static void checkReminders() {
-        List<ReminderEntry> entries = Database.getAll(ReminderEntry.class);
+        try {
+            List<ReminderEntry> entries = Database.getAll(ReminderEntry.class);
 
-        for (ReminderEntry entry : entries) {
-            if (entry.getTime().isBefore(Instant.now())) {
-                JosetaBot.getBot().getTextChannelById(entry.getChannelId())
-                    .sendMessage("Rappel pour <@" + entry.getUserId() + "> :\n\n" + entry.getMessage()).queue(
-                        success -> Database.delete(entry)
-                    );
+            for (ReminderEntry entry : entries) {
+                if (entry.getTime().isBefore(Instant.now())) {
+                    JosetaBot.getBot().getTextChannelById(entry.getChannelId())
+                        .sendMessage("Rappel pour <@" + entry.getUserId() + "> :\n\n" + entry.getMessage()).queue(
+                            success -> Database.delete(entry)
+                        );
+                }
             }
+        } catch (Exception e) {
+            Log.err("Error while checking reminders: ", e);
         }
     }
 }

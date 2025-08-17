@@ -24,7 +24,7 @@ import jakarta.persistence.criteria.Order;
 public class Database {
     private static SessionFactory sessionFactory;
 
-    private static void initializeSessionFactory() {
+    public static void initializeSessionFactory() {
         Fi file = Fi.get(Vars.sqlFilePath);
         if (!file.exists())
             try { file.write().close(); }

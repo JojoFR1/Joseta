@@ -7,6 +7,7 @@ import joseta.database.*;
 import joseta.database.entry.*;
 import joseta.database.helper.*;
 import joseta.utils.*;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
@@ -32,10 +33,15 @@ public class ReminderCommand extends Command {
             case "add" -> {
                 String message = event.getOption("message").getAsString();
                 long time = TimeParser.parse(event.getOption("time").getAsString());
-                Log.info(time);
+
+                // The 37 is the length of the bot message when starting the reminder in ReminderDatabaseHelper
+                if (message.length() > Message.MAX_CONTENT_LENGTH - 37) {
+                    event.reply("Le message du rappel est trop long.").setEphemeral(true).queue();
+                    return;
+                }
 
                 Database.createOrUpdate(new ReminderEntry(event.getGuild().getIdLong(), event.getChannelIdLong(), event.getUser().getIdLong(), message, time));
-                event.reply("Rappel ajouté avec succès pour le <t:"+ Instant.now().getEpochSecond() + time +":F>.").setEphemeral(true).queue();
+                event.reply("Rappel ajouté avec succès pour le <t:"+ (Instant.now().getEpochSecond() + time) +":F>.").setEphemeral(true).queue();
             }
             case "list" -> {
                 event.reply("A VENIR").setEphemeral(true).queue();

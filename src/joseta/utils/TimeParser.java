@@ -32,7 +32,7 @@ public class TimeParser {
 
         if (time.equals("inf")) return -1;
         
-        for (char c : time.toLowerCase().toCharArray()) {
+        for (char c : time.toCharArray()) {
             if (c >= '0' && c <= '9')
                 value = value * 10 + (c - '0');
             
