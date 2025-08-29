@@ -1,5 +1,6 @@
 # Sensible file
-secret.cfg
+.env
+*.cfg
 
 # Build
 .gradle/
