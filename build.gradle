@@ -1,51 +1,47 @@
 plugins {
-    id("java")
-    id("application")
-    id("com.gradleup.shadow") version "9.0.2"
+    id 'java'
+    id 'application'
+    id 'com.gradleup.shadow' version '9.1.0'
 }
 
-sourceSets.main.java.srcDirs = ["src"]
-sourceSets.main.resources.srcDirs = ["src"]
+sourceSets.main.java.srcDirs = ['src/main/java']
+sourceSets.main.resources.srcDirs = ['src/main/resources']
 
-application.mainClass = "joseta.JosetaBot"
+application.mainClass = 'joseta.JosetaBot'
 group = 'joseta'
-version = '1.5.0'
+version = '2.0.0'
 
-repositories{
-    mavenCentral()
-    maven{ url = 'https://maven.xpdustry.com/anuken' }
-    maven{ url = "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
-    maven{ url = 'https://www.jitpack.io' }
-}
+repositories { mavenCentral() }
 
-dependencies{
-    implementation("net.dv8tion:JDA:5.6.1") {
+dependencies {
+    implementation('net.dv8tion:JDA:6.0.0-rc.3') {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
     }
-    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation 'ch.qos.logback:logback-classic:1.5.18'
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+    implementation 'org.reflections:reflections:0.10.2'
     
-    implementation("org.xerial:sqlite-jdbc:3.50.3.0")
-    implementation("org.hibernate:hibernate-core:7.1.0.Final")
-    // Community Dialects for SQLite
-    implementation("org.hibernate:hibernate-community-dialects:7.1.0.Final")
-    // Hibernate Validator
-    implementation("org.hibernate.validator:hibernate-validator:9.0.1.Final")
-    implementation("org.glassfish:jakarta.el:4.0.2")
-    // Hibernate Processor for annotation processing
-    annotationProcessor("org.hibernate.orm:hibernate-processor:7.1.0.Final")
-
-    implementation("com.github.Anuken.Arc:arc-core:v146")
+//    implementation "org.xerial:sqlite-jdbc:3.50.3.0"
+//    implementation "org.hibernate:hibernate-core:7.1.0.Final"
+//    // Community Dialects for SQLite
+//    implementation "org.hibernate:hibernate-community-dialects:7.1.0.Final"
+//    // Hibernate Validator
+//    implementation "org.hibernate.validator:hibernate-validator:9.0.1.Final"
+//    implementation "org.glassfish:jakarta.el:4.0.2"
+//    // Hibernate Processor for annotation processing
+//    annotationProcessor "org.hibernate.orm:hibernate-processor:7.1.0.Final"
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = "UTF-8"
+    options.encoding = 'UTF-8'
     options.incremental = true
 
     sourceCompatibility = JavaVersion.VERSION_17
+    options.compilerArgs << '-parameters'
 }
 
 shadowJar {
-    archiveFileName = "JosetaBot.jar"
+    archiveFileName = 'JosetaBot.jar'
 }
