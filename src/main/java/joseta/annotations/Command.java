@@ -26,15 +26,18 @@ public class Command {
         private final Class<?> type;
         private final String name;
         private final boolean required;
+        private final boolean autoComplete;
 
-        public Parameter(Class<?> type, String name, boolean required) {
+        public Parameter(Class<?> type, String name, boolean required, boolean autoComplete) {
             this.type = type;
             this.name = name;
             this.required = required;
+            this.autoComplete = autoComplete;
         }
 
         public Class<?> getType() { return type; }
         public String getName() { return name; }
         public boolean isRequired() { return required; }
+        public boolean isAutoComplete() { return autoComplete; }
     }
 }
