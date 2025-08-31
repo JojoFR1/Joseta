@@ -1,12 +1,9 @@
 package joseta.commands;
 
-import joseta.annotations.*;
 import joseta.annotations.modules.*;
+import joseta.annotations.types.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.interactions.commands.build.*;
-
-import java.nio.channels.*;
 
 public class AdminCommands extends CommandModule {
 

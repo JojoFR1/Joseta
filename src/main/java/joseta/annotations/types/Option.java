@@ -1,4 +1,4 @@
-package joseta.annotations;
+package joseta.annotations.types;
 
 import java.lang.annotation.*;
 
