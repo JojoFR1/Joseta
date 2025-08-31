@@ -15,11 +15,12 @@ public class MiscCommands extends CommandModule {
     }
 
     @SlashCommand(description = "Responds with ping")
-    public void pong(@Option(required = false) User user) {
+    public void pong(@Option User user) {
         if (user == null) {
             event.reply("l4p1n was here").queue();
             return;
         }
+
         event.reply("Piiiiiing! "+ event.getJDA().getGatewayPing() +"ms " + event.getName() + "hey " + user.getAsMention()).queue();
     }
 }
