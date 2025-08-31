@@ -17,7 +17,7 @@ jobs:
 
     - name: Build bot jar
       run: |
-        chmod +x ./gradlew
+        chmod +x ./gradlew --configuration-cache
         ./gradlew shadowJar
         
     - name: Upload built jar file
