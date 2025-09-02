@@ -76,7 +76,6 @@ public class CommandProcessor {
 
                     command.addParameter(new Command.Parameter(type, name, option.required(), (optionType.canSupportChoices() && option.autoComplete())));
                     commandData.addOption(optionType, name, option.description(), option.required(), (optionType.canSupportChoices() && option.autoComplete()));
-
                 }
 
                 commands.add(commandData);

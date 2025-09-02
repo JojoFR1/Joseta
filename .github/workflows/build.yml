@@ -17,8 +17,8 @@ jobs:
 
     - name: Build bot jar
       run: |
-        chmod +x ./gradlew --configuration-cache
-        ./gradlew shadowJar
+        chmod +x ./gradlew
+        ./gradlew shadowJar --configuration-cache
         
     - name: Upload built jar file
       uses: actions/upload-artifact@v4
