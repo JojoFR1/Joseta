@@ -14,7 +14,7 @@ version = '2.0.0'
 repositories { mavenCentral() }
 
 dependencies {
-    implementation('net.dv8tion:JDA:6.0.0-rc.3') {
+    implementation('net.dv8tion:JDA:6.0.0-rc.5') {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
