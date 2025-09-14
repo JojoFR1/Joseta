@@ -18,7 +18,7 @@ public class AdminCommands extends CommandModule {
      * |  |- reset_number   (Subcommand)
      * |  |- reset_author   (Subcommand)
      */
-    @SlashCommand(name = "admiiin")
+    @SlashCommand(name = "admintest")
     public void admin(@Option(required = true) IMentionable target) {
         event.reply("Admin command executed. " + target).queue();
 
@@ -31,8 +31,18 @@ public class AdminCommands extends CommandModule {
         //     .addOptions();
     }
 
-    @SlashCommand(name = "update")
-    public void rulesUpdate() {
-        event.reply("Rules updated.").queue();
+    @SlashCommand(name = "rules update")
+    public void rulesUpdate(@Option(required = true) Role role) {
+        event.reply("Rules updated. " + role).queue();
+    }
+
+    @SlashCommand(name = "rules send admin")
+    public void rulesSendAdmin() {
+        event.reply("Admin rules sent.").queue();
+    }
+
+    @SlashCommand(name = "rules send test")
+    public void rulesSend() {
+        event.reply("Rules sent.").queue();
     }
 }

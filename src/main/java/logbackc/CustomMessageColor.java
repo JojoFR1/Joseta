@@ -9,12 +9,9 @@ public class CustomMessageColor extends ForegroundCompositeConverterBase<ILoggin
     @Override
     protected String getForegroundColorCode(ILoggingEvent event) {
         Level level = event.getLevel();
-        switch (level.toInt()) {
-            case Level.ERROR_INT:
-                return ANSIConstants.RED_FG;
-            default:
-                return ANSIConstants.RESET;
-        }
+
+        if (level.toInt() == Level.ERROR_INT) return ANSIConstants.RED_FG;
+        return ANSIConstants.RESET;
     }
     
 }

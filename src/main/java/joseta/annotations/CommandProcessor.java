@@ -9,8 +9,10 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.hooks.*;
+import net.dv8tion.jda.api.interactions.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
+import net.dv8tion.jda.api.interactions.commands.localization.*;
 import org.reflections.*;
 
 import java.lang.reflect.*;
@@ -23,6 +25,9 @@ import static org.reflections.scanners.Scanners.*;
  */
 public class CommandProcessor {
     private static final Map<String, Command> commandMethods = new HashMap<>();
+    private static final LocalizationFunction localizedFunction = ResourceBundleLocalizationFunction.fromBundles("bundle",
+        DiscordLocale.ENGLISH_US, DiscordLocale.ENGLISH_UK, DiscordLocale.FRENCH).build();
+
 
     /**
      * Initializes the command processor to scan for commands in the specified package and register them with the bot.
@@ -40,67 +45,140 @@ public class CommandProcessor {
                 SlashCommand commandAnnotation = method.getAnnotation(SlashCommand.class);
                 if (commandAnnotation == null) continue;
 
-                String commandName = commandAnnotation.name();
-                if (commandName.isEmpty()) commandName = method.getName();
+                String[] baseCommandName = commandAnnotation.name().isEmpty() ? null : commandAnnotation.name().split(" ");
+                if (baseCommandName == null) baseCommandName = method.getName().split("(?=\\p{Upper})");
 
-                SlashCommandData commandData = Commands.slash(commandName, commandAnnotation.description());
+                String commandName = baseCommandName[0];
+                String subcommandName;
+                String subcommandGroupName;
+                if (baseCommandName.length == 2) {
+                    subcommandGroupName = null;
+                    subcommandName = baseCommandName[1];
+                } else if (baseCommandName.length >= 3) {
+                    subcommandGroupName = baseCommandName[1];
+                    subcommandName =  baseCommandName[2];
+                } else {
+                    subcommandGroupName = null;
+                    subcommandName = null;
+                }
+                if (baseCommandName.length > 3) Log.warn("Command name too long (max 3 parts).");
 
-                method.setAccessible(true);
-                Command command = new Command(commandClass, method, commandName);
-                commandMethods.put(commandName, command);
-
-                for (Parameter parameter : method.getParameters()) {
-                    Option option = parameter.getAnnotation(Option.class);
-                    if (option == null) continue;
-
-                    String name = option.name();
-                    if (name.isEmpty()) name = parameter.getName();
-
-                    Class<?> type = parameter.getType();
-                    OptionType optionType;
-
-                    if (type == String.class) optionType = OptionType.STRING;
-                    else if (type == int.class || type == Integer.class
-                        || type == long.class || type == Long.class) optionType = OptionType.INTEGER;
-                    else if (type == boolean.class || type == Boolean.class) optionType = OptionType.BOOLEAN;
-                    else if (type == IMentionable.class) optionType = OptionType.MENTIONABLE; // Need to be before User, Member, Role and Channel
-                    else if (type.isAssignableFrom(User.class) || type == Member.class) optionType = OptionType.USER;
-                    else if (type.isAssignableFrom(Channel.class)) optionType = OptionType.CHANNEL;
-                    else if (type == Role.class) optionType = OptionType.ROLE;
-                    else if (type == double.class || type == Double.class) optionType = OptionType.NUMBER;
-                    else if (type == Message.Attachment.class) optionType = OptionType.ATTACHMENT;
-                    else {
-                        Log.warn("Unsupported parameter type: " + type.getName() + " in command: " + command.getName());
-                        optionType = OptionType.UNKNOWN;
-                    }
-
-                    command.addParameter(new Command.Parameter(type, name, option.required(), (optionType.canSupportChoices() && option.autoComplete())));
-                    commandData.addOption(optionType, name, option.description(), option.required(), (optionType.canSupportChoices() && option.autoComplete()));
+                SlashCommandData commandData;
+                boolean commandExists = false;
+                if (commandMethods.keySet().stream().noneMatch(n -> n.startsWith(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description()).setLocalizationFunction(localizedFunction);
+                else {
+                    commandData = commands.stream().filter(c -> c.getName().equals(commandName)).findFirst().orElse(null);
+                    commandExists = true;
                 }
 
-                commands.add(commandData);
+                if (commandData == null) {
+                    Log.err("An error occurred while registering the command: " + commandName);
+                    continue;
+                }
+
+                method.setAccessible(true);
+                String fullCommandName = commandName + (subcommandGroupName != null ? " " + subcommandGroupName : "") + (subcommandName != null ? " " + subcommandName : "");
+                Command command = new Command(commandClass, method, fullCommandName);
+                commandMethods.put(fullCommandName, command);
+
+                if (subcommandName != null) {
+                    boolean subcommandExists = true;
+                    SubcommandData subcommandData = commandData.getSubcommands().stream().filter(s -> s.getName().equals(subcommandName)).findFirst().orElse(null);
+                    if (subcommandData == null) {
+                        subcommandExists = false;
+                        subcommandData = new SubcommandData(subcommandName, commandAnnotation.description());
+                    }
+
+                    addParameters(method.getParameters(), command, subcommandData);
+
+                    boolean subcommandGroupExists = true;
+                    boolean hasSubcommandGroup = false;
+                    SubcommandGroupData subcommandGroupData = null;
+                    if (subcommandGroupName != null) {
+                        subcommandGroupData = commandData.getSubcommandGroups().stream().filter(sg -> sg.getName().equals(subcommandGroupName)).findFirst().orElse(null);
+                        if (subcommandGroupData == null) {
+                            subcommandGroupExists = false;
+                            subcommandGroupData = new SubcommandGroupData(subcommandGroupName, commandAnnotation.description());
+                        }
+                        hasSubcommandGroup = true;
+
+                        subcommandGroupData.addSubcommands(subcommandData);
+                    }
+
+                    if (hasSubcommandGroup && !subcommandGroupExists) commandData.addSubcommandGroups(subcommandGroupData);
+                    else if (!subcommandExists) commandData.addSubcommands(subcommandData);
+                }
+                else addParameters(method.getParameters(), command, commandData);
+
+                if (!commandExists) commands.add(commandData);
             }} catch (Exception e) { Log.warn("An error occurred while registering a command.", e); }
         }
 
         bot.updateCommands().addCommands(commands).queue(); // Reset for the guilds command to avoid duplicates.
 
-        bot.addEventListener(new CommandProcessor.CommandListener());
+        bot.addEventListener(new CommandListener());
     }
 
+    private static void addParameters(Parameter[] parameters, Command command, Object commandObject) {
+        SlashCommandData commandData = null;
+        SubcommandData subcommandData = null;
+        if (commandObject instanceof SlashCommandData slashCommandData) commandData = slashCommandData;
+        else if (commandObject instanceof SubcommandData subcommandData_) subcommandData = subcommandData_;
+        else {
+            Log.err("Invalid command object type: " + commandObject.getClass().getName());
+            return;
+        }
+
+        for (Parameter parameter : parameters) {
+            Option option = parameter.getAnnotation(Option.class);
+            if (option == null) continue;
+
+            String name = option.name();
+            if (name.isEmpty()) name = parameter.getName();
+
+            Class<?> type = parameter.getType();
+            OptionType optionType;
+
+            if (type == String.class) optionType = OptionType.STRING;
+            else if (type == int.class || type == Integer.class
+                || type == long.class || type == Long.class) optionType = OptionType.INTEGER;
+            else if (type == boolean.class || type == Boolean.class) optionType = OptionType.BOOLEAN;
+            else if (type == IMentionable.class) optionType = OptionType.MENTIONABLE; // Need to be before User, Member, Role and Channel
+            else if (type.isAssignableFrom(User.class) || type == Member.class) optionType = OptionType.USER;
+            else if (type.isAssignableFrom(Channel.class)) optionType = OptionType.CHANNEL;
+            else if (type == Role.class) optionType = OptionType.ROLE;
+            else if (type == double.class || type == Double.class) optionType = OptionType.NUMBER;
+            else if (type == Message.Attachment.class) optionType = OptionType.ATTACHMENT;
+            else {
+                Log.warn("Unsupported parameter type: " + type.getName() + " in command: " + command.getName());
+                optionType = OptionType.UNKNOWN;
+            }
+
+            command.addParameter(new Command.Parameter(type, name, option.required(), (optionType.canSupportChoices() && option.autoComplete())));
+            if (commandData != null) commandData.addOption(optionType, name, option.description(), option.required(), (optionType.canSupportChoices() && option.autoComplete()));
+            else subcommandData.addOption(optionType, name, option.description(), option.required(), (optionType.canSupportChoices() && option.autoComplete()));
+        }
+    }
 
     private static class CommandListener extends ListenerAdapter {
 
         @Override
         public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-            Command command = commandMethods.get(event.getName());
+            String commandName = event.getName();
+            String subcommandGroup = event.getSubcommandGroup();
+            String subcommand = event.getSubcommandName();
+
+            if (subcommandGroup != null) commandName += " " + subcommandGroup;
+            if (subcommand != null) commandName += " " + subcommand;
+
+            Command command = commandMethods.get(commandName);
+            if (command == null) {
+                Log.warn("Unknown command: " + event.getName());
+                event.reply("Commande inconnue.").setEphemeral(true).queue();
+                return;
+            }
 
             try {
-                if (command == null) {
-                    Log.warn("Unknown command: " + event.getName());
-                    event.reply("Commande inconnue.").setEphemeral(true).queue();
-                    return;
-                }
-
                 Object o = command.getClazz().getDeclaredConstructor(SlashCommandInteractionEvent.class).newInstance(event);
 
                 List<Object> args = new ArrayList<>();
@@ -108,8 +186,8 @@ public class CommandProcessor {
                     OptionMapping option = event.getOption(parameter.getName());
 
                     if (option == null && parameter.isRequired()) {
-                        event.reply("Un paramètre obligatoire est manquant.").queue();
                         Log.warn("A required parameter is missing for command: " + command.getName() + ", parameter: " + parameter.getName());
+                        event.reply("Un paramètre obligatoire est manquant.").queue();
                         return;
                     }
 
