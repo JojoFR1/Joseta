@@ -1,0 +1,34 @@
+package joseta.annotations.types;
+
+import joseta.annotations.*;
+
+import java.lang.annotation.*;
+
+/**
+ * Annotation to mark a method as a slash command.
+ * <p>
+ * The method must be inside a class that implements {@link InteractionModule InteractionModule}.
+ * <p>
+ * It is handled by the {@link InteractionProcessor CommandProcessor}, which provides the event and options to the method.
+ * <p>
+ * The method must have a single parameter of type {@link net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent SlashCommandInteractionEvent},
+ * followed by a maximum of 25 parameters annotated with {@link Option Option}.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface SlashCommandInteraction {
+    /** The command name, 1-32 lowercase alphanumeric characters.
+     * <p>
+     * Each command and subcommand has their own methods associated with them, you can see a subcommand as its own command under the main command umbrella.
+     * <p>
+     * The name can be formatted as follows:
+     *     <ul>
+     *         <li>command (cannot be used alone if there are subcommands)</li>
+     *         <li>command subcommand</li>
+     *         <li>command subcommandGroup subcommand</li>
+     *     </ul>
+     */
+    String name() default "";
+    /** The command description, 1-100 characters - Default: "No description."*/
+    String description() default "No description.";
+}

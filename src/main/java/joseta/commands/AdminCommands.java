@@ -1,48 +1,43 @@
 package joseta.commands;
 
-import joseta.annotations.modules.*;
+import joseta.annotations.*;
 import joseta.annotations.types.*;
+import net.dv8tion.jda.api.components.actionrow.*;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
+import net.dv8tion.jda.api.events.interaction.component.*;
 
-public class AdminCommands extends CommandModule {
+@InteractionModule
+public class AdminCommands {
 
-    public AdminCommands(SlashCommandInteractionEvent event) { super(event); }
-
-    /* admin (SlashCommand)
-     * |- rules     (SubcommandGroup)
-     * |  |- send      (Subcommand)
-     * |  |- update    (Subcommand)
-     * |- counting  (SubcommandGroup)
-     * |  |- set_number     (Subcommand)
-     * |  |- reset_number   (Subcommand)
-     * |  |- reset_author   (Subcommand)
-     */
-    @SlashCommand(name = "admintest")
-    public void admin(@Option(required = true) IMentionable target) {
-        event.reply("Admin command executed. " + target).queue();
-
-        // new SubcommandGroupData("name", "description")
-        //     .addSubcommands(
-        //         new SubcommandData("name", "description")
-        //             .addOptions()
-        //     );
-        // new SubcommandData("name", "description") //Similar to SlashCommandData logic
-        //     .addOptions();
-    }
-
-    @SlashCommand(name = "rules update")
-    public void rulesUpdate(@Option(required = true) Role role) {
+    @SlashCommandInteraction(name = "rules update")
+    public void rulesUpdate(SlashCommandInteractionEvent event, @Option(required = true) Role role) {
         event.reply("Rules updated. " + role).queue();
     }
 
-    @SlashCommand(name = "rules send admin")
-    public void rulesSendAdmin() {
-        event.reply("Admin rules sent.").queue();
+    @SlashCommandInteraction(name = "rules send admin")
+    public void rulesSendAdmin(SlashCommandInteractionEvent event, @Option(required = true) String test) {
+        event.reply("Admin rules sent." + test)
+            .addComponents(ActionRow.of(
+                Button.primary("rules_accept", "Accept Rules"),
+                Button.danger("rules_decline", "Decline Rules")
+            ))
+            .queue();
     }
 
-    @SlashCommand(name = "rules send test")
-    public void rulesSend() {
+    @ButtonInteraction(id = "rules_accept")
+    public void rulesAcceptButton(ButtonInteractionEvent event) {
+        event.reply("You accepted the rules.").queue();
+    }
+
+    @SlashCommandInteraction(name = "rules send test")
+    public void rulesSend(SlashCommandInteractionEvent event) {
         event.reply("Rules sent.").queue();
+    }
+
+    @SlashCommandInteraction(name = "test")
+    public void testCommand(SlashCommandInteractionEvent event) {
+        event.reply("Test command executed.").queue();
     }
 }
