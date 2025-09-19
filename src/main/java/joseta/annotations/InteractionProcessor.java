@@ -76,7 +76,7 @@ public class InteractionProcessor {
                     interactionMethods.put(id, new Interaction(commandClass, method, id));
                     continue;
                 }
-            }} catch (Exception e) { Log.warn("An error occurred while registering a command.", e); }
+            }} catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }
         }
 
         bot.updateCommands().addCommands(commands).queue();
@@ -107,7 +107,7 @@ public class InteractionProcessor {
 
         SlashCommandData commandData;
         boolean commandExists = false;
-        if (interactionMethods.keySet().stream().noneMatch(n -> n.startsWith(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description()).setLocalizationFunction(localizedFunction);
+        if (commands.stream().noneMatch(c -> c.getName().equals(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description()).setLocalizationFunction(localizedFunction);
         else {
             commandData = commands.stream().filter(c -> c.getName().equals(commandName)).findFirst().orElse(null);
             commandExists = true;
