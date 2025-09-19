@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.*;
+import net.dv8tion.jda.api.events.interaction.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
 import net.dv8tion.jda.api.hooks.*;
@@ -64,6 +65,16 @@ public class InteractionProcessor {
                     if (id.isEmpty()) id = method.getName().toLowerCase();
                     method.setAccessible(true);
                     interactionMethods.put(id, new Interaction(commandClass, method, id));
+                    continue;
+                }
+
+                SelectMenuInteraction selectMenuInteraction = method.getAnnotation(SelectMenuInteraction.class);
+                if (selectMenuInteraction != null) {
+                    String id = selectMenuInteraction.id();
+                    if (id.isEmpty()) id = method.getName().toLowerCase();
+                    method.setAccessible(true);
+                    interactionMethods.put(id, new Interaction(commandClass, method, id));
+                    continue;
                 }
             }} catch (Exception e) { Log.warn("An error occurred while registering a command.", e); }
         }
@@ -262,8 +273,28 @@ public class InteractionProcessor {
         }
 
         @Override
-        public void onGenericSelectMenuInteraction(@NotNull GenericSelectMenuInteractionEvent event) {
-            String menuId = event.getComponentId();
+        public void onGenericSelectMenuInteraction(GenericSelectMenuInteractionEvent event) {
+            String selectMenuId = event.getComponentId();
+
+            Interaction selectMenu = interactionMethods.get(selectMenuId);
+            if (selectMenu == null) {
+                Log.warn("Unknown select menu: " + event.getId());
+                event.reply("Menu de sélection inconnu.").setEphemeral(true).queue();
+                return;
+            }
+
+            try {
+                Object o = selectMenu.getClazz().getDeclaredConstructor().newInstance();
+
+                selectMenu.getMethod().invoke(o, event);
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+                Log.err("An error occurred during command execution ({}):", selectMenu.getName(), e);
+            }
+        }
+
+        @Override
+        public void onModalInteraction(ModalInteractionEvent event) {
+            String modalId = event.getModalId();
             // TODO
         }
     }

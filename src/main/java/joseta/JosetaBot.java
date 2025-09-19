@@ -6,19 +6,25 @@ import joseta.annotations.*;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.hooks.*;
-import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
 
-import java.lang.reflect.*;
-import java.util.*;
 import java.util.concurrent.*;
 
 public class JosetaBot {
     private static boolean debug = false;
 
+    /* TODO Add support for other command-like event (Modal, etc.)
+     * TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
+     *   - Move rules from a text file to the database
+     *   - Respect the GDPR by not storing unnecessary data (remove messages etc.)
+     *   - Allow to change the welcome image (would need to allow to customize the text location and content)
+     *   - Allow to add custom Regex for auto-response
+     * TODO support translations for logging and error messages?
+     * TODO (very unlikely) add a web dashboard
+     * TODO try to optimize the bot to reduce memory usage and CPU usage and improve responsiveness
+     * TODO modernize old code to be more clean and similar to the newer code
+     */
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
 
