@@ -43,7 +43,7 @@ public class JosetaBot {
             System.exit(1);
         }
 
-        CommandProcessor.initialize(bot, "joseta.commands");
+        InteractionProcessor.initialize(bot, "joseta.commands");
     }
 
     private static void registerShutdown(JDA bot) {
