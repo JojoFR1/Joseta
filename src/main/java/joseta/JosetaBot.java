@@ -14,8 +14,7 @@ import java.util.concurrent.*;
 public class JosetaBot {
     private static boolean debug = false;
 
-    /* TODO Add support for other command-like event (Modal, etc.)
-     * TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
+    /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
      *   - Move rules from a text file to the database
      *   - Respect the GDPR by not storing unnecessary data (remove messages etc.)
      *   - Allow to change the welcome image (would need to allow to customize the text location and content)

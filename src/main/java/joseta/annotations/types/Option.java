@@ -1,16 +1,14 @@
 package joseta.annotations.types;
 
-import joseta.annotations.*;
-
 import java.lang.annotation.*;
 
 /**
  * Annotation to mark a method parameter as a slash command option.
  * <p>
  * The parameter must be inside a method that is annotated with {@link SlashCommandInteraction SlashCommand},
- * which is inside a class that implements {@link InteractionModule InteractionModule}.
+ * which is inside a class that implements {@link joseta.annotations.InteractionModule InteractionModule}.
  * <p>
- * It is handled by the {@link InteractionProcessor CommandProcessor}, which provides the options values to the method.
+ * It is handled by the {@link joseta.annotations.InteractionProcessor InteractionProcessor}, which provides the options values to the method.
  * If the option is not required, the parameter can be null.
  * <p>
  * The parameter type must be one of the following:

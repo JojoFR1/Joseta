@@ -76,6 +76,14 @@ public class InteractionProcessor {
                     interactionMethods.put(id, new Interaction(commandClass, method, id));
                     continue;
                 }
+
+                ModalInteraction modalInteraction = method.getAnnotation(ModalInteraction.class);
+                if (modalInteraction != null) {
+                    String id = modalInteraction.id();
+                    if (id.isEmpty()) id = method.getName().toLowerCase();
+                    method.setAccessible(true);
+                    interactionMethods.put(id, new Interaction(commandClass, method, id));
+                }
             }} catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }
         }
 
@@ -295,7 +303,21 @@ public class InteractionProcessor {
         @Override
         public void onModalInteraction(ModalInteractionEvent event) {
             String modalId = event.getModalId();
-            // TODO
+
+            Interaction selectMenu = interactionMethods.get(modalId);
+            if (selectMenu == null) {
+                Log.warn("Unknown select menu: " + event.getId());
+                event.reply("Menu de sélection inconnu.").setEphemeral(true).queue();
+                return;
+            }
+
+            try {
+                Object o = selectMenu.getClazz().getDeclaredConstructor().newInstance();
+
+                selectMenu.getMethod().invoke(o, event);
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+                Log.err("An error occurred during command execution ({}):", selectMenu.getName(), e);
+            }
         }
     }
 }

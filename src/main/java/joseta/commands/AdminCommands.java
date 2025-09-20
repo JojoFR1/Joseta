@@ -4,10 +4,14 @@ import joseta.annotations.*;
 import joseta.annotations.types.*;
 import net.dv8tion.jda.api.components.actionrow.*;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.label.*;
 import net.dv8tion.jda.api.components.selections.*;
+import net.dv8tion.jda.api.components.textdisplay.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.interaction.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
+import net.dv8tion.jda.api.modals.*;
 
 @InteractionModule
 public class AdminCommands {
@@ -62,6 +66,22 @@ public class AdminCommands {
 
     @SlashCommandInteraction(name = "test")
     public void testCommand(SlashCommandInteractionEvent event) {
-        event.reply("Test command executed.").queue();
+        // event.reply("Test command executed.").queue();
+
+        event.replyModal(Modal.create("test_modal", "Test Modal")
+            .addComponents(
+                TextDisplay.of("""
+                    hello world
+                    
+                    this is so cool
+                    """),
+                Label.of("Role", EntitySelectMenu.create("role_select", EntitySelectMenu.SelectTarget.ROLE).build())
+            )
+            .build()).queue();
+    }
+
+    @ModalInteraction(id = "test_modal")
+    public void testModal(ModalInteractionEvent event) {
+        event.reply("Modal submitted.").queue();
     }
 }
