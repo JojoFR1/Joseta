@@ -5,6 +5,7 @@
 # Build
 .gradle/
 .idea/
+.vscode/
 build/
 bin/
 

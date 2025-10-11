@@ -3,11 +3,17 @@ package joseta;
 import ch.qos.logback.classic.*;
 import io.github.cdimascio.dotenv.*;
 import joseta.annotations.*;
+import joseta.database.*;
+import joseta.database.entities.Guild;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
+import okhttp3.*;
+import org.hibernate.*;
+import org.hibernate.jpa.*;
+import org.hibernate.tool.schema.*;
 
 import java.util.concurrent.*;
 
@@ -31,6 +37,14 @@ public class JosetaBot {
             debug = args[0].equals("--debug");
             Log.setLevel(Level.DEBUG);
         }
+
+        Database.initialize(dotenv.get("DATABASE_USER" + (debug ? "_DEV" : "")), dotenv.get("DATABASE_PASSWORD"+ (debug ? "_DEV" : "")),
+                            dotenv.get("DATABASE_HOST"+ (debug ? "_DEV" : "")) + ":"
+                            + dotenv.get("DATABASE_PORT"+ (debug ? "_DEV" : "")) + "/" + dotenv.get("DATABASE_NAME"+ (debug ? "_DEV" : "")));
+
+        Database.test(new Guild(123456789L, "Test Guildeuh"));
+
+        System.exit(0);
 
         JDA bot = JDABuilder.createDefault(dotenv.get("TOKEN" + (debug ? "_DEV" : "")))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
@@ -60,7 +74,14 @@ public class JosetaBot {
                 if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
                     Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");
                     bot.shutdownNow();
-                    bot.awaitShutdown();
+
+                    // TODO Not sure if that works
+                    if (!bot.awaitShutdown(1, TimeUnit.MINUTES)) {
+                        Log.err("The bot did not shutdown after the forced shutdown. Exiting...");
+                        OkHttpClient client = bot.getHttpClient();
+                        client.connectionPool().evictAll();
+                        client.dispatcher().executorService().shutdown();
+                    }
                 }
             } catch (InterruptedException e) {
                 Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);

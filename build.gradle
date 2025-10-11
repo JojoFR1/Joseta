@@ -25,16 +25,16 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.5.19'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.reflections:reflections:0.10.2'
-    
-//    implementation "org.xerial:sqlite-jdbc:3.50.3.0"
-//    implementation "org.hibernate:hibernate-core:7.1.0.Final"
-//    // Community Dialects for SQLite
-//    implementation "org.hibernate:hibernate-community-dialects:7.1.0.Final"
-//    // Hibernate Validator
-//    implementation "org.hibernate.validator:hibernate-validator:9.0.1.Final"
-//    implementation "org.glassfish:jakarta.el:4.0.2"
-//    // Hibernate Processor for annotation processing
-//    annotationProcessor "org.hibernate.orm:hibernate-processor:7.1.0.Final"
+
+    implementation 'org.postgresql:postgresql:42.7.8'
+    implementation 'org.hibernate:hibernate-core:7.1.2.Final'
+    // Hibernate Processor
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.1.2.Final'
+    // Hibernate Validator
+    implementation 'org.hibernate.validator:hibernate-validator:9.0.1.Final'
+    implementation 'org.glassfish.expressly:expressly:6.0.0'
+    // Agroal connection pool
+    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.2.Final'
 }
 
 tasks.withType(JavaCompile).configureEach {
