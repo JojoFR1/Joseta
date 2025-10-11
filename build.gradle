@@ -1,8 +1,11 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.gradleup.shadow' version '9.1.0'
+    id 'com.gradleup.shadow' version '9.2.2'
 }
+
+group = 'joseta'
+version = '2.0.0'
 
 sourceSets.main.java.srcDirs = ['src/main/java']
 sourceSets.main.resources.srcDirs = ['src/main/resources']
@@ -43,5 +46,6 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 shadowJar {
+    mainClass = 'joseta.JosetaBot'
     archiveFileName = 'JosetaBot.jar'
 }
