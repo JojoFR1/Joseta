@@ -3,6 +3,7 @@ package joseta.annotations;
 import joseta.annotations.interactions.Command;
 import joseta.annotations.interactions.Interaction;
 import joseta.annotations.types.*;
+import joseta.annotations.types.ContextInteraction;
 import joseta.annotations.types.SlashCommandInteraction;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
@@ -16,6 +17,7 @@ import net.dv8tion.jda.api.hooks.*;
 import net.dv8tion.jda.api.interactions.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
+import net.dv8tion.jda.api.interactions.commands.context.*;
 import net.dv8tion.jda.api.interactions.commands.localization.*;
 import org.jetbrains.annotations.*;
 import org.reflections.*;
@@ -48,14 +50,26 @@ public class InteractionProcessor {
         Reflections reflections = new Reflections(packageName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
 
-        List<SlashCommandData> commands = new ArrayList<>();
+        List<CommandData> commands = new ArrayList<>();
 
+        //TODO Hello future me, sorry for not handling Permission yet, too lazy to do it now
         for (Class<?> commandClass : classes) {
             try { for (Method method : commandClass.getMethods()) {
-                // TODO buttons, select menus, modals, etc.
+                // TODO context commands
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
                 if (commandInteraction != null) {
                     processCommand(commandInteraction, commandClass, method, commands);
+                    continue;
+                }
+
+                ContextInteraction contextInteraction = method.getAnnotation(ContextInteraction.class);
+                if (contextInteraction != null) {
+                    String name = contextInteraction.name();
+                    if (name.isEmpty()) name = method.getName().toLowerCase();
+                    net.dv8tion.jda.api.interactions.commands.Command.Type type = contextInteraction.type();
+                    method.setAccessible(true);
+                    commands.add(Commands.context(type, name));
+                    interactionMethods.put(name, new Interaction(commandClass, method, name));
                     continue;
                 }
 
@@ -92,7 +106,7 @@ public class InteractionProcessor {
         bot.addEventListener(new InteractionListener());
     }
 
-    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, List<SlashCommandData> commands) {
+    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, List<CommandData> commands) {
         String[] baseCommandName = commandAnnotation.name().isEmpty() ? null : commandAnnotation.name().split(" ");
         if (baseCommandName == null) {
             baseCommandName = method.getName().split("(?=\\p{Upper})");
@@ -117,7 +131,7 @@ public class InteractionProcessor {
         boolean commandExists = false;
         if (commands.stream().noneMatch(c -> c.getName().equals(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description()).setLocalizationFunction(localizedFunction);
         else {
-            commandData = commands.stream().filter(c -> c.getName().equals(commandName)).findFirst().orElse(null);
+            commandData = (SlashCommandData) commands.stream().filter(c -> c.getName().equals(commandName)).findFirst().orElse(null);
             commandExists = true;
         }
 
@@ -257,6 +271,26 @@ public class InteractionProcessor {
                 command.getMethod().invoke(o, args.toArray());
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                 Log.err("An error occurred during command execution ({}):", command.getName(), e);
+            }
+        }
+
+        @Override
+        public void onGenericContextInteraction(GenericContextInteractionEvent<?> event) {
+            String commandName = event.getName();
+
+            Interaction contextInteraction = interactionMethods.get(commandName);
+            if (contextInteraction == null) {
+                Log.warn("Unknown context interaction: " + event.getName());
+                event.reply("Interaction inconnue.").setEphemeral(true).queue();
+                return;
+            }
+
+            try {
+                Object o = contextInteraction.getClazz().getDeclaredConstructor().newInstance();
+
+                contextInteraction.getMethod().invoke(o, event);
+            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+                Log.err("An error occurred during command execution ({}):", contextInteraction.getName(), e);
             }
         }
 

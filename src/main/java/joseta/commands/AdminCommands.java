@@ -2,6 +2,8 @@ package joseta.commands;
 
 import joseta.annotations.*;
 import joseta.annotations.types.*;
+import joseta.annotations.types.SlashCommandInteraction;
+import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.components.actionrow.*;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.label.*;
@@ -11,6 +13,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
+import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.modals.*;
 
 @InteractionModule
@@ -83,5 +86,15 @@ public class AdminCommands {
     @ModalInteraction(id = "test_modal")
     public void testModal(ModalInteractionEvent event) {
         event.reply("Modal submitted.").queue();
+    }
+
+    @ContextInteraction(name = "get_name", type = Command.Type.USER)
+    public void interactionTest(UserContextInteractionEvent event) {
+        event.reply("Interaction received. " + event.getUser().getName()).queue();
+    }
+
+    @ContextInteraction(name = "get_id", type = Command.Type.MESSAGE)
+    public void testMessage(MessageContextInteractionEvent event) {
+        event.reply("Interaction received. " + event.getUser().getName()).queue();
     }
 }

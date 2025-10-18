@@ -4,10 +4,10 @@ import ch.qos.logback.classic.*;
 import io.github.cdimascio.dotenv.*;
 import joseta.annotations.*;
 import joseta.database.*;
-import joseta.database.entities.Guild;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
 import okhttp3.*;
@@ -41,10 +41,6 @@ public class JosetaBot {
         Database.initialize(dotenv.get("DATABASE_USER" + (debug ? "_DEV" : "")), dotenv.get("DATABASE_PASSWORD"+ (debug ? "_DEV" : "")),
                             dotenv.get("DATABASE_HOST"+ (debug ? "_DEV" : "")) + ":"
                             + dotenv.get("DATABASE_PORT"+ (debug ? "_DEV" : "")) + "/" + dotenv.get("DATABASE_NAME"+ (debug ? "_DEV" : "")));
-
-        Database.test(new Guild(123456789L, "Test Guildeuh"));
-
-        System.exit(0);
 
         JDA bot = JDABuilder.createDefault(dotenv.get("TOKEN" + (debug ? "_DEV" : "")))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
