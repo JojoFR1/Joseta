@@ -3,33 +3,34 @@ package joseta.database.entities;
 import jakarta.persistence.*;
 
 import java.lang.reflect.*;
-import java.lang.reflect.Parameter;
 
 @Entity @Table(name = "configurations")
 public class Configuration {
     @Id long guildId;
 
-    @Column boolean welcomeEnabled;
-    @Column boolean welcomeImageEnabled;
-    @Column long welcomeChannelId;
+    @Column boolean welcomeEnabled = false;
+    @Column long welcomeChannelId = 0L;
+    @Column boolean welcomeImageEnabled = false;
     @Column String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
-    @Column long joinRoleId;
-    @Column long joinBotRoleId;
-    @Column long verifiedRoleId;
+    @Column String welcomeImageUrl = "";
+    @Column long joinRoleId = 0L;
+    @Column long joinBotRoleId = 0L;
+    @Column long verifiedRoleId = 0L;
 
-    @Column boolean markovEnabled;
+    @Column boolean markovEnabled = false;
     @Column String markovBlackList = "";
 
-    @Column boolean moderationEnabled;
+    @Column boolean moderationEnabled = true;
 
-    @Column boolean autoResponseEnabled;
+    @Column boolean autoResponseEnabled = false;
 
-    @Column boolean countingEnabled;
-    @Column boolean countingCommentsEnabled;
-    @Column boolean countingPenaltyEnabled;
-    @Column long countingChannelId;
+    @Column boolean countingEnabled = false;
+    @Column boolean countingCommentsEnabled = false;
+    @Column boolean countingPenaltyEnabled = false;
+    @Column long countingChannelId = 0L;
 
+    // A no-arg constructor is required by JPA
     protected Configuration() {}
 
     public Configuration(long guildId) { this.guildId = guildId; }
@@ -112,7 +113,16 @@ public class Configuration {
         this.welcomeLeaveMessage = welcomeLeaveMessage;
         return this;
     }
-
+    
+    public String getWelcomeImageUrl() {
+        return welcomeImageUrl;
+    }
+    
+    public Configuration setWelcomeImageUrl(String welcomeImageUrl) {
+        this.welcomeImageUrl = welcomeImageUrl;
+        return this;
+    }
+    
     public long getJoinRoleId() {
         return joinRoleId;
     }

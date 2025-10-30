@@ -13,6 +13,7 @@ public class User {
     @Column String avatarUrl;
     @Column Instant creationTime;
 
+    // A no-arg constructor is required by JPA
     protected User() {}
 
     public User(long id, long guildId, String username, String avatarUrl, Instant creationTime) {

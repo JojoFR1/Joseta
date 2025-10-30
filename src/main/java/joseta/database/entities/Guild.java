@@ -10,6 +10,7 @@ public class Guild {
     @Column String iconUrl;
     @Column long ownerId;
 
+    // A no-arg constructor is required by JPA
     protected Guild() {}
 
     public Guild(long id, String name) {
