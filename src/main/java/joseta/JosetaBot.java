@@ -32,15 +32,19 @@ public class JosetaBot {
      */
     public static void main(String[] args) {
         Dotenv dotenv = Dotenv.load();
-
+        
         if (args.length > 0) {
             debug = args[0].equals("--debug");
             Log.setLevel(Level.DEBUG);
         }
-
-        Database.initialize(dotenv.get("DATABASE_USER" + (debug ? "_DEV" : "")), dotenv.get("DATABASE_PASSWORD"+ (debug ? "_DEV" : "")),
-                            dotenv.get("DATABASE_HOST"+ (debug ? "_DEV" : "")) + ":"
-                            + dotenv.get("DATABASE_PORT"+ (debug ? "_DEV" : "")) + "/" + dotenv.get("DATABASE_NAME"+ (debug ? "_DEV" : "")));
+        // TODO kinda ugly? maybe small custom Dotenv implementation to auto add the debug suffix?
+        if (!Database.initialize("joseta.database.entities",
+            dotenv.get("DATABASE_USER" + (debug ? "_DEV" : "")), dotenv.get("DATABASE_PASSWORD"+ (debug ? "_DEV" : "")),
+            dotenv.get("DATABASE_HOST"+ (debug ? "_DEV" : "")) + ":" + dotenv.get("DATABASE_PORT"+ (debug ? "_DEV" : "")) + "/" + dotenv.get("DATABASE_NAME"+ (debug ? "_DEV" : ""))))
+        {
+            Log.err("Database initialization failed. Exiting...");
+            System.exit(1);
+        }
 
         JDA bot = JDABuilder.createDefault(dotenv.get("TOKEN" + (debug ? "_DEV" : "")))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
