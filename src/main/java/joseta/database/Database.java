@@ -94,13 +94,76 @@ public class Database {
         if (sessionFactory == null) throw new IllegalStateException("Database not initialized. Call Database.initialize(...) first.");
         return sessionFactory.openSession();
     }
-
-    public static <E> E test(E object) {
+    
+    /**
+     * Create (or insert) new objects in the database.
+     *
+     * @param objects The objects to create.
+     */
+    public static void create(Object... objects) {
         try (Session session = getSession()) {
             Transaction transaction = session.beginTransaction();
-            E persistent = session.merge(object);
+            for (Object object : objects) session.persist(object);
+            transaction.commit();
+        }
+    }
+    
+    /**
+     * Retrieve an object from the database by its type and primary key.
+     *
+     * @param clazz The class type.
+     * @param id The primary key.
+     *
+     * @param <T> The object type.
+     *
+     * @return A fully-fetched persistent instance or null.
+     */
+    public static <T> T get(Class<T> clazz, Object id) {
+        try (Session session = getSession()) { return session.find(clazz, id); }
+    }
+    
+    /**
+     * Update an existing object in the database.
+     *
+     * @param object The object to update.
+     *
+     * @param <T> The object type.
+     *
+     * @return The updated persistent object.
+     */
+    public static <T> T update(T object) {
+        return createOrUpdate(object);
+    }
+    
+    /**
+     * Create or update an object in the database.
+     *
+     * @param object The object to create or update.
+     *
+     * @param <T> The object type.
+     *
+     * @return The updated persistent object.
+     */
+    public static <T> T createOrUpdate(T object) {
+        try (Session session = getSession()) {
+            Transaction transaction = session.beginTransaction();
+            T persistent = session.merge(object);
             transaction.commit();
             return persistent;
+        }
+    }
+    
+    /**
+     * Delete an object from the database.
+     *
+     * @param object The object to delete.
+     */
+    public static void delete(Object object) {
+        try (Session session = getSession()) {
+            Transaction transaction = session.beginTransaction();
+            if(!session.contains(object)) object = session.merge(object);
+            session.remove(object);
+            transaction.commit();
         }
     }
 }
