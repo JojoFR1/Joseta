@@ -10,7 +10,7 @@ public class Guild {
     @Column String iconUrl;
     @Column long ownerId;
 
-    // A no-arg constructor is required by JPA
+    // A non-private and no-arg constructor is required by JPA
     protected Guild() {}
 
     public Guild(long id, String name) {
@@ -18,35 +18,19 @@ public class Guild {
         this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
-
     public Guild setName(String name) {
         this.name = name;
         return this;
     }
-
-    public long getId() {
-        return id;
-    }
-
+    
     public Guild setId(long id) {
         this.id = id;
         return this;
     }
-
-    public String getIconUrl() {
-        return iconUrl;
-    }
-
+    
     public Guild setIconUrl(String iconUrl) {
         this.iconUrl = iconUrl;
         return this;
-    }
-
-    public long getOwnerId() {
-        return ownerId;
     }
 
     public Guild setOwnerId(long ownerId) {

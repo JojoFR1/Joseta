@@ -12,8 +12,8 @@ public class User {
     @Column String username;
     @Column String avatarUrl;
     @Column Instant creationTime;
-
-    // A no-arg constructor is required by JPA
+    
+    // A non-private and no-arg constructor is required by JPA
     protected User() {}
 
     public User(long id, long guildId, String username, String avatarUrl, Instant creationTime) {
@@ -24,17 +24,9 @@ public class User {
         this.creationTime = creationTime;
     }
 
-    public long getId() {
-        return id;
-    }
-
     public User setId(long id) {
         this.id = id;
         return this;
-    }
-
-    public long getGuildId() {
-        return guildId;
     }
 
     public User setGuildId(long guildId) {
@@ -42,26 +34,14 @@ public class User {
         return this;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     public User setUsername(String username) {
         this.username = username;
         return this;
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
     public User setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
         return this;
-    }
-
-    public Instant getCreationTime() {
-        return creationTime;
     }
 
     public User setCreationTime(Instant creationTime) {

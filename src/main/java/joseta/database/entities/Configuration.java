@@ -17,11 +17,13 @@ public class Configuration {
     @Column long joinRoleId = 0L;
     @Column long joinBotRoleId = 0L;
     @Column long verifiedRoleId = 0L;
-
+    
     @Column boolean markovEnabled = false;
     @Column String markovBlackList = "";
-
+    
     @Column boolean moderationEnabled = true;
+    
+    @Column String rules = "";
 
     @Column boolean autoResponseEnabled = false;
 
@@ -29,8 +31,8 @@ public class Configuration {
     @Column boolean countingCommentsEnabled = false;
     @Column boolean countingPenaltyEnabled = false;
     @Column long countingChannelId = 0L;
-
-    // A no-arg constructor is required by JPA
+    
+    // A non-private and no-arg constructor is required by JPA
     protected Configuration() {}
 
     public Configuration(long guildId) { this.guildId = guildId; }
@@ -69,17 +71,9 @@ public class Configuration {
         return this;
     }
 
-    public boolean isWelcomeEnabled() {
-        return welcomeEnabled;
-    }
-
     public Configuration setWelcomeEnabled(boolean welcomeEnabled) {
         this.welcomeEnabled = welcomeEnabled;
         return this;
-    }
-
-    public boolean isWelcomeImageEnabled() {
-        return welcomeImageEnabled;
     }
 
     public Configuration setWelcomeImageEnabled(boolean welcomeImageEnabled) {
@@ -87,17 +81,9 @@ public class Configuration {
         return this;
     }
 
-    public long getWelcomeChannelId() {
-        return welcomeChannelId;
-    }
-
     public Configuration setWelcomeChannelId(long welcomeChannelId) {
         this.welcomeChannelId = welcomeChannelId;
         return this;
-    }
-
-    public String getWelcomeJoinMessage() {
-        return welcomeJoinMessage;
     }
 
     public Configuration setWelcomeJoinMessage(String welcomeJoinMessage) {
@@ -105,26 +91,14 @@ public class Configuration {
         return this;
     }
 
-    public String getWelcomeLeaveMessage() {
-        return welcomeLeaveMessage;
-    }
-
     public Configuration setWelcomeLeaveMessage(String welcomeLeaveMessage) {
         this.welcomeLeaveMessage = welcomeLeaveMessage;
         return this;
     }
     
-    public String getWelcomeImageUrl() {
-        return welcomeImageUrl;
-    }
-    
     public Configuration setWelcomeImageUrl(String welcomeImageUrl) {
         this.welcomeImageUrl = welcomeImageUrl;
         return this;
-    }
-    
-    public long getJoinRoleId() {
-        return joinRoleId;
     }
 
     public Configuration setJoinRoleId(long joinRoleId) {
@@ -132,26 +106,14 @@ public class Configuration {
         return this;
     }
 
-    public long getJoinBotRoleId() {
-        return joinBotRoleId;
-    }
-
     public Configuration setJoinBotRoleId(long joinBotRoleId) {
         this.joinBotRoleId = joinBotRoleId;
         return this;
     }
-
-    public long getVerifiedRoleId() {
-        return verifiedRoleId;
-    }
-
+    
     public Configuration setVerifiedRoleId(long verifiedRoleId) {
         this.verifiedRoleId = verifiedRoleId;
         return this;
-    }
-
-    public boolean isMarkovEnabled() {
-        return markovEnabled;
     }
 
     public Configuration setMarkovEnabled(boolean markovEnabled) {
@@ -159,35 +121,24 @@ public class Configuration {
         return this;
     }
 
-    public String getMarkovBlackList() {
-        return markovBlackList;
-    }
-
     public Configuration setMarkovBlackList(String markovBlackList) {
         this.markovBlackList = markovBlackList;
         return this;
-    }
-
-    public boolean isModerationEnabled() {
-        return moderationEnabled;
     }
 
     public Configuration setModerationEnabled(boolean moderationEnabled) {
         this.moderationEnabled = moderationEnabled;
         return this;
     }
-
-    public boolean isAutoResponseEnabled() {
-        return autoResponseEnabled;
+    
+    public Configuration setRules(String rules) {
+        this.rules = rules;
+        return this;
     }
-
+    
     public Configuration setAutoResponseEnabled(boolean autoResponseEnabled) {
         this.autoResponseEnabled = autoResponseEnabled;
         return this;
-    }
-
-    public boolean isCountingEnabled() {
-        return countingEnabled;
     }
 
     public Configuration setCountingEnabled(boolean countingEnabled) {
@@ -195,26 +146,14 @@ public class Configuration {
         return this;
     }
 
-    public boolean isCountingCommentsEnabled() {
-        return countingCommentsEnabled;
-    }
-
     public Configuration setCountingCommentsEnabled(boolean countingCommentsEnabled) {
         this.countingCommentsEnabled = countingCommentsEnabled;
         return this;
     }
 
-    public boolean isCountingPenaltyEnabled() {
-        return countingPenaltyEnabled;
-    }
-
     public Configuration setCountingPenaltyEnabled(boolean countingPenaltyEnabled) {
         this.countingPenaltyEnabled = countingPenaltyEnabled;
         return this;
-    }
-
-    public long getCountingChannelId() {
-        return countingChannelId;
     }
 
     public Configuration setCountingChannelId(long countingChannelId) {
