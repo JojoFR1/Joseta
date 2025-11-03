@@ -9,10 +9,12 @@
 build/
 bin/
 
-# Other
-logs/
-*.db
+# Script
 *.bat
 *.ps1
 *.sh
+
+# Other
+logs/
+*.db
 *.yaml
