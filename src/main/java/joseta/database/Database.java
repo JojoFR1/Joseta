@@ -11,8 +11,79 @@ import org.reflections.*;
 
 import java.util.*;
 
+/**
+ * Database utility class for managing database connections and operations.
+ * <p>
+ * This class provides methods to initialize the database connection, create sessions,
+ * and perform CRUD operations on entities.
+ */
 public class Database {
     private static SessionFactory sessionFactory;
+    
+    /**
+     * Initializes the database connection and entity manager factory.
+     *
+     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
+     * @param user The database username. Cannot be null or blank.
+     * @param password The database password. Can be null or blank (not recommended).
+     * @param host The database host. Cannot be null or blank.
+     * @param database The database name. Cannot be null or blank.
+     *
+     * @return {@code true} if initialization was successful, {@code false} otherwise.
+     */
+    public static boolean initialize(String entitiesPath, String user, String password, String host, String database) {
+        return initialize(entitiesPath, user, password, host, "5432", database, false);
+    }
+    
+    /**
+     * Initializes the database connection and entity manager factory.
+     *
+     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
+     * @param user The database username. Cannot be null or blank.
+     * @param password The database password. Can be null or blank (not recommended).
+     * @param host The database host. Cannot be null or blank.
+     * @param database The database name. Cannot be null or blank.
+     * @param showSql Whether to show SQL statements in the logs.
+     *
+     * @return {@code true} if initialization was successful, {@code false} otherwise.
+     */
+    public static boolean initialize(String entitiesPath, String user, String password, String host, String database, boolean showSql) {
+        return initialize(entitiesPath, user, password, host, "5432", database, showSql);
+    }
+    
+    /**
+     * Initializes the database connection and entity manager factory.
+     *
+     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
+     * @param user The database username. Cannot be null or blank.
+     * @param password The database password. Can be null or blank (not recommended).
+     * @param host The database host. Cannot be null or blank.
+     * @param port The database port. If null or blank, defaults to 5432.
+     * @param database The database name. Cannot be null or blank.
+     *
+     * @return {@code true} if initialization was successful, {@code false} otherwise.
+     */
+    public static boolean initialize(String entitiesPath, String user, String password, String host, String port, String database) {
+        return initialize(entitiesPath, user, password, host, port, database, false);
+    }
+    
+    /**
+     * Initializes the database connection and entity manager factory.
+     *
+     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
+     * @param user The database username. Cannot be null or blank.
+     * @param password The database password. Can be null or blank (not recommended).
+     * @param host The database host. Cannot be null or blank.
+     * @param port The database port. If null or blank, defaults to 5432.
+     * @param database The database name. Cannot be null or blank.
+     * @param showSql Whether to show SQL statements in the logs.
+     *
+     * @return {@code true} if initialization was successful, {@code false} otherwise.
+     */
+    public static boolean initialize(String entitiesPath, String user, String password, String host, String port, String database, boolean showSql) {
+        String url = host + (port != null && !port.isBlank() ? ":" + port : "5432") + "/" + database;
+        return initialize(entitiesPath, user, password, url, showSql);
+    }
     
     /**
      * Initializes the database connection and entity manager factory.
@@ -91,7 +162,7 @@ public class Database {
      * @throws HibernateException Indicates a problem opening the session; pretty rare here.
      */
     public static Session getSession() {
-        if (sessionFactory == null) throw new IllegalStateException("Database not initialized. Call Database.initialize(...) first.");
+        if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
         return sessionFactory.openSession();
     }
     

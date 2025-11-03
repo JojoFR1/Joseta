@@ -7,13 +7,9 @@ import joseta.database.*;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.*;
 import net.dv8tion.jda.api.requests.*;
 import net.dv8tion.jda.api.utils.*;
 import okhttp3.*;
-import org.hibernate.*;
-import org.hibernate.jpa.*;
-import org.hibernate.tool.schema.*;
 
 import java.util.concurrent.*;
 
@@ -31,22 +27,18 @@ public class JosetaBot {
      * TODO modernize old code to be more clean and similar to the newer code
      */
     public static void main(String[] args) {
-        Dotenv dotenv = Dotenv.load();
-        
         if (args.length > 0) {
             debug = args[0].equals("--debug");
             Log.setLevel(Level.DEBUG);
         }
-        // TODO kinda ugly? maybe small custom Dotenv implementation to auto add the debug suffix?
-        if (!Database.initialize("joseta.database.entities",
-            dotenv.get("DATABASE_USER" + (debug ? "_DEV" : "")), dotenv.get("DATABASE_PASSWORD"+ (debug ? "_DEV" : "")),
-            dotenv.get("DATABASE_HOST"+ (debug ? "_DEV" : "")) + ":" + dotenv.get("DATABASE_PORT"+ (debug ? "_DEV" : "")) + "/" + dotenv.get("DATABASE_NAME"+ (debug ? "_DEV" : ""))))
-        {
+        Dotenv dotenv = new DotenvDebug().load(debug);
+        
+        if (!Database.initialize("joseta.database.entities", dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_NAME"))) {
             Log.err("Database initialization failed. Exiting...");
             System.exit(1);
         }
 
-        JDA bot = JDABuilder.createDefault(dotenv.get("TOKEN" + (debug ? "_DEV" : "")))
+        JDA bot = JDABuilder.createDefault(dotenv.get("TOKEN"))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
             .enableIntents(GatewayIntent.GUILD_MESSAGES,
                            GatewayIntent.GUILD_MEMBERS,
