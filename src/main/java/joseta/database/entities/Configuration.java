@@ -6,31 +6,31 @@ import java.lang.reflect.*;
 
 @Entity @Table(name = "configurations")
 public class Configuration {
-    @Id long guildId;
+    @Id public long guildId;
 
-    @Column boolean welcomeEnabled = false;
-    @Column long welcomeChannelId = 0L;
-    @Column boolean welcomeImageEnabled = false;
-    @Column String welcomeJoinMessage = "Bienvenue {{user}} !";
-    @Column String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
-    @Column String welcomeImageUrl = "";
-    @Column long joinRoleId = 0L;
-    @Column long joinBotRoleId = 0L;
-    @Column long verifiedRoleId = 0L;
+    @Column public boolean welcomeEnabled = false;
+    @Column public long welcomeChannelId = 0L;
+    @Column public boolean welcomeImageEnabled = false;
+    @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
+    @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
+    @Column public String welcomeImageUrl = ""; // Could switch to file upload using modal
+    @Column public long joinRoleId = 0L;
+    @Column public long joinBotRoleId = 0L;
+    @Column public long verifiedRoleId = 0L;
     
-    @Column boolean markovEnabled = false;
-    @Column String markovBlackList = "";
+    @Column public boolean markovEnabled = false;
+    @Column public String markovBlackList = "";
     
-    @Column boolean moderationEnabled = true;
+    @Column public boolean moderationEnabled = true;
     
-    @Column String rules = "";
+    @Column public String rules = "";
 
-    @Column boolean autoResponseEnabled = false;
+    @Column public boolean autoResponseEnabled = false;
 
-    @Column boolean countingEnabled = false;
-    @Column boolean countingCommentsEnabled = false;
-    @Column boolean countingPenaltyEnabled = false;
-    @Column long countingChannelId = 0L;
+    @Column public boolean countingEnabled = false;
+    @Column public boolean countingCommentsEnabled = false;
+    @Column public boolean countingPenaltyEnabled = false;
+    @Column public long countingChannelId = 0L;
     
     // A non-private and no-arg constructor is required by JPA
     protected Configuration() {}
@@ -61,10 +61,7 @@ public class Configuration {
         this.countingPenaltyEnabled = other.countingPenaltyEnabled;
         this.countingChannelId = other.countingChannelId;
     }
-
-    public long getGuildId() {
-        return guildId;
-    }
+    
 
     public Configuration setGuildId(long guildId) {
         this.guildId = guildId;

@@ -6,24 +6,26 @@ import java.time.*;
 
 @Entity @Table(name = "users")
 public class User {
-    @Id long id;
-    @Id long guildId;
-
-    @Column String username;
-    @Column String avatarUrl;
-    @Column Instant creationTime;
+    @Id public long id;
+    @Id public long guildId;
+    
+    @Column public String username;
+    @Column public String avatarUrl;
+    @Column public Instant creationTime;
     
     // A non-private and no-arg constructor is required by JPA
     protected User() {}
-
+    
     public User(long id, long guildId, String username, String avatarUrl, Instant creationTime) {
         this.id = id;
+        
         this.guildId = guildId;
         this.username = username;
         this.avatarUrl = avatarUrl;
         this.creationTime = creationTime;
     }
-
+    
+    
     public User setId(long id) {
         this.id = id;
         return this;

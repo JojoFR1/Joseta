@@ -4,11 +4,13 @@ import jakarta.persistence.*;
 
 @Entity @Table(name = "guilds")
 public class Guild {
-    @Id long id;
+    @Id public long id;
 
-    @Column String name;
-    @Column String iconUrl;
-    @Column long ownerId;
+    @Column public String name;
+    @Column public String iconUrl;
+    @Column public long ownerId;
+    
+    @Column public int lastSanctionId = -1;
 
     // A non-private and no-arg constructor is required by JPA
     protected Guild() {}
@@ -17,6 +19,7 @@ public class Guild {
         this.id = id;
         this.name = name;
     }
+    
 
     public Guild setName(String name) {
         this.name = name;
