@@ -13,7 +13,7 @@ sourceSets.main.resources.srcDirs = ['src/main/resources']
 repositories { mavenCentral() }
 
 dependencies {
-    implementation('net.dv8tion:JDA:6.1.0') {
+    implementation('net.dv8tion:JDA:6.1.1') {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
