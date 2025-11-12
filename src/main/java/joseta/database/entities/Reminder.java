@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
+
 @Entity @Table(name = "reminders")
 public class Reminder {
     @Id public long id;
@@ -13,7 +15,7 @@ public class Reminder {
     @Column public long channelId;
     @Column public long userId;
     @Column public String message;
-    @Column public long time;
+    @Column public Instant time;
     
     // A non-private and no-arg constructor is required by JPA
     protected Reminder() {}
@@ -25,27 +27,12 @@ public class Reminder {
         this.channelId = channelId;
         this.userId = userId;
         this.message = message;
-        this.time = time;
+        this.time = Instant.now().plusSeconds(time);
     }
     
     
-    public Reminder setTime(long time) {
-        this.time = time;
-        return this;
-    }
-    
-    public Reminder setMessage(String message) {
-        this.message = message;
-        return this;
-    }
-    
-    public Reminder setUserId(long userId) {
-        this.userId = userId;
-        return this;
-    }
-    
-    public Reminder setChannelId(long channelId) {
-        this.channelId = channelId;
+    public Reminder setId(long id) {
+        this.id = id;
         return this;
     }
     
@@ -54,8 +41,23 @@ public class Reminder {
         return this;
     }
     
-    public Reminder setId(long id) {
-        this.id = id;
+    public Reminder setChannelId(long channelId) {
+        this.channelId = channelId;
+        return this;
+    }
+    
+    public Reminder setUserId(long userId) {
+        this.userId = userId;
+        return this;
+    }
+    
+    public Reminder setMessage(String message) {
+        this.message = message;
+        return this;
+    }
+    
+    public Reminder setTime(Instant time) {
+        this.time = time;
         return this;
     }
 }

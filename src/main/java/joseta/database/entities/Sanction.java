@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
+
 @Entity @Table(name = "sanctions")
 public class Sanction {
     @Id public long guildId;
@@ -13,8 +15,8 @@ public class Sanction {
     @Column public long userId;
     @Column public long moderatorId;
     @Column public String reason;
-    @Column public long timestamp;
-    @Column public long expiryTime;
+    @Column public Instant timestamp;
+    @Column public Instant expiryTime;
     @Column public boolean isExpired = false;
     
     // A non-private and no-arg constructor is required by JPA
@@ -27,8 +29,8 @@ public class Sanction {
         this.userId = userId;
         this.moderatorId = moderatorId;
         this.reason = reason;
-        this.timestamp = System.currentTimeMillis();
-        this.expiryTime = timestamp + expiryTime * 1000;
+        this.timestamp = Instant.now();
+        this.expiryTime = timestamp.plusSeconds(expiryTime);
     }
     
     public enum SanctionType {
@@ -42,7 +44,6 @@ public class Sanction {
             this.code = code;
         }
     }
-    
     
     
     public Sanction setGuildId(long guildId) {
@@ -70,12 +71,12 @@ public class Sanction {
         return this;
     }
     
-    public Sanction setTimestamp(long timestamp) {
+    public Sanction setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
         return this;
     }
     
-    public Sanction setExpiryTime(long expiryTime) {
+    public Sanction setExpiryTime(Instant expiryTime) {
         this.expiryTime = expiryTime;
         return this;
     }
