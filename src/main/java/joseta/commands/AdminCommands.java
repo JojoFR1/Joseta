@@ -24,7 +24,7 @@ public class AdminCommands {
         event.reply("Rules updated. " + role).queue();
     }
 
-    @SlashCommandInteraction(name = "rules send admin")
+    @SlashCommandInteraction(name = "rules send admin", permission = Permission.MANAGE_SERVER)
     public void rulesSendAdmin(SlashCommandInteractionEvent event, @Option(required = true) String test) {
         event.reply("Admin rules sent." + test)
             .addComponents(ActionRow.of(

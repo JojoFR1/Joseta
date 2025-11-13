@@ -52,10 +52,8 @@ public class InteractionProcessor {
 
         List<CommandData> commands = new ArrayList<>();
 
-        //TODO Hello future me, sorry for not handling Permission yet, too lazy to do it now
         for (Class<?> commandClass : classes) {
             try { for (Method method : commandClass.getMethods()) {
-                // TODO context commands
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
                 if (commandInteraction != null) {
                     processCommand(commandInteraction, commandClass, method, commands);
@@ -66,9 +64,17 @@ public class InteractionProcessor {
                 if (contextInteraction != null) {
                     String name = contextInteraction.name();
                     if (name.isEmpty()) name = method.getName().toLowerCase();
+
                     net.dv8tion.jda.api.interactions.commands.Command.Type type = contextInteraction.type();
                     method.setAccessible(true);
-                    commands.add(Commands.context(type, name));
+
+                    CommandData commandData = Commands.context(type, name);
+
+                    Permission permission = contextInteraction.permission();
+                    if (permission != Permission.UNKNOWN)
+                        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permission));
+
+                    commands.add(commandData);
                     interactionMethods.put(name, new Interaction(commandClass, method, name));
                     continue;
                 }
@@ -112,7 +118,7 @@ public class InteractionProcessor {
             baseCommandName = method.getName().split("(?=\\p{Upper})");
             for (int i = 0; i < baseCommandName.length; i++) baseCommandName[i] = baseCommandName[i].toLowerCase();
         }
-
+        
         String commandName = baseCommandName[0];
         String subcommandName;
         String subcommandGroupName;

@@ -31,6 +31,9 @@ public @interface SlashCommandInteraction {
     String name() default "";
     /** The command description, 1-100 characters - Default: "No description."*/
     String description() default "No description.";
-    /** The required permission to use the command (enable for this permission) - Default: {@link Permission#UNKNOWN UNKNOWN} (no permission required) */
+    /** The required permission to use the command (enable for this permission) - Default: {@link Permission#UNKNOWN UNKNOWN} (no permission required)
+     * <p>
+     *  Applied to the base command. If subcommands specify their own permission, it will override the previous one.
+     */
     Permission permission() default Permission.UNKNOWN;
 }
