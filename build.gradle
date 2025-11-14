@@ -1,3 +1,8 @@
+buildscript {
+    repositories { mavenCentral() }
+    dependencies { classpath 'org.reflections:reflections:0.10.2' }
+}
+
 plugins {
     id 'java'
     id 'application'
@@ -9,6 +14,9 @@ version = '2.0.0'
 
 sourceSets.main.java.srcDirs = ['src/main/java']
 sourceSets.main.resources.srcDirs = ['src/main/resources']
+
+def generatedSourcesDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
+sourceSets.main.java.srcDir generatedSourcesDir
 
 repositories { mavenCentral() }
 
@@ -33,12 +41,82 @@ dependencies {
     runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.2.Final'
 }
 
+
+tasks.register('generateJdaEventEnum') {
+    description = 'Generates the JDA Event Enum source file.'
+    group = 'code generation'
+
+    outputs.dir(generatedSourcesDir)
+
+    doLast {
+        def classpathFiles = sourceSets.main.compileClasspath.files
+        def urls = classpathFiles.collect { it.toURI().toURL() }.toArray(new URL[0])
+        def classLoader = new URLClassLoader(urls, null)
+
+        def jdaPackage = 'net.dv8tion.jda.api.events'
+
+        def reflections = new org.reflections.Reflections(new org.reflections.util.ConfigurationBuilder()
+                .setUrls(urls)
+                .addClassLoaders(classLoader)
+                .setScanners(org.reflections.scanners.Scanners.SubTypes)
+                .filterInputsBy(new org.reflections.util.FilterBuilder().includePackage(jdaPackage))
+        )
+
+        def genericEventClass = Class.forName("${jdaPackage}.GenericEvent", true, classLoader)
+
+        def eventClasses = reflections.getSubTypesOf(genericEventClass).stream()
+            .filter { cls -> !java.lang.reflect.Modifier.isAbstract(cls.getModifiers()) }
+            .sorted(Comparator.comparing(Class::getSimpleName))
+            .collect(java.util.stream.Collectors.toSet())
+
+        if (eventClasses.isEmpty()) {
+            throw new GradleException('No JDA event classes found. Ensure that JDA is correctly included in the classpath.')
+        }
+
+        logger.lifecycle("Found ${eventClasses.size()} JDA event classes.")
+
+        def packageName = 'joseta.generated'
+        def enumName = 'EventType'
+        def outputFile = new File(generatedSourcesDir.get().asFile, "${packageName.replace('.', '/')}/${enumName}.java")
+        outputFile.parentFile.mkdirs()
+
+        def sourceCode = new StringBuilder()
+        sourceCode.append("package ${packageName};\n\n")
+        sourceCode.append("public enum ${enumName} {\n")
+
+        def enumValues = eventClasses.collect { cls ->
+            def enumConstantName = cls.getSimpleName()
+                .replaceAll("([a-z])([A-Z])", '$1_$2')
+                .toUpperCase()
+                .replace('EVENT', '')
+                .replaceAll('_$', '')
+
+            "    ${enumConstantName}(${cls.getName()}.class)"
+        }.join(",\n")
+        sourceCode.append(enumValues)
+        sourceCode.append(";\n\n")
+
+        sourceCode.append("    private final Class<? extends ${jdaPackage}.GenericEvent> eventClass;\n\n")
+        sourceCode.append("    ${enumName}(Class<? extends ${jdaPackage}.GenericEvent> eventClass) {\n")
+        sourceCode.append("        this.eventClass = eventClass;\n")
+        sourceCode.append("    }\n\n")
+        sourceCode.append("}")
+
+        outputFile.write(sourceCode.toString())
+        logger.lifecycle("Generated ${outputFile.absolutePath}")
+    }
+}
+
+tasks.named('compileJava') { dependsOn tasks.named('generateJdaEventEnum') }
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.incremental = true
 
     sourceCompatibility = JavaVersion.VERSION_17
     options.compilerArgs << '-parameters'
+
+    options.getGeneratedSourceOutputDirectory().set(file(generatedSourcesDir))
 }
 
 shadowJar {

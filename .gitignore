@@ -18,3 +18,4 @@ bin/
 logs/
 *.db
 *.yaml
+src/processor
