@@ -41,7 +41,7 @@ dependencies {
     runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.2.Final'
 }
 
-
+// TODO hello future me, if you're bored you can add the Javadoc to the generated enum if you didn't suffer enough with this shit :)
 tasks.register('generateJdaEventEnum') {
     description = 'Generates the JDA Event Enum source file.'
     group = 'code generation'
@@ -92,6 +92,7 @@ tasks.register('generateJdaEventEnum') {
                 .replaceAll('_$', '')
 
             "    ${enumConstantName}(${cls.getName()}.class)"
+
         }.join(",\n")
         sourceCode.append(enumValues)
         sourceCode.append(";\n\n")
@@ -100,6 +101,9 @@ tasks.register('generateJdaEventEnum') {
         sourceCode.append("    ${enumName}(Class<? extends ${jdaPackage}.GenericEvent> eventClass) {\n")
         sourceCode.append("        this.eventClass = eventClass;\n")
         sourceCode.append("    }\n\n")
+        sourceCode.append("    public Class<? extends ${jdaPackage}.GenericEvent> getEventClass() {\n")
+        sourceCode.append("        return eventClass;\n")
+        sourceCode.append("    }\n")
         sourceCode.append("}")
 
         outputFile.write(sourceCode.toString())
