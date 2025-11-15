@@ -4,12 +4,11 @@ import joseta.annotations.interactions.Event;
 import joseta.generated.EventType;
 import joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.GatewayPingEvent;
-import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.StatusChangeEvent;
-import net.dv8tion.jda.api.events.http.HttpRequestEvent;
+import net.dv8tion.jda.api.events.*;
+import net.dv8tion.jda.api.events.guild.*;
+import net.dv8tion.jda.api.events.http.*;
+import net.dv8tion.jda.api.events.session.*;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jetbrains.annotations.NotNull;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -41,9 +40,14 @@ public class EventProcessor {
     
     private static class EventListener extends ListenerAdapter {
         private static final List<Class<? extends GenericEvent>> blacklist = List.of(
-            GatewayPingEvent.class,
+            StatusChangeEvent.class,
             HttpRequestEvent.class,
-            StatusChangeEvent.class
+            GatewayPingEvent.class,
+            GuildReadyEvent.class,
+            ReadyEvent.class,
+            ShutdownEvent.class,
+            SessionDisconnectEvent.class,
+            SessionResumeEvent.class
         );
         
         @Override
