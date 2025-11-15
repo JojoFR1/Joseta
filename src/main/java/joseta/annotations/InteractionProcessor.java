@@ -228,7 +228,7 @@ public class InteractionProcessor {
     }
 
     private static class InteractionListener extends ListenerAdapter {
-
+        
         @Override
         public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
             String commandName = event.getName();
