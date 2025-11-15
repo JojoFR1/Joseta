@@ -55,6 +55,7 @@ public class JosetaBot {
         }
 
         InteractionProcessor.initialize(bot, "joseta.commands");
+        EventProcessor.initialize(bot, "joseta.events");
     }
 
     private static void registerShutdown(JDA bot) {
