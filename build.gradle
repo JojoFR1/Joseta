@@ -41,7 +41,13 @@ dependencies {
     runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.2.Final'
 }
 
-// TODO hello future me, if you're bored you can add the Javadoc to the generated enum if you didn't suffer enough with this shit :)
+// TODO read to understand cause wtf is all this, i just copied, guessed, ai generated some parts and mixed it all... definitely need to review later
+// TODO fix gradle deprecation warnings about Task.project with 10.0.0
+// TODO there's definitely things to improve
+// TODO add comments, its barely readable
+// TODO make it more readable
+// TODO separate in a different gradle file?
+// TODO fix GitHub CI build that just doesn't want to work for some reason
 tasks.register('generateJdaEventEnum') {
     description = 'Generates the JDA Event Enum source file.'
     group = 'code generation'
@@ -49,6 +55,23 @@ tasks.register('generateJdaEventEnum') {
     outputs.dir(generatedSourcesDir)
 
     doLast {
+        def jdaSourcesConfig = configurations.detachedConfiguration(dependencies.create("net.dv8tion:JDA:${project.configurations.implementation.dependencies.find { it.name == 'JDA'}.version }:sources")).setTransitive(false)
+
+        def jdaSourcesJar = jdaSourcesConfig.resolve().first()
+        if (jdaSourcesJar == null) throw new GradleException("Could not find JDA sources JAR. Javadoc generation failed.")
+
+        def sourcesDir = new File(temporaryDir, "jda-sources")
+        if (sourcesDir.exists())
+            sourcesDir.deleteDir()
+
+        sourcesDir.mkdir()
+        project.copy {
+            from project.zipTree(jdaSourcesJar)
+            into sourcesDir
+        }
+        logger.lifecycle("Extracted JDA sources to ${sourcesDir.absolutePath}")
+
+
         def classpathFiles = sourceSets.main.compileClasspath.files
         def urls = classpathFiles.collect { it.toURI().toURL() }.toArray(new URL[0])
         def classLoader = new URLClassLoader(urls, null)
@@ -59,7 +82,7 @@ tasks.register('generateJdaEventEnum') {
                 .setUrls(urls)
                 .addClassLoaders(classLoader)
                 .setScanners(org.reflections.scanners.Scanners.SubTypes)
-                .filterInputsBy(new org.reflections.util.FilterBuilder().includePackage(jdaPackage))
+                .filterInputsBy(new org.reflections.util.FilterBuilder().includePackage("net.dv8tion.jda"))
         )
 
         def genericEventClass = Class.forName("${jdaPackage}.GenericEvent", true, classLoader)
@@ -69,9 +92,14 @@ tasks.register('generateJdaEventEnum') {
             .sorted(Comparator.comparing(Class::getSimpleName))
             .collect(java.util.stream.Collectors.toSet())
 
-        if (eventClasses.isEmpty()) {
-            throw new GradleException('No JDA event classes found. Ensure that JDA is correctly included in the classpath.')
+        def simpleToFqnMap = new HashMap<String, String>()
+        reflections.getAll(org.reflections.scanners.Scanners.SubTypes).each { fqn ->
+            def simpleName = fqn.substring(fqn.lastIndexOf('.') + 1).replace('$', '.')
+            if (!simpleToFqnMap.containsKey(simpleName))
+                simpleToFqnMap.put(simpleName, fqn.replace('$', '.'))
         }
+
+        if (eventClasses.isEmpty()) throw new GradleException('No JDA event classes found. Ensure that JDA is correctly included in the classpath.')
 
         logger.lifecycle("Found ${eventClasses.size()} JDA event classes.")
 
@@ -82,6 +110,11 @@ tasks.register('generateJdaEventEnum') {
 
         def sourceCode = new StringBuilder()
         sourceCode.append("package ${packageName};\n\n")
+        sourceCode.append("/**\n")
+        sourceCode.append(" * Enum representing different types of JDA events. Each enum constant is associated with a specific JDA event class.\n")
+        sourceCode.append(" * <p>\n")
+        sourceCode.append(" * Automatically generated - do not modify.\n")
+        sourceCode.append(" */\n")
         sourceCode.append("public enum ${enumName} {\n")
 
         def enumValues = eventClasses.collect { cls ->
@@ -91,8 +124,78 @@ tasks.register('generateJdaEventEnum') {
                 .replace('EVENT', '')
                 .replaceAll('_$', '')
 
-            "    ${enumConstantName}(${cls.getName()}.class)"
+            def sourceFile = new File(sourcesDir, "${cls.getName().replace('.', '/')}.java")
+            def javadoc = ""
+            if (sourceFile.exists()) {
+                def content = sourceFile.text
+                def pattern = java.util.regex.Pattern.compile(
+                        "\\/\\*\\*(.*?)\\*\\/\\s*([\\s\\S]*?)(?:public|final|abstract|protected|private|static|@|\\s)*class\\s+" + cls.getSimpleName(),
+                        java.util.regex.Pattern.DOTALL
+                )
+                def matcher = pattern.matcher(content)
+                if (matcher.find()) {
+                    List<String> javadocLines = matcher.group(1).readLines()
+                        .collect { it.trim().replaceAll("^\\* ?", "") }
 
+                    if (javadocLines.first().isEmpty()) javadocLines.remove(0)
+                    if (javadocLines.last().isEmpty()) javadocLines.remove(javadocLines.size() - 1)
+
+                    javadoc = javadocLines.collect { line ->
+                       def processedLines = line.replaceAll(/\{@link\s+([^\s}]+)(?:\s+([^}]+))?\}/) { fullMatch, target, label ->
+                           def newLabel = (label ?: "").trim()
+                           def newTarget = target
+
+                           if (target.startsWith("#")) {
+                               newTarget = cls.getName() + target
+                               if (newLabel.isEmpty()) newLabel = target
+                           } else {
+                               def parts = target.split("#", 2)
+                               def className = parts[0]
+                               def memberPart = parts.length > 1 ? "#" + parts[1] : ""
+
+                               if (simpleToFqnMap.containsKey(className) && !className.contains('.')) {
+                                   newTarget = simpleToFqnMap[className] + memberPart
+                                   if (newLabel.isEmpty()) newLabel = className + memberPart
+                               }
+                           }
+
+                           if (newLabel.isEmpty()) return "{@link ${newTarget}}"
+                           return "{@link ${newTarget} ${newLabel}}"
+                       }
+
+                        processedLines = processedLines.replaceAll(/@see\s+([^\s<]+)/) { fullMatch, target ->
+                            def newLabel = ""
+                            def newTarget = target
+
+                            if (target.startsWith("#")) {
+                                newTarget = cls.getName() + target
+                                newLabel = target
+                            } else {
+                                def parts = target.split("#", 2)
+                                def className = parts[0]
+                                def memberPart = parts.length > 1 ? "#" + parts[1] : ""
+
+                                if (simpleToFqnMap.containsKey(className) && !className.contains('.')) {
+                                    newTarget = simpleToFqnMap[className] + memberPart
+                                    newLabel = className + memberPart
+                                }
+                            }
+
+                            return "@see ${newTarget} ${newLabel}"
+                        }
+
+                        return "    * " + processedLines
+                    }.join("\n")
+                }
+            }
+
+            def entry = new StringBuilder()
+            if (!javadoc.isEmpty()) {
+                entry.append("    /**\n")
+                entry.append(javadoc).append("\n")
+                entry.append("     */\n")
+            }
+            entry.append("    ${enumConstantName}(${cls.getName()}.class)")
         }.join(",\n")
         sourceCode.append(enumValues)
         sourceCode.append(";\n\n")
