@@ -42,22 +42,29 @@ dependencies {
 }
 
 // TODO read to understand cause wtf is all this, i just copied, guessed, ai generated some parts and mixed it all... definitely need to review later
-// TODO fix gradle deprecation warnings about Task.project with 10.0.0
 // TODO there's definitely things to improve
 // TODO add comments, its barely readable
 // TODO make it more readable
 // TODO separate in a different gradle file?
-// TODO fix GitHub CI build that just doesn't want to work for some reason
+interface Injected {
+    @javax.inject.Inject FileSystemOperations getFs()
+    @javax.inject.Inject ArchiveOperations getAop()
+}
+
 tasks.register('generateJdaEventEnum') {
     description = 'Generates the JDA Event Enum source file.'
     group = 'code generation'
 
     outputs.dir(generatedSourcesDir)
 
-    doLast {
-        def jdaSourcesConfig = configurations.detachedConfiguration(dependencies.create("net.dv8tion:JDA:${project.configurations.implementation.dependencies.find { it.name == 'JDA'}.version }:sources")).setTransitive(false)
+    def jdaSourcesConfig = configurations.detachedConfiguration(dependencies.create("net.dv8tion:JDA:${project.configurations.implementation.dependencies.find { it.name == 'JDA'}.version }:sources")).setTransitive(false).resolve()
 
-        def jdaSourcesJar = jdaSourcesConfig.resolve().first()
+    def injected = project.objects.newInstance(Injected)
+
+    def classPath = sourceSets.main.compileClasspath
+
+    doLast {
+        def jdaSourcesJar = jdaSourcesConfig.first()
         if (jdaSourcesJar == null) throw new GradleException("Could not find JDA sources JAR. Javadoc generation failed.")
 
         def sourcesDir = new File(temporaryDir, "jda-sources")
@@ -65,14 +72,14 @@ tasks.register('generateJdaEventEnum') {
             sourcesDir.deleteDir()
 
         sourcesDir.mkdir()
-        project.copy {
-            from project.zipTree(jdaSourcesJar)
+        injected.fs.copy {
+            from injected.aop.zipTree(jdaSourcesJar)
             into sourcesDir
         }
         logger.lifecycle("Extracted JDA sources to ${sourcesDir.absolutePath}")
 
 
-        def classpathFiles = sourceSets.main.compileClasspath.files
+        def classpathFiles = classPath.files
         def urls = classpathFiles.collect { it.toURI().toURL() }.toArray(new URL[0])
         def classLoader = new URLClassLoader(urls, null)
 
