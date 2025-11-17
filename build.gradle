@@ -81,7 +81,7 @@ tasks.register('generateJdaEventEnum') {
 
         def classpathFiles = classPath.files
         def urls = classpathFiles.collect { it.toURI().toURL() }.toArray(new URL[0])
-        def classLoader = new URLClassLoader(urls, null)
+        def classLoader = new URLClassLoader(urls)
 
         def jdaPackage = 'net.dv8tion.jda.api.events'
 
