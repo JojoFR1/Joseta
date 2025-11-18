@@ -16,11 +16,12 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v5
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/rewrite' }}
+        cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
     - name: Build Bot Jar
-      run: |
-        chmod +x ./gradlew
-        ./gradlew shadowJar
+      run: ./gradlew shadowJar --configuration-cache
         
     - name: Upload built jar file
       uses: actions/upload-artifact@v5
