@@ -25,6 +25,10 @@ public @interface Event {
      * <p>
      * For example, if the event type is {@link joseta.generated.EventType#MESSAGE_RECEIVED EventType.MESSAGE_RECEIVED},
      * the method parameter must be of type {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent} and not {@link joseta.generated.EventType EventType}.
+     * <p>
+     * Be careful with some event that the bot response may trigger itself, for example a {@link joseta.generated.EventType#MESSAGE_RECEIVED EventType.MESSAGE_RECEIVED}
+     * with the bot sending a message in response will trigger the event again, causing an infinite loop (or until rate limit is hit).
+     * An easy way to avoid this (in this example) is to check if the author of the message is a bot and ignore it.
      */
     EventType type();
 }
