@@ -53,7 +53,7 @@ public class InteractionProcessor {
         List<CommandData> commands = new ArrayList<>();
 
         for (Class<?> commandClass : classes) {
-            try { for (Method method : commandClass.getMethods()) {
+            for (Method method : commandClass.getMethods()) { try {
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
                 if (commandInteraction != null) {
                     processCommand(commandInteraction, commandClass, method, commands);
@@ -104,7 +104,7 @@ public class InteractionProcessor {
                     method.setAccessible(true);
                     interactionMethods.put(id, new Interaction(commandClass, method, id));
                 }
-            }} catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }
+            } catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }}
         }
 
         bot.updateCommands().addCommands(commands).queue();

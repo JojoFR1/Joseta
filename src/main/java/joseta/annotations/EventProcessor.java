@@ -39,7 +39,7 @@ public class EventProcessor {
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(EventModule.class);
         
         for (Class<?> eventClass : classes) {
-            try { for (Method method : eventClass.getMethods()) {
+            for (Method method : eventClass.getMethods()) { try {
                 joseta.annotations.types.Event eventAnnotation = method.getAnnotation(joseta.annotations.types.Event.class);
                 if (eventAnnotation == null) continue;
                 
@@ -48,6 +48,7 @@ public class EventProcessor {
                 eventMethods.put(eventType.getEventClass(), new joseta.annotations.interactions.Event(eventClass, method));
                 
             }} catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }
+            } catch (Exception e) { Log.warn("An error occurred while registering an event. Skipping.", e); }}
         }
         
         
