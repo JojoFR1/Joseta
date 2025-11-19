@@ -24,7 +24,7 @@ import java.util.*;
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
 public class EventProcessor {
-    private static final Map<Class<? extends GenericEvent>, Event> eventMethods = new HashMap<>();
+    private static final Map<Class<? extends GenericEvent>, List<Event>> eventMethods = new HashMap<>();
     
     /**
      * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
@@ -45,9 +45,13 @@ public class EventProcessor {
                 
                 EventType eventType = eventAnnotation.type();
                 method.setAccessible(true);
-                eventMethods.put(eventType.getEventClass(), new joseta.annotations.interactions.Event(eventClass, method));
                 
-            }} catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }
+                Event event = new Event(eventClass, method);
+                if (eventMethods.get(eventType.getEventClass()) == null)
+                    eventMethods.put(eventType.getEventClass(), new ArrayList<>(List.of(event)));
+                else
+                    eventMethods.get(eventType.getEventClass()).add(event);
+                
             } catch (Exception e) { Log.warn("An error occurred while registering an event. Skipping.", e); }}
         }
         
@@ -71,19 +75,18 @@ public class EventProcessor {
         public void onGenericEvent(GenericEvent event) {
             if (blacklist.contains(event.getClass())) return;
             
-            Event eventAnnotation = eventMethods.get(event.getClass());
+            List<Event> eventAnnotations = eventMethods.get(event.getClass());
             
-            if (eventAnnotation == null) {
-                Log.warn("No event handler found for event of type: {}", event.getClass().getName());
-                return;
-            }
+            if (eventAnnotations == null) return;
             
-            try {
-                Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
-                
-                eventAnnotation.getMethod().invoke(o, event);
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.warn("An error occurred while processing an event. {}", e);
+            for (Event eventAnnotation : eventAnnotations) {
+                try {
+                    Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
+                    
+                    eventAnnotation.getMethod().invoke(o, event);
+                } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+                    Log.warn("An error occurred while processing an event. {}", e);
+                }
             }
         }
     }
