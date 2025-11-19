@@ -2,6 +2,9 @@ package joseta.annotations.interactions;
 
 import java.lang.reflect.Method;
 
+/**
+ * Represents an event with its associated class and method.
+ */
 public class Event {
     private final Class<?> clazz;
     private final Method method;

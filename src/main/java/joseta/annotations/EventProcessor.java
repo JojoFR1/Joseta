@@ -15,9 +15,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+/**
+ * Processor for scanning, registering events and handling them.
+ * <p>
+ * It scans the specified package for classes annotated with {@link EventModule} and registers their methods
+ * annotated with {@link Event} as events with the JDA bot instance.
+ * <p>
+ * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
+ */
 public class EventProcessor {
     private static final Map<Class<? extends GenericEvent>, Event> eventMethods = new HashMap<>();
     
+    /**
+     * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
+     * registering their events  and setting up event listeners with the provided JDA bot instance.
+     *
+     * @param bot         The JDA bot instance to register events with.
+     * @param packageName The package name to scan for event modules.
+     *                    It should contain classes annotated with {@link EventModule}.
+     */
     public static void initialize(JDA bot, String packageName) {
         Reflections reflections = new Reflections(packageName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(EventModule.class);

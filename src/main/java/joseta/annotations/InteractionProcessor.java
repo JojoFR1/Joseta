@@ -39,12 +39,12 @@ public class InteractionProcessor {
         DiscordLocale.ENGLISH_US, DiscordLocale.ENGLISH_UK, DiscordLocale.FRENCH).build();
 
     /**
-     * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule InteractionModule},
-     * registering their commands with the provided JDA bot instance, and setting up event listeners.
+     * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
+     * registering their commands and setting up event listeners with the provided JDA bot instance.
      *
      * @param bot         The JDA bot instance to register commands with.
      * @param packageName The package name to scan for interaction modules.
-     *                    It should contain classes annotated with {@link InteractionModule InteractionModule}.
+     *                    It should contain classes annotated with {@link InteractionModule}.
      */
     public static void initialize(JDA bot, String packageName) {
         Reflections reflections = new Reflections(packageName);

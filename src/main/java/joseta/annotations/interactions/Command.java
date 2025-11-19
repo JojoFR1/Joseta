@@ -3,6 +3,9 @@ package joseta.annotations.interactions;
 import java.lang.reflect.*;
 import java.util.*;
 
+/**
+ * Represents a command interaction with its associated class, method, name and parameters.
+ */
 public class Command extends Interaction {
     private final List<Parameter> parameters = new ArrayList<>();
 

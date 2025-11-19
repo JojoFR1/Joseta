@@ -2,6 +2,9 @@ package joseta.annotations.interactions;
 
 import java.lang.reflect.*;
 
+/**
+ * Represents an interaction (commands, button, ...) with its associated class, method and name.
+ */
 public class Interaction extends Event {
     private final String name;
 
