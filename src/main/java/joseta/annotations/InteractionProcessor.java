@@ -178,8 +178,8 @@ public class InteractionProcessor {
         }
         else addParameters(method.getParameters(), command, commandData);
 
-        Permission permission = commandAnnotation.permission();
-        if (permission != Permission.UNKNOWN)
+        Permission[] permission = commandAnnotation.permissions();
+        if (permission.length > 0 && permission[0] != Permission.UNKNOWN)
             commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permission));
 
         if (!commandExists) commands.add(commandData);

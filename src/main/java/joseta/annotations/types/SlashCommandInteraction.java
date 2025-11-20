@@ -33,5 +33,5 @@ public @interface SlashCommandInteraction {
      * <p>
      *  Applied to the base command. If subcommands specify their own permission, it will override the previous one.
      */
-    net.dv8tion.jda.api.Permission permission() default net.dv8tion.jda.api.Permission.UNKNOWN;
+    net.dv8tion.jda.api.Permission[] permissions() default net.dv8tion.jda.api.Permission.UNKNOWN;
 }
