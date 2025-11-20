@@ -2,33 +2,44 @@ package joseta.commands;
 
 import joseta.annotations.*;
 import joseta.annotations.types.*;
-import joseta.generated.EventType;
-import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-@InteractionModule @EventModule
+@InteractionModule
 public class MiscCommands {
-
-    @SlashCommandInteraction(description = "Check the bot's responsiveness")
+    // TODO Logic implementation
+    @SlashCommandInteraction(name = "ping", description = "Obtenez le ping du bot.")
     public void ping(SlashCommandInteractionEvent event) {
-        event.reply("Poong! "+ event.getJDA().getGatewayPing() +"ms " + event.getName()).queue();
-    }
-
-    @SlashCommandInteraction(description = "Responds with ping")
-    public void pong(SlashCommandInteractionEvent event, @Option User user) {
-        if (user == null) {
-            event.reply("l4p1n was here").queue();
-            return;
-        }
-
-        event.reply("Piiiiiing! "+ event.getJDA().getGatewayPing() +"ms " + event.getName() + "hey " + user.getAsMention()).queue();
+        long startTime = System.currentTimeMillis();
+        long gatewayPing = event.getJDA().getGatewayPing();
+        
+        event.reply("Pinging...").queue(reply ->
+            reply.editOriginal("Pong! Latency: "+ (System.currentTimeMillis() - startTime) +"ms | API Latency: "+ gatewayPing +"ms").queue()
+        );
     }
     
-    @Event(type = EventType.MESSAGE_RECEIVED)
-    public void test(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
-        
-        event.getChannel().sendMessage("Hello " + event.getAuthor().getAsMention() + "!").queue();
+    @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
+    public void markov(SlashCommandInteractionEvent event) {
+    
     }
+    
+    
+    @SlashCommandInteraction(name = "multi", description = "Envoie le texte d'aide pour le multijoueur.")
+    public void multiInfo(SlashCommandInteractionEvent event) {
+    
+    }
+    
+    //#region Reminder Commands
+    @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
+    public void reminderAdd(SlashCommandInteractionEvent event,
+                            @Option(description = "Le message du rappel.", required = true) String message,
+                            @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time)
+    {
+        
+    }
+    
+    @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
+    public void reminderList(SlashCommandInteractionEvent event) {
+    
+    }
+    //#endregion
 }

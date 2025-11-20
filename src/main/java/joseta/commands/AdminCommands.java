@@ -5,11 +5,11 @@ import joseta.annotations.types.*;
 import joseta.annotations.types.SlashCommandInteraction;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.components.actionrow.*;
-import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.label.*;
 import net.dv8tion.jda.api.components.selections.*;
 import net.dv8tion.jda.api.components.textdisplay.*;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.interaction.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
@@ -18,83 +18,38 @@ import net.dv8tion.jda.api.modals.*;
 
 @InteractionModule
 public class AdminCommands {
-
-    @SlashCommandInteraction(name = "rules update")
-    public void rulesUpdate(SlashCommandInteractionEvent event, @Option(required = true) Role role) {
-        event.reply("Rules updated. " + role).queue();
+    // TODO Logic implementation
+    //#region Rules Commands
+    @SlashCommandInteraction(name = "admin rules send", description = "Envoie les règles dans un salon.")
+    public void rulesSend(SlashCommandInteractionEvent event,
+                          @Option(description = "Le salon où envoyez les règles.", required = true) GuildMessageChannel channel)
+    {
+        event.reply("Rules sent to " + channel.getAsMention()).queue();
     }
-
-    @SlashCommandInteraction(name = "rules send admin", permission = Permission.MANAGE_SERVER)
-    public void rulesSendAdmin(SlashCommandInteractionEvent event, @Option(required = true) String test) {
-        event.reply("Admin rules sent." + test)
-            .addComponents(ActionRow.of(
-                Button.primary("rules_accept", "Accept Rules"),
-                Button.danger("rules_decline", "Decline Rules")),
-                ActionRow.of(
-                EntitySelectMenu.create("test_select", EntitySelectMenu.SelectTarget.USER)
-                    .setPlaceholder("Select a user")
-                    .setRequiredRange(1, 1)
-                    .build()),
-                ActionRow.of(
-                StringSelectMenu.create("test_string_select")
-                    .setPlaceholder("Select an option")
-                    .setRequiredRange(1, 1)
-                    .addOption("Option 1", "option_1", "This is the first option")
-                    .addOption("Option 2", "option_2", "This is the second option")
-                    .addOption("Option 3", "option_3", "This is the third option")
-                    .build()
-            ))
-            .queue();
+    
+    @SlashCommandInteraction(name = "admin rules update", description = "Met à jour les règles dans un salon.")
+    public void rulesUpdate(SlashCommandInteractionEvent event,
+                            @Option(description = "Le salon où le message des règles se trouvent", required = true) GuildMessageChannel channel,
+                            @Option(description = "L'identifiant du message.", required = true) long messageId)
+    {
+        event.reply("Rules updated. " + messageId).queue();
     }
-
-    @ButtonInteraction(id = "rules_accept")
-    public void rulesAcceptButton(ButtonInteractionEvent event) {
-        event.reply("You accepted the rules.").queue();
+    //#endregion
+    
+    //#region Counting Commands
+    @SlashCommandInteraction(name = "admin counting set_number")
+    public void countingSetNumber(SlashCommandInteractionEvent event, int number) {
+        event.reply("Counting number set to " + number).queue();
     }
-
-    @SelectMenuInteraction(id = "test_select")
-    public void testSelectMenu(EntitySelectInteractionEvent event) {
-        event.reply("You selected: " + event.getValues()).queue();
+    
+    @SlashCommandInteraction(name = "admin counting reset_number")
+    public void countingResetNumber(SlashCommandInteractionEvent event) {
+        event.reply("Counting number reset to 0").queue();
     }
-
-    @SelectMenuInteraction(id = "test_string_select")
-    public void testStringSelectMenu(StringSelectInteractionEvent event) {
-        event.reply("You selected: " + event.getValues()).queue();
+    
+    @SlashCommandInteraction(name = "admin counting reset_author")
+    public void countingResetAuthor(SlashCommandInteractionEvent event) {
+        event.reply("Counting author reset").queue();
     }
-
-    @SlashCommandInteraction(name = "rules send test")
-    public void rulesSend(SlashCommandInteractionEvent event) {
-        event.reply("Rules sent.").queue();
-    }
-
-    @SlashCommandInteraction(name = "test")
-    public void testCommand(SlashCommandInteractionEvent event) {
-        // event.reply("Test command executed.").queue();
-
-        event.replyModal(Modal.create("test_modal", "Test Modal")
-            .addComponents(
-                TextDisplay.of("""
-                    hello world
-                    
-                    this is so cool
-                    """),
-                Label.of("Role", EntitySelectMenu.create("role_select", EntitySelectMenu.SelectTarget.ROLE).build())
-            )
-            .build()).queue();
-    }
-
-    @ModalInteraction(id = "test_modal")
-    public void testModal(ModalInteractionEvent event) {
-        event.reply("Modal submitted.").queue();
-    }
-
-    @ContextInteraction(name = "get_name", type = Command.Type.USER)
-    public void interactionTest(UserContextInteractionEvent event) {
-        event.reply("Interaction received. " + event.getUser().getName()).queue();
-    }
-
-    @ContextInteraction(name = "get_id", type = Command.Type.MESSAGE)
-    public void testMessage(MessageContextInteractionEvent event) {
-        event.reply("Interaction received. " + event.getUser().getName()).queue();
-    }
+    //#endregion
 }
