@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
 import net.dv8tion.jda.api.interactions.commands.context.*;
 import net.dv8tion.jda.api.interactions.commands.localization.*;
-import org.jetbrains.annotations.*;
 import org.reflections.*;
 
 import java.lang.reflect.*;
@@ -43,11 +42,11 @@ public class InteractionProcessor {
      * registering their commands and setting up event listeners with the provided JDA bot instance.
      *
      * @param bot         The JDA bot instance to register commands with.
-     * @param packageName The package name to scan for interaction modules.
-     *                    It should contain classes annotated with {@link InteractionModule}.
+     * @param packagesName The packages name to scan for interaction modules.
+     *                     It should contain classes annotated with {@link InteractionModule}.
      */
-    public static void initialize(JDA bot, String packageName) {
-        Reflections reflections = new Reflections(packageName);
+    public static void initialize(JDA bot, String... packagesName) {
+        Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
 
         List<CommandData> commands = new ArrayList<>();

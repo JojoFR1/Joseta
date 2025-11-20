@@ -31,11 +31,11 @@ public class EventProcessor {
      * registering their events  and setting up event listeners with the provided JDA bot instance.
      *
      * @param bot         The JDA bot instance to register events with.
-     * @param packageName The package name to scan for event modules.
-     *                    It should contain classes annotated with {@link EventModule}.
+     * @param packagesName The packages name to scan for event modules.
+     *                     It should contain classes annotated with {@link EventModule}.
      */
-    public static void initialize(JDA bot, String packageName) {
-        Reflections reflections = new Reflections(packageName);
+    public static void initialize(JDA bot, String... packagesName) {
+        Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(EventModule.class);
         
         for (Class<?> eventClass : classes) {
@@ -48,7 +48,7 @@ public class EventProcessor {
                 
                 Event event = new Event(eventClass, method);
                 if (eventMethods.get(eventType.getEventClass()) == null)
-                    eventMethods.put(eventType.getEventClass(), new ArrayList<>(List.of(event)));
+                    eventMethods.put(eventType.getEventClass(), new ArrayList<>() {{ add(event); }});
                 else
                     eventMethods.get(eventType.getEventClass()).add(event);
                 
