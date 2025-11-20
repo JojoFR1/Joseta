@@ -222,8 +222,8 @@ public class InteractionProcessor {
             
             boolean autoComplete = option.autoComplete() && optionType.canSupportChoices();
             OptionData optionData = new OptionData(optionType, name, option.description(), option.required(), autoComplete);
-            if (optionType == OptionType.CHANNEL)
-                optionData.setChannelTypes(option.channelType());
+            if (optionType == OptionType.CHANNEL && option.channelTypes().length > 0 && option.channelTypes()[0] != ChannelType.UNKNOWN)
+                optionData.setChannelTypes(option.channelTypes());
             
             if (optionType == OptionType.INTEGER || optionType == OptionType.NUMBER) {
                 if (option.minValue() != Long.MIN_VALUE)

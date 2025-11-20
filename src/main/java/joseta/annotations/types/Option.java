@@ -1,7 +1,5 @@
 package joseta.annotations.types;
 
-import net.dv8tion.jda.api.entities.channel.ChannelType;
-
 import java.lang.annotation.*;
 
 /**
@@ -37,7 +35,7 @@ public @interface Option {
     /**
      * The option name. Defaults to an empty string, which will use the parameter name.
      * <p>
-     * The value must be alphanumerical and not null, not empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_NAME_LENGTH} characters long,
+     * The value must be alphanumerical and not null, empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_NAME_LENGTH} characters long,
      * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_NAME_LENGTH MAX_NAME_LENGTH}.
      */
     String name() default "";
@@ -64,12 +62,11 @@ public @interface Option {
      */
     boolean autoComplete() default false;
     /**
-     * The channel type restriction for this option.
+     * The channel types restriction for this option.
      * <p>
      * Will only be applied if the {@link net.dv8tion.jda.api.interactions.commands.OptionType type of this option} is {@link net.dv8tion.jda.api.interactions.commands.OptionType#CHANNEL CHANNEL}.
-     * <p> Does not support multiple channel types.
      */
-    ChannelType channelType() default ChannelType.UNKNOWN;
+    net.dv8tion.jda.api.entities.channel.ChannelType[] channelTypes() default net.dv8tion.jda.api.entities.channel.ChannelType.UNKNOWN;
     /**
      * The minimum value which can be provided for this option.
      * <p>
@@ -77,7 +74,6 @@ public @interface Option {
      * <p> The value must be greater than or equal to {@link net.dv8tion.jda.api.interactions.commands.build.OptionData#MIN_NEGATIVE_NUMBER MIN_NEGATIVE_NUMBER}.
      */
     long minValue() default Long.MIN_VALUE;
-    
     /**
      * The maximum value which can be provided for this option.
      * <p>
@@ -85,7 +81,6 @@ public @interface Option {
      * <p> The value must be less than or equal to {@link net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_POSITIVE_NUMBER MAX_POSITIVE_NUMBER}.
      */
     long maxValue() default Long.MAX_VALUE;
-    
     /**
      * The minimum length of the string which can be provided for this option.
      * <p>
@@ -97,7 +92,8 @@ public @interface Option {
      * The maximum length of the string which can be provided for this option.
      * <p>
      * Will only be applied if the {@link net.dv8tion.jda.api.interactions.commands.OptionType type of this option} is {@link net.dv8tion.jda.api.interactions.commands.OptionType#STRING STRING}.
-     * <p> The value must be positive and less than or equal to {@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_STRING_OPTION_LENGTH}.
+     * <p> The value must be positive and less than or equal to {@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_STRING_OPTION_LENGTH},
+     * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_STRING_OPTION_LENGTH MAX_STRING_OPTION_LENGTH}.
      */
     int maxLength() default -1;
 }
