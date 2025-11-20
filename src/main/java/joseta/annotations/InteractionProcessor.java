@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.hooks.*;
 import net.dv8tion.jda.api.interactions.*;
 import net.dv8tion.jda.api.interactions.commands.*;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-import net.dv8tion.jda.api.interactions.commands.context.*;
 import net.dv8tion.jda.api.interactions.commands.localization.*;
 import org.reflections.*;
 
@@ -201,6 +200,8 @@ public class InteractionProcessor {
 
             String name = option.name();
             if (name.isEmpty()) name = parameter.getName();
+            // Separate at uppercase letters and convert to lowercase with underscores
+            name = name.replaceAll("([a-z])([A-Z]+)", "$1_$2").toLowerCase();
 
             Class<?> type = parameter.getType();
             OptionType optionType;
