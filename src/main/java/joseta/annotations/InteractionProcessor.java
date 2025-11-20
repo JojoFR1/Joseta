@@ -219,10 +219,29 @@ public class InteractionProcessor {
                 Log.warn("Unsupported parameter type " + type.getName() + " in command: " + command.getName());
                 optionType = OptionType.UNKNOWN;
             }
-
-            command.addParameter(new Command.Parameter(type, name, option.required(), (optionType.canSupportChoices() && option.autoComplete())));
-            if (commandData != null) commandData.addOption(optionType, name, option.description(), option.required(), (optionType.canSupportChoices() && option.autoComplete()));
-            else subcommandData.addOption(optionType, name, option.description(), option.required(), (optionType.canSupportChoices() && option.autoComplete()));
+            
+            boolean autoComplete = option.autoComplete() && optionType.canSupportChoices();
+            OptionData optionData = new OptionData(optionType, name, option.description(), option.required(), autoComplete);
+            if (optionType == OptionType.CHANNEL)
+                optionData.setChannelTypes(option.channelType());
+            
+            if (optionType == OptionType.INTEGER || optionType == OptionType.NUMBER) {
+                if (option.minValue() != Long.MIN_VALUE)
+                    optionData.setMinValue(option.minValue());
+                if (option.maxValue() != Long.MAX_VALUE)
+                    optionData.setMaxValue(option.maxValue());
+            }
+            
+            if (optionType == OptionType.STRING) {
+                if (option.minLength() >= 0)
+                    optionData.setMinLength(option.minLength());
+                if (option.maxLength() >= 1)
+                    optionData.setMaxLength(option.maxLength());
+            }
+            
+            command.addParameter(new Command.Parameter(type, name, option.required(), autoComplete));
+            if (commandData != null) commandData.addOptions(optionData);
+            else subcommandData.addOptions(optionData);
         }
     }
 
