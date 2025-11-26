@@ -81,6 +81,7 @@ public class EventProcessor {
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
+                    // TODO very bad for performance, find a better way
                     if (eventAnnotation.isGuildOnly()
                         && !(Boolean) event.getClass().getMethod("isFromGuild").invoke(event)) continue;
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();

@@ -47,5 +47,40 @@ public @interface SlashCommandInteraction {
      * Applies to the base command. The most recent permission specified in the command hierarchy will apply.
      */
     net.dv8tion.jda.api.Permission[] permissions() default net.dv8tion.jda.api.Permission.UNKNOWN;
+    /**
+     * The command context types. Defaults to {@link net.dv8tion.jda.api.interactions.InteractionContextType#GUILD GUILD} and {@link net.dv8tion.jda.api.interactions.InteractionContextType#BOT_DM BOT_DM}.
+     * <p>
+     * The values must not be {@code null} or empty.
+     * <p>
+     * Sets the contexts in which the command can be used. This only has an effect if this command is registered globally.
+     * <p>
+     * Applies to the base command. The most recent context types specified in the command hierarchy will apply.
+     */
+    net.dv8tion.jda.api.interactions.InteractionContextType[] contextTypes() default {net.dv8tion.jda.api.interactions.InteractionContextType.GUILD, net.dv8tion.jda.api.interactions.InteractionContextType.BOT_DM};
+    /**
+     * The command integration types. Defaults to {@link net.dv8tion.jda.api.interactions.IntegrationType#GUILD_INSTALL GUILD_INSTALL}.
+     * <p>
+     * The values must not be {@code null} or empty.
+     * <p>
+     * Sets the integration types on which the command can be installed on. This only has an effect if this command is registered globally.
+     * <p>
+     * Applies to the base command. The most recent integration types specified in the command hierarchy will apply.
+     */
+    net.dv8tion.jda.api.interactions.IntegrationType[] integrationTypes() default net.dv8tion.jda.api.interactions.IntegrationType.GUILD_INSTALL;
+    /**
+     * Whether the command is only usable in guilds. Default to {@code true}.
+     * <p>
+     * If {@code true}, the command will not be usable in DMs.
+     */
     boolean guildOnly() default true;
+    /**
+     * Whether the command is marked as NSFW. Default to {@code false}.
+     * <p>
+     * If {@code true}, the command will only be usable in NSFW (age-restricted) channels.
+     * <p>
+     * Note: Age-restricted commands will not show up in direct messages by default unless the user has enabled them in their settings.
+     *
+     * @see <a href="https://support.discord.com/hc/en-us/articles/10123937946007" target="_blank">Age-Restricted Commands FAQ</a>
+     */
+    boolean nsfw() default false;
 }

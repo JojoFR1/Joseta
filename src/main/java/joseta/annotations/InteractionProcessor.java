@@ -64,7 +64,7 @@ public class InteractionProcessor {
                     String name = contextCommandInteraction.name();
                     if (name.isEmpty()) name = method.getName().toLowerCase();
 
-                    net.dv8tion.jda.api.interactions.commands.Command.Type type = contextInteraction.type();
+                    net.dv8tion.jda.api.interactions.commands.Command.Type type = contextCommandInteraction.type();
                     method.setAccessible(true);
 
                     CommandData commandData = Commands.context(type, name);
@@ -72,6 +72,10 @@ public class InteractionProcessor {
                     Permission[] permissions = contextCommandInteraction.permissions();
                     if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
                         commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions));
+                    
+                    commandData.setContexts(contextCommandInteraction.contextTypes());
+                    commandData.setIntegrationTypes(contextCommandInteraction.integrationTypes());
+                    commandData.setNSFW(contextCommandInteraction.nsfw());
                     
                     commands.add(commandData);
                     interactionMethods.put(name, new Interaction(commandClass, method, name, contextCommandInteraction.guildOnly()));
@@ -181,6 +185,10 @@ public class InteractionProcessor {
         Permission[] permissions = commandAnnotation.permissions();
         if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
             commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions));
+        
+        commandData.setContexts(commandAnnotation.contextTypes());
+        commandData.setIntegrationTypes(commandAnnotation.integrationTypes());
+        commandData.setNSFW(commandAnnotation.nsfw());
         
         if (!commandExists) commands.add(commandData);
     }
