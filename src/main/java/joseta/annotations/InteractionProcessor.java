@@ -44,6 +44,7 @@ public class InteractionProcessor {
      * @param packagesName The packages name to scan for interaction modules.
      *                     It should contain classes annotated with {@link InteractionModule}.
      */
+    // TODO if error come from JDA we dont know which interaction caused it
     public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
@@ -73,7 +74,7 @@ public class InteractionProcessor {
                         commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permission));
 
                     commands.add(commandData);
-                    interactionMethods.put(name, new Interaction(commandClass, method, name));
+                    interactionMethods.put(name, new Interaction(commandClass, method, name, contextInteraction.guildOnly()));
                     continue;
                 }
 
@@ -82,7 +83,7 @@ public class InteractionProcessor {
                     String id = buttonInteraction.id();
                     if (id.isEmpty()) id = method.getName().toLowerCase();
                     method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id));
+                    interactionMethods.put(id, new Interaction(commandClass, method, id, buttonInteraction.guildOnly()));
                     continue;
                 }
 
@@ -91,7 +92,7 @@ public class InteractionProcessor {
                     String id = selectMenuInteraction.id();
                     if (id.isEmpty()) id = method.getName().toLowerCase();
                     method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id));
+                    interactionMethods.put(id, new Interaction(commandClass, method, id, selectMenuInteraction.guildOnly()));
                     continue;
                 }
 
@@ -100,9 +101,9 @@ public class InteractionProcessor {
                     String id = modalInteraction.id();
                     if (id.isEmpty()) id = method.getName().toLowerCase();
                     method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id));
+                    interactionMethods.put(id, new Interaction(commandClass, method, id, modalInteraction.guildOnly()));
                 }
-            } catch (Exception e) { Log.warn("An error occurred while registering a command. {}", e); }}
+            } catch (Exception e) { Log.warn("An error occurred while registering an interaction. {}", e); }}
         }
 
         bot.updateCommands().addCommands(commands).queue();
@@ -145,7 +146,7 @@ public class InteractionProcessor {
         }
 
         method.setAccessible(true);
-        Command command = new Command(commandClass, method, fullCommandName);
+        Command command = new Command(commandClass, method, fullCommandName, commandAnnotation.guildOnly());
         interactionMethods.put(fullCommandName, command);
 
         if (subcommandName != null) {
@@ -211,14 +212,14 @@ public class InteractionProcessor {
                 || type == long.class || type == Long.class) optionType = OptionType.INTEGER;
             else if (type == boolean.class || type == Boolean.class) optionType = OptionType.BOOLEAN;
             else if (type == IMentionable.class) optionType = OptionType.MENTIONABLE; // Need to be before User, Member, Role and Channel
-            else if (type.isAssignableFrom(User.class) || type == Member.class) optionType = OptionType.USER;
-            else if (type.isAssignableFrom(Channel.class)) optionType = OptionType.CHANNEL;
+            else if (User.class.isAssignableFrom(type) || type == Member.class) optionType = OptionType.USER;
+            else if (Channel.class.isAssignableFrom(type)) optionType = OptionType.CHANNEL;
             else if (type == Role.class) optionType = OptionType.ROLE;
             else if (type == double.class || type == Double.class) optionType = OptionType.NUMBER;
             else if (type == Message.Attachment.class) optionType = OptionType.ATTACHMENT;
             else {
                 Log.warn("Unsupported parameter type " + type.getName() + " in command: " + command.getName());
-                optionType = OptionType.UNKNOWN;
+                continue;
             }
             
             boolean autoComplete = option.autoComplete() && optionType.canSupportChoices();
@@ -263,7 +264,12 @@ public class InteractionProcessor {
                 event.reply("Commande inconnue.").setEphemeral(true).queue();
                 return;
             }
-
+            
+            if (command.isGuildOnly() && !event.isFromGuild()) {
+                event.reply("Cette commande ne peut être utilisée que dans un serveur.").setEphemeral(true).queue();
+                return;
+            }
+            
             try {
                 Object o = command.getClazz().getDeclaredConstructor().newInstance();
 
@@ -313,6 +319,11 @@ public class InteractionProcessor {
                 event.reply("Interaction inconnue.").setEphemeral(true).queue();
                 return;
             }
+            
+            if (contextInteraction.isGuildOnly() && !event.isFromGuild()) {
+                event.reply("Cette interaction ne peut être utilisée que dans un serveur.").setEphemeral(true).queue();
+                return;
+            }
 
             try {
                 Object o = contextInteraction.getClazz().getDeclaredConstructor().newInstance();
@@ -331,6 +342,11 @@ public class InteractionProcessor {
             if (button == null) {
                 Log.warn("Unknown button: " + event.getId());
                 event.reply("Bouton inconnue.").setEphemeral(true).queue();
+                return;
+            }
+            
+            if (button.isGuildOnly() && !event.isFromGuild()) {
+                event.reply("Ce bouton ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
                 return;
             }
 
@@ -353,6 +369,11 @@ public class InteractionProcessor {
                 event.reply("Menu de sélection inconnu.").setEphemeral(true).queue();
                 return;
             }
+            
+            if (selectMenu.isGuildOnly() && !event.isFromGuild()) {
+                event.reply("Ce menu de sélection ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
+                return;
+            }
 
             try {
                 Object o = selectMenu.getClazz().getDeclaredConstructor().newInstance();
@@ -371,6 +392,11 @@ public class InteractionProcessor {
             if (selectMenu == null) {
                 Log.warn("Unknown select menu: " + event.getId());
                 event.reply("Menu de sélection inconnu.").setEphemeral(true).queue();
+                return;
+            }
+            
+            if (selectMenu.isGuildOnly() && !event.isFromGuild()) {
+                event.reply("Ce menu de sélection ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
                 return;
             }
 

@@ -46,7 +46,7 @@ public class EventProcessor {
                 EventType eventType = eventAnnotation.type();
                 method.setAccessible(true);
                 
-                Event event = new Event(eventClass, method);
+                Event event = new Event(eventClass, method, eventAnnotation.guildOnly());
                 if (eventMethods.get(eventType.getEventClass()) == null)
                     eventMethods.put(eventType.getEventClass(), new ArrayList<>() {{ add(event); }});
                 else
@@ -81,6 +81,8 @@ public class EventProcessor {
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
+                    if (eventAnnotation.isGuildOnly()
+                        && !(Boolean) event.getClass().getMethod("isFromGuild").invoke(event)) continue;
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
                     
                     eventAnnotation.getMethod().invoke(o, event);

@@ -22,4 +22,5 @@ public @interface ModalInteraction {
      * The ID must not exceed the limit of {@link net.dv8tion.jda.api.modals.Modal#MAX_ID_LENGTH MAX_ID_LENGTH} defined as {@value net.dv8tion.jda.api.modals.Modal#MAX_ID_LENGTH}.
      */
     String id() default "";
+    boolean guildOnly() default true;
 }

@@ -6,4 +6,5 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface SelectMenuInteraction {
     String id() default "";
+    boolean guildOnly() default true;
 }

@@ -22,4 +22,5 @@ public @interface ButtonInteraction {
      * The ID must not exceed the limit of {@link net.dv8tion.jda.api.components.buttons.Button#ID_MAX_LENGTH ID_MAX_LENGTH} defined as {@value net.dv8tion.jda.api.components.buttons.Button#ID_MAX_LENGTH}.
      */
     String id() default "";
+    boolean guildOnly() default true;
 }

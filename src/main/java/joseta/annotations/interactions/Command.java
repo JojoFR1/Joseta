@@ -9,8 +9,8 @@ import java.util.*;
 public class Command extends Interaction {
     private final List<Parameter> parameters = new ArrayList<>();
 
-    public Command(Class<?> clazz, Method method, String name) {
-        super(clazz, method, name);
+    public Command(Class<?> clazz, Method method, String name, boolean guildOnly) {
+        super(clazz, method, name, guildOnly);
     }
 
     public List<Parameter> getParameters() { return parameters; }

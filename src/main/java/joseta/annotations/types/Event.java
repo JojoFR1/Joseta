@@ -31,4 +31,5 @@ public @interface Event {
      * An easy way to avoid this (in this example) is to check if the author of the message is a bot and ignore it.
      */
     EventType type();
+    boolean guildOnly() default true;
 }

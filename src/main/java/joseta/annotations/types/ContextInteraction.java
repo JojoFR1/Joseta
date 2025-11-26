@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.interactions.commands.*;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+// TODO redo comments
 public @interface ContextInteraction {
     /** The command name, 1-32 lowercase alphanumeric characters. - Default: method name (separated by capital letters). */
     String name();
@@ -14,4 +15,5 @@ public @interface ContextInteraction {
     Command.Type type();
     /** The required permission to use the command (enable for this permission) - Default: {@link Permission#UNKNOWN UNKNOWN} (no permission required) */
     Permission permission() default Permission.UNKNOWN;
+    boolean guildOnly() default true;
 }
