@@ -1,7 +1,5 @@
 package joseta.annotations.types;
 
-import joseta.generated.EventType;
-
 import java.lang.annotation.Target;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Retention;
@@ -19,17 +17,31 @@ import java.lang.annotation.ElementType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Event {
-    /** The type of event to handle.
+    /**
+     * The event type to handle.
      * <p>
-     * The parameter of the method must match the event value of the event type specified here and not the enum type itself.
+     * The method annotated with this annotation will be called when the specified event is fired.
      * <p>
-     * For example, if the event type is {@link joseta.generated.EventType#MESSAGE_RECEIVED EventType.MESSAGE_RECEIVED},
-     * the method parameter must be of type {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent} and not {@link joseta.generated.EventType EventType}.
+     * The method must have a single parameter matching the event value of the specified event type.
+     * <p> For example:
+     * <ul>
+     *     <li>If the event type is {@link joseta.generated.EventType#MESSAGE_RECEIVED EventType.MESSAGE_RECEIVED},
+     *         the method parameter must be of type {@link net.dv8tion.jda.api.events.message.MessageReceivedEvent MessageReceivedEvent}.</li>
+     *     <li>If the event type is {@link joseta.generated.EventType#GUILD_MEMBER_JOIN EventType.GUILD_MEMBER_JOIN},
+     *         the method parameter must be of type {@link net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent GuildMemberJoinEvent}.</li>
+     *     <li>And so on for each event type defined in {@link joseta.generated.EventType EventType}.</li>
+     * </ul>
      * <p>
-     * Be careful with some event that the bot response may trigger itself, for example a {@link joseta.generated.EventType#MESSAGE_RECEIVED EventType.MESSAGE_RECEIVED}
-     * with the bot sending a message in response will trigger the event again, causing an infinite loop (or until rate limit is hit).
-     * An easy way to avoid this (in this example) is to check if the author of the message is a bot and ignore it.
+     * Warning: Be cautious of events that your bot's responses may trigger again, potentially causing infinite loops.
+     * <p>
+     * One common example is responding to a {@link joseta.generated.EventType#MESSAGE_RECEIVED EventType.MESSAGE_RECEIVED} event by sending a message,
+     * which could trigger the same event repeatedly. To prevent this, consider implementing checks such as verifying if the message author is a bot and ignoring such messages.
      */
-    EventType type();
+    joseta.generated.EventType type();
+    /**
+     * Whether the command is only usable in guilds. Default to {@code true}.
+     * <p>
+     * If {@code true}, the command will not be usable in DMs.
+     */
     boolean guildOnly() default true;
 }

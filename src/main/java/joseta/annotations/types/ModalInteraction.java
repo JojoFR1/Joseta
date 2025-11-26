@@ -15,12 +15,18 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface ModalInteraction {
     /**
-     * The modal ID, 1-100 characters. - Default: method name
+     * The modal id. Defaults to an empty string, which will use the method name.
      * <p>
-     * Must match the ID used when creating the modal.
+     * The value must be alphanumerical and not {@code null}, empty or outside the range of 1-{@value net.dv8tion.jda.api.modals.Modal#MAX_ID_LENGTH} characters long,
+     * as defined by {@link net.dv8tion.jda.api.modals.Modal#MAX_ID_LENGTH MAX_ID_LENGTH}.
      * <p>
-     * The ID must not exceed the limit of {@link net.dv8tion.jda.api.modals.Modal#MAX_ID_LENGTH MAX_ID_LENGTH} defined as {@value net.dv8tion.jda.api.modals.Modal#MAX_ID_LENGTH}.
+     * For the method to be called, the modal id must match the id used when creating the modal.
      */
     String id() default "";
+    /**
+     * Whether the modal is only usable in guilds. Default to {@code true}.
+     * <p>
+     * If {@code true}, the modal will not be usable in DMs.
+     */
     boolean guildOnly() default true;
 }

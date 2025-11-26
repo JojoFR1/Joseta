@@ -9,15 +9,15 @@ import java.lang.annotation.*;
  * which is inside a class that implements {@link joseta.annotations.InteractionModule InteractionModule}.
  * <p>
  * It is handled by the {@link joseta.annotations.InteractionProcessor InteractionProcessor}, which provides the options values to the method.
- * If the option is not required, the parameter can be null.
+ * If the option is not required, the parameter can be {@code null}.
  * <p>
  * The parameter type must be one of the following:
  * <ul>
- *     <li>String</li>
- *     <li>int or Integer</li>
- *     <li>long or Long</li>
- *     <li>boolean or Boolean</li>
- *     <li>double or Double</li>
+ *     <li>{@code String}</li>
+ *     <li>{@code int} or {@code Integer}</li>
+ *     <li>{@code long} or {@code Long}</li>
+ *     <li>{@code boolean} or {@code Boolean}</li>
+ *     <li>{@code double} or {@code Double}</li>
  *     <li>{@link net.dv8tion.jda.api.entities.IMentionable IMentionable}</li>
  *     <li>{@link net.dv8tion.jda.api.entities.User User}</li>
  *     <li>{@link net.dv8tion.jda.api.entities.Member Member}</li>
@@ -35,22 +35,21 @@ public @interface Option {
     /**
      * The option name. Defaults to an empty string, which will use the parameter name.
      * <p>
-     * The value must be alphanumerical and not null, empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_NAME_LENGTH} characters long,
+     * The value must be alphanumerical and not {@code null}, empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_NAME_LENGTH} characters long,
      * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_NAME_LENGTH MAX_NAME_LENGTH}.
      */
     String name() default "";
-    
     /**
      * The option description. Defaults to "No description."
      * <p>
-     * The value must not be null, empty or longer than {@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_DESCRIPTION_LENGTH} characters,
+     * The value must not be {@code null}, empty or longer than {@value net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_DESCRIPTION_LENGTH} characters,
      * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.OptionData#MAX_DESCRIPTION_LENGTH MAX_DESCRIPTION_LENGTH}.
      */
     String description() default "No description.";
     /**
      * Whether the user must set this option.
      * <p>
-     * If {@code false}, the parameter can be null.
+     * If {@code false}, the parameter can be {@code null}.
      */
     boolean required() default false;
     /**

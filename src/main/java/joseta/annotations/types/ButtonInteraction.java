@@ -15,12 +15,18 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 public @interface ButtonInteraction {
     /**
-     * The button ID, 1-100 characters. - Default: method name
+     * The button id. Defaults to an empty string, which will use the method name.
      * <p>
-     * Must match the ID used when creating the button.
+     * The value must be alphanumerical and not {@code null}, empty or outside the range of 1-{@value net.dv8tion.jda.api.components.buttons.Button#ID_MAX_LENGTH} characters long,
+     * as defined by {@link net.dv8tion.jda.api.components.buttons.Button#ID_MAX_LENGTH ID_MAX_LENGTH}.
      * <p>
-     * The ID must not exceed the limit of {@link net.dv8tion.jda.api.components.buttons.Button#ID_MAX_LENGTH ID_MAX_LENGTH} defined as {@value net.dv8tion.jda.api.components.buttons.Button#ID_MAX_LENGTH}.
+     * For the method to be called, the button id must match the id used when creating the button.
      */
     String id() default "";
+    /**
+     * Whether the button, is only usable in guilds. Default to {@code true}.
+     * <p>
+     * If {@code true}, the button, will not be usable in DMs.
+     */
     boolean guildOnly() default true;
 }

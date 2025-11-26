@@ -18,7 +18,7 @@ public @interface SlashCommandInteraction {
     /**
      * The command name. Defaults to an empty string, which will use the method name (separated by capital letters).
      * <p>
-     * The value must be alphanumerical and not null, empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH} characters long,
+     * The value must be alphanumerical and not {@code null}, empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH} characters long,
      * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH MAX_NAME_LENGTH}.
      * <p>
      * When using subcommands or subcommand groups, the full command name must be provided, including spaces.
@@ -37,7 +37,7 @@ public @interface SlashCommandInteraction {
     /**
      * The command description. Defaults to "No description."
      * <p>
-     * The value must not be null, empty or longer than {@value net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_DESCRIPTION_LENGTH} characters,
+     * The value must not be {@code null}, empty or longer than {@value net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_DESCRIPTION_LENGTH} characters,
      * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_DESCRIPTION_LENGTH MAX_DESCRIPTION_LENGTH}.
      */
     String description() default "No description.";

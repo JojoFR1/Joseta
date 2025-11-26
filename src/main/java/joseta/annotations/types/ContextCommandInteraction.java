@@ -19,7 +19,7 @@ public @interface ContextCommandInteraction {
     /**
      * The context command name. Defaults to an empty string, which will use the method name (separated by capital letters).
      * <p>
-     * The value must be alphanumerical and not null, empty or outside the range of 1-{@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH} characters long,
+     * The value must be alphanumerical and not {@code null}, empty or outside the range of 1-{@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH} characters long,
      * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH MAX_NAME_LENGTH}.
      */
     String name() default "";
