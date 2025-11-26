@@ -3,7 +3,7 @@ package joseta.annotations;
 import joseta.annotations.interactions.Command;
 import joseta.annotations.interactions.Interaction;
 import joseta.annotations.types.*;
-import joseta.annotations.types.ContextInteraction;
+import joseta.annotations.types.ContextCommandInteraction;
 import joseta.annotations.types.SlashCommandInteraction;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
@@ -59,22 +59,22 @@ public class InteractionProcessor {
                     continue;
                 }
 
-                ContextInteraction contextInteraction = method.getAnnotation(ContextInteraction.class);
-                if (contextInteraction != null) {
-                    String name = contextInteraction.name();
+                ContextCommandInteraction contextCommandInteraction = method.getAnnotation(ContextCommandInteraction.class);
+                if (contextCommandInteraction != null) {
+                    String name = contextCommandInteraction.name();
                     if (name.isEmpty()) name = method.getName().toLowerCase();
 
                     net.dv8tion.jda.api.interactions.commands.Command.Type type = contextInteraction.type();
                     method.setAccessible(true);
 
                     CommandData commandData = Commands.context(type, name);
-
-                    Permission permission = contextInteraction.permission();
-                    if (permission != Permission.UNKNOWN)
-                        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permission));
-
+                    
+                    Permission[] permissions = contextCommandInteraction.permissions();
+                    if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
+                        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions));
+                    
                     commands.add(commandData);
-                    interactionMethods.put(name, new Interaction(commandClass, method, name, contextInteraction.guildOnly()));
+                    interactionMethods.put(name, new Interaction(commandClass, method, name, contextCommandInteraction.guildOnly()));
                     continue;
                 }
 
@@ -178,10 +178,10 @@ public class InteractionProcessor {
         }
         else addParameters(method.getParameters(), command, commandData);
 
-        Permission[] permission = commandAnnotation.permissions();
-        if (permission.length > 0 && permission[0] != Permission.UNKNOWN)
-            commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permission));
-
+        Permission[] permissions = commandAnnotation.permissions();
+        if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
+            commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions));
+        
         if (!commandExists) commands.add(commandData);
     }
 

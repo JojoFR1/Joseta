@@ -15,23 +15,36 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface SlashCommandInteraction {
-    /** The command name, 1-32 lowercase alphanumeric characters. - Default: method name (separated by capital letters)
+    /**
+     * The command name. Defaults to an empty string, which will use the method name (separated by capital letters).
      * <p>
-     * Each command and subcommand has their own methods associated with them, you can see a subcommand as its own command under the main command umbrella.
+     * The value must be alphanumerical and not null, empty or outside the range of 1-{@value net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH} characters long,
+     * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_NAME_LENGTH MAX_NAME_LENGTH}.
      * <p>
-     * The name can be formatted as follows:
-     *     <ul>
-     *         <li>{@code command} (cannot be used alone if there are subcommands)</li>
-     *         <li>{@code command subcommand}</li>
-     *         <li>{@code command subcommandGroup subcommand}</li>
-     *     </ul>
+     * When using subcommands or subcommand groups, the full command name must be provided, including spaces.
+     * <p> For example:
+     * <ul>
+     *     <li>For a subcommand: {@code "maincommand subcommand"}</li>
+     *     <li>For a subcommand group: {@code "maincommand subcommandgroup subcommand"}</li>
+     * </ul>
+     * <p>
+     * Each command, subcommand and subcommand group has their own methods associated with them, you can see a subcommand
+     * as its own command under the main command umbrella, and a subcommand group as a container for subcommands.
+     * <p>
+     * A base command will never exist alone if it has subcommands or subcommand groups, it will always be used with one of them.
      */
     String name() default "";
-    /** The command description, 1-100 characters - Default: "No description."*/
-    String description() default "No description.";
-    /** The required permission to use the command (enable for this permission) - Default: {@link net.dv8tion.jda.api.Permission#UNKNOWN UNKNOWN} (no permission required)
+    /**
+     * The command description. Defaults to "No description."
      * <p>
-     *  Applied to the base command. If subcommands specify their own permission, it will override the previous one.
+     * The value must not be null, empty or longer than {@value net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_DESCRIPTION_LENGTH} characters,
+     * as defined by {@link net.dv8tion.jda.api.interactions.commands.build.CommandData#MAX_DESCRIPTION_LENGTH MAX_DESCRIPTION_LENGTH}.
+     */
+    String description() default "No description.";
+    /**
+     * The command permissions. Defaults to {@link net.dv8tion.jda.api.Permission#UNKNOWN UNKNOWN} (no permission required).
+     * <p>
+     * Applies to the base command. The most recent permission specified in the command hierarchy will apply.
      */
     net.dv8tion.jda.api.Permission[] permissions() default net.dv8tion.jda.api.Permission.UNKNOWN;
     boolean guildOnly() default true;
