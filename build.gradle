@@ -16,24 +16,21 @@ sourceSets.main.java.srcDir generatedSourcesDir
 repositories { mavenCentral() }
 
 dependencies {
-    implementation('net.dv8tion:JDA:6.1.1') {
+    implementation('net.dv8tion:JDA:6.1.2') {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.19'
+    implementation 'ch.qos.logback:logback-classic:1.5.21'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.reflections:reflections:0.10.2'
 
     implementation 'org.postgresql:postgresql:42.7.8'
-    implementation 'org.hibernate:hibernate-core:7.1.5.Final'
+    implementation 'org.hibernate:hibernate-core:7.1.10.Final'
     // Hibernate Processor
-    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.1.5.Final'
-    // Hibernate Validator - is it needed ?
-    implementation 'org.hibernate.validator:hibernate-validator:9.0.1.Final'
-    implementation 'org.glassfish.expressly:expressly:6.0.0'
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.1.10.Final'
     // Agroal connection pool
-    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.2.Final'
+    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.10.Final'
 }
 
 apply from: 'gradle/jdaEventEnumCodeGen.gradle'
