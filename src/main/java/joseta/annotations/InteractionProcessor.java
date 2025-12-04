@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.*;
+import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.*;
 import net.dv8tion.jda.api.events.interaction.command.*;
 import net.dv8tion.jda.api.events.interaction.component.*;
@@ -202,10 +203,17 @@ public class InteractionProcessor {
             Log.err("Invalid command object type: " + commandObject.getClass().getName());
             return;
         }
+        
+        List<OptionData> optionsData = new ArrayList<>();
 
         for (Parameter parameter : parameters) {
+            if (GenericEvent.class.isAssignableFrom(parameter.getType())) continue; // Skip the event parameter
+            
             Option option = parameter.getAnnotation(Option.class);
-            if (option == null) continue;
+            if (option == null) {
+                Log.warn("Parameter {} in command {} is missing the @Option annotation. You might have forgotten to add it.", parameter.getName(), command.getName());
+                continue;
+            }
 
             String name = option.name();
             if (name.isEmpty()) name = parameter.getName();
@@ -216,17 +224,20 @@ public class InteractionProcessor {
             OptionType optionType;
 
             if (type == String.class) optionType = OptionType.STRING;
-            else if (type == int.class || type == Integer.class
-                || type == long.class || type == Long.class) optionType = OptionType.INTEGER;
-            else if (type == boolean.class || type == Boolean.class) optionType = OptionType.BOOLEAN;
+            else if (type == Integer.class || type == Long.class) optionType = OptionType.INTEGER;
+            else if (type == Boolean.class) optionType = OptionType.BOOLEAN;
             else if (type == IMentionable.class) optionType = OptionType.MENTIONABLE; // Need to be before User, Member, Role and Channel
             else if (User.class.isAssignableFrom(type) || type == Member.class) optionType = OptionType.USER;
             else if (Channel.class.isAssignableFrom(type)) optionType = OptionType.CHANNEL;
             else if (type == Role.class) optionType = OptionType.ROLE;
-            else if (type == double.class || type == Double.class) optionType = OptionType.NUMBER;
+            else if (type == Double.class) optionType = OptionType.NUMBER;
             else if (type == Message.Attachment.class) optionType = OptionType.ATTACHMENT;
             else {
-                Log.warn("Unsupported parameter type " + type.getName() + " in command: " + command.getName());
+                String warnMessage = "Unsupported parameter type {} in command: {}";
+                if (type.isPrimitive())
+                    warnMessage += " (primitive types are not supported, use their wrapper class instead)";
+                
+                Log.warn(warnMessage, type.getName(), command.getName());
                 continue;
             }
             
@@ -250,9 +261,11 @@ public class InteractionProcessor {
             }
             
             command.addParameter(new Command.Parameter(type, name, option.required(), autoComplete));
-            if (commandData != null) commandData.addOptions(optionData);
-            else subcommandData.addOptions(optionData);
+            optionsData.add(optionData);
         }
+        
+        if (commandData != null) commandData.addOptions(optionsData);
+        else subcommandData.addOptions(optionsData);
     }
 
     private static class InteractionListener extends ListenerAdapter {
@@ -265,7 +278,7 @@ public class InteractionProcessor {
 
             if (subcommandGroup != null) commandName += " " + subcommandGroup;
             if (subcommand != null) commandName += " " + subcommand;
-
+            
             Command command = (Command) interactionMethods.get(commandName);
             if (command == null) {
                 Log.warn("Unknown command: " + event.getName());
@@ -287,7 +300,7 @@ public class InteractionProcessor {
                     OptionMapping option = event.getOption(parameter.name());
 
                     if (option == null && parameter.required()) {
-                        Log.warn("A required parameter is missing for command: " + command.getName() + ", parameter: " + parameter.name());
+                        Log.warn("A required parameter is missing for command {}, parameter: {}", command.getName(), parameter.name());
                         event.reply("Un paramètre obligatoire est manquant.").queue();
                         return;
                     }

@@ -13,11 +13,7 @@ import java.lang.annotation.*;
  * <p>
  * The parameter type must be one of the following:
  * <ul>
- *     <li>{@code String}</li>
- *     <li>{@code int} or {@code Integer}</li>
- *     <li>{@code long} or {@code Long}</li>
- *     <li>{@code boolean} or {@code Boolean}</li>
- *     <li>{@code double} or {@code Double}</li>
+ *     <li> Primitive wrapper types: {@link String} {@link Integer} {@link Long} {@link Boolean} {@link Double}</li>
  *     <li>{@link net.dv8tion.jda.api.entities.IMentionable IMentionable}</li>
  *     <li>{@link net.dv8tion.jda.api.entities.User User}</li>
  *     <li>{@link net.dv8tion.jda.api.entities.Member Member}</li>
@@ -26,8 +22,8 @@ import java.lang.annotation.*;
  *     <li>{@link net.dv8tion.jda.api.entities.Message.Attachment Attachment}</li>
  * </ul>
  * <p>
- * If the type isn't any of the above, it will be given the type of {@link net.dv8tion.jda.api.interactions.commands.OptionType#UNKNOWN OptionType.UNKNOWN}
- * and the command will fail to register.
+ * If the type isn't any of the above, it will be ignored and won't be presented as an option in the command.
+ * Primitive types are not supported and should use their wrapper class instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
