@@ -157,4 +157,22 @@ public class Configuration {
         this.countingChannelId = countingChannelId;
         return this;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Configuration{");
+        Field[] fields = this.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            try {
+                sb.append(field.getName()).append("=").append(field.get(this)).append(", ");
+            } catch (IllegalAccessException e) {
+                sb.append(field.getName()).append("=ACCESS_ERROR, ");
+            } catch (NullPointerException e) {
+                sb.append(field.getName()).append("=NULL, ");
+            }
+        }
+        if (fields.length > 0) sb.setLength(sb.length() - 2); // Remove last comma and space
+        sb.append("}");
+        return sb.toString();
+    }
 }

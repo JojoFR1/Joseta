@@ -6,7 +6,9 @@ import org.slf4j.event.*;
 
 public class Log {
     private static final Logger logger = (Logger) LoggerFactory.getLogger("Joseta");
-
+    
+    public static void info(Object message) { Log.log(Level.INFO, String.valueOf(message), null, null); }
+    public static void info(Object message, Object... args) { Log.log(Level.INFO, String.valueOf(message), args, null); }
     public static void info(String message) { Log.log(Level.INFO, message, null, null); }
     public static void info(String message, Object... args) { Log.log(Level.INFO, message, args, null); }
 

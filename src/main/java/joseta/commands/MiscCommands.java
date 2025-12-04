@@ -2,6 +2,7 @@ package joseta.commands;
 
 import joseta.annotations.*;
 import joseta.annotations.types.*;
+import joseta.events.MiscEvents;
 import net.dv8tion.jda.api.events.interaction.command.*;
 
 @InteractionModule
@@ -24,9 +25,7 @@ public class MiscCommands {
     
     
     @SlashCommandInteraction(name = "multi", description = "Envoie le texte d'aide pour le multijoueur.")
-    public void multiInfo(SlashCommandInteractionEvent event) {
-    
-    }
+    public void multiInfo(SlashCommandInteractionEvent event) { event.reply(MiscEvents.autoResponseMessage).queue(); }
     
     //#region Reminder Commands
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")

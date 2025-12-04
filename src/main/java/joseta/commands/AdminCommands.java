@@ -37,17 +37,18 @@ public class AdminCommands {
     //#endregion
     
     //#region Counting Commands
-    @SlashCommandInteraction(name = "admin counting set_number")
-    public void countingSetNumber(SlashCommandInteractionEvent event, int number) {
+    @SlashCommandInteraction(name = "admin counting set_number", description = "Définit le nombre actuel pour le système de comptage.")
+    public void countingSetNumber(SlashCommandInteractionEvent event,
+                                  @Option(description = "Le nombre à définir.", required = true) int number) {
         event.reply("Counting number set to " + number).queue();
     }
     
-    @SlashCommandInteraction(name = "admin counting reset_number")
+    @SlashCommandInteraction(name = "admin counting reset_number", description = "Réinitialise le nombre actuel à 0 pour le système de comptage.")
     public void countingResetNumber(SlashCommandInteractionEvent event) {
         event.reply("Counting number reset to 0").queue();
     }
     
-    @SlashCommandInteraction(name = "admin counting reset_author")
+    @SlashCommandInteraction(name = "admin counting reset_author", description = "Réinitialise l'auteur du dernier nombre pour le système de comptage.")
     public void countingResetAuthor(SlashCommandInteractionEvent event) {
         event.reply("Counting author reset").queue();
     }
