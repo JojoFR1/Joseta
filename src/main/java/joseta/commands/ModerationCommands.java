@@ -31,7 +31,8 @@ public class ModerationCommands {
     public void warn(SlashCommandInteractionEvent event,
                      @Option(description = "Le membre à avertir.", required = true) Member member,
                      @Option(description = "La raison de l'avertissement.") String reason,
-                     @Option(description = "La durée avant expiration de l'avertissement (s, m, h, d, w).") String time)
+                     @Option(description = "La durée avant expiration de l'avertissement (s, m, h, d, w).") String time,
+                     int test)
     {
     
     }

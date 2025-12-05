@@ -211,7 +211,7 @@ public class InteractionProcessor {
             
             Option option = parameter.getAnnotation(Option.class);
             if (option == null) {
-                Log.warn("Parameter {} in command {} is missing the @Option annotation. You might have forgotten to add it.", parameter.getName(), command.getName());
+                Log.warn("Parameter {} in method {}.{}() is missing the @Option annotation. You might have forgotten to add it.", parameter.getName(), command.getClazz(), command.getMethod().getName());
                 continue;
             }
 
@@ -312,9 +312,9 @@ public class InteractionProcessor {
 
                     switch (option.getType()) {
                         case STRING -> args.add(option.getAsString());
-                        case INTEGER -> args.add((parameter.type() == Long.class || parameter.type() == long.class) ? option.getAsLong() : option.getAsInt());
+                        case INTEGER -> args.add(parameter.type() == Long.class ? option.getAsLong() : option.getAsInt());
                         case BOOLEAN -> args.add(option.getAsBoolean());
-                        case USER -> args.add(parameter.type().isAssignableFrom(User.class) ? option.getAsUser() : option.getAsMember());
+                        case USER -> args.add(User.class.isAssignableFrom(parameter.type()) ? option.getAsUser() : option.getAsMember());
                         case CHANNEL -> args.add(option.getAsChannel());
                         case ROLE -> args.add(option.getAsRole());
                         case MENTIONABLE -> args.add(option.getAsMentionable());
