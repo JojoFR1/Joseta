@@ -56,6 +56,8 @@ public class JosetaBot {
 
         InteractionProcessor.initialize(bot, "joseta.commands");
         EventProcessor.initialize(bot, "joseta.events", "joseta.commands");
+        
+        //TODO check for guilds, members, etc. and add them to the database if they don't exist, or remove them if they don't exist anymore
     }
 
     private static void registerShutdown(JDA bot) {

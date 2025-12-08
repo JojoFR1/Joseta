@@ -1,36 +1,41 @@
 package joseta.database.entities;
 
 import jakarta.persistence.*;
+import net.dv8tion.jda.api.entities.IMentionable;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity @Table(name = "configurations")
 public class Configuration {
-    @Id public long guildId;
+    @Id public Long guildId;
 
-    @Column public boolean welcomeEnabled = false;
-    @Column public long welcomeChannelId = 0L;
-    @Column public boolean welcomeImageEnabled = false;
+    @Column public Boolean welcomeEnabled = false;
+    @Column public Long welcomeChannelId = null;
+    @Column public Boolean welcomeImageEnabled = false;
     @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
     @Column public String welcomeImageUrl = ""; // Could switch to file upload using modal
-    @Column public long joinRoleId = 0L;
-    @Column public long joinBotRoleId = 0L;
-    @Column public long verifiedRoleId = 0L;
+    @Column public Long joinRoleId = null;
+    @Column public Long joinBotRoleId = null;
+    @Column public Long verifiedRoleId = null;
     
-    @Column public boolean markovEnabled = false;
-    @Column public String markovBlackList = "";
+    @Column public Boolean markovEnabled = false;
+    @Column @ElementCollection(fetch = FetchType.EAGER) public List<Long> markovBlackList = new ArrayList<Long>();
     
-    @Column public boolean moderationEnabled = true;
+    @Column public Boolean moderationEnabled = true;
     
     @Column public String rules = "";
 
-    @Column public boolean autoResponseEnabled = false;
+    @Column public Boolean autoResponseEnabled = false;
 
-    @Column public boolean countingEnabled = false;
-    @Column public boolean countingCommentsEnabled = false;
-    @Column public boolean countingPenaltyEnabled = false;
-    @Column public long countingChannelId = 0L;
+    @Column public Boolean countingEnabled = false;
+    @Column public Boolean countingCommentsEnabled = false;
+    @Column public Boolean countingPenaltyEnabled = false;
+    @Column public Long countingChannelId = null;
     
     // A non-private and no-arg constructor is required by JPA
     protected Configuration() {}
@@ -62,99 +67,144 @@ public class Configuration {
         this.countingChannelId = other.countingChannelId;
     }
     
-
-    public Configuration setGuildId(long guildId) {
-        this.guildId = guildId;
+    
+    public Configuration setGuildId(Long guildId) {
+        if (guildId != null) this.guildId = guildId;
         return this;
     }
 
-    public Configuration setWelcomeEnabled(boolean welcomeEnabled) {
-        this.welcomeEnabled = welcomeEnabled;
+    public Configuration setWelcomeEnabled(Boolean welcomeEnabled) {
+        if (welcomeEnabled != null) this.welcomeEnabled = welcomeEnabled;
         return this;
     }
 
-    public Configuration setWelcomeImageEnabled(boolean welcomeImageEnabled) {
-        this.welcomeImageEnabled = welcomeImageEnabled;
+    public Configuration setWelcomeImageEnabled(Boolean welcomeImageEnabled) {
+        if (welcomeImageEnabled != null) this.welcomeImageEnabled = welcomeImageEnabled;
         return this;
     }
 
-    public Configuration setWelcomeChannelId(long welcomeChannelId) {
-        this.welcomeChannelId = welcomeChannelId;
+    public Configuration setWelcomeChannel(GuildMessageChannel welcomeChannel) {
+        if (welcomeChannel != null) this.welcomeChannelId = welcomeChannel.getIdLong();
+        return this;
+    }
+    
+    public Configuration setWelcomeChannelId(Long welcomeChannelId) {
+        if (welcomeChannelId != null) this.welcomeChannelId = welcomeChannelId;
         return this;
     }
 
     public Configuration setWelcomeJoinMessage(String welcomeJoinMessage) {
-        this.welcomeJoinMessage = welcomeJoinMessage;
+        if (welcomeJoinMessage != null) this.welcomeJoinMessage = welcomeJoinMessage;
         return this;
     }
 
     public Configuration setWelcomeLeaveMessage(String welcomeLeaveMessage) {
-        this.welcomeLeaveMessage = welcomeLeaveMessage;
+        if (welcomeLeaveMessage != null) this.welcomeLeaveMessage = welcomeLeaveMessage;
         return this;
     }
     
     public Configuration setWelcomeImageUrl(String welcomeImageUrl) {
-        this.welcomeImageUrl = welcomeImageUrl;
+        if (welcomeImageUrl != null) this.welcomeImageUrl = welcomeImageUrl;
         return this;
     }
 
-    public Configuration setJoinRoleId(long joinRoleId) {
-        this.joinRoleId = joinRoleId;
-        return this;
-    }
-
-    public Configuration setJoinBotRoleId(long joinBotRoleId) {
-        this.joinBotRoleId = joinBotRoleId;
+    public Configuration setJoinRole(Role joinRole) {
+        if (joinRole != null) this.joinRoleId = joinRole.getIdLong();
         return this;
     }
     
-    public Configuration setVerifiedRoleId(long verifiedRoleId) {
-        this.verifiedRoleId = verifiedRoleId;
+    public Configuration setJoinBotRoleId(Long joinBotRoleId) {
+        if (joinBotRoleId != null) this.joinBotRoleId = joinBotRoleId;
         return this;
     }
 
-    public Configuration setMarkovEnabled(boolean markovEnabled) {
-        this.markovEnabled = markovEnabled;
+    public Configuration setJoinBotRole(Role joinBotRole) {
+        if (joinBotRole != null) this.joinBotRoleId = joinBotRole.getIdLong();
+        return this;
+    }
+    
+    public Configuration setJoinRoleId(Long joinRoleId) {
+        if (joinRoleId != null) this.joinRoleId = joinRoleId;
+        return this;
+    }
+    
+    public Configuration setVerifiedRole(Role verifiedRole) {
+        if (verifiedRole != null) this.verifiedRoleId = verifiedRole.getIdLong();
+        return this;
+    }
+    
+    public Configuration setVerifiedRoleId(Long verifiedRoleId) {
+        if (verifiedRoleId != null) this.verifiedRoleId = verifiedRoleId;
         return this;
     }
 
-    public Configuration setMarkovBlackList(String markovBlackList) {
-        this.markovBlackList = markovBlackList;
+    public Configuration setMarkovEnabled(Boolean markovEnabled) {
+        if (markovEnabled != null) this.markovEnabled = markovEnabled;
         return this;
     }
 
-    public Configuration setModerationEnabled(boolean moderationEnabled) {
-        this.moderationEnabled = moderationEnabled;
+    public Configuration setMarkovBlackList(List<Long> markovBlackList) {
+        if (markovBlackList != null) this.markovBlackList = markovBlackList;
+        return this;
+    }
+    
+    public Configuration addMarkovBlacklist(IMentionable mentionable) {
+        if (mentionable != null && !this.markovBlackList.contains(mentionable.getIdLong())) this.markovBlackList.add(mentionable.getIdLong());
+        return this;
+    }
+    
+    public Configuration addIdMarkovBlacklist(Long id) {
+        if (id != null && !this.markovBlackList.contains(id)) this.markovBlackList.add(id);
+        return this;
+    }
+    
+    public Configuration removeMarkovBlacklist(IMentionable mentionable) {
+        if (mentionable != null) this.markovBlackList.remove(mentionable.getIdLong());
+        return this;
+    }
+    
+    public Configuration removeIdMarkovBlacklist(Long id) {
+        if (id != null) this.markovBlackList.remove(id);
+        return this;
+    }
+
+    public Configuration setModerationEnabled(Boolean moderationEnabled) {
+        if (moderationEnabled != null) this.moderationEnabled = moderationEnabled;
         return this;
     }
     
     public Configuration setRules(String rules) {
-        this.rules = rules;
+        if (rules != null) this.rules = rules;
         return this;
     }
     
-    public Configuration setAutoResponseEnabled(boolean autoResponseEnabled) {
-        this.autoResponseEnabled = autoResponseEnabled;
+    public Configuration setAutoResponseEnabled(Boolean autoResponseEnabled) {
+        if (autoResponseEnabled != null) this.autoResponseEnabled = autoResponseEnabled;
         return this;
     }
 
-    public Configuration setCountingEnabled(boolean countingEnabled) {
-        this.countingEnabled = countingEnabled;
+    public Configuration setCountingEnabled(Boolean countingEnabled) {
+        if (countingEnabled != null) this.countingEnabled = countingEnabled;
         return this;
     }
 
-    public Configuration setCountingCommentsEnabled(boolean countingCommentsEnabled) {
-        this.countingCommentsEnabled = countingCommentsEnabled;
+    public Configuration setCountingCommentsEnabled(Boolean countingCommentsEnabled) {
+        if (countingCommentsEnabled != null) this.countingCommentsEnabled = countingCommentsEnabled;
         return this;
     }
 
-    public Configuration setCountingPenaltyEnabled(boolean countingPenaltyEnabled) {
-        this.countingPenaltyEnabled = countingPenaltyEnabled;
+    public Configuration setCountingPenaltyEnabled(Boolean countingPenaltyEnabled) {
+        if (countingPenaltyEnabled != null) this.countingPenaltyEnabled = countingPenaltyEnabled;
         return this;
     }
-
-    public Configuration setCountingChannelId(long countingChannelId) {
-        this.countingChannelId = countingChannelId;
+    
+    public Configuration setCountingChannel(GuildMessageChannel messageChannel) {
+        if (messageChannel != null) this.countingChannelId = messageChannel.getIdLong();
+        return this;
+    }
+    
+    public Configuration setCountingChannelId(Long countingChannelId) {
+        if (countingChannelId != null) this.countingChannelId = countingChannelId;
         return this;
     }
     

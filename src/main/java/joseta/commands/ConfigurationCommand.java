@@ -15,7 +15,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 @InteractionModule
 public class ConfigurationCommand {
-    // TODO Logic implementation
+    
     @SlashCommandInteraction(name = "config welcome", description = "Configure les paramètres du bot - Catégorie: Bienvenue.")
     public void configWelcome(SlashCommandInteractionEvent event,
                               @Option(description = "Activer ou désactiver le système de bienvenue.") Boolean enabled,
@@ -27,48 +27,75 @@ public class ConfigurationCommand {
                               @Option(description = "Le rôle à attribuer aux nouveaux bots.") Role joinBotRole,
                               @Option(description = "Le rôle à donner aux membres vérifiés.") Role verifiedRole)
     {
-        
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null) {
+            config = new Configuration(event.getGuild().getIdLong());
+            Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
+        }
         
-        Log.info(config);
-        Log.info("Enabled: " + enabled);
-        Log.info("Channel: " + channel);
-        Log.info("Image Enabled: " + imageEnabled);
-        Log.info("Join Message: " + joinMessage);
-        Log.info("Leave Message: " + leaveMessage);
-        Log.info("Join Role: " + joinRole);
-        Log.info("Join Bot Role: " + joinBotRole);
-        Log.info("Verified Role: " + verifiedRole);
-        //
-        // config.setWelcomeEnabled(enabled)
-        //       .setWelcomeChannelId(channel != null ? channel.getIdLong() : null)
-        //       .setWelcomeImageEnabled(imageEnabled)
-        //       .setWelcomeJoinMessage(joinMessage)
-        //       .setWelcomeLeaveMessage(leaveMessage)
-        //       .setJoinRoleId(joinRole != null ? joinRole.getIdLong() : null)
-        //       .setJoinBotRoleId(joinBotRole != null ? joinBotRole.getIdLong() : null)
-        //       .setVerifiedRoleId(verifiedRole != null ? verifiedRole.getIdLong() : null);
+        config.setWelcomeEnabled(enabled)
+              .setWelcomeChannel(channel)
+              .setWelcomeImageEnabled(imageEnabled)
+              .setWelcomeJoinMessage(joinMessage)
+              .setWelcomeLeaveMessage(leaveMessage)
+              .setJoinRole(joinRole)
+              .setJoinBotRole(joinBotRole)
+              .setVerifiedRole(verifiedRole);
+        
+        Database.createOrUpdate(config);
+        event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "config markov", description = "Configure les paramètres du bot - Catégorie: Markov.")
     public void configMarkov(SlashCommandInteractionEvent event,
-                             @Option(description = "Activer ou désactiver la génération de messages de Markov.") boolean enabled,
+                             @Option(description = "Activer ou désactiver la génération de messages de Markov.") Boolean enabled,
                              @Option(description = "Le membre ou rôle à ajouter à la blacklist pour la génération de messages de Markov.") IMentionable addMentionableBlacklist,
                              @Option(description = "Le membre ou rôle à retirer de la blacklist pour la génération de messages de Markov.") IMentionable removeMentionableBlacklist,
                              @Option(description = "Le salon, thread ou catégorie à ajouter à la blacklist pour la génération de messages de Markov.") GuildChannel addChannelBlacklist,
                              @Option(description = "Le salon, thread ou catégorie à retirer de la blacklist pour la génération de messages de Markov.") GuildChannel removeChannelBlacklist)
     {
-    
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null) {
+            config = new Configuration(event.getGuild().getIdLong());
+            Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
+        }
+        
+        config.setMarkovEnabled(enabled)
+              .addMarkovBlacklist(addMentionableBlacklist)
+              .removeMarkovBlacklist(removeMentionableBlacklist)
+              .addMarkovBlacklist(addChannelBlacklist)
+              .removeMarkovBlacklist(removeChannelBlacklist);
+        
+        Database.createOrUpdate(config);
+        event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "config moderation", description = "Configure les paramètres du bot - Catégorie: Modération.")
     public void configModeration(SlashCommandInteractionEvent event, @Option(description = "Activer ou désactiver les fonctionnalités de modération.") Boolean enabled) {
-    
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null) {
+            config = new Configuration(event.getGuild().getIdLong());
+            Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
+        }
+        
+        config.setModerationEnabled(enabled);
+        
+        Database.createOrUpdate(config);
+        event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "config auto_response", description = "Configure les paramètres du bot - Catégorie: Réponse automatique.")
     public void configAutoResponse(SlashCommandInteractionEvent event, @Option(description = "Activer ou désactiver les réponses automatiques.") Boolean enabled) {
-    
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null) {
+            config = new Configuration(event.getGuild().getIdLong());
+            Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
+        }
+        
+        config.setAutoResponseEnabled(enabled);
+        
+        Database.createOrUpdate(config);
+        event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "config counting", description = "Configure les paramètres du bot - Catégorie: Comptage.")
@@ -77,7 +104,19 @@ public class ConfigurationCommand {
                                @Option(description = "Activer ou désactiver les commentaires.") Boolean commentsEnabled,
                                @Option(description = "Activer ou désactiver la pénalité en cas d'erreur de comptage.") Boolean penaltyEnabled,
                                @Option(description = "Le salon de comptage.") GuildMessageChannel channel)
-     {
-    
+    {
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null) {
+            config = new Configuration(event.getGuild().getIdLong());
+            Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
+        }
+        
+        config.setCountingEnabled(enabled)
+              .setCountingCommentsEnabled(commentsEnabled)
+              .setCountingPenaltyEnabled(penaltyEnabled)
+              .setCountingChannel(channel);
+        
+        Database.createOrUpdate(config);
+        event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
 }

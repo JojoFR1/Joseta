@@ -48,7 +48,7 @@ public class EventProcessor {
                 
                 Event event = new Event(eventClass, method, eventAnnotation.guildOnly());
                 if (eventMethods.get(eventType.getEventClass()) == null)
-                    eventMethods.put(eventType.getEventClass(), new ArrayList<>() {{ add(event); }});
+                    eventMethods.put(eventType.getEventClass(), new ArrayList<>(List.of(event)));
                 else
                     eventMethods.get(eventType.getEventClass()).add(event);
                 
