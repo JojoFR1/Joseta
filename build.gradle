@@ -26,11 +26,11 @@ dependencies {
     implementation 'org.reflections:reflections:0.10.2'
 
     implementation 'org.postgresql:postgresql:42.7.8'
-    implementation 'org.hibernate:hibernate-core:7.1.10.Final'
+    implementation 'org.hibernate:hibernate-core:7.1.11.Final'
     // Hibernate Processor
-    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.1.10.Final'
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.1.11.Final'
     // Agroal connection pool
-    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.10.Final'
+    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.1.11.Final'
 }
 
 apply from: 'gradle/jdaEventEnumCodeGen.gradle'
