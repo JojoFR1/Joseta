@@ -16,7 +16,7 @@ sourceSets.main.java.srcDir generatedSourcesDir
 repositories { mavenCentral() }
 
 dependencies {
-    implementation('net.dv8tion:JDA:6.1.2') {
+    implementation('net.dv8tion:JDA:6.1.3') {
       // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
       exclude module: 'opus-java'
       exclude module: 'tink'
