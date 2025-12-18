@@ -4,10 +4,9 @@ import joseta.annotations.EventModule;
 import joseta.annotations.types.Event;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
+import joseta.events.misc.CountingChannel;
 import joseta.generated.EventType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 
 import java.util.regex.Pattern;
 
@@ -35,5 +34,14 @@ public class MiscEvents {
         String text = event.getMessage().getContentRaw();
         if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find())
             event.getMessage().reply(autoResponseMessage + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
+    }
+    
+    @Event(type = EventType.MESSAGE_RECEIVED)
+    public void countingCheck(MessageReceivedEvent event) {
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null || !config.countingEnabled) return;
+        
+        if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
+        CountingChannel.check(event.getChannel(), event.getMessage());
     }
 }

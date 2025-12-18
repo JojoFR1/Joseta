@@ -18,9 +18,8 @@ public class CountingChannel {
     
     // Start with a number
     private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
-    // TODO unhardcode the emojis
-    private static final Emoji checkEmoji = Emoji.fromCustom("yes", 1350065422975766528L, false);
-    private static final Emoji crossEmoji = Emoji.fromCustom("no", 1350065407750443059L, false);
+    private static final Emoji checkEmoji = Emoji.fromCustom("yes", 1451286173791031337L, false);
+    private static final Emoji crossEmoji = Emoji.fromCustom("no", 1451286184817987719L, false);
     
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch

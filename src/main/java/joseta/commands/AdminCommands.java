@@ -5,6 +5,7 @@ import joseta.annotations.types.*;
 import joseta.annotations.types.SlashCommandInteraction;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
+import joseta.events.misc.CountingChannel;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.components.actionrow.*;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -80,7 +81,7 @@ public class AdminCommands {
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
-        Configuration config = Database.get(Configuration.class, guild);
+        Configuration config = Database.get(Configuration.class, guild.getIdLong());
         
         String rules = config.rules;
         if (rules == null || rules.isBlank()) return List.of();
@@ -132,17 +133,32 @@ public class AdminCommands {
             return;
         }
         
-        
+        CountingChannel.setNumber(number);
+        event.reply("Le dernier nombre du salon de comptage a été mis à jour.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "admin counting reset_number", description = "Réinitialise le nombre actuel à 0 pour le système de comptage.")
     public void countingResetNumber(SlashCommandInteractionEvent event) {
-        event.reply("Counting number reset to 0").queue();
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (!config.countingEnabled) {
+            event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
+            return;
+        }
+        
+        CountingChannel.setNumber(0L);
+        event.reply("Le dernier nombre du salon de comptage a été réinitialisé à 0.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "admin counting reset_author", description = "Réinitialise l'auteur du dernier nombre pour le système de comptage.")
     public void countingResetAuthor(SlashCommandInteractionEvent event) {
-        event.reply("Counting author reset").queue();
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (!config.countingEnabled) {
+            event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
+            return;
+        }
+        
+        CountingChannel.setAuthorId(-1);
+        event.reply("L'ID du dernier auteur dans comptage a été reinitialiser.").setEphemeral(true).queue();
     }
     //#endregion
 }
