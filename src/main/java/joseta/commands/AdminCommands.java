@@ -26,6 +26,7 @@ import java.util.List;
 
 @InteractionModule
 public class AdminCommands {
+    private static final ActionRow rulesAcceptButton = ActionRow.of(Button.success("btn-rules_accept", "Accepter"));
     
     //#region Rules Commands
     @SlashCommandInteraction(name = "admin rules send", description = "Envoie les règles dans un salon.")
@@ -33,13 +34,12 @@ public class AdminCommands {
                           @Option(description = "Le salon où envoyez les règles.", required = true) GuildMessageChannel channel)
     {
         List<MessageEmbed> embeds = buildRulesEmbeds(event.getGuild());
-        channel.sendMessageEmbeds(embeds).setComponents(
-            ActionRow.of(Button.success("btn-rules_accept", "Accepter"))
-        ).queue();
+        channel.sendMessageEmbeds(embeds).setComponents(rulesAcceptButton).queue(
+            s -> event.reply("Les règles ont été envoyées avec succès dans " + channel.getAsMention() + ".").setEphemeral(true).queue(),
+            f -> event.reply("Échec de l'envoi des règles dans " + channel.getAsMention() + ". Veuillez réessayer plus tard.").setEphemeral(true).queue()
+        );
         
         //TODO save message ID to database to update later
-        
-        event.reply("Les règles ont été envoyées avec succès dans " + channel.getAsMention() + ".").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "admin rules update", description = "Met à jour les règles dans un salon.")
@@ -58,11 +58,10 @@ public class AdminCommands {
         }
         
         List<MessageEmbed> embeds = buildRulesEmbeds(event.getGuild());
-        message.editMessageEmbeds(embeds).setComponents(
-            ActionRow.of(Button.success("btn-rules_accept", "Accepter"))
-        ).queue();
-        
-        event.reply("Les règles ont été mises à jour avec succès dans " + channel.getAsMention() + ".").setEphemeral(true).queue();
+        message.editMessageEmbeds(embeds).setComponents(rulesAcceptButton).queue(
+            s -> event.reply("Les règles ont été mises à jour avec succès dans " + channel.getAsMention() + ".").setEphemeral(true).queue(),
+            f -> event.reply("Échec de la mise à jour des règles dans " + channel.getAsMention() + ". Veuillez réessayer plus tard.").setEphemeral(true).queue()
+        );
     }
     
     @ButtonInteraction(id = "btn-rules_accept")
