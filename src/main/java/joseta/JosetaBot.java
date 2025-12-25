@@ -14,6 +14,7 @@ import okhttp3.*;
 import java.util.concurrent.*;
 
 public class JosetaBot {
+    public static JDA instance;
     private static boolean debug = false;
 
     /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
@@ -38,7 +39,7 @@ public class JosetaBot {
             System.exit(1);
         }
 
-        JDA bot = JDABuilder.createDefault(dotenv.get("TOKEN"))
+        instance = JDABuilder.createDefault(dotenv.get("TOKEN"))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
             .enableIntents(GatewayIntent.GUILD_MESSAGES,
                            GatewayIntent.GUILD_MEMBERS,
@@ -47,15 +48,15 @@ public class JosetaBot {
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
 
-        registerShutdown(bot);
+        registerShutdown(instance);
 
-        try { bot.awaitReady(); } catch (InterruptedException e) {
-            Log.err("An error occurred while waiting for the bot to be ready (connected).", e);
+        try { instance.awaitReady(); } catch (InterruptedException e) {
+            Log.err("An error occurred while waiting for the instance to be ready (connected).", e);
             System.exit(1);
         }
 
-        InteractionProcessor.initialize(bot, "joseta.commands");
-        EventProcessor.initialize(bot, "joseta.events", "joseta.commands");
+        InteractionProcessor.initialize(instance, "joseta.commands");
+        EventProcessor.initialize(instance, "joseta.events", "joseta.commands");
         
         //TODO check for guilds, members, etc. and add them to the database if they don't exist, or remove them if they don't exist anymore
     }
