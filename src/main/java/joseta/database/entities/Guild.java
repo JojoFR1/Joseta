@@ -20,16 +20,16 @@ public class Guild {
         this.name = name;
     }
     
-
+    public Guild setId(long id) {
+        this.id = id;
+        return this;
+    }
+    
     public Guild setName(String name) {
         this.name = name;
         return this;
     }
     
-    public Guild setId(long id) {
-        this.id = id;
-        return this;
-    }
     
     public Guild setIconUrl(String iconUrl) {
         this.iconUrl = iconUrl;
@@ -38,6 +38,16 @@ public class Guild {
 
     public Guild setOwnerId(long ownerId) {
         this.ownerId = ownerId;
+        return this;
+    }
+    
+    public Guild setLastSanctionId(int lastSanctionId) {
+        this.lastSanctionId = lastSanctionId;
+        return this;
+    }
+    
+    public Guild incrementLastSanctionId() {
+        this.lastSanctionId += 1;
         return this;
     }
 }

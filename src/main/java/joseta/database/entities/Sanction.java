@@ -56,6 +56,11 @@ public class Sanction {
         return this;
     }
     
+    public Sanction setSanctionIdNumber(int sanctionIdNumber) {
+        this.sanctionId = this.sanctionId.charAt(0) + String.valueOf(sanctionIdNumber);
+        return this;
+    }
+    
     public Sanction setUserId(long userId) {
         this.userId = userId;
         return this;
