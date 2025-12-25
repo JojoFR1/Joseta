@@ -1,11 +1,17 @@
 package joseta.database;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 import joseta.annotations.*;
 import joseta.database.entities.*;
 import joseta.utils.Log;
+import joseta.utils.function.Consumer2;
+import joseta.utils.function.Function2;
 import org.hibernate.*;
 import org.hibernate.jpa.*;
+import org.hibernate.query.MutationQuery;
+import org.hibernate.query.SelectionQuery;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.hibernate.tool.schema.*;
 import org.reflections.*;
 
@@ -167,6 +173,18 @@ public class Database {
     }
     
     /**
+     * Obtain a {@link HibernateCriteriaBuilder} which may be used to {@linkplain HibernateCriteriaBuilder#createQuery(Class) construct} {@linkplain org.hibernate.query.criteria.JpaCriteriaQuery criteria queries}.
+     *
+     * @return The criteria builder.
+     *
+     * @throws IllegalStateException If the database has not been initialized yet.
+     */
+    public static HibernateCriteriaBuilder getCriteriaBuilder() {
+        if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        return sessionFactory.getCriteriaBuilder();
+    }
+    
+    /**
      * Create (or insert) new objects in the database.
      *
      * @param objects The objects to create.
@@ -236,5 +254,40 @@ public class Database {
             session.remove(object);
             transaction.commit();
         }
+    }
+    
+    public static <E> SelectionQuery<E> querySelect(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> func) {
+        return querySelect(clazz, func, null);
+    }
+    
+    public static <E> SelectionQuery<E> querySelect(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> queryFunc, Function2<Order, HibernateCriteriaBuilder, Root<E>> orderFunc) {
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
+        CriteriaQuery<E> query = criteriaBuilder.createQuery(clazz);
+        Root<E> root = query.from(clazz);
+        query.select(root).where(queryFunc.get(criteriaBuilder, root));
+        if (orderFunc != null) query.orderBy(orderFunc.get(criteriaBuilder, root));
+        
+        return getSession().createSelectionQuery(query);
+    }
+    
+    public static <E> MutationQuery queryUpdate(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> whereFunc, Consumer2<CriteriaUpdate<E>, Root<E>> setFunc, Session session) {
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
+        CriteriaUpdate<E> update = criteriaBuilder.createCriteriaUpdate(clazz);
+        Root<E> root = update.from(clazz);
+        Predicate where = whereFunc.get(criteriaBuilder, root);
+        update.where(where);
+        setFunc.apply(update, root);
+        
+        return session.createMutationQuery(update);
+    }
+    
+    public static <E> MutationQuery queryDelete(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> func, Session session) {
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
+        CriteriaDelete<E> delete = criteriaBuilder.createCriteriaDelete(clazz);
+        Root<E> root = delete.from(clazz);
+        Predicate where = func.get(criteriaBuilder, root);
+        delete.where(where);
+        
+        return session.createMutationQuery(delete);
     }
 }

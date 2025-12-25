@@ -24,10 +24,9 @@ public class Configuration {
     @Column public Long verifiedRoleId = null;
     
     @Column public Boolean markovEnabled = false;
-    @Column @ElementCollection(fetch = FetchType.EAGER) public List<Long> markovBlackList = new ArrayList<Long>();
+    @Column @ElementCollection(fetch = FetchType.EAGER) public List<Long> markovBlackList = new ArrayList<>();
     
     @Column public Boolean moderationEnabled = true;
-    
     @Column public String rules = "";
 
     @Column public Boolean autoResponseEnabled = false;
