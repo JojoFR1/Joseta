@@ -1,5 +1,6 @@
 package joseta.events.misc;
 
+import joseta.JosetaBot;
 import joseta.database.*;
 import joseta.database.entities.Configuration;
 import joseta.utils.Log;
@@ -18,8 +19,10 @@ public class CountingChannel {
     
     // Start with a number
     private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
-    private static final Emoji checkEmoji = Emoji.fromCustom("yes", 1451286173791031337L, false);
-    private static final Emoji crossEmoji = Emoji.fromCustom("no", 1451286184817987719L, false);
+    // private static final Emoji checkEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1451286173791031337L).complete();
+    private static final Emoji checkEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1459377029328801832L).complete();
+    // private static final Emoji crossEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1451286184817987719L).complete();
+    private static final Emoji crossEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1459377027747680266L).complete();
     
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch
