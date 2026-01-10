@@ -64,7 +64,6 @@ public class EventProcessor {
             StatusChangeEvent.class,
             HttpRequestEvent.class,
             GatewayPingEvent.class,
-            GuildReadyEvent.class,
             ReadyEvent.class,
             ShutdownEvent.class,
             SessionDisconnectEvent.class,
@@ -81,14 +80,20 @@ public class EventProcessor {
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
-                    // TODO very bad for performance, find a better way
-                    if (eventAnnotation.isGuildOnly()
-                        && !(Boolean) event.getClass().getMethod("isFromGuild").invoke(event)) continue;
+                    // TODO very bad for performance, find a better way to check if the event is from a guild
+                    Method isFromGuildMethod;
+                    try { isFromGuildMethod = event.getClass().getMethod("isFromGuild"); } catch (NoSuchMethodException e) { isFromGuildMethod = null; }
+                    if (eventAnnotation.isGuildOnly() && (isFromGuildMethod != null && !(boolean)isFromGuildMethod.invoke(event)))
+                        continue;
+                    
+                    // TODO also bad, cache instances? might need new instance each time depending on use case
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
                     
                     eventAnnotation.getMethod().invoke(o, event);
                 } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                    Log.warn("An error occurred while processing an event. {}", e);
+                    Log.warn("An error occurred before or while executing an event. {}", e);
+                } catch (Exception e) {
+                    Log.warn("An unexpected error occurred while executing the event" + eventAnnotation.getMethod().getClass().getName() + "." + eventAnnotation.getMethod().getName(), e);
                 }
             }
         }
