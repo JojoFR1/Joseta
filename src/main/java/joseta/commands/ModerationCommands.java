@@ -263,6 +263,7 @@ public class ModerationCommands {
     
     private boolean check(SlashCommandInteractionEvent event, Member member) {
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Member executor = event.getMember();
         
         if (!config.moderationEnabled) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();
@@ -280,7 +281,10 @@ public class ModerationCommands {
             event.reply("Ce membre est un robot ou un compte système, vous ne pouvez pas le sanctionner.").setEphemeral(true).queue();
             return false;
         }
-        if (event.getMember().getRoles().get(0).getPosition() < member.getRoles().get(0).getPosition()) {
+        if (member.getRoles().isEmpty() && !executor.getRoles().isEmpty()) {
+            return true;
+        }
+        if (executor.getRoles().isEmpty() || executor.getRoles().getFirst().getPosition() < member.getRoles().getFirst().getPosition()) {
             event.reply("Ce membre a un rôle supérieur au votre, vous ne pouvez pas le sanctionner.").setEphemeral(true).queue();
             return false;
         }
