@@ -139,7 +139,10 @@ public class ModerationCommands {
                 event.reply("Le membre a bien été mis en timeout.").setEphemeral(true).queue();
                 
                 member.getUser().openPrivateChannel().queue(
-                    channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + TimeParser.parse(time)) + ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***").queue()
+                    channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
+                        " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + TimeParser.parse(time)) +
+                        ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
                 SanctionDatabase.addSanction(Sanction.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
@@ -184,7 +187,10 @@ public class ModerationCommands {
                 event.reply("Le membre a bien été expulsé.").setEphemeral(true).queue();
                 
                 member.getUser().openPrivateChannel().queue(
-                    channel -> channel.sendMessage("Vous avez été expulsé du serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***").queue()
+                    channel -> channel.sendMessage(
+                        "Vous avez été expulsé du serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
+                            " pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
                 SanctionDatabase.addSanction(Sanction.SanctionType.KICK, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);
@@ -216,7 +222,11 @@ public class ModerationCommands {
             s -> {
                 event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
                 member.getUser().openPrivateChannel().queue(
-                    channel -> channel.sendMessage("Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() + " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) + ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***").queue()
+                    channel -> channel.sendMessage(
+                        "Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
+                            " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
+                            ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
                 SanctionDatabase.addSanction(Sanction.SanctionType.BAN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
@@ -273,7 +283,7 @@ public class ModerationCommands {
             event.reply("Ce membre n'existe pas ou n'est pas présent sur le serveur. Vérifiez que l'identifiant est correct.").setEphemeral(true).queue();
             return false;
         }
-        if (event.getMember().equals(member)) {
+        if (executor.equals(member)) {
             event.reply("Ce membre est vous-même, vous ne pouvez pas vous auto-sanctionner").setEphemeral(true).queue();
             return false;
         }
