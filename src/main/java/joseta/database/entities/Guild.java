@@ -10,14 +10,23 @@ public class Guild {
     @Column public String iconUrl;
     @Column public long ownerId;
     
-    @Column public int lastSanctionId = -1;
+    @Column public int lastSanctionId = 0;
 
     // A non-private and no-arg constructor is required by JPA
     protected Guild() {}
-
-    public Guild(long id, String name) {
+    
+    public Guild(net.dv8tion.jda.api.entities.Guild guild) {
+        this(guild.getIdLong(),
+             guild.getName(),
+             guild.getIconUrl(),
+             guild.getOwnerIdLong());
+    }
+    
+    public Guild(long id, String name, String iconUrl, long ownerId) {
         this.id = id;
         this.name = name;
+        this.iconUrl = iconUrl;
+        this.ownerId = ownerId;
     }
     
     public Guild setId(long id) {
@@ -29,7 +38,6 @@ public class Guild {
         this.name = name;
         return this;
     }
-    
     
     public Guild setIconUrl(String iconUrl) {
         this.iconUrl = iconUrl;

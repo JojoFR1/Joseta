@@ -4,6 +4,7 @@ import ch.qos.logback.classic.*;
 import io.github.cdimascio.dotenv.*;
 import joseta.annotations.*;
 import joseta.database.*;
+import joseta.database.entities.Configuration;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -47,7 +48,10 @@ public class JosetaBot {
             .setStatus(OnlineStatus.DO_NOT_DISTURB)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
-
+        
+        InteractionProcessor.initialize(instance, "joseta.commands");
+        EventProcessor.initialize(instance, "joseta.events", "joseta.commands");
+        
         registerShutdown(instance);
 
         try { instance.awaitReady(); } catch (InterruptedException e) {
@@ -55,12 +59,10 @@ public class JosetaBot {
             System.exit(1);
         }
 
-        InteractionProcessor.initialize(instance, "joseta.commands");
-        EventProcessor.initialize(instance, "joseta.events", "joseta.commands");
         
         //TODO check for guilds, members, etc. and add them to the database if they don't exist, or remove them if they don't exist anymore
     }
-
+    
     private static void registerShutdown(JDA bot) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             bot.setAutoReconnect(false);
