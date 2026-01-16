@@ -1,39 +1,29 @@
 package joseta.database.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 
 @Entity @Table(name = "reminders")
 public class Reminder {
-    @Id public long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
     
     @Column public long guildId;
     @Column public long channelId;
     @Column public long userId;
     @Column public String message;
-    @Column public Instant time;
+    @Column public Instant remindAt;
     
     // A non-private and no-arg constructor is required by JPA
     protected Reminder() {}
     
-    public Reminder(long guildId, long channelId, long userId, String message, long time) {
-        this.id = System.currentTimeMillis();
-        
+    public Reminder(long guildId, long channelId, long userId, String message, Instant remindAt) {
         this.guildId = guildId;
         this.channelId = channelId;
         this.userId = userId;
         this.message = message;
-        this.time = Instant.now().plusSeconds(time);
-    }
-    
-    
-    public Reminder setId(long id) {
-        this.id = id;
-        return this;
+        this.remindAt = remindAt;
     }
     
     public Reminder setGuildId(long guildId) {
@@ -56,8 +46,8 @@ public class Reminder {
         return this;
     }
     
-    public Reminder setTime(Instant time) {
-        this.time = time;
+    public Reminder setRemindAt(Instant remindAt) {
+        this.remindAt = remindAt;
         return this;
     }
 }

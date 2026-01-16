@@ -2,8 +2,15 @@ package joseta.commands;
 
 import joseta.annotations.*;
 import joseta.annotations.types.*;
+import joseta.database.Database;
+import joseta.database.entities.Reminder;
 import joseta.events.MiscEvents;
+import joseta.events.ScheduledEvents;
+import joseta.utils.TimeParser;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.*;
+
+import java.time.Instant;
 
 @InteractionModule
 public class MiscCommands {
@@ -33,12 +40,22 @@ public class MiscCommands {
                             @Option(description = "Le message du rappel.", required = true) String message,
                             @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time)
     {
+        long timeSeconds = TimeParser.parse(time);
         
+        long userId = event.getUser().getIdLong();
+        if (message.length() > ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(userId).length()) {
+            event.reply("Le message de rappel est trop long. La longueur maximale est de " + (Message.MAX_CONTENT_LENGTH - ScheduledEvents.REMINDER_PREMESSAGE.length()) + " caractères.").setEphemeral(true).queue();
+            return;
+        }
+        
+        Instant remindAt = Instant.now().plusSeconds(timeSeconds);
+        Database.create(new Reminder(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));
+        event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
-    
+        event.reply("Cette fonctionnalité n'est pas encore implémentée.").setEphemeral(true).queue();
     }
     //#endregion
 }

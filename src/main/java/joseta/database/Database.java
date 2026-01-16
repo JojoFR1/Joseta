@@ -211,6 +211,16 @@ public class Database {
         try (Session session = getSession()) { return session.find(clazz, id); }
     }
     
+    public static <T> List<T> getAll(Class<T> clazz) {
+        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
+        CriteriaQuery<T> query = criteriaBuilder.createQuery(clazz);
+        query.from(clazz);
+        
+        try (Session session = getSession()) {
+            return session.createSelectionQuery(query).getResultList();
+        }
+    }
+    
     /**
      * Update an existing object in the database.
      *
