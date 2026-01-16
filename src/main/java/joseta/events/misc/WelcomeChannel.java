@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
 
 public class WelcomeChannel {
@@ -19,15 +20,25 @@ public class WelcomeChannel {
     
     static {
         try {
-            welcomeImage = ImageIO.read(new File("resources/welcomeImageBase.png"));
+            // TODO should be configurable URL? either stay static or allow custom per server
+            InputStream imgStream = WelcomeChannel.class.getResourceAsStream("/welcomeImageBase.png");
+            if (imgStream == null)
+                throw new IOException("Could not load image resource: /welcomeImageBase.png.");
+            
+            welcomeImage = ImageIO.read(imgStream);
             imageLoaded = true;
         } catch (IOException e) {
             imageLoaded = false;
         }
         
         try {
-            font = Font.createFont(Font.TRUETYPE_FONT, new File("resources/Audiowide-Regular.ttf")).deriveFont(25f);
+            InputStream is = WelcomeChannel.class.getResourceAsStream("/Audiowide-Regular.ttf");
+            if (is == null)
+                throw new IOException("Could not load font resource: /Audiowide-Regular.ttf.");
+            
+            font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(25f);
         } catch (IOException | FontFormatException e) {
+            Log.err("Could not load the welcome image font, defaulting to Arial.", e);
             font = new Font("Arial", Font.PLAIN, 30);
         }
     }
