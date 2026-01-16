@@ -4,7 +4,6 @@ import ch.qos.logback.classic.*;
 import io.github.cdimascio.dotenv.*;
 import joseta.annotations.*;
 import joseta.database.*;
-import joseta.database.entities.Configuration;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -15,7 +14,9 @@ import okhttp3.*;
 import java.util.concurrent.*;
 
 public class JosetaBot {
-    public static JDA instance;
+    private static JDA botInstance;
+    public static JDA get() { return botInstance; }
+    
     private static boolean debug = false;
 
     /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
@@ -40,7 +41,7 @@ public class JosetaBot {
             System.exit(1);
         }
 
-        instance = JDABuilder.createDefault(dotenv.get("TOKEN"))
+        botInstance = JDABuilder.createDefault(dotenv.get("TOKEN"))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
             .enableIntents(GatewayIntent.GUILD_MESSAGES,
                            GatewayIntent.GUILD_MEMBERS,
@@ -49,12 +50,12 @@ public class JosetaBot {
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
         
-        InteractionProcessor.initialize(instance, "joseta.commands");
-        EventProcessor.initialize(instance, "joseta.events", "joseta.commands");
+        InteractionProcessor.initialize(botInstance, "joseta.commands");
+        EventProcessor.initialize(botInstance, "joseta.events", "joseta.commands");
         
-        registerShutdown(instance);
+        registerShutdown(botInstance);
 
-        try { instance.awaitReady(); } catch (InterruptedException e) {
+        try { botInstance.awaitReady(); } catch (InterruptedException e) {
             Log.err("An error occurred while waiting for the instance to be ready (connected).", e);
             System.exit(1);
         }

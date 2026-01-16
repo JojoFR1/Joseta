@@ -14,7 +14,7 @@ public class MiscCommands {
         long gatewayPing = event.getJDA().getGatewayPing();
         
         event.reply("Pinging...").queue(reply ->
-            reply.editOriginal("Pong! Latency: "+ (System.currentTimeMillis() - startTime) +"ms | API Latency: "+ gatewayPing +"ms").queue()
+            reply.editOriginal("Pong! Latence: "+ (System.currentTimeMillis() - startTime) +"ms | Latence API : "+ gatewayPing +"ms").queue()
         );
     }
     

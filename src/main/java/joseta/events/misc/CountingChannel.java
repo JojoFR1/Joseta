@@ -19,10 +19,11 @@ public class CountingChannel {
     
     // Start with a number
     private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
+    // TODO should be moved elsewhere
     // private static final Emoji checkEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1451286173791031337L).complete();
-    private static final Emoji checkEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1459377029328801832L).complete();
+    private static final Emoji checkEmoji = JosetaBot.get().retrieveApplicationEmojiById(1459377029328801832L).complete();
     // private static final Emoji crossEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1451286184817987719L).complete();
-    private static final Emoji crossEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1459377027747680266L).complete();
+    private static final Emoji crossEmoji = JosetaBot.get().retrieveApplicationEmojiById(1459377027747680266L).complete();
     
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch
