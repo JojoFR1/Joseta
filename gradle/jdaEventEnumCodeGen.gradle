@@ -167,6 +167,16 @@ tasks.register('generateJdaEventEnum') {
                 entry.append(javadoc).append("\n")
                 entry.append("     */\n")
             }
+            // Append the annotation (like Deprecated) if present
+            def annotations = cls.getAnnotations().collect {
+                "@${it.annotationType().getName()}(${it.toString().replaceAll(/^@[\w.]+\(/, "").replaceAll(/\)$/, "")})"
+            }.join("\n    ")
+//            def annotations = cls.getAnnotations().collect {
+//                it.toString()
+//            }.join("\n    ")
+            if (!annotations.isEmpty()) {
+                entry.append("    ${annotations}\n")
+            }
             entry.append("    ${enumConstantName}(${cls.getName()}.class)")
         }.join(",\n")
         sourceCode.append(enumValues)
