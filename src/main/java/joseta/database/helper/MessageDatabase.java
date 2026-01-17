@@ -26,23 +26,26 @@ public class MessageDatabase {
         int count = 0;
         Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         for (GuildChannel channel : guild.getChannels()) {
+            Configuration config = Database.get(Configuration.class, guild.getIdLong());
+            Set<Long> markovBlackList = config.markovBlackList;
+            
             if (!(channel instanceof GuildMessageChannel messageChannel)) continue;
-            count += addChannelMessageHistory(messageChannel, guild);
+            count += addChannelMessageHistory(messageChannel, guild, markovBlackList);
             
             if (channel instanceof StandardGuildMessageChannel standardChannel) {
                 for (ThreadChannel thread : standardChannel.getThreadChannels())
-                    count += addChannelMessageHistory(thread, guild);
+                    count += addChannelMessageHistory(thread, guild, markovBlackList);
             }
         }
         
         Log.debug("Populated messages table with {} messages for guild: {} (ID: {})", count, guild.getName(), guild.getIdLong());
     }
     
-    public static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild) {
+    public static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild, Set<Long> markovBlackList) {
         int count = 0;
         try {
             for (Message message : channel.getIterableHistory().stream().toList()) {
-                addNewMessage(message);
+                addNewMessage(message, markovBlackList);
                 count++;
             }
         } catch (Exception e) {
@@ -52,12 +55,12 @@ public class MessageDatabase {
         return count;
     }
     
-    public static void addNewMessage(Message message) {
+    public static void addNewMessage(Message message, Set<Long> markovBlackList) {
         String content = message.getContentRaw();
         if (content.isEmpty()) return;
         
         String markovContent = null;
-        if (isMarkovEligible(message))
+        if (isMarkovEligible(message, markovBlackList))
             markovContent = cleanContent(content);
         
         Database.create(
@@ -108,10 +111,7 @@ public class MessageDatabase {
     }
     
     
-    private static boolean isMarkovEligible(Message message) {
-        Configuration config = Database.get(Configuration.class, message.getGuild().getIdLong());
-        Set<Long> markovBlackList = config.markovBlackList;
-        
+    private static boolean isMarkovEligible(Message message, Set<Long> markovBlackList) {
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return false;
         if (message.getChannel() instanceof StandardGuildMessageChannel messageChannel
             && (messageChannel.isNSFW() || markovBlackList.contains(messageChannel.getIdLong()) || markovBlackList.contains(messageChannel.getParentCategoryIdLong()))) return false;
