@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity @Table(name = "configurations")
 public class Configuration {
@@ -24,7 +24,7 @@ public class Configuration {
     @Column public Long verifiedRoleId = null;
     
     @Column public Boolean markovEnabled = false;
-    @Column @ElementCollection(fetch = FetchType.EAGER) public List<Long> markovBlackList = new ArrayList<>();
+    @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlackList = new HashSet<>();
     
     @Column public Boolean moderationEnabled = true;
     @Column public String rules = "";
@@ -142,18 +142,18 @@ public class Configuration {
         return this;
     }
 
-    public Configuration setMarkovBlackList(List<Long> markovBlackList) {
+    public Configuration setMarkovBlackList(Set<Long> markovBlackList) {
         if (markovBlackList != null) this.markovBlackList = markovBlackList;
         return this;
     }
     
     public Configuration addMarkovBlacklist(IMentionable mentionable) {
-        if (mentionable != null && !this.markovBlackList.contains(mentionable.getIdLong())) this.markovBlackList.add(mentionable.getIdLong());
+        if (mentionable != null) this.markovBlackList.add(mentionable.getIdLong());
         return this;
     }
     
     public Configuration addIdMarkovBlacklist(Long id) {
-        if (id != null && !this.markovBlackList.contains(id)) this.markovBlackList.add(id);
+        if (id != null) this.markovBlackList.add(id);
         return this;
     }
     

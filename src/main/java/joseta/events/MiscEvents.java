@@ -4,6 +4,7 @@ import joseta.annotations.EventModule;
 import joseta.annotations.types.Event;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
+import joseta.database.helper.MessageDatabase;
 import joseta.events.misc.CountingChannel;
 import joseta.events.misc.WelcomeChannel;
 import joseta.generated.EventType;
@@ -13,7 +14,10 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
+import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.awt.*;
@@ -22,6 +26,40 @@ import java.util.regex.Pattern;
 
 @EventModule
 public class MiscEvents {
+    //#region Message
+    @Event(type = EventType.MESSAGE_RECEIVED)
+    public void onMessageReceived(MessageReceivedEvent event) {
+        MessageDatabase.addNewMessage(event.getMessage());
+    }
+    
+    @Event(type = EventType.MESSAGE_UPDATE)
+    public void onMessageUpdate(MessageUpdateEvent event) {
+        MessageDatabase.updateMessage(event.getMessage());
+    }
+    
+    @Event(type = EventType.MESSAGE_DELETE)
+    public void onMessageDelete(MessageDeleteEvent event) {
+        MessageDatabase.deleteMessage(event.getMessageIdLong());
+    }
+    
+    @Event(type = EventType.MESSAGE_BULK_DELETE)
+    public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
+        for (String messageId : event.getMessageIds())
+            MessageDatabase.deleteMessage(Long.parseLong(messageId));
+    }
+    
+    @Event(type = EventType.CHANNEL_DELETE)
+    public void onChannelDelete(net.dv8tion.jda.api.events.channel.ChannelDeleteEvent event) {
+        MessageDatabase.deleteChannelMessages(event.getChannel().getIdLong());
+    }
+    
+    @Event(type = EventType.GUILD_LEAVE)
+    public void onGuildLeave(net.dv8tion.jda.api.events.guild.GuildLeaveEvent event) {
+        MessageDatabase.deleteGuildMessages(event.getGuild().getIdLong());
+    }
+    //#endregion
+    
+    
     // TODO improve, too many false positives
     private static final Pattern patternQuestion = Pattern.compile(
         "(?:\\b|[.,?!;:])(?:com*[ea]nt?|pos*ible|m(?:oyen|ani[èeé]re)|fa[cç]on)(?:\\b|[.,?!;:])",

@@ -147,7 +147,10 @@ public class Database {
             .jdbcUrl("jdbc:postgresql://" + url)
             .jdbcPoolSize(16)
             .schemaToolingAction(Action.UPDATE)
-            .showSql(showSql, true, true);
+            .showSql(showSql, true, true)
+            .property("hibernate.jdbc.batch_size", 10);
+            // .property("hibernate.order_inserts", "true")
+            // .property("hibernate.order_updates", "true");
 
         sessionFactory = configuration.createEntityManagerFactory();
         
