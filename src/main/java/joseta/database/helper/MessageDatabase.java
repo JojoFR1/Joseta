@@ -27,14 +27,13 @@ public class MessageDatabase {
         Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         for (GuildChannel channel : guild.getChannels()) {
             Configuration config = Database.get(Configuration.class, guild.getIdLong());
-            Set<Long> markovBlackList = config.markovBlackList;
             
             if (!(channel instanceof GuildMessageChannel messageChannel)) continue;
-            count += addChannelMessageHistory(messageChannel, guild, markovBlackList);
+            count += addChannelMessageHistory(messageChannel, guild, config.markovBlacklist);
             
             if (channel instanceof StandardGuildMessageChannel standardChannel) {
                 for (ThreadChannel thread : standardChannel.getThreadChannels())
-                    count += addChannelMessageHistory(thread, guild, markovBlackList);
+                    count += addChannelMessageHistory(thread, guild, config.markovBlacklist);
             }
         }
         
@@ -53,6 +52,11 @@ public class MessageDatabase {
         }
         
         return count;
+    }
+    
+    public static void addNewMessage(Message message) {
+        Configuration config = Database.get(Configuration.class, message.getGuild().getIdLong());
+        addNewMessage(message, config.markovBlacklist);
     }
     
     public static void addNewMessage(Message message, Set<Long> markovBlackList) {
@@ -111,13 +115,17 @@ public class MessageDatabase {
     }
     
     
-    private static boolean isMarkovEligible(Message message, Set<Long> markovBlackList) {
+    private static boolean isMarkovEligible(Message message, Set<Long> markovBlacklist) {
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return false;
-        if (message.getChannel() instanceof StandardGuildMessageChannel messageChannel
-            && (messageChannel.isNSFW() || markovBlackList.contains(messageChannel.getIdLong()) || markovBlackList.contains(messageChannel.getParentCategoryIdLong()))) return false;
-        else if (message.getChannel() instanceof ThreadChannel threadChannel && threadChannel.getParentChannel() instanceof StandardGuildMessageChannel parentChannel
-            && (parentChannel.isNSFW() || markovBlackList.contains(parentChannel.getIdLong()) || markovBlackList.contains(parentChannel.getParentCategoryIdLong()))) return false;
-        if (markovBlackList.contains(message.getAuthor().getIdLong()) || message.getMember().getUnsortedRoles().stream().map(role -> role.getIdLong()).anyMatch(markovBlackList::contains)) return false;
+        if (markovBlacklist.contains(message.getAuthor().getIdLong()) || message.getMember().getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
+        
+        GuildChannel channel = message.getGuildChannel();
+        StandardGuildMessageChannel messageChannel = null;
+        if (channel instanceof StandardGuildMessageChannel standardChannel) messageChannel = standardChannel;
+        else if (channel instanceof ThreadChannel threadChannel && threadChannel.getParentChannel() instanceof StandardGuildMessageChannel parent) messageChannel = parent;
+        
+        if (messageChannel.isNSFW() || markovBlacklist.contains(messageChannel.getIdLong())
+            || (messageChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(messageChannel.getParentCategoryIdLong()))) return false;
         
         return true;
     }
