@@ -24,7 +24,7 @@ public class Configuration {
     @Column public Long verifiedRoleId = null;
     
     @Column public Boolean markovEnabled = false;
-    @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlackList = new HashSet<>();
+    @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
     
     @Column public Boolean moderationEnabled = true;
     @Column public String rules = "";
@@ -54,7 +54,7 @@ public class Configuration {
         this.verifiedRoleId = other.verifiedRoleId;
 
         this.markovEnabled = other.markovEnabled;
-        this.markovBlackList = other.markovBlackList;
+        this.markovBlacklist = other.markovBlacklist;
 
         this.moderationEnabled = other.moderationEnabled;
 
@@ -142,28 +142,28 @@ public class Configuration {
         return this;
     }
 
-    public Configuration setMarkovBlackList(Set<Long> markovBlackList) {
-        if (markovBlackList != null) this.markovBlackList = markovBlackList;
+    public Configuration setMarkovBlacklist(Set<Long> markovBlackList) {
+        if (markovBlackList != null) this.markovBlacklist = markovBlackList;
         return this;
     }
     
     public Configuration addMarkovBlacklist(IMentionable mentionable) {
-        if (mentionable != null) this.markovBlackList.add(mentionable.getIdLong());
+        if (mentionable != null) this.markovBlacklist.add(mentionable.getIdLong());
         return this;
     }
     
     public Configuration addIdMarkovBlacklist(Long id) {
-        if (id != null) this.markovBlackList.add(id);
+        if (id != null) this.markovBlacklist.add(id);
         return this;
     }
     
     public Configuration removeMarkovBlacklist(IMentionable mentionable) {
-        if (mentionable != null) this.markovBlackList.remove(mentionable.getIdLong());
+        if (mentionable != null) this.markovBlacklist.remove(mentionable.getIdLong());
         return this;
     }
     
     public Configuration removeIdMarkovBlacklist(Long id) {
-        if (id != null) this.markovBlackList.remove(id);
+        if (id != null) this.markovBlacklist.remove(id);
         return this;
     }
 

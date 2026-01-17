@@ -66,6 +66,8 @@ public class ConfigurationCommand {
               .addMarkovBlacklist(addChannelBlacklist)
               .removeMarkovBlacklist(removeChannelBlacklist);
         
+        MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong(), config.markovBlacklist);
+        
         Database.createOrUpdate(config);
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }

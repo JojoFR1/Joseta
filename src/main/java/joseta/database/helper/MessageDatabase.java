@@ -6,15 +6,19 @@ import joseta.database.entities.Configuration;
 import joseta.database.entities.Message_;
 import joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 public class MessageDatabase {
@@ -115,6 +119,79 @@ public class MessageDatabase {
     }
     
     
+    public static void updateMarkovEligibility(long guildId) {
+        Configuration config = Database.get(Configuration.class, guildId);
+        updateMarkovEligibility(guildId, config.markovBlacklist);
+    }
+    
+    public static void updateMarkovEligibility(long guildId, Set<Long> markovBlacklist) {
+        CompletableFuture.runAsync(() -> {
+            Guild guild = JosetaBot.get().getGuildById(guildId);
+            if (guild == null) return;
+        
+            Log.debug("Updating markov eligibility for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
+            
+            int updatedCount = 0;
+            try (Session session = Database.getSession()) {
+                Transaction tx = session.beginTransaction();
+                
+                // Allow to process large datasets without loading everything into memory
+                ScrollableResults<joseta.database.entities.Message> results = session.createQuery(
+                        "FROM Message WHERE guildId = :gid", joseta.database.entities.Message.class)
+                    .setParameter("gid", guildId)
+                    .setCacheMode(org.hibernate.CacheMode.IGNORE) // Important for batch performance
+                    .scroll(ScrollMode.FORWARD_ONLY);
+                
+                while (results.next()) {
+                    joseta.database.entities.Message dbMessage = results.get();
+                    
+                    boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage, markovBlacklist);
+                    boolean changed = false;
+                    
+                    if (!isEligible && dbMessage.markovContent != null) {
+                        dbMessage.setMarkovContent(null);
+                        changed = true;
+                    } else if (isEligible && dbMessage.markovContent == null) {
+                        dbMessage.setMarkovContent(cleanContent(dbMessage.content));
+                        changed = true;
+                    }
+                    
+                    if (changed) {
+                        session.merge(dbMessage);
+                        updatedCount++;
+                    }
+                    
+                    // Periodic flush and clear to manage memory
+                    if (updatedCount % 50 == 0 && changed) {
+                        session.flush();
+                        session.clear();
+                    }
+                }
+                
+                tx.commit();
+            }
+            
+            Log.debug("Finished update. Updated {} messages for guild: {}", updatedCount, guild.getName());
+        });
+    }
+    
+    private static boolean isDatabaseMarkovEligible(Guild guild, joseta.database.entities.Message dbMessage, Set<Long> markovBlacklist) {
+        if (markovBlacklist.contains(dbMessage.authorId)) return false;
+        
+        Member member = guild.getMemberById(dbMessage.authorId);
+        if (member != null && member.getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
+        
+        GuildChannel channel = guild.getGuildChannelById(dbMessage.channelId);
+        StandardGuildMessageChannel messageChannel = null;
+        if (channel instanceof StandardGuildMessageChannel standardChannel) messageChannel = standardChannel;
+        else if (channel instanceof ThreadChannel threadChannel && threadChannel.getParentChannel() instanceof StandardGuildMessageChannel parent) messageChannel = parent;
+        
+        if (messageChannel.isNSFW() || markovBlacklist.contains(messageChannel.getIdLong())
+            || (messageChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(messageChannel.getParentCategoryIdLong()))) return false;
+        
+        return true;
+    }
+
     private static boolean isMarkovEligible(Message message, Set<Long> markovBlacklist) {
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return false;
         if (markovBlacklist.contains(message.getAuthor().getIdLong()) || message.getMember().getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
