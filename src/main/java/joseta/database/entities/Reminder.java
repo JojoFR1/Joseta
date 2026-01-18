@@ -12,7 +12,7 @@ public class Reminder {
     @Column public long guildId;
     @Column public long channelId;
     @Column public long userId;
-    @Column public String message;
+    @Column(columnDefinition = "TEXT") public String message;
     @Column public Instant remindAt;
     
     // A non-private and no-arg constructor is required by JPA

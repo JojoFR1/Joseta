@@ -14,8 +14,8 @@ public class Message {
     @Column public long guildId;
     @Column public long channelId;
     @Column public long authorId;
-    @Column public String content;
-    @Column public String markovContent;
+    @Column(columnDefinition = "TEXT") public String content;
+    @Column(columnDefinition = "TEXT") public String markovContent;
     @Column public OffsetDateTime creationTime;
     
     // A non-private and no-arg constructor is required by JPA

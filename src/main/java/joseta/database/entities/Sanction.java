@@ -14,7 +14,7 @@ public class Sanction {
     
     @Column public long userId;
     @Column public long moderatorId;
-    @Column public String reason = "Aucun motif fourni.";
+    @Column(columnDefinition = "TEXT") public String reason = "Aucun motif fourni.";
     @Column public Instant timestamp;
     @Column public Instant expiryTime;
     @Column public boolean isExpired = false;

@@ -27,7 +27,7 @@ public class Configuration {
     @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
     
     @Column public Boolean moderationEnabled = true;
-    @Column public String rules = "";
+    @Column(columnDefinition = "TEXT") public String rules = "";
 
     @Column public Boolean autoResponseEnabled = false;
 
