@@ -118,6 +118,18 @@ public class MessageDatabase {
         }
     }
     
+    public static void deleteUserMarkovMessages(long userId) {
+        try (Session session = Database.getSession()) {
+            Transaction tx = session.beginTransaction();
+            Database.queryUpdate(joseta.database.entities.Message.class,
+                (cb, rt) -> cb.equal(rt.get(Message_.authorId), userId),
+                (cb, rt) -> cb.set(rt.get(Message_.markovContent), (String) null),
+                session
+            ).executeUpdate();
+            tx.commit();
+        }
+    }
+    
     
     public static void updateMarkovEligibility(long guildId) {
         Configuration config = Database.get(Configuration.class, guildId);

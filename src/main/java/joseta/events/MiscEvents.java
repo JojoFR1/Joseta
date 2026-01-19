@@ -52,11 +52,6 @@ public class MiscEvents {
     public void onChannelDelete(net.dv8tion.jda.api.events.channel.ChannelDeleteEvent event) {
         MessageDatabase.deleteChannelMessages(event.getChannel().getIdLong());
     }
-    
-    @Event(type = EventType.GUILD_LEAVE)
-    public void onGuildLeave(net.dv8tion.jda.api.events.guild.GuildLeaveEvent event) {
-        MessageDatabase.deleteGuildMessages(event.getGuild().getIdLong());
-    }
     //#endregion
     
     

@@ -29,6 +29,8 @@ public class JosetaBot {
      * TODO try to optimize the bot to reduce memory usage and CPU usage and improve responsiveness
      * TODO modernize old code to be more clean and similar to the newer code
      */
+    
+    // TODO after rewrite is merged, change package name from joseta to dev.jojofr.joseta
     public static void main(String[] args) {
         if (args.length > 0) {
             debug = args[0].equals("--debug");
