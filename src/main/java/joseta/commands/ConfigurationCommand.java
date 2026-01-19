@@ -5,6 +5,7 @@ import joseta.annotations.types.Option;
 import joseta.annotations.types.SlashCommandInteraction;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
+import joseta.database.helper.MessageDatabase;
 import joseta.utils.Log;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Role;
