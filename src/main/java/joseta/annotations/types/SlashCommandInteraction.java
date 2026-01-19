@@ -56,7 +56,7 @@ public @interface SlashCommandInteraction {
      * <p>
      * Applies to the base command. The most recent context types specified in the command hierarchy will apply.
      */
-    net.dv8tion.jda.api.interactions.InteractionContextType[] contextTypes() default {net.dv8tion.jda.api.interactions.InteractionContextType.GUILD, net.dv8tion.jda.api.interactions.InteractionContextType.BOT_DM};
+    net.dv8tion.jda.api.interactions.InteractionContextType[] contextTypes() default net.dv8tion.jda.api.interactions.InteractionContextType.GUILD;
     /**
      * The command integration types. Defaults to {@link net.dv8tion.jda.api.interactions.IntegrationType#GUILD_INSTALL GUILD_INSTALL}.
      * <p>

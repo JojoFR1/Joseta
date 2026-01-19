@@ -21,7 +21,6 @@ public class JosetaBot {
 
     /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
      *   - Move rules from a text file to the database
-     *   - Respect the GDPR by not storing unnecessary data (remove messages etc.)
      *   - Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal
      *   - Allow to add custom Regex for auto-response
      * TODO support translations for logging and error messages?

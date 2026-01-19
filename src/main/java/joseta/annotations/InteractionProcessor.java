@@ -187,7 +187,10 @@ public class InteractionProcessor {
         if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
             commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions));
         
-        commandData.setContexts(commandAnnotation.contextTypes());
+        if (commandAnnotation.guildOnly())
+            commandData.setContexts(InteractionContextType.GUILD);
+        else commandData.setContexts(commandAnnotation.contextTypes());
+        
         commandData.setIntegrationTypes(commandAnnotation.integrationTypes());
         commandData.setNSFW(commandAnnotation.nsfw());
         
