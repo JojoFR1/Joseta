@@ -7,9 +7,6 @@ plugins {
 group = 'joseta'
 version = '2.0.0'
 
-sourceSets.main.java.srcDirs = ['src/main/java']
-sourceSets.main.resources.srcDirs = ['src/main/resources']
-
 def generatedSourcesDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
 sourceSets.main.java.srcDir generatedSourcesDir
 
@@ -31,6 +28,13 @@ dependencies {
     annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.1.Final'
     // Agroal connection pool
     runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.2.1.Final'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 apply from: 'gradle/jdaEventEnumCodeGen.gradle'
