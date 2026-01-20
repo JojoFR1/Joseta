@@ -16,6 +16,7 @@ public class CountingChannel {
     private static boolean autoCheck = true;
     private static long lastNumber = -1;
     private static long lastAuthorId = -1;
+    private static long lastTimestamp = -1;
     
     // Start with a number
     private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
@@ -51,6 +52,7 @@ public class CountingChannel {
             Configuration config = Database.get(Configuration.class, message.getGuild().getIdLong());
             lastAuthorId = previousMessage.getAuthor().getIdLong();
             lastNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
+            lastTimestamp = previousMessage.getTimeCreated().toInstant().toEpochMilli();
             
             if (lastAuthorId == -1) {
                 channel.sendMessage("Le comptage n'a pas pu être initialiser. Contacter un administrateur et continuer (vérification manuelle).").queue();
@@ -87,6 +89,11 @@ public class CountingChannel {
             return;
         }
         
+        if (number == lastNumber && message.getTimeCreated().toInstant().toEpochMilli() - lastTimestamp < 2000) {
+            message.delete().queue();
+            return;
+        }
+        
         // Rule - Must increment the last number by 1
         if (number != lastNumber + 1) {
             if (!config.countingPenaltyEnabled) {
@@ -115,6 +122,7 @@ public class CountingChannel {
         
         lastNumber += 1;
         lastAuthorId = message.getAuthor().getIdLong();
+        lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
         message.addReaction(checkEmoji).queue(
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
         );
