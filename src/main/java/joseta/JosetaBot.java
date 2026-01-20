@@ -4,6 +4,9 @@ import ch.qos.logback.classic.*;
 import io.github.cdimascio.dotenv.*;
 import joseta.annotations.*;
 import joseta.database.*;
+import joseta.database.entities.Sanction;
+import joseta.database.helper.SanctionDatabase;
+import joseta.events.ScheduledEvents;
 import joseta.utils.*;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.*;
@@ -56,11 +59,13 @@ public class JosetaBot {
         
         registerShutdown(botInstance);
 
+        // Wait for JDA to be ready and connected
         try { botInstance.awaitReady(); } catch (InterruptedException e) {
             Log.err("An error occurred while waiting for the instance to be ready (connected).", e);
             System.exit(1);
         }
-
+        
+        ScheduledEvents.schedule();
         
         //TODO check for guilds, members, etc. and add them to the database if they don't exist, or remove them if they don't exist anymore
     }

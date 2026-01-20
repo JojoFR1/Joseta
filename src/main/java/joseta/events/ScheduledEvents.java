@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class ScheduledEvents {
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
     
-    static {
+    public static void schedule() {
         // Check reminders every minute
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkReminders, 0, 1, TimeUnit.MINUTES);
         // Check expired sanctions every 15 minutes
