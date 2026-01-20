@@ -22,7 +22,7 @@ public class JosetaBot {
     private static JDA botInstance;
     public static JDA get() { return botInstance; }
     
-    private static boolean debug = false;
+    public static boolean debug = false;
 
     /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
      *   - Move rules from a text file to the database

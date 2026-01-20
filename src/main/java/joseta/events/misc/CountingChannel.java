@@ -3,6 +3,7 @@ package joseta.events.misc;
 import joseta.JosetaBot;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
+import joseta.utils.BotResources;
 import joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
@@ -22,11 +23,6 @@ public class CountingChannel {
     
     // Start with a number
     private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
-    // TODO should be moved elsewhere
-    // private static final Emoji checkEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1451286173791031337L).complete();
-    private static final Emoji checkEmoji = JosetaBot.get().retrieveApplicationEmojiById(1459377029328801832L).complete();
-    // private static final Emoji crossEmoji = JosetaBot.instance.retrieveApplicationEmojiById(1451286184817987719L).complete();
-    private static final Emoji crossEmoji = JosetaBot.get().retrieveApplicationEmojiById(1459377027747680266L).complete();
     
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch
@@ -85,7 +81,7 @@ public class CountingChannel {
                 message.delete().queue();
             } else {
                 lastNumber = 0;
-                message.addReaction(crossEmoji).queue();
+                message.addReaction(BotResources.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
@@ -103,7 +99,7 @@ public class CountingChannel {
                 message.delete().queue();
             } else {
                 lastNumber = 0;
-                message.addReaction(crossEmoji).queue();
+                message.addReaction(BotResources.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
@@ -116,7 +112,7 @@ public class CountingChannel {
                 message.delete().queue();
             } else {
                 lastNumber = 0;
-                message.addReaction(crossEmoji).queue();
+                message.addReaction(BotResources.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
@@ -125,7 +121,7 @@ public class CountingChannel {
         lastNumber += 1;
         lastAuthorId = message.getAuthor().getIdLong();
         lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
-        message.addReaction(checkEmoji).queue(
+        message.addReaction(BotResources.CHECK_EMOJI).queue(
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
         );
     }

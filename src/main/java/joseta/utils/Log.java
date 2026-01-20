@@ -14,6 +14,8 @@ public class Log {
 
     public static void warn(String message) { Log.log(Level.WARN, message, null, null); }
     public static void warn(String message, Object... args) { Log.log(Level.WARN, message, args, null); }
+    public static void warn(String message, Throwable t) { Log.log(Level.WARN, message, null, t); }
+    public static void warn(String message, Throwable t, Object... args) { Log.log(Level.WARN, message, args, t); }
 
     public static void err(String message) { Log.log(Level.ERROR, message, null, null); }
     public static void err(String message, Object... args) { Log.log(Level.ERROR, message, args, null); }
