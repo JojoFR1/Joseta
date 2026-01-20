@@ -10,8 +10,7 @@ import io.github.cdimascio.dotenv.internal.DotenvReader;
 import java.util.*;
 
 import static java.util.stream.Collectors.*;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toSet;
+
 
 /**
  * A custom Dotenv loader that supports a debug mode by appending {@code _DEV} to keys when retrieving values.

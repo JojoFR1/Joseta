@@ -1,7 +1,8 @@
 package joseta.annotations.interactions;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a command interaction with its associated class, method, name and parameters.

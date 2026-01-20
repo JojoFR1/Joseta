@@ -1,8 +1,9 @@
 package logbackc;
 
-import ch.qos.logback.classic.*;
-import ch.qos.logback.classic.spi.*;
-import ch.qos.logback.core.pattern.color.*;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.pattern.color.ANSIConstants;
+import ch.qos.logback.core.pattern.color.ForegroundCompositeConverterBase;
 
 public class CustomLevelColor extends ForegroundCompositeConverterBase<ILoggingEvent> {
 

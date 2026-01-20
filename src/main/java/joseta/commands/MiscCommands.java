@@ -1,14 +1,15 @@
 package joseta.commands;
 
-import joseta.annotations.*;
-import joseta.annotations.types.*;
+import joseta.annotations.InteractionModule;
+import joseta.annotations.types.Option;
+import joseta.annotations.types.SlashCommandInteraction;
 import joseta.database.Database;
 import joseta.database.entities.Reminder;
 import joseta.events.MiscEvents;
 import joseta.events.ScheduledEvents;
 import joseta.utils.TimeParser;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.interaction.command.*;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import java.time.Instant;
 

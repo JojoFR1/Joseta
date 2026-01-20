@@ -1,21 +1,23 @@
 package joseta.database;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 import jakarta.persistence.criteria.*;
-import joseta.annotations.*;
-import joseta.database.entities.*;
 import joseta.utils.Log;
 import joseta.utils.function.Consumer2;
 import joseta.utils.function.Function2;
-import org.hibernate.*;
-import org.hibernate.jpa.*;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.jpa.HibernatePersistenceConfiguration;
 import org.hibernate.query.MutationQuery;
 import org.hibernate.query.SelectionQuery;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
-import org.hibernate.tool.schema.*;
-import org.reflections.*;
+import org.hibernate.tool.schema.Action;
+import org.reflections.Reflections;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Database utility class for managing database connections and operations.

@@ -20,7 +20,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.regex.Pattern;
 

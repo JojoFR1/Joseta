@@ -3,7 +3,7 @@ package joseta.database.entities;
 import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.Member;
 
-import java.time.*;
+import java.time.Instant;
 
 @Entity @Table(name = "users")
 public class User {

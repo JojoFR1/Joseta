@@ -6,9 +6,6 @@ import joseta.database.entities.Sanction;
 import joseta.database.entities.Sanction_;
 import net.dv8tion.jda.api.entities.Member;
 
-import java.time.Instant;
-import java.util.List;
-
 public class SanctionDatabase {
 
     public static void addSanction(Sanction.SanctionType sanctionType, Member member, long moderatorId, long guildId, String reason, long expiryTime) {

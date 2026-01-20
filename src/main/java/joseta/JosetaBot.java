@@ -1,20 +1,22 @@
 package joseta;
 
-import ch.qos.logback.classic.*;
-import io.github.cdimascio.dotenv.*;
-import joseta.annotations.*;
-import joseta.database.*;
-import joseta.database.entities.Sanction;
-import joseta.database.helper.SanctionDatabase;
+import ch.qos.logback.classic.Level;
+import io.github.cdimascio.dotenv.Dotenv;
+import joseta.annotations.EventProcessor;
+import joseta.annotations.InteractionProcessor;
+import joseta.database.Database;
 import joseta.events.ScheduledEvents;
-import joseta.utils.*;
-import net.dv8tion.jda.api.*;
-import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.requests.*;
-import net.dv8tion.jda.api.utils.*;
-import okhttp3.*;
+import joseta.utils.DotenvDebug;
+import joseta.utils.Log;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import okhttp3.OkHttpClient;
 
-import java.util.concurrent.*;
+import java.util.concurrent.TimeUnit;
 
 public class JosetaBot {
     private static JDA botInstance;

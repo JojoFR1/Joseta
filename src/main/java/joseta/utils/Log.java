@@ -1,8 +1,8 @@
 package joseta.utils;
 
 import ch.qos.logback.classic.Logger;
-import org.slf4j.*;
-import org.slf4j.event.*;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 
 public class Log {
     private static final Logger logger = (Logger) LoggerFactory.getLogger("Joseta");

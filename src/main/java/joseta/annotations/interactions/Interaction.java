@@ -1,6 +1,6 @@
 package joseta.annotations.interactions;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 
 /**
  * Represents an interaction (commands, button, ...) with its associated class, method and name.

@@ -1,24 +1,22 @@
 package joseta.commands;
 
-import joseta.annotations.*;
-import joseta.annotations.types.*;
+import joseta.annotations.InteractionModule;
+import joseta.annotations.types.ButtonInteraction;
+import joseta.annotations.types.Option;
 import joseta.annotations.types.SlashCommandInteraction;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
 import joseta.events.misc.CountingChannel;
-import net.dv8tion.jda.api.*;
-import net.dv8tion.jda.api.components.actionrow.*;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.label.*;
-import net.dv8tion.jda.api.components.selections.*;
-import net.dv8tion.jda.api.components.textdisplay.*;
-import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
-import net.dv8tion.jda.api.events.interaction.*;
-import net.dv8tion.jda.api.events.interaction.command.*;
-import net.dv8tion.jda.api.events.interaction.component.*;
-import net.dv8tion.jda.api.interactions.commands.*;
-import net.dv8tion.jda.api.modals.*;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 import java.awt.*;
 import java.time.Instant;

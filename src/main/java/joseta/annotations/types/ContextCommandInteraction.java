@@ -1,6 +1,9 @@
 package joseta.annotations.types;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Annotation to mark a method as a context command interaction.
@@ -26,7 +29,7 @@ public @interface ContextCommandInteraction {
     /**
      * The context command type. Defaults to {@link net.dv8tion.jda.api.interactions.commands.Command.Type#UNKNOWN Command.Type.UNKNOWN}.
      * <p>
-     * Must be either {@link net.dv8tion.jda.api.interactions.commands.Command.Type#USER USER} or {@link net.dv8tion.jda.api.interactions.commands.Command.Type##MESSAGE MESSAGE}.
+     * Must be either {@link net.dv8tion.jda.api.interactions.commands.Command.Type#USER USER} or {@link net.dv8tion.jda.api.interactions.commands.Command.Type#MESSAGE MESSAGE}.
      */
     net.dv8tion.jda.api.interactions.commands.Command.Type type() default net.dv8tion.jda.api.interactions.commands.Command.Type.UNKNOWN;
     /**

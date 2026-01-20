@@ -4,10 +4,14 @@ import joseta.annotations.interactions.Event;
 import joseta.generated.EventType;
 import joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.*;
-import net.dv8tion.jda.api.events.guild.*;
-import net.dv8tion.jda.api.events.http.*;
-import net.dv8tion.jda.api.events.session.*;
+import net.dv8tion.jda.api.events.GatewayPingEvent;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.StatusChangeEvent;
+import net.dv8tion.jda.api.events.http.HttpRequestEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
+import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
+import net.dv8tion.jda.api.events.session.SessionResumeEvent;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.reflections.Reflections;
 

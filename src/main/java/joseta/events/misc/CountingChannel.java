@@ -1,16 +1,18 @@
 package joseta.events.misc;
 
 import joseta.JosetaBot;
-import joseta.database.*;
+import joseta.database.Database;
 import joseta.database.entities.Configuration;
 import joseta.utils.Log;
-import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.unions.*;
-import net.dv8tion.jda.api.entities.emoji.*;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.regex.*;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CountingChannel {
     private static boolean autoCheck = true;

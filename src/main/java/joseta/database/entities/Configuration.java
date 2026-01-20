@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
