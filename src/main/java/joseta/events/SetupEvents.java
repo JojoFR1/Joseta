@@ -3,10 +3,7 @@ package joseta.events;
 import joseta.annotations.EventModule;
 import joseta.annotations.types.Event;
 import joseta.database.Database;
-import joseta.database.entities.Configuration;
-import joseta.database.entities.Guild;
-import joseta.database.entities.Reminder;
-import joseta.database.entities.Reminder_;
+import joseta.database.entities.*;
 import joseta.database.helper.MessageDatabase;
 import joseta.database.helper.UserDatabase;
 import joseta.generated.EventType;
@@ -40,22 +37,24 @@ public class SetupEvents {
     
     @Event(type = EventType.GUILD_LEAVE)
     public void onGuildLeave(GuildLeaveEvent event) {
-        Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
+        long guildId = event.getGuild().getIdLong();
+        Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), guildId);
         
-        Guild guildDatabase = Database.get(Guild.class, event.getGuild().getIdLong());
+        Guild guildDatabase = Database.get(Guild.class, guildId);
         if (guildDatabase != null) {
-            Log.info("Removing database entries for guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
+            Log.info("Removing database entries for guild: {} (ID: {})", event.getGuild().getName(), guildId);
             Database.delete(guildDatabase);
             
-            Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+            Configuration config = Database.get(Configuration.class, guildId);
             if (config != null) Database.delete(config);
             
-            MessageDatabase.deleteGuildMessages(event.getGuild().getIdLong());
-            UserDatabase.deleteGuildUsers(event.getGuild().getIdLong());
+            MessageDatabase.deleteGuildMessages(guildId);
+            UserDatabase.deleteGuildUsers(guildId);
             
             try (Session session = Database.getSession()) {
                 Transaction tx = session.beginTransaction();
-                Database.queryDelete(Reminder.class, (cb, rt) -> cb.equal(rt.get(Reminder_.guildId), event.getGuild().getIdLong()), session);
+                Database.queryDelete(Reminder.class, (cb, rt) -> cb.equal(rt.get(Reminder_.guildId), guildId), session);
+                Database.queryDelete(Sanction.class, (cb, rt) -> cb.equal(rt.get(Sanction_.id).get(Sanction_.SanctionId_.guildId), guildId), session);
                 tx.commit();
             }
         }
