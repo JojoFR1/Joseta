@@ -114,8 +114,16 @@ public class ModerationCommands {
     {
         if (!check(event, member)) return;
         
-        SanctionDatabase.addSanction(Sanction.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
+        
+        member.getUser().openPrivateChannel().queue(
+            channel -> channel.sendMessage("Vous avez été averti sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
+                " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + TimeParser.parse(time)) +
+                ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+            ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
+        );
+        
+        SanctionDatabase.addSanction(Sanction.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
     }
     
     @SlashCommandInteraction(name = "unwarn", description = "Retire un avertissement d'un membre.", permissions = Permission.MODERATE_MEMBERS)
