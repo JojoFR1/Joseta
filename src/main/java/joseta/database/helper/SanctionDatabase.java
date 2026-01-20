@@ -16,8 +16,8 @@ public class SanctionDatabase {
         Database.create(
             new Sanction(
                 guildId,
-                sanctionType,
                 guild.lastSanctionId + 1,
+                sanctionType,
                 member.getIdLong(),
                 moderatorId,
                 reason,
@@ -32,23 +32,12 @@ public class SanctionDatabase {
     public static Sanction getLatest(long userId, long guildId, Sanction.SanctionType sanctionType) {
         Sanction sanction = Database.querySelect(Sanction.class,
             (cb, rt) ->
-                cb.and(cb.equal(rt.get(Sanction_.guildId), guildId),
-                       cb.equal(rt.get(Sanction_.userId), userId),
-                       cb.like(rt.get(Sanction_.sanctionId), String.valueOf(sanctionType.code))),
-            (cb, rt) -> cb.desc(rt.get(Sanction_.sanctionId))
+                cb.and(cb.equal(rt.get(Sanction_.id).get(Sanction_.SanctionId_.guildId), guildId),
+                       cb.equal(rt.get(Sanction_.sanctionType), sanctionType.code),
+                       cb.equal(rt.get(Sanction_.userId), userId)),
+            (cb, rt) -> cb.desc(rt.get(Sanction_.id).get(Sanction_.SanctionId_.sanctionNumber))
         ).setMaxResults(1).getSingleResult();
         
         return sanction;
-    }
-    
-    public static List<Sanction> getExpired() {
-        List<Sanction> sanctions = Database.querySelect(Sanction.class, (cb, rt) ->
-            cb.and(cb.isNotNull(rt.get(Sanction_.expiryTime)),
-                   cb.equal(rt.get(Sanction_.isExpired), false))
-        ).getResultList();
-        
-        sanctions.removeIf(sanction -> !sanction.expiryTime.isBefore(Instant.now()));
-        
-        return sanctions;
     }
 }

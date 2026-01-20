@@ -1,17 +1,17 @@
 package joseta.database.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
 
 @Entity @Table(name = "sanctions")
 public class Sanction {
-    @Id public long guildId;
-    @Id public String sanctionId;
+    @Embeddable
+    public record SanctionId(long guildId, int sanctionNumber) {}
     
+    @EmbeddedId public SanctionId id;
+    
+    @Column public char sanctionType;
     @Column public long userId;
     @Column public long moderatorId;
     @Column(columnDefinition = "TEXT") public String reason = "Aucun motif fourni.";
@@ -22,10 +22,10 @@ public class Sanction {
     // A non-private and no-arg constructor is required by JPA
     protected Sanction() {}
     
-    public Sanction(long guildId, SanctionType sanctionType, int sanctionNumber, long userId, long moderatorId, String reason, long expiryTime) {
-        this.guildId = guildId;
-        this.sanctionId = sanctionType.code + String.valueOf(sanctionNumber);
+    public Sanction(long guildId, int sanctionNumber, SanctionType sanctionType, long userId, long moderatorId, String reason, long expiryTime) {
+        this.id = new SanctionId(guildId, sanctionNumber);
         
+        this.sanctionType = sanctionType.code;
         this.userId = userId;
         this.moderatorId = moderatorId;
         this.reason = reason;
@@ -45,19 +45,17 @@ public class Sanction {
         }
     }
     
+    public String getSanctionId() {
+        return sanctionType + String.valueOf(id.sanctionNumber);
+    }
     
-    public Sanction setGuildId(long guildId) {
-        this.guildId = guildId;
+    public Sanction setId(long guildId, int sanctionNumber) {
+        this.id = new SanctionId(guildId, sanctionNumber);
         return this;
     }
     
-    public Sanction setSanctionId(String sanctionId) {
-        this.sanctionId = sanctionId;
-        return this;
-    }
-    
-    public Sanction setSanctionIdNumber(int sanctionIdNumber) {
-        this.sanctionId = this.sanctionId.charAt(0) + String.valueOf(sanctionIdNumber);
+    public Sanction setSanctionType(SanctionType sanctionType) {
+        this.sanctionType = sanctionType.code;
         return this;
     }
     
@@ -87,7 +85,7 @@ public class Sanction {
     }
     
     public Sanction setExpired(boolean expired) {
-        isExpired = expired;
+        this.isExpired = expired;
         return this;
     }
 }
