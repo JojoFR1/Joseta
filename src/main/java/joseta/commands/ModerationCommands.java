@@ -174,7 +174,7 @@ public class ModerationCommands {
 
                 // A member can't have 2 timeout active at the same time.
                 Sanction sanction = SanctionDatabase.getLatest(member.getIdLong(), event.getGuild().getIdLong(), Sanction.SanctionType.TIMEOUT);
-                Database.delete(sanction);
+                Database.update(sanction.setExpired(true));
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
@@ -270,7 +270,7 @@ public class ModerationCommands {
                 event.reply("Le membre a bien été débanni.").setEphemeral(true).queue();
 
                 Sanction sanction = SanctionDatabase.getLatest(userIdLong, event.getGuild().getIdLong(), Sanction.SanctionType.BAN);
-                Database.delete(sanction);
+                Database.update(sanction.setExpired(true));
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
