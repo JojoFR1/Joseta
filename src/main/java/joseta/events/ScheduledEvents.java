@@ -64,7 +64,7 @@ public class ScheduledEvents {
             // Only ban need action on expiry, others are automatic
             JosetaBot.get().retrieveUserById(sanction.userId).queue(
                 user -> {
-                    if (sanction.sanctionType == Sanction.SanctionType.BAN.code)
+                    if (sanction.sanctionType == Sanction.SanctionType.BAN)
                         guild.unban(user).queue(
                             null,
                             failure -> Log.warn("Failed to unban user {} (ID: {}) on sanction expiry ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.id)

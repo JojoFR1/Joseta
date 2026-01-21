@@ -11,7 +11,7 @@ public class Sanction {
     
     @EmbeddedId public SanctionId id;
     
-    @Column public char sanctionType;
+    @Column @Convert(converter = SanctionTypeConverter.class) public SanctionType sanctionType;
     @Column public long userId;
     @Column public long moderatorId;
     @Column(columnDefinition = "TEXT") public String reason = "Aucun motif fourni.";
@@ -25,7 +25,7 @@ public class Sanction {
     public Sanction(long guildId, int sanctionNumber, SanctionType sanctionType, long userId, long moderatorId, String reason, long expiryTime) {
         this.id = new SanctionId(guildId, sanctionNumber);
         
-        this.sanctionType = sanctionType.code;
+        this.sanctionType = sanctionType;
         this.userId = userId;
         this.moderatorId = moderatorId;
         this.reason = reason;
@@ -43,10 +43,38 @@ public class Sanction {
         SanctionType(char code) {
             this.code = code;
         }
+        
+        @Override
+        public String toString() {
+            return switch (this) {
+                case WARN -> "Avertissement";
+                case TIMEOUT -> "Exclusion";
+                case KICK -> "Expulsion";
+                case BAN -> "Bannissement";
+            };
+        }
+    }
+    
+    public static class SanctionTypeConverter implements AttributeConverter<SanctionType, Character> {
+        @Override
+        public Character convertToDatabaseColumn(SanctionType attribute) {
+            return attribute.code;
+        }
+        
+        @Override
+        public SanctionType convertToEntityAttribute(Character dbData) {
+            return switch (dbData) {
+                case 'W' -> SanctionType.WARN;
+                case 'T' -> SanctionType.TIMEOUT;
+                case 'K' -> SanctionType.KICK;
+                case 'B' -> SanctionType.BAN;
+                default -> throw new IllegalArgumentException("Unknown SanctionType code: " + dbData);
+            };
+        }
     }
     
     public String getSanctionId() {
-        return sanctionType + String.valueOf(id.sanctionNumber);
+        return sanctionType.code + String.valueOf(id.sanctionNumber);
     }
     
     public Sanction setId(long guildId, int sanctionNumber) {
@@ -55,7 +83,7 @@ public class Sanction {
     }
     
     public Sanction setSanctionType(SanctionType sanctionType) {
-        this.sanctionType = sanctionType.code;
+        this.sanctionType = sanctionType;
         return this;
     }
     
