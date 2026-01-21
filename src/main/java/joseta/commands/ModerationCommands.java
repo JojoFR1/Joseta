@@ -7,19 +7,21 @@ import joseta.annotations.types.SlashCommandInteraction;
 import joseta.database.Database;
 import joseta.database.entities.Configuration;
 import joseta.database.entities.Sanction;
+import joseta.database.entities.Sanction_;
 import joseta.database.helper.SanctionDatabase;
+import joseta.entities.ModlogMessage;
 import joseta.utils.Log;
 import joseta.utils.TimeParser;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.UserSnowflake;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
+import java.awt.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -29,14 +31,107 @@ import java.util.concurrent.TimeUnit;
 
 @InteractionModule
 public class ModerationCommands {
-    public static Map<MessageChannelUnion, Integer> pendingClear = new HashMap<>();
+    private static final int SANCTION_PER_PAGE = 5;
+    private static final Map<Long, ModlogMessage> modlogMessages = new HashMap<>();
     
+    // TODO show as 1 page when 2 is expected.
     @SlashCommandInteraction(name = "modlog", description = "Obtient l'historique de modérations d'un membre.", permissions = Permission.MODERATE_MEMBERS)
     public void modlog(SlashCommandInteractionEvent event,
                        @Option(description = "Le membre dont vous voulez voir l'historique de modération.") Member member)
     {
-    
+        joseta.database.entities.User userDb = Database.get(joseta.database.entities.User.class, new joseta.database.entities.User.UserId(member.getIdLong(), event.getGuild().getIdLong()));
+        if (userDb == null || userDb.sanctionCount == 0) {
+            event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
+            return;
+        }
+        
+        // The user SHOULD have at least one sanction, but just in case
+        MessageEmbed embed = generateEmbed(event.getGuild(), member.getUser(), 1);
+        if (embed == null) {
+            event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
+            return;
+        }
+        
+        // Integer division always floors the result, so we add 1 if there's a remainder to ceil the value
+        int lastPage = userDb.sanctionCount / SANCTION_PER_PAGE + (userDb.sanctionCount % SANCTION_PER_PAGE == 0 ? 0 : 1);
+        event.replyEmbeds(embed).setComponents(getModlogButtons(1, lastPage)).queue();
+        
+        modlogMessages.put(event.getMember().getIdLong(), new ModlogMessage(member.getUser(), lastPage, Instant.now()));
     }
+    
+    private MessageEmbed generateEmbed(Guild guild, User user, int currentPage) {
+        List<Sanction> sanctions = Database.querySelect(Sanction.class, (cb, rt) ->
+            cb.and(
+                cb.equal(rt.get(Sanction_.id).get(Sanction_.SanctionId_.guildId), guild.getIdLong()),
+                cb.equal(rt.get(Sanction_.userId), user.getIdLong())
+            )).setFirstResult((currentPage - 1) * SANCTION_PER_PAGE).setMaxResults(5).getResultList();
+        
+        if (sanctions.isEmpty()) return null;
+        
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .setTitle("Historique de modération de " + user.getEffectiveName() + " ┃ Page "+ currentPage +"/"+ 1)
+            .setColor(Color.BLUE)
+            .setFooter(guild.getName(), guild.getIconUrl())
+            .setTimestamp(Instant.now());
+        
+        StringBuilder description = new StringBuilder();
+        for (Sanction sanction : sanctions.reversed()) {
+            description.append("### ").append(sanction.sanctionType).append(" - #").append(sanction.getSanctionId());
+            if (sanction.isExpired) description.append(" (Expirée)");
+            
+            description.append("\n>    - Modérateur: <@").append(sanction.moderatorId).append("> (`").append(sanction.moderatorId).append("`)")
+                       .append("\n>    - Raison: ").append(sanction.reason)
+                       .append("\n>    - Date: <t:").append(sanction.timestamp.getEpochSecond()).append(":F>");
+            
+            if (sanction.sanctionType != Sanction.SanctionType.KICK && sanction.expiryTime != null) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
+            description.append("\n");
+        }
+        
+        embedBuilder.setDescription(description.toString());
+        
+        return embedBuilder.build();
+    }
+    
+    // TODO maybe allow something like wildcard for interaction IDs, would be cleaner but might be hard to implement
+    @ButtonInteraction(id = "modlog-page_first")  public void modlogButtonFirst(ButtonInteractionEvent event) { modlogPage(event); }
+    @ButtonInteraction(id = "modlog-page_prev")  public void modlogButtonPrev(ButtonInteractionEvent event) { modlogPage(event); }
+    @ButtonInteraction(id = "modlog-page_next")  public void modlogButtonNext(ButtonInteractionEvent event) { modlogPage(event); }
+    @ButtonInteraction(id = "modlog-page_last")  public void modlogButtonLast(ButtonInteractionEvent event) { modlogPage(event); }
+    
+    // TODO immedately is considered expird, fix
+    private void modlogPage(ButtonInteractionEvent event) {
+        ModlogMessage modlogMessage = modlogMessages.get(event.getMessageIdLong());
+        // Check if the modlogMessage exists and if the timestamp is still valid (15 minutes)
+        if (modlogMessage == null || Instant.now().isAfter(modlogMessage.timestamp.plusSeconds(15 * 60))) {
+            event.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir un nouvel historique de modération.").setEphemeral(true).queue();
+            
+            // Remove the button from the message
+            event.getMessage().editMessageComponents().queue();
+            modlogMessages.remove(event.getMessageIdLong());
+            return;
+        }
+
+        String eventId = event.getComponentId();
+        int currentPage = eventId.endsWith("first") ? 1
+                        : eventId.endsWith("prev")  ? modlogMessage.nextPage()
+                        : eventId.endsWith("next")  ? modlogMessage.previousPage()
+                        : modlogMessage.lastPage;
+        
+        event.editMessageEmbeds(generateEmbed(event.getGuild(), modlogMessage.user, currentPage))
+            .setComponents(getModlogButtons(currentPage, modlogMessage.lastPage)).queue();
+    }
+    
+    private ActionRow getModlogButtons(int currentPage, int lastPage) {
+        return ActionRow.of(
+            Button.secondary("modlog-page_first", "⏪").withDisabled(currentPage == 1),
+            Button.secondary("modlog-page_prev", "◀️").withDisabled(currentPage <= 1),
+            Button.secondary("modlog-page_next", "▶️").withDisabled(currentPage >= lastPage),
+            Button.secondary("modlog-page_last", "⏩").withDisabled(currentPage == lastPage)
+        );
+    }
+    
+    
+    public static Map<MessageChannelUnion, Integer> pendingClear = new HashMap<>();
     
     @SlashCommandInteraction(name = "clear", description = "Supprime un nombre de messages dans le salon actuel.", permissions = Permission.MESSAGE_MANAGE)
     public void clear(SlashCommandInteractionEvent event,
