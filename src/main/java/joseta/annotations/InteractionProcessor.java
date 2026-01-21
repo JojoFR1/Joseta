@@ -10,11 +10,9 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.GenericContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
@@ -108,7 +106,7 @@ public class InteractionProcessor {
                     interactionMethods.put(name, new Interaction(commandClass, method, name, contextCommandInteraction.guildOnly()));
                     continue;
                 }
-
+                
                 ButtonInteraction buttonInteraction = method.getAnnotation(ButtonInteraction.class);
                 if (buttonInteraction != null) {
                     String id = buttonInteraction.id();
@@ -380,82 +378,32 @@ public class InteractionProcessor {
 
                 contextInteraction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", contextInteraction.getName(), e);
+                Log.err("An error occurred during context execution ({}):", contextInteraction.getName(), e);
             }
         }
-
+        
         @Override
-        public void onButtonInteraction(ButtonInteractionEvent event) {
-            String buttonId = event.getComponentId();
-
-            Interaction button = interactionMethods.get(buttonId);
-            if (button == null) {
-                Log.warn("Unknown button: " + event.getId());
-                event.reply("Bouton inconnue.").setEphemeral(true).queue();
+        public void onGenericComponentInteractionCreate(GenericComponentInteractionCreateEvent event) {
+            String componentId = event.getComponentId();
+            
+            Interaction component = interactionMethods.get(componentId);
+            if (component == null) {
+                Log.warn("Unknown component: {}", componentId);
+                event.reply("Composant inconnu.").setEphemeral(true).queue();
                 return;
             }
             
-            if (button.isGuildOnly() && !event.isFromGuild()) {
-                event.reply("Ce bouton ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
-                return;
-            }
-
-            try {
-                Object o = button.getClazz().getDeclaredConstructor().newInstance();
-
-                button.getMethod().invoke(o, event);
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", button.getName(), e);
-            }
-        }
-
-        @Override
-        public void onGenericSelectMenuInteraction(GenericSelectMenuInteractionEvent event) {
-            String selectMenuId = event.getComponentId();
-
-            Interaction selectMenu = interactionMethods.get(selectMenuId);
-            if (selectMenu == null) {
-                Log.warn("Unknown select menu: " + event.getId());
-                event.reply("Menu de sélection inconnu.").setEphemeral(true).queue();
+            if (component.isGuildOnly() && !event.isFromGuild()) {
+                event.reply("Ce composant ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
                 return;
             }
             
-            if (selectMenu.isGuildOnly() && !event.isFromGuild()) {
-                event.reply("Ce menu de sélection ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
-                return;
-            }
-
             try {
-                Object o = selectMenu.getClazz().getDeclaredConstructor().newInstance();
+                Object o = component.getClazz().getDeclaredConstructor().newInstance();
 
-                selectMenu.getMethod().invoke(o, event);
+                component.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", selectMenu.getName(), e);
-            }
-        }
-
-        @Override
-        public void onModalInteraction(ModalInteractionEvent event) {
-            String modalId = event.getModalId();
-
-            Interaction selectMenu = interactionMethods.get(modalId);
-            if (selectMenu == null) {
-                Log.warn("Unknown select menu: " + event.getId());
-                event.reply("Menu de sélection inconnu.").setEphemeral(true).queue();
-                return;
-            }
-            
-            if (selectMenu.isGuildOnly() && !event.isFromGuild()) {
-                event.reply("Ce menu de sélection ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
-                return;
-            }
-
-            try {
-                Object o = selectMenu.getClazz().getDeclaredConstructor().newInstance();
-
-                selectMenu.getMethod().invoke(o, event);
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", selectMenu.getName(), e);
+                Log.err("An error occurred during component execution ({}):", component.getName(), e);
             }
         }
     }
