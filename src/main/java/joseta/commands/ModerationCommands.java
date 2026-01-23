@@ -34,48 +34,55 @@ public class ModerationCommands {
     private static final int SANCTION_PER_PAGE = 5;
     private static final Map<Long, ModlogMessage> modlogMessages = new HashMap<>();
     
-    // TODO show as 1 page when 2 is expected.
     @SlashCommandInteraction(name = "modlog", description = "Obtient l'historique de modérations d'un membre.", permissions = Permission.MODERATE_MEMBERS)
     public void modlog(SlashCommandInteractionEvent event,
                        @Option(description = "Le membre dont vous voulez voir l'historique de modération.") Member member)
     {
+        if (member == null) member = event.getMember();
+
         joseta.database.entities.User userDb = Database.get(joseta.database.entities.User.class, new joseta.database.entities.User.UserId(member.getIdLong(), event.getGuild().getIdLong()));
         if (userDb == null || userDb.sanctionCount == 0) {
             event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
         }
-        
+
+        // Integer division always floors the result, so we add 1 if there's a remainder to ceil the value
+        int lastPage = userDb.sanctionCount / SANCTION_PER_PAGE + (userDb.sanctionCount % SANCTION_PER_PAGE == 0 ? 0 : 1);
+
         // The user SHOULD have at least one sanction, but just in case
-        MessageEmbed embed = generateEmbed(event.getGuild(), member.getUser(), 1);
+        MessageEmbed embed = generateEmbed(event.getGuild(), member.getUser(), 1, lastPage);
         if (embed == null) {
             event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
         }
         
-        // Integer division always floors the result, so we add 1 if there's a remainder to ceil the value
-        int lastPage = userDb.sanctionCount / SANCTION_PER_PAGE + (userDb.sanctionCount % SANCTION_PER_PAGE == 0 ? 0 : 1);
-        event.replyEmbeds(embed).setComponents(getModlogButtons(1, lastPage)).queue();
-        
-        modlogMessages.put(event.getMember().getIdLong(), new ModlogMessage(member.getUser(), lastPage, Instant.now()));
+        // Need this because Java is doing Java things
+        Member finalMember = member;
+        event.replyEmbeds(embed).setComponents(getModlogButtons(1, lastPage)).queue(
+            hook -> modlogMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ModlogMessage(finalMember.getUser(), lastPage, Instant.now()))
+        );
     }
     
-    private MessageEmbed generateEmbed(Guild guild, User user, int currentPage) {
+    private MessageEmbed generateEmbed(Guild guild, User user, int currentPage, int lastPage) {
+        // Sort from newest to oldest
         List<Sanction> sanctions = Database.querySelect(Sanction.class, (cb, rt) ->
             cb.and(
                 cb.equal(rt.get(Sanction_.id).get(Sanction_.SanctionId_.guildId), guild.getIdLong()),
                 cb.equal(rt.get(Sanction_.userId), user.getIdLong())
-            )).setFirstResult((currentPage - 1) * SANCTION_PER_PAGE).setMaxResults(5).getResultList();
+            ),
+            (cb, rt) -> cb.desc(rt.get(Sanction_.id).get(Sanction_.SanctionId_.sanctionNumber))
+        ).setFirstResult((currentPage - 1) * SANCTION_PER_PAGE).setMaxResults(SANCTION_PER_PAGE).getResultList();
         
         if (sanctions.isEmpty()) return null;
         
         EmbedBuilder embedBuilder = new EmbedBuilder()
-            .setTitle("Historique de modération de " + user.getEffectiveName() + " ┃ Page "+ currentPage +"/"+ 1)
+            .setTitle("Historique de modération de " + user.getEffectiveName() + " ┃ Page "+ currentPage +"/"+ lastPage)
             .setColor(Color.BLUE)
             .setFooter(guild.getName(), guild.getIconUrl())
             .setTimestamp(Instant.now());
         
         StringBuilder description = new StringBuilder();
-        for (Sanction sanction : sanctions.reversed()) {
+        for (Sanction sanction : sanctions) {
             description.append("### ").append(sanction.sanctionType).append(" - #").append(sanction.getSanctionId());
             if (sanction.isExpired) description.append(" (Expirée)");
             
@@ -93,12 +100,11 @@ public class ModerationCommands {
     }
     
     // TODO maybe allow something like wildcard for interaction IDs, would be cleaner but might be hard to implement
-    @ButtonInteraction(id = "modlog-page_first")  public void modlogButtonFirst(ButtonInteractionEvent event) { modlogPage(event); }
+    @ButtonInteraction(id = "modlog-page_first") public void modlogButtonFirst(ButtonInteractionEvent event) { modlogPage(event); }
     @ButtonInteraction(id = "modlog-page_prev")  public void modlogButtonPrev(ButtonInteractionEvent event) { modlogPage(event); }
     @ButtonInteraction(id = "modlog-page_next")  public void modlogButtonNext(ButtonInteractionEvent event) { modlogPage(event); }
     @ButtonInteraction(id = "modlog-page_last")  public void modlogButtonLast(ButtonInteractionEvent event) { modlogPage(event); }
     
-    // TODO immedately is considered expird, fix
     private void modlogPage(ButtonInteractionEvent event) {
         ModlogMessage modlogMessage = modlogMessages.get(event.getMessageIdLong());
         // Check if the modlogMessage exists and if the timestamp is still valid (15 minutes)
@@ -113,11 +119,11 @@ public class ModerationCommands {
 
         String eventId = event.getComponentId();
         int currentPage = eventId.endsWith("first") ? 1
-                        : eventId.endsWith("prev")  ? modlogMessage.nextPage()
-                        : eventId.endsWith("next")  ? modlogMessage.previousPage()
+                        : eventId.endsWith("prev")  ? modlogMessage.previousPage()
+                        : eventId.endsWith("next")  ? modlogMessage.nextPage()
                         : modlogMessage.lastPage;
         
-        event.editMessageEmbeds(generateEmbed(event.getGuild(), modlogMessage.user, currentPage))
+        event.editMessageEmbeds(generateEmbed(event.getGuild(), modlogMessage.user, currentPage, modlogMessage.lastPage))
             .setComponents(getModlogButtons(currentPage, modlogMessage.lastPage)).queue();
     }
     
@@ -209,16 +215,19 @@ public class ModerationCommands {
     {
         if (!check(event, member)) return;
         
+        long timeSeconds;
+        if (time != null && !time.isEmpty()) timeSeconds = TimeParser.parse(time);
+        else timeSeconds = 300; // Default 5 minutes
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
         
         member.getUser().openPrivateChannel().queue(
             channel -> channel.sendMessage("Vous avez été averti sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + TimeParser.parse(time)) +
+                " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
                 ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
             ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
         );
         
-        SanctionDatabase.addSanction(Sanction.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
+        SanctionDatabase.addSanction(Sanction.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
     }
     
     @SlashCommandInteraction(name = "unwarn", description = "Retire un avertissement d'un membre.", permissions = Permission.MODERATE_MEMBERS)
@@ -237,18 +246,22 @@ public class ModerationCommands {
     {
         if (!check(event, member)) return;
         
+        long timeSeconds;
+        if (time != null && !time.isEmpty()) timeSeconds = TimeParser.parse(time);
+        else timeSeconds = 300; // Default 5 minutes
+        
         member.timeoutFor(TimeParser.parse(time), TimeUnit.SECONDS).reason(reason).queue(
             s -> {
                 event.reply("Le membre a bien été mis en timeout.").setEphemeral(true).queue();
                 
                 member.getUser().openPrivateChannel().queue(
                     channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                        " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + TimeParser.parse(time)) +
+                        " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
                         ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(Sanction.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
+                SanctionDatabase.addSanction(Sanction.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
