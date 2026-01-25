@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.SessionResumeEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.Interaction;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -84,10 +85,7 @@ public class EventProcessor {
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
-                    // TODO very bad for performance, find a better way to check if the event is from a guild
-                    Method isFromGuildMethod;
-                    try { isFromGuildMethod = event.getClass().getMethod("isFromGuild"); } catch (NoSuchMethodException e) { isFromGuildMethod = null; }
-                    if (eventAnnotation.isGuildOnly() && (isFromGuildMethod != null && !(boolean)isFromGuildMethod.invoke(event)))
+                    if (eventAnnotation.isGuildOnly() && event instanceof Interaction interactionEvent && !interactionEvent.isFromGuild())
                         continue;
                     
                     // TODO also bad, cache instances? might need new instance each time depending on use case
