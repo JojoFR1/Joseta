@@ -1,8 +1,5 @@
 package dev.jojofr.joseta.annotations.types;
 
-import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.InteractionProcessor;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,9 +8,9 @@ import java.lang.annotation.Target;
 /**
  * Annotation to mark a method as a modal interaction.
  * <p>
- * The method must be inside a class that implements {@link InteractionModule InteractionModule}.
+ * The method must be inside a class that implements {@link dev.jojofr.joseta.annotations.InteractionModule InteractionModule}.
  * <p>
- * It is handled by the {@link InteractionProcessor InteractionProcessor}, which provides the event to the method.
+ * It is handled by the {@link dev.jojofr.joseta.annotations.InteractionProcessor InteractionProcessor}, which provides the event to the method.
  * <p>
  * The method must have a single parameter of type {@link net.dv8tion.jda.api.events.interaction.ModalInteractionEvent ModalInteractionEvent}.
  */

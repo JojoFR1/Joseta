@@ -1,8 +1,5 @@
 package dev.jojofr.joseta.annotations.types;
 
-import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.InteractionProcessor;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,10 +8,10 @@ import java.lang.annotation.Target;
 /**
  * Annotation to mark a method parameter as a slash command option.
  * <p>
- * The parameter must be inside a method that is annotated with {@link SlashCommandInteraction SlashCommand},
- * which is inside a class that implements {@link InteractionModule InteractionModule}.
+ * The parameter must be inside a method that is annotated with {@link dev.jojofr.joseta.annotations.types.SlashCommandInteraction SlashCommand},
+ * which is inside a class that implements {@link dev.jojofr.joseta.annotations.InteractionModule InteractionModule}.
  * <p>
- * It is handled by the {@link InteractionProcessor InteractionProcessor}, which provides the options values to the method.
+ * It is handled by the {@link dev.jojofr.joseta.annotations.InteractionProcessor InteractionProcessor}, which provides the options values to the method.
  * If the option is not required, the parameter can be {@code null}.
  * <p>
  * The parameter type must be one of the following:

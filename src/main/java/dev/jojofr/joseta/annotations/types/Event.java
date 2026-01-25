@@ -1,8 +1,5 @@
 package dev.jojofr.joseta.annotations.types;
 
-import dev.jojofr.joseta.annotations.EventModule;
-import dev.jojofr.joseta.annotations.EventProcessor;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,9 +8,9 @@ import java.lang.annotation.Target;
 /**
  * Annotation to mark a method as an event handler.
  * <p>
- * The method must be inside a class that implements {@link EventModule EventModule}.
+ * The method must be inside a class that implements {@link dev.jojofr.joseta.annotations.EventModule EventModule}.
  * <p>
- * It is handled by the {@link EventProcessor EventProcessor}, which provides the event to the method.
+ * It is handled by the {@link dev.jojofr.joseta.annotations.EventProcessor EventProcessor}, which provides the event to the method.
  * <p>
  * The method must have a single parameter corresponding to the event type specified.
  */
