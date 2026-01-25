@@ -193,12 +193,10 @@ public class MessageDatabase {
         if (member != null && member.getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
         
         GuildChannel channel = guild.getGuildChannelById(dbMessage.channelId);
-        StandardGuildMessageChannel messageChannel = null;
-        if (channel instanceof StandardGuildMessageChannel standardChannel) messageChannel = standardChannel;
-        else if (channel instanceof ThreadChannel threadChannel && threadChannel.getParentChannel() instanceof StandardGuildMessageChannel parent) messageChannel = parent;
-        
-        if (messageChannel.isNSFW() || markovBlacklist.contains(messageChannel.getIdLong())
-            || (messageChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(messageChannel.getParentCategoryIdLong()))) return false;
+        if (markovBlacklist.contains(channel.getIdLong())
+            || (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW())
+            || (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(categorizableChannel.getParentCategoryIdLong()))
+        ) return false;
         
         return true;
     }
