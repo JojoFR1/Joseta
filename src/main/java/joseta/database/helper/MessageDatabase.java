@@ -153,7 +153,7 @@ public class MessageDatabase {
                     .setCacheMode(org.hibernate.CacheMode.IGNORE) // Important for batch performance
                     .scroll(ScrollMode.FORWARD_ONLY);
                 
-                while (results.next()) {
+                while (results.next()) { try {
                     joseta.database.entities.Message dbMessage = results.get();
                     
                     boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage, markovBlacklist);
@@ -177,7 +177,9 @@ public class MessageDatabase {
                         session.flush();
                         session.clear();
                     }
-                }
+                } catch (Exception e) {
+                    Log.err("Error processing message. Skipping to next message.", e);
+                }}
                 
                 tx.commit();
             }
@@ -193,6 +195,9 @@ public class MessageDatabase {
         if (member != null && member.getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
         
         GuildChannel channel = guild.getGuildChannelById(dbMessage.channelId);
+        if (channel == null)
+            channel = guild.getThreadChannelById(dbMessage.channelId);
+        
         if (markovBlacklist.contains(channel.getIdLong())
             || (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW())
             || (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(categorizableChannel.getParentCategoryIdLong()))
