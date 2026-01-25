@@ -1,51 +1,57 @@
 plugins {
-    id("java")
-    id("application")
-    id("com.gradleup.shadow") version "9.0.2"
+    id 'java'
+    id 'application'
+    id 'com.gradleup.shadow' version '9.2.2'
 }
 
-sourceSets.main.java.srcDirs = ["src"]
-sourceSets.main.resources.srcDirs = ["src"]
-
-application.mainClass = "joseta.JosetaBot"
 group = 'joseta'
-version = '1.5.0'
+version = '2.0.0'
 
-repositories{
-    mavenCentral()
-    maven{ url = 'https://maven.xpdustry.com/anuken' }
-    maven{ url = "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
-    maven{ url = 'https://www.jitpack.io' }
-}
+def generatedSourcesDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
+sourceSets.main.java.srcDir generatedSourcesDir
 
-dependencies{
-    implementation("net.dv8tion:JDA:5.6.1") {
-      // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
-      exclude module: 'opus-java'
-      exclude module: 'tink'
+repositories { mavenCentral() }
+
+dependencies {
+    implementation('net.dv8tion:JDA:6.3.0') {
+        // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
+        exclude module: 'opus-java'
+        exclude module: 'tink'
     }
-    implementation("ch.qos.logback:logback-classic:1.5.18")
-    
-    implementation("org.xerial:sqlite-jdbc:3.50.3.0")
-    implementation("org.hibernate:hibernate-core:7.1.0.Final")
-    // Community Dialects for SQLite
-    implementation("org.hibernate:hibernate-community-dialects:7.1.0.Final")
-    // Hibernate Validator
-    implementation("org.hibernate.validator:hibernate-validator:9.0.1.Final")
-    implementation("org.glassfish:jakarta.el:4.0.2")
-    // Hibernate Processor for annotation processing
-    annotationProcessor("org.hibernate.orm:hibernate-processor:7.1.0.Final")
+    implementation 'ch.qos.logback:logback-classic:1.5.24'
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+    implementation 'org.reflections:reflections:0.10.2'
 
-    implementation("com.github.Anuken.Arc:arc-core:v146")
+    implementation 'org.postgresql:postgresql:42.7.9'
+    implementation 'org.hibernate:hibernate-core:7.2.1.Final'
+    // Hibernate Processor
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.1.Final'
+    // Agroal connection pool
+    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.2.1.Final'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+test {
+    useJUnitPlatform()
+}
+
+apply from: 'gradle/jdaEventEnumCodeGen.gradle'
+tasks.named('compileJava') { dependsOn tasks.named('generateJdaEventEnum') }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = "UTF-8"
+    options.encoding = 'UTF-8'
     options.incremental = true
 
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    options.compilerArgs << '-parameters' // Enable parameter name retention at runtime, required for the InteractionProcessor
+
+    options.getGeneratedSourceOutputDirectory().set(file(generatedSourcesDir))
 }
 
 shadowJar {
-    archiveFileName = "JosetaBot.jar"
+    mainClass = 'joseta.JosetaBot'
+    archiveFileName = 'JosetaBot.jar'
 }

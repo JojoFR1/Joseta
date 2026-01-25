@@ -1,16 +1,21 @@
 # Sensible file
-secret.cfg
+.env
+*.cfg
 
 # Build
 .gradle/
 .idea/
+.vscode/
 build/
 bin/
+
+# Script
+*.bat
+*.ps1
+*.sh
 
 # Other
 logs/
 *.db
-*.bat
-*.ps1
-*.sh
 *.yaml
+src/processor
