@@ -8,6 +8,8 @@ import joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel;
+import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
@@ -208,13 +210,11 @@ public class MessageDatabase {
         Member member =  message.getMember();
         if (member != null && member.getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
         
-        GuildChannel channel = message.getGuildChannel();
-        StandardGuildMessageChannel messageChannel = null;
-        if (channel instanceof StandardGuildMessageChannel standardChannel) messageChannel = standardChannel;
-        else if (channel instanceof ThreadChannel threadChannel && threadChannel.getParentChannel() instanceof StandardGuildMessageChannel parent) messageChannel = parent;
-        
-        if (messageChannel.isNSFW() || markovBlacklist.contains(messageChannel.getIdLong())
-            || (messageChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(messageChannel.getParentCategoryIdLong()))) return false;
+        GuildMessageChannel channel = message.getGuildChannel();
+        if (markovBlacklist.contains(channel.getIdLong())
+            || (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW())
+            || (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0 && markovBlacklist.contains(categorizableChannel.getParentCategoryIdLong()))
+        ) return false;
         
         return true;
     }
