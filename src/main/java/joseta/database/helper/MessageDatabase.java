@@ -22,9 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 public class MessageDatabase {
-    private static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
-    private static final Pattern CLEAN_COPY_PATTERN = Pattern.compile("[^a-z0-9.?!,;\\-()~\"'&$€£\\]\\[àáâãäåæçèéêëìíîïñòóôõöùúûüýÿ ]+", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-    private static final Pattern SPACED_PATTERN = Pattern.compile("\\s+");
     
     public static void populateNewGuild(Guild guild) {
         int count = 0;
@@ -222,12 +219,11 @@ public class MessageDatabase {
         return true;
     }
     
+    private static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
+    
     private static String cleanContent(String content) {
-        String lower = content.toLowerCase().replace('\n', ' ').trim();
-        String noUrl = NO_URL_PATTERN.matcher(lower).replaceAll("");
-        String cleanCopy = CLEAN_COPY_PATTERN.matcher(noUrl).replaceAll("").replace('.', ' ');
-        String spaced = SPACED_PATTERN.matcher(cleanCopy).replaceAll(" ");
+        String noUrl = NO_URL_PATTERN.matcher(content.replaceAll("\\R+", " ")).replaceAll("");
         
-        return spaced;
+        return noUrl.trim().replaceAll(" +", " ");
     }
 }
