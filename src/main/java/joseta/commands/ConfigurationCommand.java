@@ -7,6 +7,7 @@ import joseta.database.Database;
 import joseta.database.entities.Configuration;
 import joseta.database.helper.MessageDatabase;
 import joseta.utils.Log;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -16,8 +17,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 @InteractionModule
 public class ConfigurationCommand {
-    
-    @SlashCommandInteraction(name = "config welcome", description = "Configure les paramètres du bot - Catégorie: Bienvenue.")
+    //TODO better permission
+    @SlashCommandInteraction(name = "config welcome", description = "Configure les paramètres du bot - Catégorie: Bienvenue.", permissions = Permission.ADMINISTRATOR)
     public void configWelcome(SlashCommandInteractionEvent event,
                               @Option(description = "Activer ou désactiver le système de bienvenue.") Boolean enabled,
                               @Option(description = "Le salon où envoyer les messages de bienvenue.", channelTypes = ChannelType.TEXT) GuildMessageChannel channel,
@@ -47,7 +48,7 @@ public class ConfigurationCommand {
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
-    @SlashCommandInteraction(name = "config markov", description = "Configure les paramètres du bot - Catégorie: Markov.")
+    @SlashCommandInteraction(name = "config markov", description = "Configure les paramètres du bot - Catégorie: Markov.", permissions = Permission.ADMINISTRATOR)
     public void configMarkov(SlashCommandInteractionEvent event,
                              @Option(description = "Activer ou désactiver la génération de messages de Markov.") Boolean enabled,
                              @Option(description = "Le membre ou rôle à ajouter à la blacklist pour la génération de messages de Markov.") IMentionable addMentionableBlacklist,
@@ -73,7 +74,7 @@ public class ConfigurationCommand {
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
-    @SlashCommandInteraction(name = "config moderation", description = "Configure les paramètres du bot - Catégorie: Modération.")
+    @SlashCommandInteraction(name = "config moderation", description = "Configure les paramètres du bot - Catégorie: Modération.", permissions = Permission.ADMINISTRATOR)
     public void configModeration(SlashCommandInteractionEvent event, @Option(description = "Activer ou désactiver les fonctionnalités de modération.") Boolean enabled) {
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
         if (config == null) {
@@ -87,7 +88,7 @@ public class ConfigurationCommand {
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
-    @SlashCommandInteraction(name = "config auto_response", description = "Configure les paramètres du bot - Catégorie: Réponse automatique.")
+    @SlashCommandInteraction(name = "config auto_response", description = "Configure les paramètres du bot - Catégorie: Réponse automatique.", permissions = Permission.ADMINISTRATOR)
     public void configAutoResponse(SlashCommandInteractionEvent event, @Option(description = "Activer ou désactiver les réponses automatiques.") Boolean enabled) {
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
         if (config == null) {
@@ -101,7 +102,7 @@ public class ConfigurationCommand {
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
-    @SlashCommandInteraction(name = "config counting", description = "Configure les paramètres du bot - Catégorie: Comptage.")
+    @SlashCommandInteraction(name = "config counting", description = "Configure les paramètres du bot - Catégorie: Comptage.", permissions = Permission.ADMINISTRATOR)
     public void configCounting(SlashCommandInteractionEvent event,
                                @Option(description = "Activer ou désactiver le système de comptage.") Boolean enabled,
                                @Option(description = "Activer ou désactiver les commentaires.") Boolean commentsEnabled,

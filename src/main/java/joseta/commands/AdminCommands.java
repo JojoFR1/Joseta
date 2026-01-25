@@ -8,6 +8,7 @@ import joseta.database.Database;
 import joseta.database.entities.Configuration;
 import joseta.events.misc.CountingChannel;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.entities.Guild;
@@ -19,6 +20,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 import java.awt.*;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +31,7 @@ public class AdminCommands {
     private static final ActionRow rulesAcceptButton = ActionRow.of(Button.success("btn-rules_accept", "Accepter"));
     
     //#region Rules Commands
-    @SlashCommandInteraction(name = "admin rules send", description = "Envoie les règles dans un salon.")
+    @SlashCommandInteraction(name = "admin rules send", description = "Envoie les règles dans un salon.", permissions = Permission.ADMINISTRATOR)
     public void rulesSend(SlashCommandInteractionEvent event,
                           @Option(description = "Le salon où envoyez les règles.", required = true) GuildMessageChannel channel)
     {
@@ -41,7 +44,7 @@ public class AdminCommands {
         //TODO save message ID to database to update later
     }
     
-    @SlashCommandInteraction(name = "admin rules update", description = "Met à jour les règles dans un salon.")
+    @SlashCommandInteraction(name = "admin rules update", description = "Met à jour les règles dans un salon.", permissions = Permission.ADMINISTRATOR)
     public void rulesUpdate(SlashCommandInteractionEvent event,
                             @Option(description = "Le salon où le message des règles se trouvent", required = true) GuildMessageChannel channel,
                             @Option(description = "L'identifiant du message.", required = true) Long messageId)
@@ -82,7 +85,17 @@ public class AdminCommands {
         Configuration config = Database.get(Configuration.class, guild.getIdLong());
         
         String rules = config.rules;
-        if (rules == null || rules.isBlank()) return List.of();
+        if (rules == null || rules.isBlank()) {
+            try {
+                InputStream rulesStream = AdminCommands.class.getResourceAsStream("/rules.txt");
+                if (rulesStream == null)
+                    return List.of();
+                
+                rules = new String(rulesStream.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                return List.of();
+            }
+        }
         
         List<MessageEmbed> embeds = new ArrayList<>();
         
@@ -96,7 +109,7 @@ public class AdminCommands {
             
             if (line.equals(RULES_EMBED_START)) {
                 i++;
-                String[] rgbValues = lines[i].split(",");
+                String[] rgbValues = lines[i].split(", ");
                 Color color = new Color(
                     Integer.parseInt(rgbValues[0]),
                     Integer.parseInt(rgbValues[1]),
@@ -123,7 +136,7 @@ public class AdminCommands {
     //#endregion
     
     //#region Counting Commands
-    @SlashCommandInteraction(name = "admin counting set_number", description = "Définit le nombre actuel pour le système de comptage.")
+    @SlashCommandInteraction(name = "admin counting set_number", description = "Définit le nombre actuel pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
     public void countingSetNumber(SlashCommandInteractionEvent event, @Option(description = "Le nombre à définir.", required = true) Long number) {
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
         if (!config.countingEnabled) {
@@ -135,7 +148,7 @@ public class AdminCommands {
         event.reply("Le dernier nombre du salon de comptage a été mis à jour.").setEphemeral(true).queue();
     }
     
-    @SlashCommandInteraction(name = "admin counting reset_number", description = "Réinitialise le nombre actuel à 0 pour le système de comptage.")
+    @SlashCommandInteraction(name = "admin counting reset_number", description = "Réinitialise le nombre actuel à 0 pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
     public void countingResetNumber(SlashCommandInteractionEvent event) {
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
         if (!config.countingEnabled) {
@@ -147,7 +160,7 @@ public class AdminCommands {
         event.reply("Le dernier nombre du salon de comptage a été réinitialisé à 0.").setEphemeral(true).queue();
     }
     
-    @SlashCommandInteraction(name = "admin counting reset_author", description = "Réinitialise l'auteur du dernier nombre pour le système de comptage.")
+    @SlashCommandInteraction(name = "admin counting reset_author", description = "Réinitialise l'auteur du dernier nombre pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
     public void countingResetAuthor(SlashCommandInteractionEvent event) {
         Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
         if (!config.countingEnabled) {
