@@ -14,14 +14,11 @@ import net.dv8tion.jda.api.events.interaction.command.GenericContextInteractionE
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.DiscordLocale;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-import net.dv8tion.jda.api.interactions.commands.localization.LocalizationFunction;
-import net.dv8tion.jda.api.interactions.commands.localization.ResourceBundleLocalizationFunction;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,35 +36,17 @@ import java.util.*;
  */
 public class InteractionProcessor {
     private static final Map<String, joseta.annotations.interactions.Interaction> interactionMethods = new HashMap<>();
-
-    /**
-     * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
-     * registering their commands and setting up event listeners with the provided JDA bot instance.
-     * <p>
-     * By default, it uses English (US and UK) and French localization from resource bundles located in "bundles/bundle".
-     *
-     * @param bot          The JDA bot instance to register commands with.
-     * @param packagesName The packages name to scan for interaction modules.
-     *                     It should contain classes annotated with {@link InteractionModule}.
-     */
-    public static void initialize(JDA bot, String... packagesName) {
-        LocalizationFunction localizationFunction = ResourceBundleLocalizationFunction.fromBundles("bundles/bundle",
-            DiscordLocale.ENGLISH_US, DiscordLocale.ENGLISH_UK, DiscordLocale.FRENCH).build();
-        
-        initialize(bot, localizationFunction, packagesName);
-    }
     
     /**
      * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
      * registering their commands and setting up event listeners with the provided JDA bot instance.
      *
      * @param bot                  The JDA bot instance to register commands with.
-     * @param localizationFunction The localization function to use for command localization.
      * @param packagesName         The packages name to scan for interaction modules.
      *                             It should contain classes annotated with {@link InteractionModule}.
      */
     // TODO if error come from JDA we dont know which interaction caused it
-    public static void initialize(JDA bot, LocalizationFunction localizationFunction, String... packagesName) {
+    public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
 
@@ -77,7 +56,7 @@ public class InteractionProcessor {
             for (Method method : commandClass.getMethods()) { try {
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
                 if (commandInteraction != null) {
-                    processCommand(commandInteraction, localizationFunction, commandClass, method, commands);
+                    processCommand(commandInteraction, commandClass, method, commands);
                     continue;
                 }
 
@@ -89,7 +68,7 @@ public class InteractionProcessor {
                     net.dv8tion.jda.api.interactions.commands.Command.Type type = contextCommandInteraction.type();
                     method.setAccessible(true);
 
-                    CommandData commandData = Commands.context(type, name).setLocalizationFunction(localizationFunction);
+                    CommandData commandData = Commands.context(type, name);
                     
                     Permission[] permissions = contextCommandInteraction.permissions();
                     if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
@@ -140,7 +119,7 @@ public class InteractionProcessor {
         bot.addEventListener(new InteractionListener());
     }
 
-    private static void processCommand(SlashCommandInteraction commandAnnotation, LocalizationFunction localizationFunction, Class<?> commandClass, Method method, List<CommandData> commands) {
+    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, List<CommandData> commands) {
         String[] baseCommandName = commandAnnotation.name().isEmpty() ? null : commandAnnotation.name().split(" ");
         if (baseCommandName == null) {
             baseCommandName = method.getName().split("(?=\\p{Upper})");
@@ -163,7 +142,7 @@ public class InteractionProcessor {
 
         SlashCommandData commandData;
         boolean commandExists = false;
-        if (commands.stream().noneMatch(c -> c.getName().equals(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description()).setLocalizationFunction(localizationFunction);
+        if (commands.stream().noneMatch(c -> c.getName().equals(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description());
         else {
             commandData = (SlashCommandData) commands.stream().filter(c -> c.getName().equals(commandName)).findFirst().orElse(null);
             commandExists = true;
