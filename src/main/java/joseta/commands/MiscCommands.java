@@ -4,10 +4,12 @@ import joseta.annotations.InteractionModule;
 import joseta.annotations.types.Option;
 import joseta.annotations.types.SlashCommandInteraction;
 import joseta.database.Database;
+import joseta.database.entities.Configuration;
 import joseta.database.entities.Reminder;
 import joseta.events.MiscEvents;
 import joseta.events.ScheduledEvents;
 import joseta.utils.TimeParser;
+import joseta.utils.markov.MarkovGen;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -15,7 +17,7 @@ import java.time.Instant;
 
 @InteractionModule
 public class MiscCommands {
-    // TODO Logic implementation
+    
     @SlashCommandInteraction(name = "ping", description = "Obtenez le ping du bot.")
     public void ping(SlashCommandInteractionEvent event) {
         long startTime = System.currentTimeMillis();
@@ -26,9 +28,24 @@ public class MiscCommands {
         );
     }
     
+    /**
+     * Original idea by l4p1n in <a href=https://git.l4p1n.ch/l4p1n-bot/bot-rust/src/commit/8afea76f37fa1468e829c37366534e6b345bdc94/bot/AppCommands/MarkovCommand.cs>l4p1n-bot/MarkovCommand.cs</a>
+     */
     @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
     public void markov(SlashCommandInteractionEvent event) {
-    
+        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        if (config == null || !config.markovEnabled) {
+            event.reply("La génération de messages Markov est désactivée sur ce serveur.").setEphemeral(true).queue();
+            return;
+        }
+        
+        event.deferReply().queue(
+            hook -> {
+                String generatedMessage = MarkovGen.generateMessage(event.getGuild().getIdLong());
+                
+                hook.editOriginal(generatedMessage).queue();
+            }
+        );
     }
     
     
@@ -54,6 +71,7 @@ public class MiscCommands {
         event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
     }
     
+    // TODO Logic implementation
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
         event.reply("Cette fonctionnalité n'est pas encore implémentée.").setEphemeral(true).queue();
