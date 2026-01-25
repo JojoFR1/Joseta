@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <conversionRule conversionWord="levelColor" class="logbackc.CustomLevelColor"/>
-    <conversionRule conversionWord="messageColor" class="logbackc.CustomMessageColor"/>
+    <conversionRule conversionWord="levelColor" class="dev.jojofr.logback.CustomLevelColor"/>
+    <conversionRule conversionWord="messageColor" class="dev.jojofr.logback.CustomMessageColor"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

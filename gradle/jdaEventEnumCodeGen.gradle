@@ -75,7 +75,7 @@ tasks.register('generateJdaEventEnum') {
 
         logger.lifecycle("Found ${eventClasses.size()} JDA event classes.")
 
-        def packageName = 'joseta.generated'
+        def packageName = 'dev.jojofr.joseta.generated'
         def enumName = 'EventType'
         def outputFile = new File(generatedSourcesDir.get().asFile, "${packageName.replace('.', '/')}/${enumName}.java")
         outputFile.parentFile.mkdirs()
