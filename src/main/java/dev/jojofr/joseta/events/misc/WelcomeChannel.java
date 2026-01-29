@@ -47,7 +47,7 @@ public class WelcomeChannel {
         String userName = user.getGlobalName() != null ? user.getGlobalName() + " (" + name + ")" : name;
         
         BufferedImage image, avatar;
-        image = welcomeImage;
+        image = new BufferedImage(welcomeImage.getWidth(), welcomeImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
         avatar = getUserAvatar(user);
         
         Graphics2D g2d = image.createGraphics();
