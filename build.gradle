@@ -52,6 +52,6 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 shadowJar {
-    mainClass = 'joseta.JosetaBot'
+    mainClass = 'dev.jojofr.joseta.JosetaBot'
     archiveFileName = 'JosetaBot.jar'
 }

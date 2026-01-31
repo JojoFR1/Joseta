@@ -40,7 +40,7 @@ public class JosetaBot {
         }
         Dotenv dotenv = new DotenvDebug().load(debug);
         
-        if (!Database.initialize("joseta.database.entities", dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_NAME"))) {
+        if (!Database.initialize("dev.jojofr.joseta.database.entities", dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_NAME"))) {
             Log.err("Database initialization failed. Exiting...");
             System.exit(1);
         }
@@ -53,9 +53,9 @@ public class JosetaBot {
             .setStatus(OnlineStatus.DO_NOT_DISTURB)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
-        
-        InteractionProcessor.initialize(botInstance, "joseta.commands");
-        EventProcessor.initialize(botInstance, "joseta.events", "joseta.commands");
+
+        InteractionProcessor.initialize(botInstance, "dev.jojofr.joseta.commands");
+        EventProcessor.initialize(botInstance, "dev.jojofr.joseta.events", "dev.jojofr.joseta.commands");
         
         registerShutdown(botInstance);
 
