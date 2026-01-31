@@ -18,7 +18,7 @@ dependencies {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.24'
+    implementation 'ch.qos.logback:logback-classic:1.5.27'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.reflections:reflections:0.10.2'
 
