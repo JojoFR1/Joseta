@@ -279,6 +279,7 @@ public class InteractionProcessor {
         
         @Override
         public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+            long startTime = System.currentTimeMillis();
             String commandName = event.getName();
             String subcommandGroup = event.getSubcommandGroup();
             String subcommand = event.getSubcommandName();
@@ -335,10 +336,14 @@ public class InteractionProcessor {
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                 Log.err("An error occurred during command execution ({}):", command.getName(), e);
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Command {} processed in {} ms", event.getName(), (endTime - startTime));
         }
 
         @Override
         public void onGenericContextInteraction(GenericContextInteractionEvent<?> event) {
+            long startTime = System.currentTimeMillis();
             String commandName = event.getName();
 
             Interaction contextInteraction = interactionMethods.get(commandName);
@@ -360,10 +365,14 @@ public class InteractionProcessor {
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                 Log.err("An error occurred during context execution ({}):", contextInteraction.getName(), e);
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Context interaction {} processed in {} ms", event.getName(), (endTime - startTime));
         }
         
         @Override
         public void onGenericComponentInteractionCreate(GenericComponentInteractionCreateEvent event) {
+            long startTime = System.currentTimeMillis();
             String componentId = event.getComponentId();
             
             Interaction component = interactionMethods.get(componentId);
@@ -385,6 +394,9 @@ public class InteractionProcessor {
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                 Log.err("An error occurred during component execution ({}):", component.getName(), e);
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Component interaction {} processed in {} ms", componentId, (endTime - startTime));
         }
     }
 }

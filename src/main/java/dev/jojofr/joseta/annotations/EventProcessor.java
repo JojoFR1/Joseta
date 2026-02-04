@@ -77,6 +77,7 @@ public class EventProcessor {
         
         @Override
         public void onGenericEvent(GenericEvent event) {
+            long startTime = System.currentTimeMillis();
             if (blacklist.contains(event.getClass())) return;
             
             List<Event> eventAnnotations = eventMethods.get(event.getClass());
@@ -98,6 +99,9 @@ public class EventProcessor {
                     Log.warn("An unexpected error occurred while executing the event" + eventAnnotation.getMethod().getClass().getName() + "." + eventAnnotation.getMethod().getName(), e);
                 }
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Event {} processed in {} ms", event.getClass().getSimpleName(), (endTime - startTime));
         }
     }
 }
