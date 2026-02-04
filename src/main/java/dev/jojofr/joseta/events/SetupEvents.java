@@ -11,6 +11,7 @@ import dev.jojofr.joseta.database.entities.*;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.database.helper.UserDatabase;
 import dev.jojofr.joseta.generated.EventType;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
@@ -37,6 +38,8 @@ public class SetupEvents {
             
             MessageDatabase.populateNewGuild(event.getGuild());
         }
+        
+        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), Database.get(Configuration.class, event.getGuild().getIdLong()));
     }
     
     @Event(type = EventType.GUILD_LEAVE)
@@ -49,8 +52,11 @@ public class SetupEvents {
             Log.info("Removing database entries for guild: {} (ID: {})", event.getGuild().getName(), guildId);
             Database.delete(guildDatabase);
             
-            Configuration config = Database.get(Configuration.class, guildId);
-            if (config != null) Database.delete(config);
+            Configuration config = BotCache.guildConfigurations.get(guildId);
+            if (config != null) {
+                Database.delete(config);
+                BotCache.guildConfigurations.remove(guildId);
+            }
             
             MessageDatabase.deleteGuildMessages(guildId);
             UserDatabase.deleteGuildUsers(guildId);

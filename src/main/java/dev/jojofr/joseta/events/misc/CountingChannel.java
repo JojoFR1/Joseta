@@ -1,8 +1,7 @@
 package dev.jojofr.joseta.events.misc;
 
-import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.Configuration;
-import dev.jojofr.joseta.utils.BotResources;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
@@ -45,7 +44,7 @@ public class CountingChannel {
                 return false;
             }
             
-            Configuration config = Database.get(Configuration.class, message.getGuild().getIdLong());
+            Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
             lastAuthorId = previousMessage.getAuthor().getIdLong();
             lastNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
             lastTimestamp = previousMessage.getTimeCreated().toInstant().toEpochMilli();
@@ -66,7 +65,7 @@ public class CountingChannel {
         if (!preCheck(channel, message)) return;
         
         // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
-        Configuration config = Database.get(Configuration.class, message.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
         long number = parseNumber(message.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
         
         if (number == -1) {
@@ -79,7 +78,7 @@ public class CountingChannel {
                 message.delete().queue();
             } else {
                 lastNumber = 0;
-                message.addReaction(BotResources.CROSS_EMOJI).queue();
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
@@ -97,7 +96,7 @@ public class CountingChannel {
                 message.delete().queue();
             } else {
                 lastNumber = 0;
-                message.addReaction(BotResources.CROSS_EMOJI).queue();
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
@@ -110,7 +109,7 @@ public class CountingChannel {
                 message.delete().queue();
             } else {
                 lastNumber = 0;
-                message.addReaction(BotResources.CROSS_EMOJI).queue();
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
@@ -119,7 +118,7 @@ public class CountingChannel {
         lastNumber += 1;
         lastAuthorId = message.getAuthor().getIdLong();
         lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
-        message.addReaction(BotResources.CHECK_EMOJI).queue(
+        message.addReaction(BotCache.CHECK_EMOJI).queue(
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
         );
     }

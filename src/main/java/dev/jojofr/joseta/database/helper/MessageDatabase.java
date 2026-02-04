@@ -4,6 +4,7 @@ import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.database.entities.Message_;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -29,7 +30,7 @@ public class MessageDatabase {
         int count = 0;
         Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         for (GuildChannel channel : guild.getChannels()) {
-            Configuration config = Database.get(Configuration.class, guild.getIdLong());
+            Configuration config = BotCache.guildConfigurations.get(guild.getIdLong());
             
             if (!(channel instanceof GuildMessageChannel messageChannel)) continue;
             count += addChannelMessageHistory(messageChannel, guild, config.markovBlacklist);
@@ -58,7 +59,7 @@ public class MessageDatabase {
     }
     
     public static void addNewMessage(Message message) {
-        Configuration config = Database.get(Configuration.class, message.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
         addNewMessage(message, config.markovBlacklist);
     }
     
@@ -131,7 +132,7 @@ public class MessageDatabase {
     
     
     public static void updateMarkovEligibility(long guildId) {
-        Configuration config = Database.get(Configuration.class, guildId);
+        Configuration config = BotCache.guildConfigurations.get(guildId);
         updateMarkovEligibility(guildId, config.markovBlacklist);
     }
     

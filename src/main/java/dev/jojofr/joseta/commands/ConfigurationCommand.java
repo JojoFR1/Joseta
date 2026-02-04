@@ -8,6 +8,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -85,7 +86,7 @@ public class ConfigurationCommand {
                               @Option(description = "Le rôle à attribuer aux nouveaux bots.") Role joinBotRole,
                               @Option(description = "Le rôle à donner aux membres vérifiés.") Role verifiedRole)
     {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null) {
             config = new Configuration(event.getGuild().getIdLong());
             Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
@@ -101,6 +102,8 @@ public class ConfigurationCommand {
               .setVerifiedRole(verifiedRole);
         
         Database.createOrUpdate(config);
+        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), config);
+        
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
@@ -112,7 +115,7 @@ public class ConfigurationCommand {
                              @Option(description = "Le salon, thread ou catégorie à ajouter à la blacklist pour la génération de messages de Markov.") GuildChannel addChannelBlacklist,
                              @Option(description = "Le salon, thread ou catégorie à retirer de la blacklist pour la génération de messages de Markov.") GuildChannel removeChannelBlacklist)
     {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null) {
             config = new Configuration(event.getGuild().getIdLong());
             Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
@@ -127,12 +130,14 @@ public class ConfigurationCommand {
         MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong(), config.markovBlacklist);
         
         Database.createOrUpdate(config);
+        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), config);
+        
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "config moderation", description = "Configure les paramètres du bot - Catégorie: Modération.", permissions = Permission.ADMINISTRATOR)
     public void configModeration(SlashCommandInteractionEvent event, @Option(description = "Activer ou désactiver les fonctionnalités de modération.") Boolean enabled) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null) {
             config = new Configuration(event.getGuild().getIdLong());
             Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
@@ -141,12 +146,14 @@ public class ConfigurationCommand {
         config.setModerationEnabled(enabled);
         
         Database.createOrUpdate(config);
+        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), config);
+        
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
     @SlashCommandInteraction(name = "config auto_response", description = "Configure les paramètres du bot - Catégorie: Réponse automatique.", permissions = Permission.ADMINISTRATOR)
     public void configAutoResponse(SlashCommandInteractionEvent event, @Option(description = "Activer ou désactiver les réponses automatiques.") Boolean enabled) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null) {
             config = new Configuration(event.getGuild().getIdLong());
             Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
@@ -155,6 +162,8 @@ public class ConfigurationCommand {
         config.setAutoResponseEnabled(enabled);
         
         Database.createOrUpdate(config);
+        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), config);
+        
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
     
@@ -165,7 +174,7 @@ public class ConfigurationCommand {
                                @Option(description = "Activer ou désactiver la pénalité en cas d'erreur de comptage.") Boolean penaltyEnabled,
                                @Option(description = "Le salon de comptage.") GuildMessageChannel channel)
     {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null) {
             config = new Configuration(event.getGuild().getIdLong());
             Log.info("Creating new configuration for guild {}", event.getGuild().getIdLong());
@@ -177,6 +186,8 @@ public class ConfigurationCommand {
               .setCountingChannel(channel);
         
         Database.createOrUpdate(config);
+        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), config);
+        
         event.reply("La configuration du serveur a été mise à jour avec succès.").setEphemeral(true).queue();
     }
 }

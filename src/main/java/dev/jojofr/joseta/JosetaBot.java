@@ -23,7 +23,7 @@ public class JosetaBot {
     public static JDA get() { return botInstance; }
     
     public static boolean debug = false;
-
+    
     /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
      *   - Move rules from a text file to the database
      *   - Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal

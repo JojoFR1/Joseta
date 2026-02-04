@@ -4,9 +4,9 @@ import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.ButtonInteraction;
 import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
-import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.events.misc.CountingChannel;
+import dev.jojofr.joseta.utils.BotCache;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -68,7 +68,7 @@ public class AdminCommands {
     
     @ButtonInteraction(id = "btn-rules_accept")
     public void rulesAccept(ButtonInteractionEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
@@ -82,7 +82,7 @@ public class AdminCommands {
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
-        Configuration config = Database.get(Configuration.class, guild.getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(guild.getIdLong());
         
         String rules = config.rules;
         if (rules == null || rules.isBlank()) {
@@ -138,7 +138,7 @@ public class AdminCommands {
     //#region Counting Commands
     @SlashCommandInteraction(name = "admin counting set_number", description = "Définit le nombre actuel pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
     public void countingSetNumber(SlashCommandInteractionEvent event, @Option(description = "Le nombre à définir.", required = true) Long number) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (!config.countingEnabled) {
             event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
             return;
@@ -150,7 +150,7 @@ public class AdminCommands {
     
     @SlashCommandInteraction(name = "admin counting reset_number", description = "Réinitialise le nombre actuel à 0 pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
     public void countingResetNumber(SlashCommandInteractionEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (!config.countingEnabled) {
             event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
             return;
@@ -162,7 +162,7 @@ public class AdminCommands {
     
     @SlashCommandInteraction(name = "admin counting reset_author", description = "Réinitialise l'auteur du dernier nombre pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
     public void countingResetAuthor(SlashCommandInteractionEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (!config.countingEnabled) {
             event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
             return;
