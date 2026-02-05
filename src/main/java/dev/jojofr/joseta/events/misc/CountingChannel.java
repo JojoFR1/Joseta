@@ -64,14 +64,20 @@ public class CountingChannel {
         
         if (!preCheck(channel, message)) return;
         
-        // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
         Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
         long number = parseNumber(message.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
         
+        if (number == lastNumber && message.getTimeCreated().toInstant().toEpochMilli() - lastTimestamp < 2000) {
+            message.delete().queue();
+            return;
+        }
+        
+        lastAuthorId = message.getAuthor().getIdLong();
+        
+        // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
         if (number == -1) {
             String hasToString = config.countingCommentsEnabled ? "commencer par" : "uniquement utiliser";
             if (!config.countingPenaltyEnabled) {
-                
                 message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon !").queue(
                     botMessage -> botMessage.delete().queueAfter(5, TimeUnit.SECONDS)
                 );
@@ -81,11 +87,6 @@ public class CountingChannel {
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres.\n\n-# Le comptage repart de 0.").queue();
             }
-            return;
-        }
-        
-        if (number == lastNumber && message.getTimeCreated().toInstant().toEpochMilli() - lastTimestamp < 2000) {
-            message.delete().queue();
             return;
         }
         
@@ -116,7 +117,6 @@ public class CountingChannel {
         }
         
         lastNumber += 1;
-        lastAuthorId = message.getAuthor().getIdLong();
         lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
         message.addReaction(BotCache.CHECK_EMOJI).queue(
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
