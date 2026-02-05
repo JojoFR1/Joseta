@@ -7,8 +7,9 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BotCache {
-    public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
     public static ConcurrentHashMap<Long, Configuration> guildConfigurations = new ConcurrentHashMap<>();
+    
+    public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
     
     static {
         boolean debug = JosetaBot.debug;

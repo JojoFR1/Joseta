@@ -183,6 +183,7 @@ public class MessageDatabase {
                 }}
                 
                 tx.commit();
+                results.close();
             }
             
             Log.debug("Finished update. Updated {} messages for guild: {}", updatedCount, guild.getName());
@@ -196,8 +197,8 @@ public class MessageDatabase {
         if (member != null && member.getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
         
         GuildChannel channel = guild.getGuildChannelById(dbMessage.channelId);
-        if (channel == null)
-            channel = guild.getThreadChannelById(dbMessage.channelId);
+        // Very likely an archived thread, less likely a deleted channel. Can't check, assume ineligible.
+        if (channel == null) return  false;
         
         if (markovBlacklist.contains(channel.getIdLong())
             || (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW())
