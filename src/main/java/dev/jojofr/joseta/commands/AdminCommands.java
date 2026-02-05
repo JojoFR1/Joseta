@@ -144,7 +144,7 @@ public class AdminCommands {
             return;
         }
         
-        CountingChannel.setNumber(number);
+        CountingChannel.lastNumber = number;
         event.reply("Le dernier nombre du salon de comptage a été mis à jour.").setEphemeral(true).queue();
     }
     
@@ -156,7 +156,7 @@ public class AdminCommands {
             return;
         }
         
-        CountingChannel.setNumber(0L);
+        CountingChannel.lastNumber = 0;
         event.reply("Le dernier nombre du salon de comptage a été réinitialisé à 0.").setEphemeral(true).queue();
     }
     
@@ -168,7 +168,7 @@ public class AdminCommands {
             return;
         }
         
-        CountingChannel.setAuthorId(-1);
+        CountingChannel.lastAuthorId = -1;
         event.reply("L'ID du dernier auteur dans comptage a été reinitialiser.").setEphemeral(true).queue();
     }
     //#endregion

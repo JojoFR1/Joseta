@@ -14,8 +14,9 @@ import java.util.regex.Pattern;
 
 public class CountingChannel {
     private static boolean autoCheck = true;
-    private static long lastNumber = -1;
-    private static long lastAuthorId = -1;
+    
+    public static long lastNumber = -1;
+    public static long lastAuthorId = -1;
     private static long lastTimestamp = -1;
     
     // Start with a number
@@ -131,13 +132,5 @@ public class CountingChannel {
             catch (NumberFormatException e) { Log.err("Failed to parse the number from the counting message.", e); }
         
         return number;
-    }
-    
-    public static void setNumber(long newNumber) {
-        lastNumber = newNumber;
-    }
-    
-    public static void setAuthorId(long authorId) {
-        lastAuthorId = authorId;
     }
 }
