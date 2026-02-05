@@ -72,6 +72,19 @@ public class CountingChannel {
             return;
         }
         
+        // Rule - Cannot count twice in a row
+        if (message.getAuthor().getIdLong() == lastAuthorId) {
+            if (!config.countingPenaltyEnabled) {
+                message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                message.delete().queue();
+            } else {
+                lastNumber = 0;
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
+            }
+            return;
+        }
+        
         lastAuthorId = message.getAuthor().getIdLong();
         
         // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
@@ -99,19 +112,6 @@ public class CountingChannel {
                 lastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
-            }
-            return;
-        }
-        
-        // Rule - Cannot count twice in a row
-        if (message.getAuthor().getIdLong() == lastAuthorId) {
-            if (!config.countingPenaltyEnabled) {
-                message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-                message.delete().queue();
-            } else {
-                lastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
             }
             return;
         }
