@@ -11,6 +11,7 @@ import dev.jojofr.joseta.entities.ConfigurationMessage;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.section.Section;
@@ -33,35 +34,118 @@ public class ConfigurationCommand {
     
     
     // A configuration menu using the new Components V2 system
-    @SlashCommandInteraction(name = "test")
-    public void testCommand(SlashCommandInteractionEvent event) {
+    @SlashCommandInteraction(name = "test", description = "Configure les paramètres du bot.", permissions = Permission.MANAGE_SERVER)
+    public void config(SlashCommandInteractionEvent event) {
         Container container = Container.of(
             TextDisplay.of("# Configuration"),
             TextDisplay.of("Configuration du bot - Choisissez une catégorie à configurer :"),
-            Section.of(
-                Button.primary("config_welcome", "Configurer la bienvenue"),
-                TextDisplay.of(" Categori")
-            )
+            
+            Section.of(Button.primary("config-cat_autores", "Configurer"), TextDisplay.of("Réponse automatique")),
+            Section.of(Button.primary("config-cat_counting", "Configurer"), TextDisplay.of("Comptage")),
+            Section.of(Button.primary("config-cat_markov", "Configurer"), TextDisplay.of("Markov")),
+            Section.of(Button.primary("config-cat_moderation", "Configurer"), TextDisplay.of("Modération")),
+            Section.of(Button.primary("config-cat_welcome", "Configurer"), TextDisplay.of("Bienvenue"))
         );
         
         event.replyComponents(container).useComponentsV2().queue(
-            hook -> configurationMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ConfigurationMessage(Instant.now()))
+            hook -> configurationMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ConfigurationMessage(event.getGuild().getIdLong(), Instant.now()))
         );
     }
     
-    @ButtonInteraction(id = "config_welcome")
+    @ButtonInteraction(id = "config-cat_autores")
+    public void onConfigAutoResponseButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        Container container = Container.of(
+            TextDisplay.of("# Configuration - Réponse automatique"),
+            TextDisplay.of("En cours de développement."),
+            ActionRow.of(Button.danger("config-back", "Retour au menu principal"))
+        );
+        
+        event.editComponents(container).useComponentsV2().queue();
+    }
+    
+    @ButtonInteraction(id = "config-cat_counting")
+    public void onConfigCountingButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        Container container = Container.of(
+            TextDisplay.of("# Configuration - Comptage"),
+            TextDisplay.of("En cours de développement."),
+            ActionRow.of(Button.danger("config-back", "Retour au menu principal"))
+        );
+        
+        event.editComponents(container).useComponentsV2().queue();
+    }
+    
+    @ButtonInteraction(id = "config-cat_markov")
+    public void onConfigMarkovButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        Container container = Container.of(
+            TextDisplay.of("# Configuration - Markov"),
+            TextDisplay.of("En cours de développement."),
+            ActionRow.of(Button.danger("config-back", "Retour au menu principal"))
+        );
+        
+        event.editComponents(container).useComponentsV2().setComponents().queue();
+    }
+    
+    @ButtonInteraction(id = "config-cat_moderation")
+    public void onConfigModerationButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        Container container = Container.of(
+            TextDisplay.of("# Configuration - Modération"),
+            TextDisplay.of("En cours de développement."),
+            ActionRow.of(Button.danger("config-back", "Retour au menu principal"))
+        );
+        
+        event.editComponents(container).useComponentsV2().queue();
+    }
+    
+    @ButtonInteraction(id = "config-cat_welcome")
     public void onConfigWelcomeButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
-        else {
-            // Handle the button interaction for configuring welcome settings
-            event.reply("Vous avez cliqué sur le bouton de configuration de la bienvenue.").setEphemeral(true).queue();
-        }
+        
+        Container container = Container.of(
+            TextDisplay.of("# Configuration - Bienvenue"),
+            TextDisplay.of("En cours de développement."),
+            ActionRow.of(Button.danger("config-back", "Retour au menu principal"))
+        );
+        
+        event.editComponents(container).useComponentsV2().queue();
     }
+    
+    @ButtonInteraction(id = "config-back")
+    public void onConfigBackButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        Container container = Container.of(
+            TextDisplay.of("# Configuration"),
+            TextDisplay.of("Configuration du bot - Choisissez une catégorie à configurer :"),
+            
+            Section.of(Button.primary("config-cat_autores", "Configurer"), TextDisplay.of("Réponse automatique")),
+            Section.of(Button.primary("config-cat_counting", "Configurer"), TextDisplay.of("Comptage")),
+            Section.of(Button.primary("config-cat_markov", "Configurer"), TextDisplay.of("Markov")),
+            Section.of(Button.primary("config-cat_moderation", "Configurer"), TextDisplay.of("Modération")),
+            Section.of(Button.primary("config-cat_welcome", "Configurer"), TextDisplay.of("Bienvenue"))
+        );
+        
+        event.editComponents(container).useComponentsV2().queue();
+    }
+    
     
     private ConfigurationMessage checkConfigurationMessage(ButtonInteractionEvent event, long id) {
         ConfigurationMessage configurationMessage = configurationMessages.get(id);
-        if (configurationMessage == null || Instant.now().isBefore(configurationMessage.timestamp.plusSeconds(15 * 60))) {
+        Log.info("Checking configuration message with id {}: {}", id, configurationMessage);
+        if (configurationMessage == null || Instant.now().isAfter(configurationMessage.timestamp.plusSeconds(15 * 60))) {
             event.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir un nouveau menu de configuration.").setEphemeral(true).queue();
             
             event.getMessage().editMessageComponents(TextDisplay.of("⚠️ Ce menu de configuration a expiré. Veuillez réutiliser la commande pour obtenir un nouveau menu."))
@@ -74,7 +158,8 @@ public class ConfigurationCommand {
     }
     
     
-    //TODO better permission
+
+
     @SlashCommandInteraction(name = "config welcome", description = "Configure les paramètres du bot - Catégorie: Bienvenue.", permissions = Permission.ADMINISTRATOR)
     public void configWelcome(SlashCommandInteractionEvent event,
                               @Option(description = "Activer ou désactiver le système de bienvenue.") Boolean enabled,
