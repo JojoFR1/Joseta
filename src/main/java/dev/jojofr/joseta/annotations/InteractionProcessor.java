@@ -11,11 +11,13 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.GenericContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.ICustomIdInteraction;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -371,32 +373,45 @@ public class InteractionProcessor {
         }
         
         @Override
-        public void onGenericComponentInteractionCreate(GenericComponentInteractionCreateEvent event) {
-            long startTime = System.currentTimeMillis();
-            String componentId = event.getComponentId();
+        public void onGenericInteractionCreate(GenericInteractionCreateEvent event) {
+            if (event instanceof SlashCommandInteractionEvent || event instanceof GenericContextInteractionEvent)
+                return;
             
-            Interaction component = interactionMethods.get(componentId);
-            if (component == null) {
-                Log.warn("Unknown component: {}", componentId);
-                event.reply("Composant `"+ componentId +"` inconnu. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
+            long startTime = System.currentTimeMillis();
+            
+            if (!(event.getInteraction() instanceof ICustomIdInteraction customIdInteraction)) {
+                Log.warn("Received an interaction that is not a ICustomIdInteraction: {}", event.getClass().getName());
+                return;
+            }
+            String interactionId = customIdInteraction.getCustomId();
+            
+            if (!(event instanceof IReplyCallback replyCallback)) {
+                Log.warn("Received an interaction that is not a IReplyCallback: {}", event.getClass().getName());
                 return;
             }
             
-            if (component.isGuildOnly() && !event.isFromGuild()) {
-                event.reply("Ce composant ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
+            Interaction interaction = interactionMethods.get(interactionId);
+            if (interaction == null) {
+                Log.warn("Unknown interaction: {}", interactionId);
+                replyCallback.reply("Composant `"+ interactionId +"` inconnu. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
+                return;
+            }
+            
+            if (interaction.isGuildOnly() && !event.isFromGuild()) {
+                replyCallback.reply("Ce composant ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
                 return;
             }
             
             try {
-                Object o = component.getClazz().getDeclaredConstructor().newInstance();
+                Object o = interaction.getClazz().getDeclaredConstructor().newInstance();
 
-                component.getMethod().invoke(o, event);
+                interaction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during component execution ({}):", component.getName(), e);
+                Log.err("An error occurred during interaction execution ({}):", interaction.getName(), e);
             }
             
             long endTime = System.currentTimeMillis();
-            Log.debug("Component interaction {} processed in {} ms", componentId, (endTime - startTime));
+            Log.debug("Component interaction {} processed in {} ms", interactionId, (endTime - startTime));
         }
     }
 }
