@@ -7,6 +7,8 @@ import java.time.Instant;
 
 public class ConfigurationMessage {
     public Configuration configuration;
+    public boolean hasChanged = false;
+    public boolean isMainMenu = true;
     
     public final Instant timestamp;
     
