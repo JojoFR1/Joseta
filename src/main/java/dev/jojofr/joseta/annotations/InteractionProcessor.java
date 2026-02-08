@@ -290,7 +290,7 @@ public class InteractionProcessor {
             Command command = (Command) interactionMethods.get(commandName);
             if (command == null) {
                 Log.warn("Unknown command: " + event.getName());
-                event.reply("Commande inconnue.").setEphemeral(true).queue();
+                event.reply("Commande `"+ commandName +"` inconnue. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
                 return;
             }
             
@@ -309,7 +309,7 @@ public class InteractionProcessor {
 
                     if (option == null && parameter.required()) {
                         Log.warn("A required parameter is missing for command {}, parameter: {}", command.getName(), parameter.name());
-                        event.reply("Un paramètre obligatoire est manquant.").queue();
+                        event.reply("Un paramètre obligatoire est manquant. Veuillez contacter un développeur si l'erreur persiste.").queue();
                         return;
                     }
 
@@ -349,7 +349,7 @@ public class InteractionProcessor {
             Interaction contextInteraction = interactionMethods.get(commandName);
             if (contextInteraction == null) {
                 Log.warn("Unknown context interaction: " + event.getName());
-                event.reply("Interaction inconnue.").setEphemeral(true).queue();
+                event.reply("Interaction `"+ commandName +"` inconnue. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
                 return;
             }
             
@@ -378,7 +378,7 @@ public class InteractionProcessor {
             Interaction component = interactionMethods.get(componentId);
             if (component == null) {
                 Log.warn("Unknown component: {}", componentId);
-                event.reply("Composant inconnu.").setEphemeral(true).queue();
+                event.reply("Composant `"+ componentId +"` inconnu. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
                 return;
             }
             
