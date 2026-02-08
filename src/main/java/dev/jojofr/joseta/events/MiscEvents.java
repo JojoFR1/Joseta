@@ -8,6 +8,7 @@ import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
 import dev.jojofr.joseta.generated.EventType;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -68,7 +69,7 @@ public class MiscEvents {
     
     @Event(type = EventType.MESSAGE_RECEIVED)
     public void autoResponse(MessageReceivedEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.autoResponseEnabled) return;
         
         String text = event.getMessage().getContentRaw();
@@ -79,7 +80,7 @@ public class MiscEvents {
     
     @Event(type = EventType.MESSAGE_RECEIVED)
     public void countingCheck(MessageReceivedEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.countingEnabled) return;
         
         if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
@@ -89,7 +90,7 @@ public class MiscEvents {
     
     @Event(type = EventType.GUILD_MEMBER_JOIN)
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.welcomeEnabled) return;
         
         User user = event.getUser();
@@ -121,7 +122,7 @@ public class MiscEvents {
     
     @Event(type = EventType.GUILD_MEMBER_REMOVE)
     public void memberRemove(GuildMemberRemoveEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.welcomeEnabled) return;
         
         TextChannel channel;

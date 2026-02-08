@@ -10,6 +10,7 @@ import dev.jojofr.joseta.database.entities.Sanction;
 import dev.jojofr.joseta.database.entities.Sanction_;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
 import dev.jojofr.joseta.entities.ModlogMessage;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import dev.jojofr.joseta.utils.TimeParser;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -143,7 +144,7 @@ public class ModerationCommands {
     public void clear(SlashCommandInteractionEvent event,
                       @Option(description = "Le nombre de messages à supprimer.", minValue = 1, maxValue = 100, required = true) Integer amount)
     {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         
         if (!config.moderationEnabled) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();
@@ -388,7 +389,7 @@ public class ModerationCommands {
     }
     
     private boolean check(SlashCommandInteractionEvent event, Member member) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         Member executor = event.getMember();
         
         if (!config.moderationEnabled) {

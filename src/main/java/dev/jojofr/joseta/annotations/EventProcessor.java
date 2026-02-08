@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.GatewayPingEvent;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.events.http.HttpRequestEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.SessionResumeEvent;
@@ -77,6 +78,7 @@ public class EventProcessor {
         
         @Override
         public void onGenericEvent(GenericEvent event) {
+            long startTime = System.currentTimeMillis();
             if (blacklist.contains(event.getClass())) return;
             
             List<Event> eventAnnotations = eventMethods.get(event.getClass());
@@ -85,8 +87,10 @@ public class EventProcessor {
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
-                    if (eventAnnotation.isGuildOnly() && event instanceof Interaction interactionEvent && !interactionEvent.isFromGuild())
-                        continue;
+                    if (eventAnnotation.isGuildOnly()
+                        && ((event instanceof Interaction interactionEvent && interactionEvent.isFromGuild())
+                            || (event instanceof MessageReceivedEvent messageEvent && !messageEvent.isFromGuild()))
+                    ) continue;
                     
                     // TODO also bad, cache instances? might need new instance each time depending on use case
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
@@ -98,6 +102,9 @@ public class EventProcessor {
                     Log.warn("An unexpected error occurred while executing the event" + eventAnnotation.getMethod().getClass().getName() + "." + eventAnnotation.getMethod().getName(), e);
                 }
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Event {} processed in {} ms", event.getClass().getSimpleName(), (endTime - startTime));
         }
     }
 }
