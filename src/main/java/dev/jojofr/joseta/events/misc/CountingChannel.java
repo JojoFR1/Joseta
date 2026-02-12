@@ -19,9 +19,6 @@ public class CountingChannel {
     public static long lastAuthorId = -1;
     private static long lastTimestamp = -1;
     
-    // Start with a number
-    private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
-    
     public static boolean preCheck(MessageChannelUnion channel, Message message) {
         if (lastNumber == -1) { // Initialize the needed values on bot launch
             Message previousMessage = null;
@@ -123,6 +120,10 @@ public class CountingChannel {
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
         );
     }
+    
+    
+    // Start with a number
+    private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
     
     private static long parseNumber(String message, boolean commentsEnabled) {
         long number = -1;

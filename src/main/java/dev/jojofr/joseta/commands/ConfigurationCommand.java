@@ -125,6 +125,7 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
+    @ButtonInteraction(id = "config:cat_moderation:edit_rules") public void onConfigModerationEditRulesButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_welcome:edit_join_message") public void onConfigWelcomeEditJoinMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_welcome:edit_leave_message") public void onConfigWelcomeEditLeaveMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     private void onEditMessageButton(ButtonInteractionEvent event) {
@@ -133,6 +134,39 @@ public class ConfigurationCommand {
         
         String buttonId = event.getComponentId();
         switch (buttonId) {
+            case "config:cat_moderation:edit_rules" -> {
+                Modal modal = Modal.create("config:cat_moderation:edit_rules:modal", "Modifier les règles du serveur")
+                    .addComponents(
+                        TextDisplay.of(
+                        """
+                        Les règles du serveur ont un format spécifique :
+                        - Support total pour le markdown, utilisant celui de Discord.
+                        - Les règles sont formatter par embed. Vous êtes libre de choisir la disposition et le style de l'embed.
+                           - Chaque embed DOIT commencer par `---STARTEMBED---`, suivi de 3 valeurs de 0 a 255 pour la couleur, puis du contenu et enfin terminer par `---ENDEMBED---`.
+                           - Exemple:
+                           ```
+                           ---STARTEMBED---
+                           243, 118, 97
+                           Contenu de l'embed...
+                           ---ENDEMBED---```
+                        
+                        - Il n'y a pas de limite connu pour le moment.
+                        - Le format interne du message risque fortement de changer.
+                        - Un bouton de vérification sera toujours présent à la fin des règles. Il enlevera le rôle que le membre obtient en rejoignant le serveur, puis lui donnera le rôle considerer "vérifier" dans les paramètres de Bievenue.
+                        """
+                        ),
+                        Label.of(
+                            "Règles du serveur",
+                            TextInput.create("config:cat_moderation:edit_rules:modal:input", TextInputStyle.PARAGRAPH)
+                                .setPlaceholder("Entrez les règles du serveur.")
+                                .setMinLength(1)
+                                .setMaxLength(4000)
+                                .setValue(configurationMessage.configuration.rules.isEmpty() ? null : configurationMessage.configuration.rules)
+                                .build()
+                        )
+                    ).build();
+                event.replyModal(modal).queue();
+            }
             case "config:cat_welcome:edit_join_message" -> {
                 Modal modal = Modal.create("config:cat_welcome:edit_join_message:modal", "Modifier le message de bienvenue")
                     .addComponents(
@@ -194,6 +228,7 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
+    @ModalInteraction(id = "config:cat_moderation:edit_rules:modal") public void onConfigModerationEditRulesModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @ModalInteraction(id = "config:cat_welcome:edit_join_message:modal") public void onConfigWelcomeEditJoinMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @ModalInteraction(id = "config:cat_welcome:edit_leave_message:modal") public void onConfigWelcomeEditLeaveMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     private void onEditMessageModalSubmit(ModalInteractionEvent event) {
@@ -202,6 +237,7 @@ public class ConfigurationCommand {
         
         String modalId = event.getModalId();
         String inputId = switch (modalId) {
+            case "config:cat_moderation:edit_rules:modal" -> "config:cat_moderation:edit_rules:modal:input";
             case "config:cat_welcome:edit_join_message:modal" -> "config:cat_welcome:edit_join_message:modal:input";
             case "config:cat_welcome:edit_leave_message:modal" -> "config:cat_welcome:edit_leave_message:modal:input";
             default -> null;
@@ -210,12 +246,17 @@ public class ConfigurationCommand {
         
         String newMessage = event.getValue(inputId).getAsString();
         switch (modalId) {
+            case "config:cat_moderation:edit_rules:modal" -> configurationMessage.configuration.setRules(newMessage);
             case "config:cat_welcome:edit_join_message:modal" -> configurationMessage.configuration.setWelcomeJoinMessage(newMessage);
             case "config:cat_welcome:edit_leave_message:modal" -> configurationMessage.configuration.setWelcomeLeaveMessage(newMessage);
         }
         
         configurationMessage.hasChanged = true;
-        event.editComponents(createWelcomeMenuContainer(configurationMessage)).useComponentsV2().queue();
+        event.editComponents(switch(modalId) {
+            case "config:cat_moderation:edit_rules:modal" -> createModerationMenuContainer(configurationMessage);
+            case "config:cat_welcome:edit_join_message:modal", "config:cat_welcome:edit_leave_message:modal" -> createWelcomeMenuContainer(configurationMessage);
+            default -> null;
+        }).useComponentsV2().queue();
     }
     
     
@@ -330,6 +371,12 @@ public class ConfigurationCommand {
             createToggleSection("Système de modération",
                 "Active ou désactive les commande de modération.",
                 "config:cat_moderation:toggle", configurationMessage.configuration.moderationEnabled),
+            
+            TextDisplay.of("### Règles du serveur"),
+            Section.of(
+                Button.primary("config:cat_moderation:edit_rules", "Modifier les règles du serveur"),
+                TextDisplay.of("-# Les règles du serveur.")
+            ),
             
             createBottomRow(configurationMessage)
         );
