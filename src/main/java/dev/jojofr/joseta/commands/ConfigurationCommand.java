@@ -135,67 +135,40 @@ public class ConfigurationCommand {
         String buttonId = event.getComponentId();
         switch (buttonId) {
             case "config:cat_moderation:edit_rules" -> {
-                Modal modal = Modal.create("config:cat_moderation:edit_rules:modal", "Modifier les règles du serveur")
-                    .addComponents(
-                        TextDisplay.of(
-                        """
-                        Les règles du serveur ont un format spécifique :
-                        - Support total pour le markdown, utilisant celui de Discord.
-                        - Les règles sont formatter par embed. Vous êtes libre de choisir la disposition et le style de l'embed.
-                           - Chaque embed DOIT commencer par `---STARTEMBED---`, suivi de 3 valeurs de 0 a 255 pour la couleur, puis du contenu et enfin terminer par `---ENDEMBED---`.
-                           - Exemple:
-                           ```
-                           ---STARTEMBED---
-                           243, 118, 97
-                           Contenu de l'embed...
-                           ---ENDEMBED---```
-                        
-                        - Il n'y a pas de limite connu pour le moment.
-                        - Le format interne du message risque fortement de changer.
-                        - Un bouton de vérification sera toujours présent à la fin des règles. Il enlevera le rôle que le membre obtient en rejoignant le serveur, puis lui donnera le rôle considerer "vérifier" dans les paramètres de Bievenue.
-                        """
-                        ),
-                        Label.of(
-                            "Règles du serveur",
-                            TextInput.create("config:cat_moderation:edit_rules:modal:input", TextInputStyle.PARAGRAPH)
-                                .setPlaceholder("Entrez les règles du serveur.")
-                                .setMinLength(1)
-                                .setMaxLength(4000)
-                                .setValue(configurationMessage.configuration.rules.isEmpty() ? null : configurationMessage.configuration.rules)
-                                .build()
-                        )
-                    ).build();
-                event.replyModal(modal).queue();
+                String description =
+                    """
+                    Les règles du serveur ont un format spécifique :
+                    - Support total pour le markdown, utilisant celui de Discord.
+                    - Les règles sont formatter par embed. Vous êtes libre de choisir la disposition et le style de l'embed.
+                       - Chaque embed DOIT commencer par `---STARTEMBED---`, suivi de 3 valeurs de 0 a 255 pour la couleur, puis du contenu et enfin terminer par `---ENDEMBED---`.
+                       - Exemple:
+                       ```
+                       ---STARTEMBED---
+                       243, 118, 97
+                       Contenu de l'embed...
+                       ---ENDEMBED---```
+                    
+                    - Il n'y a pas de limite connu pour le moment.
+                    - Le format interne du message risque fortement de changer.
+                    - Un bouton de vérification sera toujours présent à la fin des règles. Il enlevera le rôle que le membre obtient en rejoignant le serveur, puis lui donnera le rôle considerer "vérifier" dans les paramètres de Bievenue.
+                    """;
+                
+                event.replyModal(
+                    createEditModal("config:cat_moderation:edit_rules:modal", "Modifier les règles du serveur", description,
+                        "Règles du serveur", "Entrez les règles du serveur.", configurationMessage.configuration.rules, 4000)
+                ).queue();
             }
             case "config:cat_welcome:edit_join_message" -> {
-                Modal modal = Modal.create("config:cat_welcome:edit_join_message:modal", "Modifier le message de bienvenue")
-                    .addComponents(
-                        Label.of(
-                            "Message de bienvenue",
-                            TextInput.create("config:cat_welcome:edit_join_message:modal:input", TextInputStyle.PARAGRAPH)
-                                .setPlaceholder("Entrez le message de bienvenue à envoyer lorsqu'un membre rejoint le serveur.")
-                                .setMinLength(1)
-                                .setMaxLength(2000)
-                                .setValue(configurationMessage.configuration.welcomeJoinMessage)
-                                .build()
-                        )
-                    ).build();
-                event.replyModal(modal).queue();
+                event.replyModal(
+                    createEditModal("config:cat_welcome:edit_join_message:modal", "Modifier le message de bienvenue", "Aucune.",
+                        "Message de bienvenue", "Entrez le message de bienvenue à envoyer lorsqu'un membre rejoint le serveur.", configurationMessage.configuration.welcomeJoinMessage)
+                ).queue();
             }
             case "config:cat_welcome:edit_leave_message" -> {
-                Modal modal = Modal.create("config:cat_welcome:edit_leave_message:modal", "Modifier le message de bienvenue")
-                    .addComponents(
-                        Label.of(
-                            "Message de départ",
-                            TextInput.create("config:cat_welcome:edit_leave_message:modal:input", TextInputStyle.PARAGRAPH)
-                                .setPlaceholder("Entrez le message de départ à envoyer lorsqu'un membre quitte le serveur.")
-                                .setMinLength(1)
-                                .setMaxLength(2000)
-                                .setValue(configurationMessage.configuration.welcomeLeaveMessage)
-                                .build()
-                        )
-                    ).build();
-                event.replyModal(modal).queue();
+                event.replyModal(
+                    createEditModal("config:cat_welcome:edit_leave_message:modal", "Modifier le message de départ", "Aucune.",
+                        "Message de départ", "Entrez le message de départ à envoyer lorsqu'un membre quitte le serveur.", configurationMessage.configuration.welcomeLeaveMessage)
+                ).queue();
             }
         }
     }
@@ -461,5 +434,22 @@ public class ConfigurationCommand {
             TextDisplay.of("### " + label),
             TextDisplay.of("-# " + description)
         );
+    }
+    
+    private Modal createEditModal(String id, String title, String description, String inputTitle, String inputPlaceholder, String inputValue) { return createEditModal(id, title, description, inputTitle, inputPlaceholder, inputValue, 2000); }
+    private Modal createEditModal(String id, String title, String description, String inputTitle, String inputPlaceholder, String inputValue, int inputMaxLength) {
+        return Modal.create(id, title)
+            .addComponents(
+                TextDisplay.of(description),
+                Label.of(
+                    inputTitle,
+                    TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder(inputPlaceholder)
+                        .setMinLength(1)
+                        .setMaxLength(inputMaxLength)
+                        .setValue(inputValue == null || inputValue.isEmpty() ? null : inputValue)
+                        .build()
+                )
+            ).build();
     }
 }
