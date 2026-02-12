@@ -7,6 +7,7 @@ import dev.jojofr.joseta.annotations.types.SelectMenuInteraction;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
+import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -21,6 +22,7 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -38,6 +40,8 @@ import java.util.Map;
 public class ConfigurationCommand {
     private static final Map<Long, ConfigurationMessage> configurationMessages = new HashMap<>();
     
+    // TODO need to check if user has permissions, to avoid random people using this menu.
+    // TODO add a reset button?
     @SlashCommandInteraction(name = "config", description = "Configure les paramètres du bot.", permissions = Permission.MANAGE_SERVER)
     public void config(SlashCommandInteractionEvent event) {
         event.replyComponents(createMainMenuContainer(null)).useComponentsV2().queue(
@@ -125,6 +129,26 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
+    @ButtonInteraction(id = "config:cat_counting:reset_number") public void onConfigCountingResetNumberButton(ButtonInteractionEvent event) { onResetButton(event); }
+    @ButtonInteraction(id = "config:cat_counting:reset_author") public void onConfigCountingResetAuthorButton(ButtonInteractionEvent event) { onResetButton(event); }
+    private void onResetButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        String buttonId = event.getComponentId();
+        switch (buttonId) {
+            case "config:cat_counting:reset_number" -> {
+                CountingChannel.lastNumber = 0;
+                event.reply("Le dernier nombre du salon de comptage a été réinitialisé à 0.").setEphemeral(true).queue();
+            }
+            case "config:cat_counting:reset_author" -> {
+                CountingChannel.lastAuthorId = -1L;
+                event.reply("Le dernier auteur dans comptage a été réinitialiser.").setEphemeral(true).queue();
+            }
+        }
+    }
+    
+    @ButtonInteraction(id = "config:cat_counting:set_number") public void onConfigCountingSetNumberButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_moderation:edit_rules") public void onConfigModerationEditRulesButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_welcome:edit_join_message") public void onConfigWelcomeEditJoinMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_welcome:edit_leave_message") public void onConfigWelcomeEditLeaveMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
@@ -134,6 +158,22 @@ public class ConfigurationCommand {
         
         String buttonId = event.getComponentId();
         switch (buttonId) {
+            case "config:cat_counting:set_number" -> {
+                String inputValue = String.valueOf(CountingChannel.lastNumber);
+                Modal modal = Modal.create("config:cat_counting:set_number:modal", "Définir le nombre de comptage")
+                    .addComponents(
+                        Label.of(
+                            "Nombre de comptage",
+                            TextInput.create("config:cat_counting:set_number:modal:input", TextInputStyle.SHORT)
+                                .setPlaceholder("Entrez un nombre entier.")
+                                .setMinLength(1)
+                                .setMaxLength(20)
+                                .setValue(inputValue)
+                                .build()
+                        )
+                    ).build();
+                event.replyModal(modal).queue();
+            }
             case "config:cat_moderation:edit_rules" -> {
                 String description =
                     """
@@ -160,13 +200,13 @@ public class ConfigurationCommand {
             }
             case "config:cat_welcome:edit_join_message" -> {
                 event.replyModal(
-                    createEditModal("config:cat_welcome:edit_join_message:modal", "Modifier le message de bienvenue", "Aucune.",
+                    createEditModal("config:cat_welcome:edit_join_message:modal", "Modifier le message de bienvenue", "Aucune description.",
                         "Message de bienvenue", "Entrez le message de bienvenue à envoyer lorsqu'un membre rejoint le serveur.", configurationMessage.configuration.welcomeJoinMessage)
                 ).queue();
             }
             case "config:cat_welcome:edit_leave_message" -> {
                 event.replyModal(
-                    createEditModal("config:cat_welcome:edit_leave_message:modal", "Modifier le message de départ", "Aucune.",
+                    createEditModal("config:cat_welcome:edit_leave_message:modal", "Modifier le message de départ", "Aucune description.",
                         "Message de départ", "Entrez le message de départ à envoyer lorsqu'un membre quitte le serveur.", configurationMessage.configuration.welcomeLeaveMessage)
                 ).queue();
             }
@@ -201,6 +241,7 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
+    @ModalInteraction(id = "config:cat_counting:set_number:modal") public void onConfigCountingSetNumber(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @ModalInteraction(id = "config:cat_moderation:edit_rules:modal") public void onConfigModerationEditRulesModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @ModalInteraction(id = "config:cat_welcome:edit_join_message:modal") public void onConfigWelcomeEditJoinMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @ModalInteraction(id = "config:cat_welcome:edit_leave_message:modal") public void onConfigWelcomeEditLeaveMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
@@ -210,6 +251,7 @@ public class ConfigurationCommand {
         
         String modalId = event.getModalId();
         String inputId = switch (modalId) {
+            case "config:cat_counting:set_number:modal" -> "config:cat_counting:set_number:modal:input";
             case "config:cat_moderation:edit_rules:modal" -> "config:cat_moderation:edit_rules:modal:input";
             case "config:cat_welcome:edit_join_message:modal" -> "config:cat_welcome:edit_join_message:modal:input";
             case "config:cat_welcome:edit_leave_message:modal" -> "config:cat_welcome:edit_leave_message:modal:input";
@@ -217,11 +259,22 @@ public class ConfigurationCommand {
         };
         if (inputId == null) return;
         
-        String newMessage = event.getValue(inputId).getAsString();
+        String newValue = event.getValue(inputId).getAsString();
         switch (modalId) {
-            case "config:cat_moderation:edit_rules:modal" -> configurationMessage.configuration.setRules(newMessage);
-            case "config:cat_welcome:edit_join_message:modal" -> configurationMessage.configuration.setWelcomeJoinMessage(newMessage);
-            case "config:cat_welcome:edit_leave_message:modal" -> configurationMessage.configuration.setWelcomeLeaveMessage(newMessage);
+            case "config:cat_counting:set_number:modal" -> {
+                try {
+                    CountingChannel.lastNumber = Long.parseLong(newValue);
+                    event.reply("Le nombre actuel du salon de comptage a été mis à jour à " + newValue + ".").setEphemeral(true).queue();
+                    return;
+                }
+                catch (NumberFormatException e) {
+                    event.reply("Veuillez entrer un nombre entier valide.").setEphemeral(true).queue();
+                    return;
+                }
+            }
+            case "config:cat_moderation:edit_rules:modal" -> configurationMessage.configuration.setRules(newValue);
+            case "config:cat_welcome:edit_join_message:modal" -> configurationMessage.configuration.setWelcomeJoinMessage(newValue);
+            case "config:cat_welcome:edit_leave_message:modal" -> configurationMessage.configuration.setWelcomeLeaveMessage(newValue);
         }
         
         configurationMessage.hasChanged = true;
@@ -313,6 +366,25 @@ public class ConfigurationCommand {
             TextDisplay.of("-# Le salon où le comptage est actif."),
             ActionRow.of(channelSelectMenu),
             
+            Section.of(
+                Button.of(ButtonStyle.PRIMARY, "config:cat_counting:set_number", "Définir le nombre", Emoji.fromUnicode("\uD83D\uDD22"))
+                    .withDisabled(!configurationMessage.configuration.countingEnabled),
+                TextDisplay.of("### Définir le nombre de comptage"),
+                TextDisplay.of("-# Définit le nombre actuel du salon de comptage à un nombre spécifique.")
+            ),
+            Section.of(
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number", "Réinitialiser le nombre", Emoji.fromUnicode("\uD83D\uDDD1️"))
+                    .withDisabled(!configurationMessage.configuration.countingEnabled),
+                TextDisplay.of("### Réinitialiser le nombre de comptage"),
+                TextDisplay.of("-# Réinitialise le nombre actuel à 0.")
+            ),
+            Section.of(
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author", "Réinitialiser l'auteur du dernier nombre", Emoji.fromUnicode("\uD83D\uDC64"))
+                    .withDisabled(!configurationMessage.configuration.countingEnabled),
+                TextDisplay.of("### Réinitialiser l'auteur du dernier nombre"),
+                TextDisplay.of("-# Réinitialise l'auteur du dernier nombre.")
+            ),
+            
             createBottomRow(configurationMessage)
         );
     }
@@ -345,10 +417,10 @@ public class ConfigurationCommand {
                 "Active ou désactive les commande de modération.",
                 "config:cat_moderation:toggle", configurationMessage.configuration.moderationEnabled),
             
-            TextDisplay.of("### Règles du serveur"),
             Section.of(
                 Button.primary("config:cat_moderation:edit_rules", "Modifier les règles du serveur"),
-                TextDisplay.of("-# Les règles du serveur.")
+                TextDisplay.of("### Règles du serveur"),
+                TextDisplay.of("-# Les règles du serveur, envoyées par le bot via la commande /admin rules send|update.")
             ),
             
             createBottomRow(configurationMessage)

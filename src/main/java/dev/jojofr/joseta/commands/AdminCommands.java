@@ -47,7 +47,7 @@ public class AdminCommands {
     @SlashCommandInteraction(name = "admin rules update", description = "Met à jour les règles dans un salon.", permissions = Permission.ADMINISTRATOR)
     public void rulesUpdate(SlashCommandInteractionEvent event,
                             @Option(description = "Le salon où le message des règles se trouvent", required = true) GuildMessageChannel channel,
-                            @Option(description = "L'identifiant du message.", required = true) Long messageId)
+                            @Option(description = "L'identifiant du message.", required = true) String messageId)
     {
         Message message = channel.retrieveMessageById(messageId).complete();
         if (message == null) {
@@ -142,44 +142,6 @@ public class AdminCommands {
         }
         
         return embeds;
-    }
-    //#endregion
-    
-    //#region Counting Commands
-    @SlashCommandInteraction(name = "admin counting set_number", description = "Définit le nombre actuel pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
-    public void countingSetNumber(SlashCommandInteractionEvent event, @Option(description = "Le nombre à définir.", required = true) Long number) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
-        if (!config.countingEnabled) {
-            event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
-            return;
-        }
-        
-        CountingChannel.lastNumber = number;
-        event.reply("Le dernier nombre du salon de comptage a été mis à jour.").setEphemeral(true).queue();
-    }
-    
-    @SlashCommandInteraction(name = "admin counting reset_number", description = "Réinitialise le nombre actuel à 0 pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
-    public void countingResetNumber(SlashCommandInteractionEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
-        if (!config.countingEnabled) {
-            event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
-            return;
-        }
-        
-        CountingChannel.lastNumber = 0;
-        event.reply("Le dernier nombre du salon de comptage a été réinitialisé à 0.").setEphemeral(true).queue();
-    }
-    
-    @SlashCommandInteraction(name = "admin counting reset_author", description = "Réinitialise l'auteur du dernier nombre pour le système de comptage.", permissions = Permission.ADMINISTRATOR)
-    public void countingResetAuthor(SlashCommandInteractionEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
-        if (!config.countingEnabled) {
-            event.reply("Le comptage est désactivé sur ce serveur.").setEphemeral(true).queue();
-            return;
-        }
-        
-        CountingChannel.lastAuthorId = -1;
-        event.reply("L'ID du dernier auteur dans comptage a été reinitialiser.").setEphemeral(true).queue();
     }
     //#endregion
 }
