@@ -79,6 +79,16 @@ public class AdminCommands {
         event.deferEdit().queue();
     }
     
+    /* TODO redo because it is absolutely horrible and error prone
+         allow sending basic text rules without embed
+         allow to enable/disable verification role and accept button
+         improve embed customization (thumbnail, image, author, and other) but would make it even more complex to write the rules
+         modal V2? would be quite hard to implement text wise
+         specify limits (amount of embeds, content length)
+         rules format could be changed to something similar to a markup language like HTML or Markdown (simpler) with tags and attributes: would make it easier to read/write but would need an entire rewrite (in anotheer branch)
+    
+       TODO and also finally support editing old rules messages without having to manually fetch the message ID.
+    */
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
