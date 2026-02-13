@@ -6,9 +6,11 @@ import dev.jojofr.joseta.annotations.types.ModalInteraction;
 import dev.jojofr.joseta.annotations.types.SelectMenuInteraction;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -20,8 +22,12 @@ import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.IMentionable;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -32,7 +38,11 @@ import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteract
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.modals.Modal;
 
+import java.awt.*;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +159,109 @@ public class ConfigurationCommand {
         }
     }
     
+    private static final ActionRow rulesAcceptButton = ActionRow.of(Button.success("rules:accept", "Accepter"));
+    
+    @ButtonInteraction(id = "config:cat_moderation:rules:send")
+    public void onConfigModerationRulesSendButton(ButtonInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        if (configurationMessage.currentRulesChannelId == null) {
+            event.reply("Aucun salon de règles sélectionné. Veuillez sélectionner un salon avant d'envoyer les règles.").setEphemeral(true).queue();
+            return;
+        }
+        
+        TextChannel channel = event.getGuild().getTextChannelById(configurationMessage.currentRulesChannelId);
+        if (channel == null) {
+            event.reply("Le salon de règles sélectionné est invalide ou inaccessible. Veuillez vérifier les permissions du bot et la validité du salon.").setEphemeral(true).queue();
+            return;
+        }
+        
+        List<MessageEmbed> embeds = buildRulesEmbeds(event.getGuild());
+        channel.sendMessageEmbeds(embeds).setComponents(rulesAcceptButton).queue(
+            s -> event.reply("Les règles ont été envoyées avec succès dans " + channel.getAsMention() + ".").setEphemeral(true).queue(),
+            f -> event.reply("Échec de l'envoi des règles dans " + channel.getAsMention() + ". Veuillez réessayer plus tard.").setEphemeral(true).queue()
+        );
+    }
+    
+    /* TODO redo because it is absolutely horrible and error prone
+         allow sending basic text rules without embed
+         allow to enable/disable verification role and accept button
+         improve embed customization (thumbnail, image, author, and other) but would make it even more complex to write the rules
+         modal V2? would be quite hard to implement text wise
+         specify limits (amount of embeds, content length)
+         rules format could be changed to something similar to a markup language like HTML or Markdown (simpler) with tags and attributes: would make it easier to read/write but would need an entire rewrite (in anotheer branch)
+
+      TODO and also finally support editing old rules messages without having to manually fetch the message ID. */
+    private static final String RULES_EMBED_START = "---STARTEMBED---";
+    private static final String RULES_EMBED_END = "---ENDEMBED---";
+    private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
+        Configuration config = BotCache.guildConfigurations.get(guild.getIdLong());
+        
+        String rules = config.rules;
+        if (rules == null || rules.isBlank()) {
+            try {
+                InputStream rulesStream = ConfigurationCommand.class.getResourceAsStream("/rules.txt");
+                if (rulesStream == null)
+                    return List.of();
+                
+                rules = new String(rulesStream.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                return List.of();
+            }
+        }
+        
+        List<MessageEmbed> embeds = new ArrayList<>();
+        
+        EmbedBuilder embedBuilder = null;
+        StringBuilder embedDescription = null;
+        Instant timestamp = Instant.now();
+        
+        String[] lines = rules.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            
+            if (line.equals(RULES_EMBED_START)) {
+                i++;
+                String[] rgbValues = lines[i].split(", ");
+                Color color = new Color(
+                    Integer.parseInt(rgbValues[0]),
+                    Integer.parseInt(rgbValues[1]),
+                    Integer.parseInt(rgbValues[2])
+                );
+                
+                i++;
+                String title = lines[i];
+                embedBuilder = new EmbedBuilder()
+                    .setTitle(title)
+                    .setColor(color)
+                    .setFooter(title.substring(title.indexOf('┃') + 1) + " - " + guild.getName(), guild.getIconUrl())
+                    .setTimestamp(timestamp);
+                
+                embedDescription = new StringBuilder();
+            } else if (line.equals(RULES_EMBED_END)) {
+                embedBuilder.setDescription(embedDescription.toString());
+                embeds.add(embedBuilder.build());
+            } else embedDescription.append(line).append('\n');
+        }
+        
+        return embeds;
+    }
+    
+    
+    @ButtonInteraction(id = "rules:accept")
+    public void onRulesAcceptButton(ButtonInteractionEvent event) {
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        
+        Role joinRole, verifiedRole;
+        if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
+        if (config.verifiedRoleId == null || (verifiedRole = event.getGuild().getRoleById(config.verifiedRoleId)) == null) return;
+        
+        event.getGuild().removeRoleFromMember(event.getUser(), joinRole).queue();
+        event.getGuild().addRoleToMember(event.getUser(), verifiedRole).queue();
+        event.deferEdit().queue();
+    }
+    
     @ButtonInteraction(id = "config:cat_counting:set_number") public void onConfigCountingSetNumberButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_moderation:edit_rules") public void onConfigModerationEditRulesButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @ButtonInteraction(id = "config:cat_welcome:edit_join_message") public void onConfigWelcomeEditJoinMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
@@ -214,11 +327,13 @@ public class ConfigurationCommand {
         }
     }
     
+    @SelectMenuInteraction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @SelectMenuInteraction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @SelectMenuInteraction(id = "config:cat_moderation:rules:previous_select") public void onConfigModerationRulesPreviousSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:channel_select") public void onConfigWelcomeChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:join_bot_role_select") public void onConfigWelcomeJoinBotRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:verified_role_select") public void onConfigWelcomeVerifiedRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     private void onSelectMenu(EntitySelectInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -227,17 +342,19 @@ public class ConfigurationCommand {
         List<IMentionable> selectedValues = event.getValues();
         Long selectedId = selectedValues.isEmpty() ? null : selectedValues.getFirst().getIdLong();
         switch (menuId) {
+            case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
+            case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
             case "config:cat_welcome:join_bot_role_select" -> configurationMessage.configuration.setJoinBotRoleId(selectedId);
             case "config:cat_welcome:verified_role_select" -> configurationMessage.configuration.setVerifiedRoleId(selectedId);
-            case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
         }
         
         configurationMessage.hasChanged = true;
         event.editComponents(switch (menuId) {
-            case "config:cat_welcome:channel_select", "config:cat_welcome:join_role_select", "config:cat_welcome:join_bot_role_select", "config:cat_welcome:verified_role_select" -> createWelcomeMenuContainer(configurationMessage);
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
+            case "config:cat_moderation:rules:channel_select" -> createModerationMenuContainer(configurationMessage);
+            case "config:cat_welcome:channel_select", "config:cat_welcome:join_role_select", "config:cat_welcome:join_bot_role_select", "config:cat_welcome:verified_role_select" -> createWelcomeMenuContainer(configurationMessage);
             default -> null;
         }).useComponentsV2().queue();
     }
@@ -349,11 +466,13 @@ public class ConfigurationCommand {
     }
     
     private Container createCountingMenuContainer(ConfigurationMessage configurationMessage) {
-        EntitySelectMenu channelSelectMenu = EntitySelectMenu.create("config:cat_counting:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+        EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon de comptage")
-            .setChannelTypes(ChannelType.TEXT)
-            .setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.countingChannelId))
-            .build();
+            .setChannelTypes(ChannelType.TEXT);
+        if (configurationMessage.configuration.countingChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.countingChannelId));
+        
+        EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
         return Container.of(
             TextDisplay.of("# Configuration - Comptage"),
@@ -362,11 +481,11 @@ public class ConfigurationCommand {
                 "Active ou désactive le système de comptage.",
                 "config:cat_counting:toggle", configurationMessage.configuration.countingEnabled),
             
-             createToggleSection("Commentaires de comptage",
+            createToggleSection("Commentaires de comptage",
                 "Autorise ou non les commentaires sur les messages de comptage (après le nombre).",
                 "config:cat_counting:toggle_comments", configurationMessage.configuration.countingCommentsEnabled, !configurationMessage.configuration.countingEnabled),
             
-             createToggleSection("Pénalité en cas d'erreur de comptage",
+            createToggleSection("Pénalité en cas d'erreur de comptage",
                 "Active ou désactive la pénalité en cas d'erreur de comptage (le compteur est réinitialisé à 0).",
                 "config:cat_counting:toggle_penalty", configurationMessage.configuration.countingPenaltyEnabled, !configurationMessage.configuration.countingEnabled),
             
@@ -418,6 +537,14 @@ public class ConfigurationCommand {
     }
     
     private Container createModerationMenuContainer(ConfigurationMessage configurationMessage) {
+        EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:rules:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+            .setPlaceholder("Sélectionnez un salon pour envoyer les règles du serveur")
+            .setChannelTypes(ChannelType.TEXT);
+        if (configurationMessage.currentRulesChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.currentRulesChannelId));
+        
+        EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
+        
         return Container.of(
             TextDisplay.of("# Configuration - Modération"),
             
@@ -431,35 +558,47 @@ public class ConfigurationCommand {
                 TextDisplay.of("-# Les règles du serveur, envoyées par le bot via la commande /admin rules send|update.")
             ),
             
-            // TODO move admin rules send|update buttons here, one button to send, another to update +
-            //  EntitySelectMenu to select the channel to send + StringSelectMenu to select previous rules message for update
-            //  (need to be stored in database when sending to have a list, delete if message no longer exist - or check for each deleted messages)
+            Section.of(
+                Button.success("config:cat_moderation:rules:send", "Envoyer les règles")
+                    .withDisabled(configurationMessage.configuration.rules == null || configurationMessage.configuration.rules.isEmpty() || configurationMessage.currentRulesChannelId == null),
+                TextDisplay.of("### Envoyer les règles du serveur"),
+                TextDisplay.of("-# Envoie les règles du serveur dans un salon spécifique, avec un bouton de vérification à la fin. Le salon est choisi lors de l'envoi des règles.")
+            ),
+            ActionRow.of(channelSelectMenu),
             
             createBottomRow(configurationMessage)
         );
     }
     
     private Container createWelcomeMenuContainer(ConfigurationMessage configurationMessage) {
-        EntitySelectMenu channelSelectMenu = EntitySelectMenu.create("config:cat_welcome:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+        EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon de bienvenue")
-            .setChannelTypes(ChannelType.TEXT)
-            .setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.welcomeChannelId))
-            .build();
+            .setChannelTypes(ChannelType.TEXT);
+        if (configurationMessage.configuration.welcomeChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.welcomeChannelId));
         
-        EntitySelectMenu joinRoleSelectMenu = EntitySelectMenu.create("config:cat_welcome:join_role_select", EntitySelectMenu.SelectTarget.ROLE)
-            .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux membres")
-            .setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinRoleId))
-            .build();
+        EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
-        EntitySelectMenu joinBotRoleSelectMenu = EntitySelectMenu.create("config:cat_welcome:join_bot_role_select", EntitySelectMenu.SelectTarget.ROLE)
-            .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux bots")
-            .setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinBotRoleId))
-            .build();
+        EntitySelectMenu.Builder joinRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:join_role_select", EntitySelectMenu.SelectTarget.ROLE)
+            .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux membres");
+        if (configurationMessage.configuration.joinRoleId != null)
+            joinRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinRoleId));
         
-        EntitySelectMenu verifiedRoleSelectMenu = EntitySelectMenu.create("config:cat_welcome:verified_role_select", EntitySelectMenu.SelectTarget.ROLE)
-            .setPlaceholder("Sélectionnez un rôle à attribuer aux membres vérifiés")
-            .setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.verifiedRoleId))
-            .build();
+        EntitySelectMenu joinRoleSelectMenu = joinRoleSelectMenuBuilder.build();
+        
+        EntitySelectMenu.Builder joinBotRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:join_bot_role_select", EntitySelectMenu.SelectTarget.ROLE)
+            .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux bots");
+        if (configurationMessage.configuration.joinBotRoleId != null)
+            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinBotRoleId));
+        
+        EntitySelectMenu joinBotRoleSelectMenu = joinBotRoleSelectMenuBuilder.build();
+        
+        EntitySelectMenu.Builder verifiedRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:verified_role_select", EntitySelectMenu.SelectTarget.ROLE)
+            .setPlaceholder("Sélectionnez un rôle à attribuer aux membres vérifiés");
+        if (configurationMessage.configuration.verifiedRoleId != null)
+            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.verifiedRoleId));
+        
+        EntitySelectMenu verifiedRoleSelectMenu = verifiedRoleSelectMenuBuilder.build();
         
         return Container.of(
             TextDisplay.of("# Configuration - Bienvenue"),

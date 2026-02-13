@@ -10,6 +10,8 @@ public class ConfigurationMessage {
     public boolean hasChanged = false;
     public boolean isMainMenu = true;
     
+    public Long currentRulesChannelId = null;
+    
     public final Instant timestamp;
     
     public ConfigurationMessage(long guildId, Instant timestamp) {

@@ -57,7 +57,8 @@ public class Configuration {
         this.markovBlacklist = other.markovBlacklist;
 
         this.moderationEnabled = other.moderationEnabled;
-
+        this.rules = other.rules;
+        
         this.autoResponseEnabled = other.autoResponseEnabled;
 
         this.countingEnabled = other.countingEnabled;
