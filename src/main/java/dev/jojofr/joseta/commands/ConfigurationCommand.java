@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.modals.Modal;
 
 import java.time.Instant;
@@ -40,7 +41,6 @@ import java.util.Map;
 public class ConfigurationCommand {
     private static final Map<Long, ConfigurationMessage> configurationMessages = new HashMap<>();
     
-    // TODO need to check if user has permissions, to avoid random people using this menu.
     // TODO add a reset button?
     @SlashCommandInteraction(name = "config", description = "Configure les paramètres du bot.", permissions = Permission.MANAGE_SERVER)
     public void config(SlashCommandInteractionEvent event) {
@@ -78,7 +78,8 @@ public class ConfigurationCommand {
     @ButtonInteraction(id = "config:save")
     public void onConfigSaveButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
-        if (configurationMessage == null || !configurationMessage.hasChanged) {
+        if (configurationMessage == null) return;
+        if (!configurationMessage.hasChanged && !event.isAcknowledged()) {
             event.reply("Aucune modification à enregistrer.").setEphemeral(true).queue();
             return;
         };
@@ -287,14 +288,21 @@ public class ConfigurationCommand {
     
     
     private ConfigurationMessage checkConfigurationMessage(GenericInteractionCreateEvent event, long id) {
+        if (!(event instanceof IReplyCallback replyCallback)) return null;
+        
+        if (!event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
+            replyCallback.reply("Vous n'avez pas les permissions nécéssaires.").setEphemeral(true).queue();
+            return null;
+        }
+        
         ConfigurationMessage configurationMessage = configurationMessages.get(id);
         if (configurationMessage == null || Instant.now().isAfter(configurationMessage.timestamp.plusSeconds(15 * 60))) {
-            if (event instanceof GenericComponentInteractionCreateEvent componentEvent) {
-                componentEvent.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir un nouveau menu de configuration.").setEphemeral(true).queue();
-                
+            if (event instanceof GenericComponentInteractionCreateEvent componentEvent)
                 componentEvent.getMessage().editMessageComponents(TextDisplay.of("⚠️ Ce menu de configuration a expiré. Veuillez réutiliser la commande pour obtenir un nouveau menu."))
                     .useComponentsV2().queue();
-            }
+            
+            replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir un nouveau menu de configuration.").setEphemeral(true).queue();
+            
             configurationMessages.remove(id);
             return null;
         }
@@ -422,6 +430,10 @@ public class ConfigurationCommand {
                 TextDisplay.of("### Règles du serveur"),
                 TextDisplay.of("-# Les règles du serveur, envoyées par le bot via la commande /admin rules send|update.")
             ),
+            
+            // TODO move admin rules send|update buttons here, one button to send, another to update +
+            //  EntitySelectMenu to select the channel to send + StringSelectMenu to select previous rules message for update
+            //  (need to be stored in database when sending to have a list, delete if message no longer exist - or check for each deleted messages)
             
             createBottomRow(configurationMessage)
         );
