@@ -1,5 +1,6 @@
 package dev.jojofr.joseta.commands;
 
+import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.ButtonInteraction;
 import dev.jojofr.joseta.annotations.types.ModalInteraction;
@@ -10,6 +11,7 @@ import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
+import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -28,6 +30,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -42,10 +45,9 @@ import java.awt.*;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @InteractionModule
 public class ConfigurationCommand {
@@ -328,8 +330,9 @@ public class ConfigurationCommand {
     }
     
     @SelectMenuInteraction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @SelectMenuInteraction(id = "config:cat_markov:mentionable_blacklist_select") public void onConfigMarkovBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @SelectMenuInteraction(id = "config:cat_markov:channel_blacklist_select") public void onConfigMarkovChannelBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_moderation:rules:previous_select") public void onConfigModerationRulesPreviousSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:channel_select") public void onConfigWelcomeChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:join_bot_role_select") public void onConfigWelcomeJoinBotRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
@@ -343,6 +346,32 @@ public class ConfigurationCommand {
         Long selectedId = selectedValues.isEmpty() ? null : selectedValues.getFirst().getIdLong();
         switch (menuId) {
             case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
+            case "config:cat_markov:mentionable_blacklist_select" -> {
+                Set<Long> newBlacklist = selectedValues.stream().map(IMentionable::getIdLong).collect(Collectors.toSet());
+                configurationMessage.configuration.markovBlacklist.removeIf(id -> {
+                    GuildChannel channel = event.getGuild().getGuildChannelById(id);
+                    if (channel != null) return false; // If the ID is a channel, we keep it in the blacklist
+                    
+                    boolean isSelected = newBlacklist.contains(id);
+                    if (isSelected) newBlacklist.remove(id);
+                    return !isSelected;
+                });
+                
+                configurationMessage.configuration.markovBlacklist.addAll(newBlacklist);
+            }
+            case "config:cat_markov:channel_blacklist_select" -> {
+                Set<Long> newBlacklist = selectedValues.stream().map(IMentionable::getIdLong).collect(Collectors.toSet());
+                configurationMessage.configuration.markovBlacklist.removeIf(id -> {
+                    GuildChannel channel = event.getGuild().getGuildChannelById(id);
+                    if (channel == null) return false; // If the ID is not a channel, we keep it in the blacklist
+                    
+                    boolean isSelected = newBlacklist.contains(id);
+                    if (isSelected) newBlacklist.remove(id);
+                    return !isSelected;
+                });
+
+                configurationMessage.configuration.markovBlacklist.addAll(newBlacklist);
+            }
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
@@ -353,6 +382,7 @@ public class ConfigurationCommand {
         configurationMessage.hasChanged = true;
         event.editComponents(switch (menuId) {
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
+            case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);
             case "config:cat_moderation:rules:channel_select" -> createModerationMenuContainer(configurationMessage);
             case "config:cat_welcome:channel_select", "config:cat_welcome:join_role_select", "config:cat_welcome:join_bot_role_select", "config:cat_welcome:verified_role_select" -> createWelcomeMenuContainer(configurationMessage);
             default -> null;
@@ -516,11 +546,44 @@ public class ConfigurationCommand {
         );
     }
     
-    // @Option(description = "Le membre ou rôle à ajouter à la blacklist pour la génération de messages de Markov.") IMentionable addMentionableBlacklist,
-    // @Option(description = "Le membre ou rôle à retirer de la blacklist pour la génération de messages de Markov.") IMentionable removeMentionableBlacklist,
-    // @Option(description = "Le salon, thread ou catégorie à ajouter à la blacklist pour la génération de messages de Markov.") GuildChannel addChannelBlacklist,
-    // @Option(description = "Le salon, thread ou catégorie à retirer de la blacklist pour la génération de messages de Markov.") GuildChannel removeChannelBlacklist
     private Container createMarkovMenuContainer(ConfigurationMessage configurationMessage) {
+        EntitySelectMenu.Builder mentionableBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:mentionable_blacklist_select", EntitySelectMenu.SelectTarget.ROLE, EntitySelectMenu.SelectTarget.USER)
+            .setPlaceholder("Sélectionnez des membres ou rôles à ajouter ou retirer de la blacklist de Markov")
+            .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT);
+        if (configurationMessage.configuration.markovBlacklist != null && !configurationMessage.configuration.markovBlacklist.isEmpty()) {
+            List<EntitySelectMenu.DefaultValue> defaultValues = configurationMessage.configuration.markovBlacklist.stream()
+                .map(id -> {
+                    IMentionable mentionable = JosetaBot.get().getGuildChannelById(id);
+                    if (mentionable != null) return null;
+                    
+                    mentionable = JosetaBot.get().getRoleById(id);
+                    if (mentionable != null) return EntitySelectMenu.DefaultValue.role(id);
+                    return EntitySelectMenu.DefaultValue.user(id);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+            
+            if (!defaultValues.isEmpty()) mentionableBlacklistSelectBuilder.setDefaultValues(defaultValues);
+        }
+        EntitySelectMenu mentionableBlacklistSelect = mentionableBlacklistSelectBuilder.build();
+        
+        EntitySelectMenu.Builder channelBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:channel_blacklist_select", EntitySelectMenu.SelectTarget.CHANNEL)
+            .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT)
+            .setPlaceholder("Sélectionnez des salons à ajouter ou retirer de la blacklist de Markov");
+        if (configurationMessage.configuration.markovBlacklist != null && !configurationMessage.configuration.markovBlacklist.isEmpty()) {
+            List<EntitySelectMenu.DefaultValue> defaultValues = configurationMessage.configuration.markovBlacklist.stream()
+                .map(id -> {
+                    IMentionable mentionable = JosetaBot.get().getGuildChannelById(id);
+                    if (mentionable != null) return EntitySelectMenu.DefaultValue.channel(id);
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+            
+            if (!defaultValues.isEmpty()) channelBlacklistSelectBuilder.setDefaultValues(defaultValues);
+        }
+        EntitySelectMenu channelBlacklistSelect = channelBlacklistSelectBuilder.build();
+        
         return Container.of(
             TextDisplay.of("# Configuration - Markov"),
             
@@ -530,7 +593,11 @@ public class ConfigurationCommand {
             
             
             TextDisplay.of("### Blacklist de Markov"),
-            TextDisplay.of("Indisponible. En développement."),
+            TextDisplay.of("-# Les membres et rôles qui seront ignorés par le système de génération de messages de Markov."),
+            ActionRow.of(mentionableBlacklistSelect),
+            TextDisplay.of("-# Les salons qui seront ignorés par le système de génération de messages de Markov."),
+            ActionRow.of(channelBlacklistSelect),
+            
             
             createBottomRow(configurationMessage)
         );
