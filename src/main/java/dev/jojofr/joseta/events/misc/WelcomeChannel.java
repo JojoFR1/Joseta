@@ -92,6 +92,20 @@ public class WelcomeChannel {
             return null;
         }
         
+        if (image.getWidth() != 128 || image.getHeight() != 128) {
+            BufferedImage resized = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = resized.createGraphics();
+            try {
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                
+                g2d.drawImage(image, 0, 0, 128, 128, null);
+            } finally { g2d.dispose(); }
+            
+            image = resized;
+        }
+        
         BufferedImage circular = new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = circular.createGraphics();
         try {

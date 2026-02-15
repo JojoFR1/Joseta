@@ -11,11 +11,13 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.GenericContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.ICustomIdInteraction;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -279,6 +281,7 @@ public class InteractionProcessor {
         
         @Override
         public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+            long startTime = System.currentTimeMillis();
             String commandName = event.getName();
             String subcommandGroup = event.getSubcommandGroup();
             String subcommand = event.getSubcommandName();
@@ -289,7 +292,7 @@ public class InteractionProcessor {
             Command command = (Command) interactionMethods.get(commandName);
             if (command == null) {
                 Log.warn("Unknown command: " + event.getName());
-                event.reply("Commande inconnue.").setEphemeral(true).queue();
+                event.reply("Commande `"+ commandName +"` inconnue. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
                 return;
             }
             
@@ -308,7 +311,7 @@ public class InteractionProcessor {
 
                     if (option == null && parameter.required()) {
                         Log.warn("A required parameter is missing for command {}, parameter: {}", command.getName(), parameter.name());
-                        event.reply("Un paramètre obligatoire est manquant.").queue();
+                        event.reply("Un paramètre obligatoire est manquant. Veuillez contacter un développeur si l'erreur persiste.").queue();
                         return;
                     }
 
@@ -335,16 +338,20 @@ public class InteractionProcessor {
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                 Log.err("An error occurred during command execution ({}):", command.getName(), e);
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Command {} processed in {} ms", event.getName(), (endTime - startTime));
         }
 
         @Override
         public void onGenericContextInteraction(GenericContextInteractionEvent<?> event) {
+            long startTime = System.currentTimeMillis();
             String commandName = event.getName();
 
             Interaction contextInteraction = interactionMethods.get(commandName);
             if (contextInteraction == null) {
                 Log.warn("Unknown context interaction: " + event.getName());
-                event.reply("Interaction inconnue.").setEphemeral(true).queue();
+                event.reply("Interaction `"+ commandName +"` inconnue. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
                 return;
             }
             
@@ -360,31 +367,51 @@ public class InteractionProcessor {
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                 Log.err("An error occurred during context execution ({}):", contextInteraction.getName(), e);
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Context interaction {} processed in {} ms", event.getName(), (endTime - startTime));
         }
         
         @Override
-        public void onGenericComponentInteractionCreate(GenericComponentInteractionCreateEvent event) {
-            String componentId = event.getComponentId();
+        public void onGenericInteractionCreate(GenericInteractionCreateEvent event) {
+            if (event instanceof SlashCommandInteractionEvent || event instanceof GenericContextInteractionEvent)
+                return;
             
-            Interaction component = interactionMethods.get(componentId);
-            if (component == null) {
-                Log.warn("Unknown component: {}", componentId);
-                event.reply("Composant inconnu.").setEphemeral(true).queue();
+            long startTime = System.currentTimeMillis();
+            
+            if (!(event.getInteraction() instanceof ICustomIdInteraction customIdInteraction)) {
+                Log.warn("Received an interaction that is not a ICustomIdInteraction: {}", event.getClass().getName());
+                return;
+            }
+            String interactionId = customIdInteraction.getCustomId();
+            
+            if (!(event instanceof IReplyCallback replyCallback)) {
+                Log.warn("Received an interaction that is not a IReplyCallback: {}", event.getClass().getName());
                 return;
             }
             
-            if (component.isGuildOnly() && !event.isFromGuild()) {
-                event.reply("Ce composant ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
+            Interaction interaction = interactionMethods.get(interactionId);
+            if (interaction == null) {
+                Log.warn("Unknown interaction: {}", interactionId);
+                replyCallback.reply("Composant `"+ interactionId +"` inconnu. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
+                return;
+            }
+            
+            if (interaction.isGuildOnly() && !event.isFromGuild()) {
+                replyCallback.reply("Ce composant ne peut être utilisé que dans un serveur.").setEphemeral(true).queue();
                 return;
             }
             
             try {
-                Object o = component.getClazz().getDeclaredConstructor().newInstance();
+                Object o = interaction.getClazz().getDeclaredConstructor().newInstance();
 
-                component.getMethod().invoke(o, event);
+                interaction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during component execution ({}):", component.getName(), e);
+                Log.err("An error occurred during interaction execution ({}):", interaction.getName(), e);
             }
+            
+            long endTime = System.currentTimeMillis();
+            Log.debug("Component interaction {} processed in {} ms", interactionId, (endTime - startTime));
         }
     }
 }

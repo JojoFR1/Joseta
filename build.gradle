@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'joseta'
-version = '2.0.0'
+version = '2.1.0'
 
 def generatedSourcesDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
 sourceSets.main.java.srcDir generatedSourcesDir

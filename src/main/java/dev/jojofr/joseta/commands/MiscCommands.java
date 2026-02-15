@@ -8,6 +8,7 @@ import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.database.entities.Reminder;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.TimeParser;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
 import net.dv8tion.jda.api.entities.Message;
@@ -33,7 +34,7 @@ public class MiscCommands {
      */
     @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
     public void markov(SlashCommandInteractionEvent event) {
-        Configuration config = Database.get(Configuration.class, event.getGuild().getIdLong());
+        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.markovEnabled) {
             event.reply("La génération de messages Markov est désactivée sur ce serveur.").setEphemeral(true).queue();
             return;

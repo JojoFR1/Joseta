@@ -2,28 +2,29 @@
 243, 118, 97
 📜┃Règles
 
-Ci-dessous se trouvent les règles qui s'appliquent partout sur ce serveur :
+Ci-dessous se trouvent les règles qui s'appliquent partout sur ce serveur :
 
-1. La seule langue autorisée est le **français**, avec des tolérances pour l'**anglais**. (French only!)
-2. Les menaces, le harcèlement, le racisme, le sexisme, l'homophobie, etc. et tout sujet sensible (politique, religieux ou racial) sont strictement interdits.
-3. Aucun spam¹, flood², mass ping³, drama ni contenu NSFW⁴.
-5. La publicité sur le serveur ou en message privé est formellement interdite sauf autorisation préalable.
-4. Respectez le contenu des salons et ne faites pas de hors-sujet. Il est toléré uniquement s'il provient d'une discussion qui a dérivé (mais qui doit être déplacée dans <#1223758326375120926>).
-6. Les administrateurs ont le dernier mot. Toute tentative de débattre, glorifier ou contester une sanction publiquement sera sanctionnée. Pour contester une sanction, discutez en messages privés avec l'administrateur en question.
+1. La seule langue autorisée est le **français**, avec des tolérances pour l'**anglais**. (French is the only allowed language on the server, english is tolerated.)
+2. Les menaces, le harcèlement, le racisme, le sexisme, l'homophobie et tout autre sujet qui pourrait nuire à autrui ainsi que tout sujet sensible (politique, religieux ou racial) sont interdits.
+3. Le spam¹, flood², mass ping³ et le contenu NSFW⁴ sont strictement interdits.
+4. Respectez le contenu des salons et ne faites pas de hors-sujet. Il est toléré uniquement s'il provient d'une discussion qui a dérivé (mais qui doit être déplacée dans le salon approprié).
+5. La publicité directe qui n'a pas pour but de partager du contenu sur le serveur ou en message privé est formellement interdite, sauf autorisation préalable.
+6. Les conflits ou "dramas" sont *vos* problèmes et n'ont rien à faire sur ce serveur — en public. Si vous constatez qu'il y a eu des comportements qui enfreignent les règles ou qui peuvent nuire à autrui, prévenez un modérateur. Nous n'irons pas plus loin et si cela dégénère, tous les individus concernés seront sanctionnés sans négociation possible.
+7. Les modérateurs ont le dernier mot. Toute tentative de débattre, glorifier ou contester une sanction publiquement sera sanctionnée. Toutes contestations doivent se faire par le biais de <#1423416947093147658>.
 
-Les sanctions appliquées seront généralement des avertissements, voire des exclusions temporaires, cela dépendra de votre attitude, du récidivisme et de l'humeur de l'administrateur.
-Des avertissements « verbaux » peuvent être donnés avant un véritable avertissement.
+Les sanctions appliquées seront généralement des avertissements, voire des exclusions temporaires, cela dépendra de votre attitude, du récidivisme et de l'humeur du modérateur.
+Des avertissements « verbaux », à l'écrit, peuvent être donnés avant une véritable sanction.
 
 > Ces règles peuvent être modifiées **à tout moment**, les changements majeurs vous seront signalés.
 
-**__Invitation officielle du serveur :__ <https://discord.com/invite/hzGPWhZSGV>**
+**__Invitation officielle du serveur :__ <https://discord.com/invite/hzGPWhZSGV>**
 
-***Dernière modification <t:1748080260:R>***
+***Dernière modification <t:1762009500:R>***
 
--# 1 – spam : fait d'envoyer plusieurs fois le même message 
--# 2 – flood : répéter le même caractère un grand nombre de fois
--# 3 – mass ping : mentionner un ou plusieurs utilisateurs en grande quantité
--# 4 – NSFW : contenu pour adulte inapproprié pour les mineurs (sexuel, gore, violent, automutilation, etc.)
+-# 1 – spam : envoyer plusieurs messages (quasi-)identiques de façon répéter
+-# 2 – flood : répéter un grand nombre de fois un même caractère ou des messages, noyer une discussion
+-# 3 – mass ping : mentionner en grande quantité un ou plusieurs utilisateurs
+-# 4 – NSFW : contenu ou allusion à du contenu pour adulte généralement inapproprié pour les mineurs (sexuel, gore, violent, automutilation, etc.)
 ---ENDEMBED---
 
 ---STARTEMBED---
@@ -31,17 +32,19 @@ Des avertissements « verbaux » peuvent être donnés avant un véritable avert
 🚫┃Sanction
 
 Ci-dessous se trouvent les sanctions encourues en fonction du nombre d'avertissements reçus.
-La sanction appliquée en cas de non-respect des règles dépend de votre attitude, du récidivisme et de l'humeur de l'administrateur.
+La sanction appliquée en cas de non-respect des règles dépend de votre attitude, du récidivisme et de l'humeur du modérateur.
 
-> - 2 avertissements : Exclusion temporaire de 24 heures.
-> - 4 avertissements : Rôle <@&1249479455559385120> & exclusion temporaire de 7 jours.
-> - 6 avertissements : Ban définitif.
+> - 2 avertissements : Exclusion temporaire de 24 à 48 heures.
+> - 3 avertissements : Exclusion temporaire de 7 à 14 jours.
+> - 5 avertissements : Ban définitif.
 
-Ces sanctions sont générales, leur durée peut par exemple varier, et une autre sanction peut être appliquée au cas par cas.
+Ces sanctions sont une base. Leur durée ainsi que leur type peuvent varier et être appliqués au cas par cas et dépendent de l'humeur du modérateur.
 
-Les avertissements seront parfois vérifiés et retirés si nous jugeons qu'assez de temps s'est écoulé.
+Les sanctions d'autres membres sont des informations privées que les modérateurs se réservent le droit de ne pas révéler. Toute tentative d'obtenir l'information en forçant ou en demandant à d'autres sera sanctionnée.
 
-***Dernière modification <t:1748080920:R>***
+Tout bannissement est **définitif** et **impardonnable** sans exception, sauf erreur de notre part.
+
+***Dernière modification <t:1762009500:R>***
 ---ENDEMBED---
 
 ---STARTEMBED---
