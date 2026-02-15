@@ -95,6 +95,7 @@ tasks.register('generateJdaEventEnum') {
                     .toUpperCase()
                     .replace('EVENT', '')
                     .replaceAll('_$', '')
+                    .replaceAll('__+', '_')
 
             def sourceFile = new File(sourcesDir, "${cls.getName().replace('.', '/')}.java")
             def javadoc = ""
