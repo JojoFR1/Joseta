@@ -18,16 +18,15 @@ dependencies {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.27'
+    implementation 'ch.qos.logback:logback-classic:1.5.31'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.reflections:reflections:0.10.2'
 
-    implementation 'org.postgresql:postgresql:42.7.9'
-    implementation 'org.hibernate:hibernate-core:7.2.1.Final'
-    // Hibernate Processor
-    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.1.Final'
-    // Agroal connection pool
-    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.2.1.Final'
+    implementation 'org.postgresql:postgresql:42.7.10'
+    implementation 'org.hibernate:hibernate-core:7.2.4.Final'
+
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.4.Final'
+    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.2.4.Final'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
