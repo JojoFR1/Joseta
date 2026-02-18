@@ -65,6 +65,7 @@ public class ConfigurationCommand {
     @Interaction(id = "config:cat_moderation") public void onConfigModerationButton(ButtonInteractionEvent event) { onCategoryButton(event); }
     @Interaction(id = "config:cat_welcome") public void onConfigWelcomeButton(ButtonInteractionEvent event) { onCategoryButton(event); }
     @Interaction(id = "config:menu_back") public void onConfigBackButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:cat_moderation:logs") public void onConfigModerationLogsButton(ButtonInteractionEvent event) { onCategoryButton(event); }
     private void onCategoryButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -77,6 +78,7 @@ public class ConfigurationCommand {
             case "config:cat_counting" -> container = createCountingMenuContainer(configurationMessage);
             case "config:cat_markov" -> container = createMarkovMenuContainer(configurationMessage);
             case "config:cat_moderation" -> container = createModerationMenuContainer(configurationMessage);
+            case "config:cat_moderation:logs" -> container = createModerationLogsMenuContainer(configurationMessage);
             case "config:cat_welcome" -> container = createWelcomeMenuContainer(configurationMessage);
             case "config:menu_back" -> container = createMainMenuContainer(configurationMessage);
             default -> container = null;
@@ -626,6 +628,12 @@ public class ConfigurationCommand {
         return Container.of(
             TextDisplay.of("# Configuration - Modération"),
             
+            Section.of(
+                Button.primary("config:cat_moderation:logs", "Configurer"),
+                TextDisplay.of("### Système de logs de modération"),
+                TextDisplay.of("-# Le système de logs de modération, qui envoie des messages dans un salon spécifique pour les actions de modération (ex: un membre a été kick).")
+            ),
+            
             createToggleSection("Système de modération",
                 "Active ou désactive les commande de modération.",
                 "config:cat_moderation:toggle", configurationMessage.configuration.moderationEnabled),
@@ -651,6 +659,18 @@ public class ConfigurationCommand {
                 TextDisplay.of("-# Envoie les règles du serveur dans un salon spécifique, avec un bouton de vérification à la fin. Le salon est choisi lors de l'envoi des règles.")
             ),
             ActionRow.of(rulesChannelSelectMenu),
+            
+            createBottomRow(configurationMessage)
+        );
+    }
+    
+    private Container createModerationLogsMenuContainer(ConfigurationMessage configurationMessage) {
+        return Container.of(
+            TextDisplay.of("# Configuration - Modération | Logs"),
+            
+            createToggleSection("Système de logs",
+                "Active ou désactive le système de logs.",
+                "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogsEnabled),
             
             createBottomRow(configurationMessage)
         );
