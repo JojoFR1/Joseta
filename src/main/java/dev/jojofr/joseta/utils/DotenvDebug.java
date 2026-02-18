@@ -25,10 +25,12 @@ public class DotenvDebug extends DotenvBuilder {
     private boolean throwIfMissing = true;
     private boolean throwIfMalformed = true;
     
-    public Dotenv load(boolean debug) throws DotenvException {
+    static public Dotenv load(boolean debug) { return new DotenvDebug().loadImpl(debug); }
+    
+    private Dotenv loadImpl(boolean debug) throws DotenvException {
         final var reader = new DotenvParser(
-            new DotenvReader(directoryPath, filename),
-            throwIfMissing, throwIfMalformed);
+                                new DotenvReader(directoryPath, filename),
+                                throwIfMissing, throwIfMalformed);
         final List<DotenvEntry> env = reader.parse();
         if (systemProperties) {
             env.forEach(it -> System.setProperty(it.getKey(), it.getValue()));

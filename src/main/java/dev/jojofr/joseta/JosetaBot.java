@@ -24,10 +24,8 @@ public class JosetaBot {
     
     public static boolean debug = false;
     
-    /* TODO Reintroduce the database (with PostgreSQL), could try new libraries and new implementation
-     *   - Move rules from a text file to the database
-     *   - Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal
-     *   - Allow to add custom Regex for auto-response
+    /* TODO Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal
+     * TODO Allow to add custom Regex for auto-response
      * TODO support translations for logging and error messages?
      * TODO (very unlikely) add a web dashboard
      * TODO try to optimize the bot to reduce memory usage and CPU usage and improve responsiveness
@@ -38,7 +36,7 @@ public class JosetaBot {
             debug = args[0].equals("--debug");
             Log.setLevel(Level.DEBUG);
         }
-        Dotenv dotenv = new DotenvDebug().load(debug);
+        Dotenv dotenv = DotenvDebug.load(debug);
         
         if (!Database.initialize("dev.jojofr.joseta.database.entities", dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_NAME"))) {
             Log.err("Database initialization failed. Exiting...");
