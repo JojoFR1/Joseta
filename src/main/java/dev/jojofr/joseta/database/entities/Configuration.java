@@ -28,6 +28,9 @@ public class Configuration {
     
     @Column public Boolean moderationEnabled = true;
     @Column(columnDefinition = "TEXT") public String rules = "";
+    
+    @Column public Boolean moderationLogsEnabled = false;
+    
 
     @Column public Boolean autoResponseEnabled = false;
 
