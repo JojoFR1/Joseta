@@ -676,6 +676,18 @@ public class ConfigurationCommand {
         );
     }
     
+    private Container createModerationLogsMenuContainer(ConfigurationMessage configurationMessage) {
+        return Container.of(
+            TextDisplay.of("# Configuration - Modération | Logs"),
+            
+            createToggleSection("Système de logs",
+                "Active ou désactive le système de logs.",
+                "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogsEnabled),
+            
+            createBottomRow(configurationMessage)
+        );
+    }
+    
     private Container createWelcomeMenuContainer(ConfigurationMessage configurationMessage) {
         EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon de bienvenue")
