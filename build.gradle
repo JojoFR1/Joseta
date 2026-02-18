@@ -26,7 +26,8 @@ dependencies {
     implementation 'org.hibernate:hibernate-core:7.2.4.Final'
 
     annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.4.Final'
-    runtimeOnly 'org.hibernate.orm:hibernate-agroal:7.2.4.Final'
+    implementation 'org.hibernate:hibernate-hikaricp:7.2.4.Final'
+    implementation 'com.zaxxer:HikariCP:7.0.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

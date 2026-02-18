@@ -1,14 +1,15 @@
 package dev.jojofr.joseta.database;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.criteria.*;
 import dev.jojofr.joseta.utils.Log;
 import dev.jojofr.joseta.utils.function.Consumer2;
 import dev.jojofr.joseta.utils.function.Function2;
+import jakarta.persistence.Entity;
+import jakarta.persistence.criteria.*;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.cfg.HikariCPSettings;
 import org.hibernate.jpa.HibernatePersistenceConfiguration;
 import org.hibernate.query.MutationQuery;
 import org.hibernate.query.SelectionQuery;
@@ -145,15 +146,23 @@ public class Database {
         
         HibernatePersistenceConfiguration configuration = new HibernatePersistenceConfiguration("DiscordDatabase")
             .managedClasses(classes)
-            .jdbcCredentials(user, password)
             .jdbcUrl("jdbc:postgresql://" + url)
-            .jdbcPoolSize(16)
+            .jdbcCredentials(user, password)
             .schemaToolingAction(Action.UPDATE)
             .showSql(showSql, true, true)
-            .property("hibernate.jdbc.batch_size", 10);
-            // .property("hibernate.order_inserts", "true")
-            // .property("hibernate.order_updates", "true");
-
+            
+            .property("hibernate.connection.provider_class", org.hibernate.hikaricp.internal.HikariCPConnectionProvider.class)
+            .property(HikariCPSettings.HIKARI_MAX_SIZE, 10)
+            .property(HikariCPSettings.HIKARI_MIN_IDLE_SIZE, 2)
+            .property(HikariCPSettings.HIKARI_ACQUISITION_TIMEOUT, 10 * 1000)
+            .property(HikariCPSettings.HIKARI_IDLE_TIMEOUT, 10 * 60 * 1000)
+            .property(HikariCPSettings.HIKARI_MAX_LIFETIME, 30 * 60 * 1000)
+            .property(HikariCPSettings.HIKARI_POOL_NAME, "JosetaHikariPool")
+            
+            .property("hibernate.jdbc.batch_size", 10)
+            .property("hibernate.order_inserts", "true")
+            .property("hibernate.order_updates", "true");
+        
         sessionFactory = configuration.createEntityManagerFactory();
         
         if (sessionFactory == null) {
@@ -162,6 +171,12 @@ public class Database {
         }
         
         return true;
+    }
+    
+    private static void reconnect() {
+        if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        // if (sessionFactory.isClosed()) sessionFactory = sessionFactory.;
+        else Log.warn("Attempted to reconnect to the database, but the connection is still open.");
     }
     
     /**
@@ -174,6 +189,7 @@ public class Database {
      */
     public static Session getSession() {
         if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        if (sessionFactory.isClosed()) reconnect();
         return sessionFactory.openSession();
     }
     
@@ -186,6 +202,7 @@ public class Database {
      */
     public static HibernateCriteriaBuilder getCriteriaBuilder() {
         if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        if (sessionFactory.isClosed()) reconnect();
         return sessionFactory.getCriteriaBuilder();
     }
     
