@@ -28,38 +28,30 @@ This is a multipurpose bot and is not centered around one specific category or i
 - A **Counting Channel** to let users count until infinity.
 - Multiple commands:
 
-  | Category   | Commands       | Use                                                                 |
-  |:-----------|:---------------|:--------------------------------------------------------------------|
-  | Admin      | `/admin`       | Admin related commands (rules, counting managing).                  |
-  |            | `/config`      | Configure the bot variables for your server.                        |
-  | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                   |
-  |            | `/multi`       | Manually send the multiplayer help message.                         |
-  |            | `/markov`      | Generate a pseudo-random message using messages sent on the server. |
-  |            | `/reminder`    | Add or list reminders.                                              |
-  | Moderation | `/modlog`      | Get a member current moderation history.                            |
-  |            | `/(un)ban`     | (Un)Ban a member from the server.                                   |
-  |            | `/kick`        | Kick a member from the server.                                      |
-  |            | `/(un)timeout` | (Un)Timeout a member on the server.                                 |
-  |            | `/(un)warn`    | (Un)Warn a member on the server.                                    |
-  |            | `/clear`       | Clear messages in the channel.                                      |
+  | Category   | Commands       | Use                                                                                    |
+  |:-----------|:---------------|:---------------------------------------------------------------------------------------|
+  |            | `/config`      | Configure the bot variables for your server. Use a GUI like comoponent message.        |
+  | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                                      |
+  |            | `/multi`       | Manually send the multiplayer help message.                                            |
+  |            | `/markov`      | (Not implemented!) Generate a pseudo-random message using messages sent on the server. |
+  |            | `/reminder`    | Add or (list not implemented) reminders.                                               |
+  | Moderation | `/modlog`      | Get a member current moderation history.                                               |
+  |            | `/(un)ban`     | (Un)Ban a member from the server.                                                      |
+  |            | `/kick`        | Kick a member from the server.                                                         |
+  |            | `/(un)timeout` | (Un)Timeout a member on the server.                                                    |
+  |            | `/(un)warn`    | (Un)Warn a member on the server.                                                       |
+  |            | `/clear`       | Clear messages in the channel.                                                         |
 
 ## Plans
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
+- Add a Logging system ([PR #15](https://github.com/JojoFR1/Joseta/pull/15)):
+- Add a Ticket system
+
 - Message leaderboard + levels (?).
-
-- Rework config command to use embed instead of multiple arguments command
-
+ 
 - Add translation for messages & logging (mainly to lower string repetitions and to have it all in one file)
-
-- Refactor the Event system
-  - Could do like one single global `ListenerAdapter` and add in the appropriate event the function we want to execute
-  - Maybe use annotations system (could do the same for commands)
-  - Other implementations could be explored (but I do not have any idea for now)
-
-- Add a Logging system (currently on pause, see [PR #6](https://github.com/JojoFR1/Joseta/pull/6)):
-  - Log the warns of the bot.
 
 - Support multi-server:
   - Mainly to make it usable outside our server.
@@ -67,7 +59,7 @@ The current plans and ideas for this bot are the following, in the likely order 
 
 ## How to build
 
-Building requires **JDK 17** or later.
+Building requires **JDK 21** or later.
 
 At the root of the project, use the following command:
 `./gradlew shadowJar`
@@ -76,7 +68,7 @@ Once the build process is finished, the output will be present in `./build/libs/
 
 ## How to run
 
-You will first need to follow the instructions in the `secret_template.cfg` file before being able to run the bot.
+You will first need to follow the instructions in the `.env.template` file before being able to run the bot.
 
 After this, starting the bot is very easy. You need to execute this command: `java -jar build/libs/JosetaBot.jar`
 
@@ -84,7 +76,7 @@ The following arguments (after the `.jar`) are available to use:
 
 - Default: run the bot normally. (Log level is info level)
 - `--debug`: run the bot in debug mode. (Log level is debug level & intended for testing)
-- `--server`: run the bot in server mode. (Log level is debug level & save log file up to 7 days)
+- `--server`: run the bot in server mode. (Log level is debug level & save log file up to 14 days)
 
 ## Contributors
 
