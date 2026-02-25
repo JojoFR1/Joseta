@@ -11,64 +11,35 @@ import java.util.Set;
 
 @Entity @Table(name = "configurations")
 public class Configuration {
-    @Id public Long guildId;
+    @Id public long guildId;
 
-    @Column public Boolean welcomeEnabled = false;
+    @Column public boolean welcomeEnabled = false;
     @Column public Long welcomeChannelId = null;
-    @Column public Boolean welcomeImageEnabled = false;
+    @Column public boolean welcomeImageEnabled = false;
     @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
-    @Column public String welcomeImageUrl = ""; // Could switch to file upload using modal
     @Column public Long joinRoleId = null;
     @Column public Long joinBotRoleId = null;
     @Column public Long verifiedRoleId = null;
     
-    @Column public Boolean markovEnabled = false;
+    @Column public boolean markovEnabled = false;
     @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
     
-    @Column public Boolean moderationEnabled = true;
+    @Column public boolean moderationEnabled = true;
+    @Column public boolean moderationLogsEnabled = false;
     @Column(columnDefinition = "TEXT") public String rules = "";
     
-    @Column public Boolean moderationLogsEnabled = false;
-    
+    @Column public boolean autoResponseEnabled = false;
 
-    @Column public Boolean autoResponseEnabled = false;
-
-    @Column public Boolean countingEnabled = false;
-    @Column public Boolean countingCommentsEnabled = false;
-    @Column public Boolean countingPenaltyEnabled = false;
+    @Column public boolean countingEnabled = false;
+    @Column public boolean countingCommentsEnabled = false;
+    @Column public boolean countingPenaltyEnabled = false;
     @Column public Long countingChannelId = null;
     
     // A non-private and no-arg constructor is required by JPA
     protected Configuration() {}
 
     public Configuration(long guildId) { this.guildId = guildId; }
-
-    public Configuration(Configuration other) {
-        this.guildId = other.guildId;
-
-        this.welcomeEnabled = other.welcomeEnabled;
-        this.welcomeChannelId = other.welcomeChannelId;
-        this.welcomeImageEnabled = other.welcomeImageEnabled;
-        this.welcomeJoinMessage = other.welcomeJoinMessage;
-        this.welcomeLeaveMessage = other.welcomeLeaveMessage;
-        this.joinRoleId = other.joinRoleId;
-        this.joinBotRoleId = other.joinBotRoleId;
-        this.verifiedRoleId = other.verifiedRoleId;
-
-        this.markovEnabled = other.markovEnabled;
-        this.markovBlacklist = other.markovBlacklist;
-
-        this.moderationEnabled = other.moderationEnabled;
-        this.rules = other.rules;
-        
-        this.autoResponseEnabled = other.autoResponseEnabled;
-
-        this.countingEnabled = other.countingEnabled;
-        this.countingCommentsEnabled = other.countingCommentsEnabled;
-        this.countingPenaltyEnabled = other.countingPenaltyEnabled;
-        this.countingChannelId = other.countingChannelId;
-    }
     
     
     public Configuration setGuildId(Long guildId) {
@@ -76,13 +47,13 @@ public class Configuration {
         return this;
     }
 
-    public Configuration setWelcomeEnabled(Boolean welcomeEnabled) {
-        if (welcomeEnabled != null) this.welcomeEnabled = welcomeEnabled;
+    public Configuration setWelcomeEnabled(boolean welcomeEnabled) {
+        this.welcomeEnabled = welcomeEnabled;
         return this;
     }
 
-    public Configuration setWelcomeImageEnabled(Boolean welcomeImageEnabled) {
-        if (welcomeImageEnabled != null) this.welcomeImageEnabled = welcomeImageEnabled;
+    public Configuration setWelcomeImageEnabled(boolean welcomeImageEnabled) {
+        this.welcomeImageEnabled = welcomeImageEnabled;
         return this;
     }
 
@@ -103,11 +74,6 @@ public class Configuration {
 
     public Configuration setWelcomeLeaveMessage(String welcomeLeaveMessage) {
         if (welcomeLeaveMessage != null) this.welcomeLeaveMessage = welcomeLeaveMessage;
-        return this;
-    }
-    
-    public Configuration setWelcomeImageUrl(String welcomeImageUrl) {
-        if (welcomeImageUrl != null) this.welcomeImageUrl = welcomeImageUrl;
         return this;
     }
 
@@ -141,8 +107,8 @@ public class Configuration {
         return this;
     }
 
-    public Configuration setMarkovEnabled(Boolean markovEnabled) {
-        if (markovEnabled != null) this.markovEnabled = markovEnabled;
+    public Configuration setMarkovEnabled(boolean markovEnabled) {
+        this.markovEnabled = markovEnabled;
         return this;
     }
 
@@ -171,8 +137,8 @@ public class Configuration {
         return this;
     }
 
-    public Configuration setModerationEnabled(Boolean moderationEnabled) {
-        if (moderationEnabled != null) this.moderationEnabled = moderationEnabled;
+    public Configuration setModerationEnabled(boolean moderationEnabled) {
+        this.moderationEnabled = moderationEnabled;
         return this;
     }
     
@@ -181,23 +147,23 @@ public class Configuration {
         return this;
     }
     
-    public Configuration setAutoResponseEnabled(Boolean autoResponseEnabled) {
-        if (autoResponseEnabled != null) this.autoResponseEnabled = autoResponseEnabled;
+    public Configuration setAutoResponseEnabled(boolean autoResponseEnabled) {
+        this.autoResponseEnabled = autoResponseEnabled;
         return this;
     }
 
-    public Configuration setCountingEnabled(Boolean countingEnabled) {
-        if (countingEnabled != null) this.countingEnabled = countingEnabled;
+    public Configuration setCountingEnabled(boolean countingEnabled) {
+        this.countingEnabled = countingEnabled;
         return this;
     }
 
-    public Configuration setCountingCommentsEnabled(Boolean countingCommentsEnabled) {
-        if (countingCommentsEnabled != null) this.countingCommentsEnabled = countingCommentsEnabled;
+    public Configuration setCountingCommentsEnabled(boolean countingCommentsEnabled) {
+        this.countingCommentsEnabled = countingCommentsEnabled;
         return this;
     }
 
-    public Configuration setCountingPenaltyEnabled(Boolean countingPenaltyEnabled) {
-        if (countingPenaltyEnabled != null) this.countingPenaltyEnabled = countingPenaltyEnabled;
+    public Configuration setCountingPenaltyEnabled(boolean countingPenaltyEnabled) {
+        this.countingPenaltyEnabled = countingPenaltyEnabled;
         return this;
     }
     

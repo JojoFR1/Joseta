@@ -11,7 +11,6 @@ import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
-import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;

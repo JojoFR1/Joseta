@@ -3,7 +3,6 @@ package dev.jojofr.joseta.annotations;
 import dev.jojofr.joseta.annotations.interactions.Command;
 import dev.jojofr.joseta.annotations.interactions.Interaction;
 import dev.jojofr.joseta.annotations.types.*;
-import dev.jojofr.joseta.annotations.types.*;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;

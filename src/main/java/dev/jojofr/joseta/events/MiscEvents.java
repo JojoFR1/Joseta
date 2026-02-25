@@ -2,7 +2,6 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.Event;
-import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.misc.CountingChannel;
