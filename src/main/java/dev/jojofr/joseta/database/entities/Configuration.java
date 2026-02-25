@@ -27,6 +27,7 @@ public class Configuration {
     
     @Column public boolean moderationEnabled = true;
     @Column public boolean moderationLogsEnabled = false;
+    @Column public Long moderationLogsChannelId = null;
     @Column(columnDefinition = "TEXT") public String rules = "";
     
     @Column public boolean autoResponseEnabled = false;
@@ -139,6 +140,21 @@ public class Configuration {
 
     public Configuration setModerationEnabled(boolean moderationEnabled) {
         this.moderationEnabled = moderationEnabled;
+        return this;
+    }
+    
+    public Configuration setModerationLogsEnabled(boolean moderationLogsEnabled) {
+        this.moderationLogsEnabled = moderationLogsEnabled;
+        return this;
+    }
+    
+    public Configuration setModerationLogsChannel(GuildMessageChannel moderationLogsChannel) {
+        if (moderationLogsChannel != null) this.moderationLogsChannelId = moderationLogsChannel.getIdLong();
+        return this;
+    }
+    
+    public Configuration setModerationLogsChannelId(Long moderationLogsChannelId) {
+        if (moderationLogsChannelId != null) this.moderationLogsChannelId = moderationLogsChannelId;
         return this;
     }
     

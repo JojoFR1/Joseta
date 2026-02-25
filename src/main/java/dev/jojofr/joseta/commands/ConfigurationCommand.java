@@ -114,6 +114,7 @@ public class ConfigurationCommand {
     @ButtonInteraction(id = "config:cat_counting:toggle_penalty") public void onConfigCountingTogglePenaltyButton(ButtonInteractionEvent event) { onToggleButton(event); }
     @ButtonInteraction(id = "config:cat_markov:toggle") public void onConfigMarkovToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
     @ButtonInteraction(id = "config:cat_moderation:toggle") public void onConfigModerationToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    @ButtonInteraction(id = "config:cat_moderation:logs:toggle") public void onConfigModerationLogsToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
     @ButtonInteraction(id = "config:cat_autores:toggle") public void onConfigAutoResponseToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
     private void onToggleButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
@@ -129,6 +130,7 @@ public class ConfigurationCommand {
             case "config:cat_counting:toggle_penalty" -> configurationMessage.configuration.setCountingPenaltyEnabled(!configurationMessage.configuration.countingPenaltyEnabled);
             case "config:cat_markov:toggle" -> configurationMessage.configuration.setMarkovEnabled(!configurationMessage.configuration.markovEnabled);
             case "config:cat_moderation:toggle" -> configurationMessage.configuration.setModerationEnabled(!configurationMessage.configuration.moderationEnabled);
+            case "config:cat_moderation:logs:toggle" -> configurationMessage.configuration.setModerationLogsEnabled(!configurationMessage.configuration.moderationLogsEnabled);
             case "config:cat_autores:toggle" -> configurationMessage.configuration.setAutoResponseEnabled(!configurationMessage.configuration.autoResponseEnabled);
         }
         
@@ -138,6 +140,7 @@ public class ConfigurationCommand {
             case "config:cat_counting:toggle", "config:cat_counting:toggle_comments", "config:cat_counting:toggle_penalty" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:toggle" -> createMarkovMenuContainer(configurationMessage);
             case "config:cat_moderation:toggle" -> createModerationMenuContainer(configurationMessage);
+            case "config:cat_moderation:logs:toggle" -> createModerationLogsMenuContainer(configurationMessage);
             case "config:cat_autores:toggle" -> createAutoResponseMenuContainer(configurationMessage);
             default -> null;
         }).useComponentsV2().queue();
@@ -333,6 +336,7 @@ public class ConfigurationCommand {
     @SelectMenuInteraction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_markov:mentionable_blacklist_select") public void onConfigMarkovBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_markov:channel_blacklist_select") public void onConfigMarkovChannelBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @SelectMenuInteraction(id = "config:cat_moderation:logs:channel_select") public void onConfigModerationLogsChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:channel_select") public void onConfigWelcomeChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
@@ -373,6 +377,7 @@ public class ConfigurationCommand {
 
                 configurationMessage.configuration.markovBlacklist.addAll(newBlacklist);
             }
+            case "config:cat_moderation:logs:channel_select" -> configurationMessage.configuration.setModerationLogsChannelId(selectedId);
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
@@ -384,6 +389,7 @@ public class ConfigurationCommand {
         event.editComponents(switch (menuId) {
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);
+            case "config:cat_moderation:logs:channel_select" -> createModerationLogsMenuContainer(configurationMessage);
             case "config:cat_moderation:rules:channel_select" -> createModerationMenuContainer(configurationMessage);
             case "config:cat_welcome:channel_select", "config:cat_welcome:join_role_select", "config:cat_welcome:join_bot_role_select", "config:cat_welcome:verified_role_select" -> createWelcomeMenuContainer(configurationMessage);
             default -> null;
@@ -645,12 +651,23 @@ public class ConfigurationCommand {
     }
     
     private Container createModerationLogsMenuContainer(ConfigurationMessage configurationMessage) {
+        EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:logs:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+            .setPlaceholder("Sélectionnez un salon pour les logs de modération")
+            .setChannelTypes(ChannelType.TEXT);
+        if (configurationMessage.configuration.moderationLogsChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.moderationLogsChannelId));
+        EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
+        
         return Container.of(
             TextDisplay.of("# Configuration - Modération | Logs"),
             
             createToggleSection("Système de logs",
                 "Active ou désactive le système de logs.",
                 "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogsEnabled),
+            
+            TextDisplay.of("### Salon de logs de modération"),
+            TextDisplay.of("-# Le salon où les logs de modération sont envoyés."),
+            ActionRow.of(channelSelectMenu),
             
             createBottomRow(configurationMessage)
         );
