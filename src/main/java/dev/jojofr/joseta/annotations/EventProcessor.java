@@ -29,7 +29,14 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
+// TODO a priority system
+// TODO "global" events trigger like if id are "test_event:test" and "test_event:other" both can be triggered by "test_event:*" - i have no idea how this could be implemented
+// TODO cache the instances of the classes containing the events to optimize performance (event though in previous test this did not change much), but some
+//      events might need to have an object instance per event and not global
+// TODO i feel like having one function = one event is nice for readability and organization but i think it could be bad for performance, having to create
+//      an object each time and execute the function one after the other
 public class EventProcessor {
+    // TODO Maybe use a Set, it is supposedly faster and i dont care about order or duplicates - but if i do implement a priority system then order might matter needing a list ordered by priority (pre ordered instead of oredering each time)
     private static final Map<Class<? extends GenericEvent>, List<Event>> eventMethods = new HashMap<>();
     
     /**
@@ -97,9 +104,9 @@ public class EventProcessor {
                     
                     eventAnnotation.getMethod().invoke(o, event);
                 } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                    Log.warn("An error occurred before or while executing an event. {}", e);
+                    Log.warn("An error occurred before or while executing an event.", e);
                 } catch (Exception e) {
-                    Log.warn("An unexpected error occurred while executing the event" + eventAnnotation.getMethod().getClass().getName() + "." + eventAnnotation.getMethod().getName(), e);
+                    Log.warn("An unexpected error occurred while executing the event {}.{}", e, eventAnnotation.getMethod().getClass().getName(), eventAnnotation.getMethod().getName());
                 }
             }
             
