@@ -336,7 +336,9 @@ public class InteractionProcessor {
 
                 command.getMethod().invoke(o, args.toArray());
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", command.getName(), e);
+                Log.err("An error occurred during command execution ({}):", e, command.getName());
+            } catch (Exception e) {
+                Log.warn("An unexpected error occurred during command execution ({}):", e, command.getName());
             }
             
             long endTime = System.currentTimeMillis();
@@ -365,7 +367,9 @@ public class InteractionProcessor {
 
                 contextInteraction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during context execution ({}):", contextInteraction.getName(), e);
+                Log.err("An error occurred during context execution ({}):", e, contextInteraction.getName());
+            } catch (Exception e) {
+                Log.warn("An unexpected error occurred during context execution ({}):", e, contextInteraction.getName());
             }
             
             long endTime = System.currentTimeMillis();
@@ -407,7 +411,9 @@ public class InteractionProcessor {
 
                 interaction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during interaction execution ({}):", interaction.getName(), e);
+                Log.err("An error occurred during interaction execution ({}):", e, interaction.getName());
+            } catch (Exception e) {
+                Log.warn("An unexpected error occurred during interaction execution ({}):", e, interaction.getName());
             }
             
             long endTime = System.currentTimeMillis();
