@@ -57,10 +57,16 @@ public class EventProcessor {
                 EventHandler eventAnnotation = method.getAnnotation(EventHandler.class);
                 if (eventAnnotation == null) continue;
                 
+                EventHandler.EventPriority priority = eventAnnotation.priority();
+                if (priority == EventHandler.EventPriority.DISABLED) {
+                    Log.warn("Event {}.{} is disabled, skipping registration.", eventClass.getName(), method.getName());
+                    continue;
+                }
+                
                 EventType eventType = eventAnnotation.type();
                 method.setAccessible(true);
                 
-                Event event = new Event(eventClass, method, eventAnnotation.guildOnly());
+                Event event = new Event(eventClass, method, priority, eventAnnotation.guildOnly());
                 if (eventMethods.get(eventType.getEventClass()) == null)
                     eventMethods.put(eventType.getEventClass(), new ArrayList<>(List.of(event)));
                 else
@@ -69,6 +75,8 @@ public class EventProcessor {
             } catch (Exception e) { Log.warn("An error occurred while registering an event. Skipping.", e); }}
         }
         
+        for (List<Event> events : eventMethods.values())
+            events.sort(Comparator.comparingInt(e -> e.getPriority().ordinal()));
         
         bot.addEventListener(new EventProcessor.EventListener());
     }
