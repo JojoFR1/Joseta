@@ -45,7 +45,7 @@ This is a multipurpose bot and is not centered around one specific category or i
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
-- (Internal) Improve Event system:
+- (Internal) Improve Event system ([PR #16](https://github.com/JojoFR1/Joseta/pull/16)):
   - Add a priority system for events.
   - "Global" events with '*', e.g.: `config:cat_autores:toggle` and `config:cat_moderation:toggle` have a similar
      functionality and could be merged into `config:cat_*:toggle` and using the event data to know which category is being toggled.
