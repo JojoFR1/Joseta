@@ -1,7 +1,7 @@
 package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
-import dev.jojofr.joseta.annotations.types.Event;
+import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.Configuration;
 import dev.jojofr.joseta.database.entities.Guild;
@@ -22,7 +22,7 @@ import org.hibernate.Transaction;
 @EventModule
 public class SetupEvents {
     
-    @Event(type = EventType.GUILD_READY)
+    @EventHandler(type = EventType.GUILD_READY)
     public void onGuildAvailable(GuildReadyEvent event) {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
@@ -42,7 +42,7 @@ public class SetupEvents {
         BotCache.guildConfigurations.put(event.getGuild().getIdLong(), Database.get(Configuration.class, event.getGuild().getIdLong()));
     }
     
-    @Event(type = EventType.GUILD_LEAVE)
+    @EventHandler(type = EventType.GUILD_LEAVE)
     public void onGuildLeave(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();
         Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), guildId);
@@ -70,7 +70,7 @@ public class SetupEvents {
         }
     }
     
-    @Event(type = EventType.GUILD_MEMBER_REMOVE)
+    @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
         MessageDatabase.deleteUserMarkovMessages(event.getGuild().getIdLong());
         

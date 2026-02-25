@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Event {
+public @interface EventHandler {
     /**
      * The event type to handle.
      * <p>

@@ -1,6 +1,7 @@
 package dev.jojofr.joseta.annotations;
 
 import dev.jojofr.joseta.annotations.interactions.Event;
+import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
@@ -25,7 +26,7 @@ import java.util.*;
  * Processor for scanning, registering events and handling them.
  * <p>
  * It scans the specified package for classes annotated with {@link EventModule} and registers their methods
- * annotated with {@link Event} as events with the JDA bot instance.
+ * annotated with {@link EventHandler} as events with the JDA bot instance.
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
@@ -53,7 +54,7 @@ public class EventProcessor {
         
         for (Class<?> eventClass : classes) {
             for (Method method : eventClass.getMethods()) { try {
-                dev.jojofr.joseta.annotations.types.Event eventAnnotation = method.getAnnotation(dev.jojofr.joseta.annotations.types.Event.class);
+                EventHandler eventAnnotation = method.getAnnotation(EventHandler.class);
                 if (eventAnnotation == null) continue;
                 
                 EventType eventType = eventAnnotation.type();
