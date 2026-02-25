@@ -22,7 +22,6 @@ This is a multipurpose bot and is not centered around one specific category or i
 
 - An **Image-based Welcome** for new members (or message in case the image is disabled or not properly loaded).
 - A **Goodbye Message** for leaving members.
-- A **Counting Channel** to count until infinity.
 - **Rules** + an **Acceptation System**, acting as verification too (not *yet* configurable).
 - An **Auto Response** for common questions (not *yet* configurable but can be disabled).
 - A **Counting Channel** to let users count until infinity.
@@ -88,10 +87,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JojoFR1"><img src="https://avatars.githubusercontent.com/u/110781915?v=4?s=100" width="100px;" alt="Jojo"/><br /><sub><b>Jojo</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=JojoFR1" title="Code">💻</a> <a href="#ideas-JojoFR1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-JojoFR1" title="Maintenance">🚧</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/JojoFR1"><img src="https://avatars.githubusercontent.com/u/110781915?v=4?s=100" width="100px;" alt="Jojo"/><br /><sub><b>Jojo</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=JojoFR1" title="Code">💻</a> <a href="#ideas-JojoFR1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-JojoFR1" title="Maintenance">🚧</a> <a href="#infra-JojoFR1" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://zetamap.fr/"><img src="https://avatars.githubusercontent.com/u/56844734?v=4?s=100" width="100px;" alt="ZetaMap"/><br /><sub><b>ZetaMap</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=ZetaMap" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://xorblo-doitus.github.io/projects/"><img src="https://avatars.githubusercontent.com/u/75997617?v=4?s=100" width="100px;" alt="Patou"/><br /><sub><b>Patou</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=xorblo-doitus" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://l4p1n.ch/"><img src="https://avatars.githubusercontent.com/u/3647174?v=4?s=100" width="100px;" alt="l4p1n (Mathias B.)"/><br /><sub><b>l4p1n (Mathias B.)</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=lapin-b" title="Code">💻</a> <a href="#ideas-lapin-b" title="Ideas, Planning, & Feedback">🤔</a> <a href="#mentoring-lapin-b" title="Mentoring">🧑‍🏫</a> <a href="#infra-lapin-b" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://l4p1n.ch/"><img src="https://avatars.githubusercontent.com/u/3647174?v=4?s=100" width="100px;" alt="l4p1n (Mathias B.)"/><br /><sub><b>l4p1n (Mathias B.)</b></sub></a><br /><a href="https://github.com/JojoFR1/Joseta/commits?author=lapin-b" title="Code">💻</a> <a href="#ideas-lapin-b" title="Ideas, Planning, & Feedback">🤔</a> <a href="#mentoring-lapin-b" title="Mentoring">🧑‍🏫</a></td>
     </tr>
   </tbody>
   <tfoot>
