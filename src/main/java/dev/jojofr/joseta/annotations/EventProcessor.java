@@ -32,7 +32,6 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
-// TODO a priority system
 // TODO "global" events trigger like if id are "test_event:test" and "test_event:other" both can be triggered by "test_event:*" - i have no idea how this could be implemented
 // TODO cache the instances of the classes containing the events to optimize performance (event though in previous test this did not change much), but some
 //      events might need to have an object instance per event and not global
@@ -84,7 +83,7 @@ public class EventProcessor {
     }
     
     private static class EventListener extends ListenerAdapter {
-        private static final List<Class<? extends GenericEvent>> blacklist = List.of(
+        private static final Set<Class<? extends GenericEvent>> blacklist = Set.of(
             StatusChangeEvent.class,
             HttpRequestEvent.class,
             GatewayPingEvent.class,
