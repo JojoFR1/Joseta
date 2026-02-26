@@ -44,7 +44,7 @@ public @interface EventHandler {
      * <p>
      * If multiple event handlers are registered for the same event type, they will be executed in the order of their priority, with higher priority handlers being executed first.
      */
-    EventPriority priority() default EventPriority.DISABLED;
+    EventPriority priority() default EventPriority.NORMAL;
     
     /**
      * Whether the command is only usable in guilds. Default to {@code true}.
