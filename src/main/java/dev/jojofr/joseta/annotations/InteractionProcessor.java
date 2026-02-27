@@ -3,7 +3,6 @@ package dev.jojofr.joseta.annotations;
 import dev.jojofr.joseta.annotations.interactions.Command;
 import dev.jojofr.joseta.annotations.interactions.Interaction;
 import dev.jojofr.joseta.annotations.types.*;
-import dev.jojofr.joseta.annotations.types.*;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -115,7 +114,7 @@ public class InteractionProcessor {
                     method.setAccessible(true);
                     interactionMethods.put(id, new Interaction(commandClass, method, id, modalInteraction.guildOnly()));
                 }
-            } catch (Exception e) { Log.warn("An error occurred while registering an interaction. {}", e); }}
+            } catch (Exception e) { Log.warn("An error occurred while registering an interaction.", e); }}
         }
 
         bot.updateCommands().addCommands(commands).queue();
@@ -130,19 +129,21 @@ public class InteractionProcessor {
             for (int i = 0; i < baseCommandName.length; i++) baseCommandName[i] = baseCommandName[i].toLowerCase();
         }
         
-        String commandName = baseCommandName[0];
-        String subcommandName;
-        String subcommandGroupName;
+        String commandName = baseCommandName[0], subcommandName, subcommandGroupName;
+        if (baseCommandName.length > 3) Log.warn("Command {} too long (max 3 parts).", commandName);
+        
+        // Required to be initialized in if statements because they need to be effectively final for the lambda expressions later
         if (baseCommandName.length == 2) {
-            subcommandGroupName = null;
-            subcommandName = baseCommandName[1];
+            subcommandGroupName = "";
+            subcommandName = " " + baseCommandName[1];
         } else if (baseCommandName.length >= 3) {
-            subcommandGroupName = baseCommandName[1];
-            subcommandName =  baseCommandName[2];
-        } else { subcommandGroupName = null; subcommandName = null; }
-        if (baseCommandName.length > 3) Log.warn("Command name too long (max 3 parts).");
-
-        String fullCommandName = commandName + (subcommandGroupName != null ? " " + subcommandGroupName : "") + (subcommandName != null ? " " + subcommandName : "");
+            subcommandGroupName = " " + baseCommandName[1];
+            subcommandName = " " + baseCommandName[2];
+        } else {
+            subcommandGroupName = "";
+            subcommandName = "";
+        }
+        String fullCommandName = commandName + subcommandGroupName + subcommandName;
 
         SlashCommandData commandData;
         boolean commandExists = false;
@@ -161,7 +162,7 @@ public class InteractionProcessor {
         Command command = new Command(commandClass, method, fullCommandName, commandAnnotation.guildOnly());
         interactionMethods.put(fullCommandName, command);
 
-        if (subcommandName != null) {
+        if (!subcommandName.isEmpty()) {
             boolean subcommandExists = true;
             SubcommandData subcommandData = commandData.getSubcommands().stream().filter(s -> s.getName().equals(subcommandName)).findFirst().orElse(null);
             if (subcommandData == null) {
@@ -174,7 +175,7 @@ public class InteractionProcessor {
             boolean subcommandGroupExists = true;
             boolean hasSubcommandGroup = false;
             SubcommandGroupData subcommandGroupData = null;
-            if (subcommandGroupName != null) {
+            if (!subcommandGroupName.isEmpty()) {
                 subcommandGroupData = commandData.getSubcommandGroups().stream().filter(sg -> sg.getName().equals(subcommandGroupName)).findFirst().orElse(null);
                 if (subcommandGroupData == null) {
                     subcommandGroupExists = false;

@@ -10,8 +10,6 @@ import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.events.http.HttpRequestEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.SessionResumeEvent;
@@ -32,7 +30,6 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
-// TODO "global" events trigger like if id are "test_event:test" and "test_event:other" both can be triggered by "test_event:*" - i have no idea how this could be implemented
 // TODO cache the instances of the classes containing the events to optimize performance (event though in previous test this did not change much), but some
 //      events might need to have an object instance per event and not global
 // TODO i feel like having one function = one event is nice for readability and organization but i think it could be bad for performance, having to create
@@ -103,14 +100,9 @@ public class EventProcessor {
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
-                    if (eventAnnotation.isGuildOnly()
-                        && ((event instanceof Interaction interactionEvent && !interactionEvent.isFromGuild())
-                            || (event instanceof GenericMessageEvent messageEvent && !messageEvent.isFromGuild()))
-                    ) continue;
+                    if (eventAnnotation.isGuildOnly() && !isFromGuild(event)) continue;
                     
-                    // TODO also bad, cache instances? might need new instance each time depending on use case
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
-                    
                     eventAnnotation.getMethod().invoke(o, event);
                 } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                     Log.warn("An error occurred before or while executing an event.", e);
@@ -121,6 +113,12 @@ public class EventProcessor {
             
             long endTime = System.currentTimeMillis();
             Log.debug("Event {} processed in {} ms", event.getClass().getSimpleName(), (endTime - startTime));
+        }
+        
+        private boolean isFromGuild(GenericEvent event) {
+            if (event instanceof Interaction interactionEvent) return interactionEvent.isFromGuild();
+            if (event instanceof GenericMessageEvent messageEvent) return messageEvent.isFromGuild();
+            return false;
         }
     }
 }
