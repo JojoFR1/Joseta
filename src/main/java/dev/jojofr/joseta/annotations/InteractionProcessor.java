@@ -49,6 +49,7 @@ public class InteractionProcessor {
      *                             It should contain classes annotated with {@link InteractionModule}.
      */
     // TODO if error come from JDA we dont know which interaction caused it
+    // TODO cache the "global" event to avoid needing to recheck each time
     public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
@@ -395,6 +396,32 @@ public class InteractionProcessor {
             }
             
             Interaction interaction = interactionMethods.get(interactionId);
+            if (interaction == null) {
+                String globalInteractionId = "";
+                for (String key : interactionMethods.keySet()) {
+                    if (key.startsWith("*")) {
+                        if (interactionId.endsWith(key.substring(1))) {
+                            globalInteractionId = key;
+                            break;
+                        }
+                    } else if (key.endsWith("*")) {
+                        if (interactionId.startsWith(key.substring(1, key.length() - 1))) {
+                            globalInteractionId = key;
+                            break;
+                        }
+                    } else if (key.contains("*")) {
+                        String[] parts = key.split("\\*", 2);
+                        if (interactionId.startsWith(parts[0]) && interactionId.endsWith(parts[1])) {
+                            globalInteractionId = key;
+                            break;
+                        }
+                    }
+                }
+                
+                interaction = interactionMethods.get(globalInteractionId);
+            }
+            
+            // The interaction 100% doesn't exist
             if (interaction == null) {
                 Log.warn("Unknown interaction: {}", interactionId);
                 replyCallback.reply("Composant `"+ interactionId +"` inconnu. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
