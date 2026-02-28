@@ -22,7 +22,7 @@ import org.hibernate.Transaction;
 @EventModule
 public class SetupEvents {
     
-    @EventHandler(type = EventType.GUILD_READY)
+    @EventHandler(type = EventType.GUILD_READY, priority = EventHandler.EventPriority.HIGH)
     public void onGuildAvailable(GuildReadyEvent event) {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
@@ -42,7 +42,7 @@ public class SetupEvents {
         BotCache.guildConfigurations.put(event.getGuild().getIdLong(), Database.get(Configuration.class, event.getGuild().getIdLong()));
     }
     
-    @EventHandler(type = EventType.GUILD_LEAVE)
+    @EventHandler(type = EventType.GUILD_LEAVE, priority = EventHandler.EventPriority.HIGH)
     public void onGuildLeave(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();
         Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), guildId);

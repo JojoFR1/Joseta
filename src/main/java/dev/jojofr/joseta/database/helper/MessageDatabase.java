@@ -15,10 +15,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -151,7 +148,7 @@ public class MessageDatabase {
                 ScrollableResults<dev.jojofr.joseta.database.entities.Message> results = session.createQuery(
                         "FROM Message WHERE guildId = :gid", dev.jojofr.joseta.database.entities.Message.class)
                     .setParameter("gid", guildId)
-                    .setCacheMode(org.hibernate.CacheMode.IGNORE) // Important for batch performance
+                    .setCacheMode(CacheMode.IGNORE) // Important for batch performance
                     .scroll(ScrollMode.FORWARD_ONLY);
                 
                 while (results.next()) { try {
@@ -224,11 +221,15 @@ public class MessageDatabase {
         return true;
     }
     
+    // You may be like: "Oh, but why compile such simple regex?". Well, caching them is way more efficient than a replaceAll because said method recompiles it every time.
+    private static final Pattern NO_SPACE_PATTERN = Pattern.compile("\\S+");
+    private static final Pattern NO_MENTIONS_PATTERN = Pattern.compile("<@[!&]?\\d+>");
     private static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
     
     private static String cleanContent(String content) {
-        String noUrl = NO_URL_PATTERN.matcher(content.replaceAll("\\R+", " ")).replaceAll("");
+        String noMentions = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
+        String noUrl = NO_URL_PATTERN.matcher(noMentions).replaceAll("");
         
-        return noUrl.trim().replaceAll(" +", " ");
+        return NO_SPACE_PATTERN.matcher(noUrl.trim()).replaceAll(" ");
     }
 }
