@@ -1,8 +1,8 @@
 package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
-import dev.jojofr.joseta.annotations.types.Event;
-import dev.jojofr.joseta.database.entities.Configuration;
+import dev.jojofr.joseta.annotations.types.EventHandler;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
@@ -26,28 +26,28 @@ import java.util.regex.Pattern;
 @EventModule
 public class MiscEvents {
     //#region Message
-    @Event(type = EventType.MESSAGE_RECEIVED)
+    @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void onMessageReceived(MessageReceivedEvent event) {
         MessageDatabase.addNewMessage(event.getMessage());
     }
     
-    @Event(type = EventType.MESSAGE_UPDATE)
+    @EventHandler(type = EventType.MESSAGE_UPDATE)
     public void onMessageUpdate(MessageUpdateEvent event) {
         MessageDatabase.updateMessage(event.getMessage());
     }
     
-    @Event(type = EventType.MESSAGE_DELETE)
+    @EventHandler(type = EventType.MESSAGE_DELETE)
     public void onMessageDelete(MessageDeleteEvent event) {
         MessageDatabase.deleteMessage(event.getMessageIdLong());
     }
     
-    @Event(type = EventType.MESSAGE_BULK_DELETE)
+    @EventHandler(type = EventType.MESSAGE_BULK_DELETE)
     public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
         for (String messageId : event.getMessageIds())
             MessageDatabase.deleteMessage(Long.parseLong(messageId));
     }
     
-    @Event(type = EventType.CHANNEL_DELETE)
+    @EventHandler(type = EventType.CHANNEL_DELETE)
     public void onChannelDelete(net.dv8tion.jda.api.events.channel.ChannelDeleteEvent event) {
         MessageDatabase.deleteChannelMessages(event.getChannel().getIdLong());
     }
@@ -66,9 +66,9 @@ public class MiscEvents {
     //TODO unhardcode message & emoji
     public static final String autoResponseMessage = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
     
-    @Event(type = EventType.MESSAGE_RECEIVED)
+    @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void autoResponse(MessageReceivedEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (config == null || !config.autoResponseEnabled) return;
         
         String text = event.getMessage().getContentRaw();
@@ -77,9 +77,9 @@ public class MiscEvents {
     }
     
     
-    @Event(type = EventType.MESSAGE_RECEIVED)
+    @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void countingCheck(MessageReceivedEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (config == null || !config.countingEnabled) return;
         
         if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
@@ -87,9 +87,9 @@ public class MiscEvents {
     }
     
     
-    @Event(type = EventType.GUILD_MEMBER_JOIN)
+    @EventHandler(type = EventType.GUILD_MEMBER_JOIN)
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (config == null || !config.welcomeEnabled) return;
         
         User user = event.getUser();
@@ -119,9 +119,9 @@ public class MiscEvents {
         else event.getGuild().addRoleToMember(user, memberRole).reason("Rôle d'arrivée automatique").queue();
     }
     
-    @Event(type = EventType.GUILD_MEMBER_REMOVE)
+    @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void memberRemove(GuildMemberRemoveEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (config == null || !config.welcomeEnabled) return;
         
         TextChannel channel;

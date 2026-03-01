@@ -1,6 +1,6 @@
 package dev.jojofr.joseta.events.misc;
 
-import dev.jojofr.joseta.database.entities.Configuration;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Message;
@@ -42,7 +42,7 @@ public class CountingChannel {
                 return false;
             }
             
-            Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
+            ConfigurationEntity config = BotCache.getGuildConfiguration(message.getGuild().getIdLong());
             lastAuthorId = previousMessage.getAuthor().getIdLong();
             lastNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
             lastTimestamp = previousMessage.getTimeCreated().toInstant().toEpochMilli();
@@ -62,7 +62,7 @@ public class CountingChannel {
         
         if (!preCheck(channel, message)) return;
         
-        Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(message.getGuild().getIdLong());
         long number = parseNumber(message.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
         
         if (number == lastNumber && message.getTimeCreated().toInstant().toEpochMilli() - lastTimestamp < 2000) {

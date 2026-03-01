@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.Member;
 import java.time.Instant;
 
 @Entity @Table(name = "users")
-public class User {
+public class UserEntity {
     @Embeddable
     public record UserId(long id, long guildId) {}
     
@@ -18,9 +18,9 @@ public class User {
     @Column public int sanctionCount = 0;
     
     // A non-private and no-arg constructor is required by JPA
-    protected User() {}
+    protected UserEntity() {}
     
-    public User(Member member) {
+    public UserEntity(Member member) {
         this(member.getIdLong(),
              member.getGuild().getIdLong(),
              member.getUser().getName(),
@@ -28,7 +28,7 @@ public class User {
              member.getTimeCreated().toInstant());
     }
     
-    public User(long id, long guildId, String username, String avatarUrl, Instant creationTime) {
+    public UserEntity(long id, long guildId, String username, String avatarUrl, Instant creationTime) {
         this.id = new UserId(id, guildId);
         
         this.username = username;
@@ -37,32 +37,32 @@ public class User {
     }
     
     
-    public User setId(long id, long guildId) {
+    public UserEntity setId(long id, long guildId) {
         this.id = new UserId(id, guildId);
         return this;
     }
 
-    public User setUsername(String username) {
+    public UserEntity setUsername(String username) {
         this.username = username;
         return this;
     }
 
-    public User setAvatarUrl(String avatarUrl) {
+    public UserEntity setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
         return this;
     }
 
-    public User setCreationTime(Instant creationTime) {
+    public UserEntity setCreationTime(Instant creationTime) {
         this.creationTime = creationTime;
         return this;
     }
     
-    public User setSanctionCount(int sanctionCount) {
+    public UserEntity setSanctionCount(int sanctionCount) {
         this.sanctionCount = sanctionCount;
         return this;
     }
     
-    public User incrementSanctionCount() {
+    public UserEntity incrementSanctionCount() {
         this.sanctionCount += 1;
         return this;
     }

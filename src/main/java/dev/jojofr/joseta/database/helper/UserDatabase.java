@@ -1,33 +1,33 @@
 package dev.jojofr.joseta.database.helper;
 
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.User;
-import dev.jojofr.joseta.database.entities.User_;
+import dev.jojofr.joseta.database.entities.UserEntity;
+import dev.jojofr.joseta.database.entities.UserEntity_;
 import net.dv8tion.jda.api.entities.Member;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 public class UserDatabase {
 
-    public static User addUser(Member member) {
-        User user = new User(member);
+    public static UserEntity addUser(Member member) {
+        UserEntity user = new UserEntity(member);
         return Database.createOrUpdate(user);
     }
     
     public static void incrementSanctionCount(Member member, long guildId) {
-        User user = getOrCreate(member, guildId);
+        UserEntity user = getOrCreate(member, guildId);
         Database.createOrUpdate(user.incrementSanctionCount());
     }
     
-    public static User getOrCreate(Member member, long guildId) {
-        User user = Database.get(User.class, new User.UserId(member.getIdLong(), guildId));
+    public static UserEntity getOrCreate(Member member, long guildId) {
+        UserEntity user = Database.get(UserEntity.class, new UserEntity.UserId(member.getIdLong(), guildId));
         return user != null ? user : addUser(member);
     }
     
     public static void deleteGuildUsers(long guildId) {
         try (Session session = Database.getSession()) {
             Transaction tx = session.beginTransaction();
-            Database.queryDelete(User.class, (cb, rt) -> cb.equal(rt.get(User_.id).get(User_.UserId_.guildId), guildId), session);
+            Database.queryDelete(UserEntity.class, (cb, rt) -> cb.equal(rt.get(UserEntity_.id).get(UserEntity_.UserId_.guildId), guildId), session);
             tx.commit();
         }
     }

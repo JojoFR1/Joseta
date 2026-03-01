@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
 @Entity @Table(name = "messages")
-public class Message {
+public class MessageEntity {
     @Id public long id;
     
     @Column public long guildId;
@@ -19,9 +19,9 @@ public class Message {
     @Column public OffsetDateTime creationTime;
     
     // A non-private and no-arg constructor is required by JPA
-    protected Message() {}
+    protected MessageEntity() {}
     
-    public Message(long id, long guildId, long channelId, long authorId, String content, String markovContent, OffsetDateTime timestamp) {
+    public MessageEntity(long id, long guildId, long channelId, long authorId, String content, String markovContent, OffsetDateTime timestamp) {
         this.id = id;
         
         this.guildId = guildId;
@@ -33,37 +33,37 @@ public class Message {
     }
     
     
-    public Message setId(long id) {
+    public MessageEntity setId(long id) {
         this.id = id;
         return this;
     }
     
-    public Message setGuildId(long guildId) {
+    public MessageEntity setGuildId(long guildId) {
         this.guildId = guildId;
         return this;
     }
     
-    public Message setChannelId(long channelId) {
+    public MessageEntity setChannelId(long channelId) {
         this.channelId = channelId;
         return this;
     }
     
-    public Message setAuthorId(long authorId) {
+    public MessageEntity setAuthorId(long authorId) {
         this.authorId = authorId;
         return this;
     }
     
-    public Message setContent(String content) {
+    public MessageEntity setContent(String content) {
         this.content = content;
         return this;
     }
     
-    public Message setMarkovContent(String markovContent) {
+    public MessageEntity setMarkovContent(String markovContent) {
         this.markovContent = markovContent;
         return this;
     }
     
-    public Message setCreationTime(OffsetDateTime creationTime) {
+    public MessageEntity setCreationTime(OffsetDateTime creationTime) {
         this.creationTime = creationTime;
         return this;
     }

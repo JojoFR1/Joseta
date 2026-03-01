@@ -25,11 +25,13 @@ public class JosetaBot {
     public static boolean debug = false;
     
     /* TODO Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal
+     * TODO Catch Discord side sanctions event and auto log them
      * TODO Allow to add custom Regex for auto-response
      * TODO support translations for logging and error messages?
-     * TODO (very unlikely) add a web dashboard
      * TODO try to optimize the bot to reduce memory usage and CPU usage and improve responsiveness
+     *     Update: memory usage was reduced slightly (about 100MiB) but CPU usage is still quite high at startup and when executing commands
      * TODO modernize old code to be more clean and similar to the newer code
+     * TODO (very unlikely) add a web dashboard
      */
     public static void main(String[] args) {
         if (args.length > 0) {

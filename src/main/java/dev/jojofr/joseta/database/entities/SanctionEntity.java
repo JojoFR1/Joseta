@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity @Table(name = "sanctions")
-public class Sanction {
+public class SanctionEntity {
     @Embeddable
     public record SanctionId(long guildId, int sanctionNumber) {}
     
@@ -20,9 +20,9 @@ public class Sanction {
     @Column public boolean isExpired = false;
     
     // A non-private and no-arg constructor is required by JPA
-    protected Sanction() {}
+    protected SanctionEntity() {}
     
-    public Sanction(long guildId, int sanctionNumber, SanctionType sanctionType, long userId, long moderatorId, String reason, long expiryTime) {
+    public SanctionEntity(long guildId, int sanctionNumber, SanctionType sanctionType, long userId, long moderatorId, String reason, long expiryTime) {
         this.id = new SanctionId(guildId, sanctionNumber);
         
         this.sanctionType = sanctionType;
@@ -77,42 +77,42 @@ public class Sanction {
         return sanctionType.code + String.valueOf(id.sanctionNumber);
     }
     
-    public Sanction setId(long guildId, int sanctionNumber) {
+    public SanctionEntity setId(long guildId, int sanctionNumber) {
         this.id = new SanctionId(guildId, sanctionNumber);
         return this;
     }
     
-    public Sanction setSanctionType(SanctionType sanctionType) {
+    public SanctionEntity setSanctionType(SanctionType sanctionType) {
         this.sanctionType = sanctionType;
         return this;
     }
     
-    public Sanction setUserId(long userId) {
+    public SanctionEntity setUserId(long userId) {
         this.userId = userId;
         return this;
     }
     
-    public Sanction setModeratorId(long moderatorId) {
+    public SanctionEntity setModeratorId(long moderatorId) {
         this.moderatorId = moderatorId;
         return this;
     }
     
-    public Sanction setReason(String reason) {
+    public SanctionEntity setReason(String reason) {
         this.reason = reason;
         return this;
     }
     
-    public Sanction setTimestamp(Instant timestamp) {
+    public SanctionEntity setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
         return this;
     }
     
-    public Sanction setExpiryTime(Instant expiryTime) {
+    public SanctionEntity setExpiryTime(Instant expiryTime) {
         this.expiryTime = expiryTime;
         return this;
     }
     
-    public Sanction setExpired(boolean expired) {
+    public SanctionEntity setExpired(boolean expired) {
         this.isExpired = expired;
         return this;
     }

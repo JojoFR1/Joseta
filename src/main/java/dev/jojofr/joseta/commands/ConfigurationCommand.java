@@ -7,7 +7,8 @@ import dev.jojofr.joseta.annotations.types.ModalInteraction;
 import dev.jojofr.joseta.annotations.types.SelectMenuInteraction;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Configuration;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
@@ -98,25 +99,30 @@ public class ConfigurationCommand {
         };
         
         Database.createOrUpdate(configurationMessage.configuration);
-        BotCache.guildConfigurations.put(configurationMessage.configuration.guildId, configurationMessage.configuration);
+        BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
+        
+        if (configurationMessage.hasMarkovBlacklistChanged)
+            MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong(), configurationMessage.configuration.markovBlacklist);
+        
         
         configurationMessage.hasChanged = false;
+        configurationMessage.hasMarkovBlacklistChanged = false;
         configurationMessage.isMainMenu = true;
         
         event.reply("La configuration du serveur a été enregistrée avec succès.").setEphemeral(true).queue();
         event.getMessage().editMessageComponents(createMainMenuContainer(configurationMessage)).useComponentsV2().queue();
     }
     
-    @ButtonInteraction(id = "config:cat_welcome:toggle") public void onConfigWelcomeToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_welcome:toggle_image") public void onConfigWelcomeToggleImageButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_counting:toggle") public void onConfigCountingToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_counting:toggle_comments") public void onConfigCountingToggleCommentsButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_counting:toggle_penalty") public void onConfigCountingTogglePenaltyButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_markov:toggle") public void onConfigMarkovToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_moderation:toggle") public void onConfigModerationToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_moderation:logs:toggle") public void onConfigModerationLogsToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_autores:toggle") public void onConfigAutoResponseToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    private void onToggleButton(ButtonInteractionEvent event) {
+    // @ButtonInteraction(id = "config:cat_welcome:toggle") public void onConfigWelcomeToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_welcome:image:toggle") public void onConfigWelcomeToggleImageButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_counting:toggle") public void onConfigCountingToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_counting:comments:toggle") public void onConfigCountingToggleCommentsButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_counting:penalty:toggle") public void onConfigCountingTogglePenaltyButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_markov:toggle") public void onConfigMarkovToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_moderation:toggle") public void onConfigModerationToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @ButtonInteraction(id = "config:cat_autores:toggle") public void onConfigAutoResponseToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    @ButtonInteraction(id = "config:cat_*:toggle")
+    public void onToggleButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
         
@@ -124,10 +130,10 @@ public class ConfigurationCommand {
         String buttonId = event.getComponentId();
         switch (buttonId) {
             case "config:cat_welcome:toggle" -> configurationMessage.configuration.setWelcomeEnabled(!configurationMessage.configuration.welcomeEnabled);
-            case "config:cat_welcome:toggle_image" -> configurationMessage.configuration.setWelcomeImageEnabled(!configurationMessage.configuration.welcomeImageEnabled);
+            case "config:cat_welcome:image:toggle" -> configurationMessage.configuration.setWelcomeImageEnabled(!configurationMessage.configuration.welcomeImageEnabled);
             case "config:cat_counting:toggle" -> configurationMessage.configuration.setCountingEnabled(!configurationMessage.configuration.countingEnabled);
-            case "config:cat_counting:toggle_comments" -> configurationMessage.configuration.setCountingCommentsEnabled(!configurationMessage.configuration.countingCommentsEnabled);
-            case "config:cat_counting:toggle_penalty" -> configurationMessage.configuration.setCountingPenaltyEnabled(!configurationMessage.configuration.countingPenaltyEnabled);
+            case "config:cat_counting:comments:toggle" -> configurationMessage.configuration.setCountingCommentsEnabled(!configurationMessage.configuration.countingCommentsEnabled);
+            case "config:cat_counting:penalty:toggle" -> configurationMessage.configuration.setCountingPenaltyEnabled(!configurationMessage.configuration.countingPenaltyEnabled);
             case "config:cat_markov:toggle" -> configurationMessage.configuration.setMarkovEnabled(!configurationMessage.configuration.markovEnabled);
             case "config:cat_moderation:toggle" -> configurationMessage.configuration.setModerationEnabled(!configurationMessage.configuration.moderationEnabled);
             case "config:cat_moderation:logs:toggle" -> configurationMessage.configuration.setModerationLogsEnabled(!configurationMessage.configuration.moderationLogsEnabled);
@@ -136,8 +142,8 @@ public class ConfigurationCommand {
         
         configurationMessage.hasChanged = true;
         event.editComponents(switch (buttonId) {
-            case "config:cat_welcome:toggle", "config:cat_welcome:toggle_image" -> createWelcomeMenuContainer(configurationMessage);
-            case "config:cat_counting:toggle", "config:cat_counting:toggle_comments", "config:cat_counting:toggle_penalty" -> createCountingMenuContainer(configurationMessage);
+            case "config:cat_welcome:toggle", "config:cat_welcome:image:toggle" -> createWelcomeMenuContainer(configurationMessage);
+            case "config:cat_counting:toggle", "config:cat_counting:comments:toggle", "config:cat_counting:penalty:toggle" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:toggle" -> createMarkovMenuContainer(configurationMessage);
             case "config:cat_moderation:toggle" -> createModerationMenuContainer(configurationMessage);
             case "config:cat_moderation:logs:toggle" -> createModerationLogsMenuContainer(configurationMessage);
@@ -202,7 +208,7 @@ public class ConfigurationCommand {
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
-        Configuration config = BotCache.guildConfigurations.get(guild.getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(guild.getIdLong());
         
         String rules = config.rules;
         if (rules == null || rules.isBlank()) {
@@ -257,7 +263,7 @@ public class ConfigurationCommand {
     
     @ButtonInteraction(id = "rules:accept")
     public void onRulesAcceptButton(ButtonInteractionEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
@@ -342,7 +348,8 @@ public class ConfigurationCommand {
     @SelectMenuInteraction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:join_bot_role_select") public void onConfigWelcomeJoinBotRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @SelectMenuInteraction(id = "config:cat_welcome:verified_role_select") public void onConfigWelcomeVerifiedRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    private void onSelectMenu(EntitySelectInteractionEvent event) {
+    // @SelectMenuInteraction(id = "config:cat_*_select")
+    public void onSelectMenu(EntitySelectInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
         
@@ -386,6 +393,7 @@ public class ConfigurationCommand {
         }
         
         configurationMessage.hasChanged = true;
+        configurationMessage.hasMarkovBlacklistChanged = true;
         event.editComponents(switch (menuId) {
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);
@@ -520,11 +528,11 @@ public class ConfigurationCommand {
             
             createToggleSection("Commentaires de comptage",
                 "Autorise ou non les commentaires sur les messages de comptage (après le nombre).",
-                "config:cat_counting:toggle_comments", configurationMessage.configuration.countingCommentsEnabled, !configurationMessage.configuration.countingEnabled),
+                "config:cat_counting:comments:toggle", configurationMessage.configuration.countingCommentsEnabled, !configurationMessage.configuration.countingEnabled),
             
             createToggleSection("Pénalité en cas d'erreur de comptage",
                 "Active ou désactive la pénalité en cas d'erreur de comptage (le compteur est réinitialisé à 0).",
-                "config:cat_counting:toggle_penalty", configurationMessage.configuration.countingPenaltyEnabled, !configurationMessage.configuration.countingEnabled),
+                "config:cat_counting:penalty:toggle", configurationMessage.configuration.countingPenaltyEnabled, !configurationMessage.configuration.countingEnabled),
             
             TextDisplay.of("### Salon de comptage"),
             TextDisplay.of("-# Le salon où le comptage est actif."),
@@ -716,7 +724,7 @@ public class ConfigurationCommand {
             
             createToggleSection("Image de bienvenue",
                 "Active ou désactive l'image de bienvenue (une image avec le nom du membre qui rejoint et le nombre de membres du serveur).",
-                "config:cat_welcome:toggle_image", configurationMessage.configuration.welcomeImageEnabled, !configurationMessage.configuration.welcomeEnabled),
+                "config:cat_welcome:image:toggle", configurationMessage.configuration.welcomeImageEnabled, !configurationMessage.configuration.welcomeEnabled),
             
             TextDisplay.of("### Message de bienvenue"),
             Section.of(
