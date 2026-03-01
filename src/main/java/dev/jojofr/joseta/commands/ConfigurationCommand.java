@@ -99,7 +99,12 @@ public class ConfigurationCommand {
         Database.createOrUpdate(configurationMessage.configuration);
         BotCache.guildConfigurations.put(configurationMessage.configuration.guildId, configurationMessage.configuration);
         
+        if (configurationMessage.hasMarkovBlacklistChanged)
+            MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong(), configurationMessage.configuration.markovBlacklist);
+        
+        
         configurationMessage.hasChanged = false;
+        configurationMessage.hasMarkovBlacklistChanged = false;
         configurationMessage.isMainMenu = true;
         
         event.reply("La configuration du serveur a été enregistrée avec succès.").setEphemeral(true).queue();
@@ -382,6 +387,7 @@ public class ConfigurationCommand {
         }
         
         configurationMessage.hasChanged = true;
+        configurationMessage.hasMarkovBlacklistChanged = true;
         event.editComponents(switch (menuId) {
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);

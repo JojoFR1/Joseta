@@ -8,6 +8,7 @@ import java.time.Instant;
 public class ConfigurationMessage {
     public ConfigurationEntity configuration;
     public boolean hasChanged = false;
+    public boolean hasMarkovBlacklistChanged = false;
     public boolean isMainMenu = true;
     
     public Long currentRulesChannelId = null;
