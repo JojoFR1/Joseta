@@ -35,7 +35,7 @@ public class SetupEvents {
             MessageDatabase.populateNewGuild(event.getGuild());
         }
         
-        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), Database.get(ConfigurationEntity.class, event.getGuild().getIdLong()));
+        BotCache.putGuildConfiguration(event.getGuild().getIdLong(), Database.get(ConfigurationEntity.class, event.getGuild().getIdLong()));
     }
     
     @EventHandler(type = EventType.GUILD_LEAVE, priority = EventHandler.EventPriority.HIGH)
@@ -48,10 +48,10 @@ public class SetupEvents {
             Log.info("Removing database entries for guild: {} (ID: {})", event.getGuild().getName(), guildId);
             Database.delete(guildEntity);
             
-            ConfigurationEntity config = BotCache.guildConfigurations.get(guildId);
+            ConfigurationEntity config = BotCache.getGuildConfiguration(guildId);
             if (config != null) {
                 Database.delete(config);
-                BotCache.guildConfigurations.remove(guildId);
+                BotCache.removeGuildConfiguration(guildId);
             }
             
             MessageDatabase.deleteGuildMessages(guildId);

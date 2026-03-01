@@ -15,7 +15,7 @@ public class ConfigurationMessage {
     public final Instant timestamp;
     
     public ConfigurationMessage(long guildId, Instant timestamp) {
-        this.configuration = BotCache.guildConfigurations.get(guildId);
+        this.configuration = BotCache.getGuildConfiguration(guildId);
         this.timestamp = timestamp;
     }
 }

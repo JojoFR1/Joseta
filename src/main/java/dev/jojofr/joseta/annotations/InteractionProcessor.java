@@ -135,15 +135,17 @@ public class InteractionProcessor {
         // Required to be initialized in if statements because they need to be effectively final for the lambda expressions later
         if (baseCommandName.length == 2) {
             subcommandGroupName = "";
-            subcommandName = " " + baseCommandName[1];
+            subcommandName = baseCommandName[1];
         } else if (baseCommandName.length >= 3) {
-            subcommandGroupName = " " + baseCommandName[1];
-            subcommandName = " " + baseCommandName[2];
+            subcommandGroupName = baseCommandName[1];
+            subcommandName = baseCommandName[2];
         } else {
             subcommandGroupName = "";
             subcommandName = "";
         }
-        String fullCommandName = commandName + subcommandGroupName + subcommandName;
+        String fullCommandName = commandName;
+        if (!subcommandGroupName.isEmpty()) fullCommandName += " " + subcommandGroupName;
+        if (!subcommandName.isEmpty()) fullCommandName += " " + subcommandName;
 
         SlashCommandData commandData;
         boolean commandExists = false;

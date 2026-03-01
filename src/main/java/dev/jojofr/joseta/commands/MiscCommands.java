@@ -34,7 +34,7 @@ public class MiscCommands {
      */
     @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
     public void markov(SlashCommandInteractionEvent event) {
-        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (config == null || !config.markovEnabled) {
             event.reply("La génération de messages Markov est désactivée sur ce serveur.").setEphemeral(true).queue();
             return;

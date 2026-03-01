@@ -97,7 +97,7 @@ public class ConfigurationCommand {
         };
         
         Database.createOrUpdate(configurationMessage.configuration);
-        BotCache.guildConfigurations.put(configurationMessage.configuration.guildId, configurationMessage.configuration);
+        BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
         
         if (configurationMessage.hasMarkovBlacklistChanged)
             MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong(), configurationMessage.configuration.markovBlacklist);
@@ -204,7 +204,7 @@ public class ConfigurationCommand {
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
-        ConfigurationEntity config = BotCache.guildConfigurations.get(guild.getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(guild.getIdLong());
         
         String rules = config.rules;
         if (rules == null || rules.isBlank()) {
@@ -259,7 +259,7 @@ public class ConfigurationCommand {
     
     @ButtonInteraction(id = "rules:accept")
     public void onRulesAcceptButton(ButtonInteractionEvent event) {
-        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;

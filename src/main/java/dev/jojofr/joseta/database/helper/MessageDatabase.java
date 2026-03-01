@@ -28,7 +28,7 @@ public class MessageDatabase {
         int count = 0;
         Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         for (GuildChannel channel : guild.getChannels()) {
-            ConfigurationEntity config = BotCache.guildConfigurations.get(guild.getIdLong());
+            ConfigurationEntity config = BotCache.getGuildConfiguration(guild.getIdLong());
             
             if (!(channel instanceof GuildMessageChannel messageChannel)) continue;
             count += addChannelMessageHistory(messageChannel, guild, config.markovBlacklist);
@@ -57,7 +57,7 @@ public class MessageDatabase {
     }
     
     public static void addNewMessage(Message message) {
-        ConfigurationEntity config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(message.getGuild().getIdLong());
         addNewMessage(message, config.markovBlacklist);
     }
     
@@ -130,7 +130,7 @@ public class MessageDatabase {
     
     
     public static void updateMarkovEligibility(long guildId) {
-        ConfigurationEntity config = BotCache.guildConfigurations.get(guildId);
+        ConfigurationEntity config = BotCache.getGuildConfiguration(guildId);
         updateMarkovEligibility(guildId, config.markovBlacklist);
     }
     
