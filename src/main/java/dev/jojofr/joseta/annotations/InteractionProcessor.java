@@ -286,7 +286,7 @@ public class InteractionProcessor {
         
         @Override
         public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             String commandName = event.getName();
             String subcommandGroup = event.getSubcommandGroup();
             String subcommand = event.getSubcommandName();
@@ -346,13 +346,13 @@ public class InteractionProcessor {
                 Log.warn("An unexpected error occurred during command execution ({}):", e, command.getName());
             }
             
-            long endTime = System.currentTimeMillis();
-            Log.debug("Command {} processed in {} ms", event.getName(), (endTime - startTime));
+            long endTime = System.nanoTime();
+            Log.debug("Command {} processed in {} ms", event.getName(), (endTime - startTime) / 1_000_000.0);
         }
 
         @Override
         public void onGenericContextInteraction(GenericContextInteractionEvent<?> event) {
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             String commandName = event.getName();
 
             Interaction contextInteraction = interactionMethods.get(commandName);
@@ -377,8 +377,8 @@ public class InteractionProcessor {
                 Log.warn("An unexpected error occurred during context execution ({}):", e, contextInteraction.getName());
             }
             
-            long endTime = System.currentTimeMillis();
-            Log.debug("Context interaction {} processed in {} ms", event.getName(), (endTime - startTime));
+            long endTime = System.nanoTime();
+            Log.debug("Context interaction {} processed in {} ms", event.getName(), (endTime - startTime) / 1_000_000.0);
         }
         
         @Override
@@ -386,7 +386,7 @@ public class InteractionProcessor {
             if (event instanceof SlashCommandInteractionEvent || event instanceof GenericContextInteractionEvent)
                 return;
             
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             
             if (!(event.getInteraction() instanceof ICustomIdInteraction customIdInteraction)) {
                 Log.warn("Received an interaction that is not a ICustomIdInteraction: {}", event.getClass().getName());
@@ -447,8 +447,8 @@ public class InteractionProcessor {
                 Log.warn("An unexpected error occurred during interaction execution ({}):", e, interaction.getName());
             }
             
-            long endTime = System.currentTimeMillis();
-            Log.debug("Component interaction {} processed in {} ms", interactionId, (endTime - startTime));
+            long endTime = System.nanoTime();
+            Log.debug("Component interaction {} processed in {} ms", interactionId, (endTime - startTime) / 1_000_000.0);
         }
     }
 }

@@ -11,61 +11,36 @@ import java.util.Set;
 
 @Entity @Table(name = "configurations")
 public class ConfigurationEntity {
-    @Id public Long guildId;
+    @Id public long guildId;
 
-    @Column public Boolean welcomeEnabled = false;
+    @Column public boolean welcomeEnabled = false;
     @Column public Long welcomeChannelId = null;
-    @Column public Boolean welcomeImageEnabled = false;
+    @Column public boolean welcomeImageEnabled = false;
     @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
-    @Column public String welcomeImageUrl = ""; // Could switch to file upload using modal
     @Column public Long joinRoleId = null;
     @Column public Long joinBotRoleId = null;
     @Column public Long verifiedRoleId = null;
     
-    @Column public Boolean markovEnabled = false;
+    @Column public boolean markovEnabled = false;
     @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
     
-    @Column public Boolean moderationEnabled = true;
+    @Column public boolean moderationEnabled = true;
+    @Column public boolean moderationLogsEnabled = false;
+    @Column public Long moderationLogsChannelId = null;
     @Column(columnDefinition = "TEXT") public String rules = "";
+    
+    @Column public boolean autoResponseEnabled = false;
 
-    @Column public Boolean autoResponseEnabled = false;
-
-    @Column public Boolean countingEnabled = false;
-    @Column public Boolean countingCommentsEnabled = false;
-    @Column public Boolean countingPenaltyEnabled = false;
+    @Column public boolean countingEnabled = false;
+    @Column public boolean countingCommentsEnabled = false;
+    @Column public boolean countingPenaltyEnabled = false;
     @Column public Long countingChannelId = null;
     
     // A non-private and no-arg constructor is required by JPA
     protected ConfigurationEntity() {}
 
     public ConfigurationEntity(long guildId) { this.guildId = guildId; }
-
-    public ConfigurationEntity(ConfigurationEntity other) {
-        this.guildId = other.guildId;
-
-        this.welcomeEnabled = other.welcomeEnabled;
-        this.welcomeChannelId = other.welcomeChannelId;
-        this.welcomeImageEnabled = other.welcomeImageEnabled;
-        this.welcomeJoinMessage = other.welcomeJoinMessage;
-        this.welcomeLeaveMessage = other.welcomeLeaveMessage;
-        this.joinRoleId = other.joinRoleId;
-        this.joinBotRoleId = other.joinBotRoleId;
-        this.verifiedRoleId = other.verifiedRoleId;
-
-        this.markovEnabled = other.markovEnabled;
-        this.markovBlacklist = other.markovBlacklist;
-
-        this.moderationEnabled = other.moderationEnabled;
-        this.rules = other.rules;
-        
-        this.autoResponseEnabled = other.autoResponseEnabled;
-
-        this.countingEnabled = other.countingEnabled;
-        this.countingCommentsEnabled = other.countingCommentsEnabled;
-        this.countingPenaltyEnabled = other.countingPenaltyEnabled;
-        this.countingChannelId = other.countingChannelId;
-    }
     
     
     public ConfigurationEntity setGuildId(Long guildId) {
@@ -73,13 +48,13 @@ public class ConfigurationEntity {
         return this;
     }
 
-    public ConfigurationEntity setWelcomeEnabled(Boolean welcomeEnabled) {
-        if (welcomeEnabled != null) this.welcomeEnabled = welcomeEnabled;
+    public ConfigurationEntity setWelcomeEnabled(boolean welcomeEnabled) {
+        this.welcomeEnabled = welcomeEnabled;
         return this;
     }
 
-    public ConfigurationEntity setWelcomeImageEnabled(Boolean welcomeImageEnabled) {
-        if (welcomeImageEnabled != null) this.welcomeImageEnabled = welcomeImageEnabled;
+    public ConfigurationEntity setWelcomeImageEnabled(boolean welcomeImageEnabled) {
+        this.welcomeImageEnabled = welcomeImageEnabled;
         return this;
     }
 
@@ -100,11 +75,6 @@ public class ConfigurationEntity {
 
     public ConfigurationEntity setWelcomeLeaveMessage(String welcomeLeaveMessage) {
         if (welcomeLeaveMessage != null) this.welcomeLeaveMessage = welcomeLeaveMessage;
-        return this;
-    }
-    
-    public ConfigurationEntity setWelcomeImageUrl(String welcomeImageUrl) {
-        if (welcomeImageUrl != null) this.welcomeImageUrl = welcomeImageUrl;
         return this;
     }
 
@@ -138,8 +108,8 @@ public class ConfigurationEntity {
         return this;
     }
 
-    public ConfigurationEntity setMarkovEnabled(Boolean markovEnabled) {
-        if (markovEnabled != null) this.markovEnabled = markovEnabled;
+    public ConfigurationEntity setMarkovEnabled(boolean markovEnabled) {
+        this.markovEnabled = markovEnabled;
         return this;
     }
 
@@ -168,8 +138,23 @@ public class ConfigurationEntity {
         return this;
     }
 
-    public ConfigurationEntity setModerationEnabled(Boolean moderationEnabled) {
-        if (moderationEnabled != null) this.moderationEnabled = moderationEnabled;
+    public ConfigurationEntity setModerationEnabled(boolean moderationEnabled) {
+        this.moderationEnabled = moderationEnabled;
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationLogsEnabled(boolean moderationLogsEnabled) {
+        this.moderationLogsEnabled = moderationLogsEnabled;
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationLogsChannel(GuildMessageChannel moderationLogsChannel) {
+        if (moderationLogsChannel != null) this.moderationLogsChannelId = moderationLogsChannel.getIdLong();
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationLogsChannelId(Long moderationLogsChannelId) {
+        if (moderationLogsChannelId != null) this.moderationLogsChannelId = moderationLogsChannelId;
         return this;
     }
     
@@ -178,23 +163,23 @@ public class ConfigurationEntity {
         return this;
     }
     
-    public ConfigurationEntity setAutoResponseEnabled(Boolean autoResponseEnabled) {
-        if (autoResponseEnabled != null) this.autoResponseEnabled = autoResponseEnabled;
+    public ConfigurationEntity setAutoResponseEnabled(boolean autoResponseEnabled) {
+        this.autoResponseEnabled = autoResponseEnabled;
         return this;
     }
 
-    public ConfigurationEntity setCountingEnabled(Boolean countingEnabled) {
-        if (countingEnabled != null) this.countingEnabled = countingEnabled;
+    public ConfigurationEntity setCountingEnabled(boolean countingEnabled) {
+        this.countingEnabled = countingEnabled;
         return this;
     }
 
-    public ConfigurationEntity setCountingCommentsEnabled(Boolean countingCommentsEnabled) {
-        if (countingCommentsEnabled != null) this.countingCommentsEnabled = countingCommentsEnabled;
+    public ConfigurationEntity setCountingCommentsEnabled(boolean countingCommentsEnabled) {
+        this.countingCommentsEnabled = countingCommentsEnabled;
         return this;
     }
 
-    public ConfigurationEntity setCountingPenaltyEnabled(Boolean countingPenaltyEnabled) {
-        if (countingPenaltyEnabled != null) this.countingPenaltyEnabled = countingPenaltyEnabled;
+    public ConfigurationEntity setCountingPenaltyEnabled(boolean countingPenaltyEnabled) {
+        this.countingPenaltyEnabled = countingPenaltyEnabled;
         return this;
     }
     
