@@ -2,8 +2,9 @@ package dev.jojofr.joseta.database.helper;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Configuration;
-import dev.jojofr.joseta.database.entities.Message_;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.MessageEntity;
+import dev.jojofr.joseta.database.entities.MessageEntity_;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
@@ -27,7 +28,7 @@ public class MessageDatabase {
         int count = 0;
         Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         for (GuildChannel channel : guild.getChannels()) {
-            Configuration config = BotCache.guildConfigurations.get(guild.getIdLong());
+            ConfigurationEntity config = BotCache.guildConfigurations.get(guild.getIdLong());
             
             if (!(channel instanceof GuildMessageChannel messageChannel)) continue;
             count += addChannelMessageHistory(messageChannel, guild, config.markovBlacklist);
@@ -56,7 +57,7 @@ public class MessageDatabase {
     }
     
     public static void addNewMessage(Message message) {
-        Configuration config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(message.getGuild().getIdLong());
         addNewMessage(message, config.markovBlacklist);
     }
     
@@ -69,7 +70,7 @@ public class MessageDatabase {
             markovContent = cleanContent(content);
         
         Database.create(
-            new dev.jojofr.joseta.database.entities.Message(
+            new MessageEntity(
                 message.getIdLong(),
                 message.getGuild().getIdLong(),
                 message.getChannel().getIdLong(),
@@ -82,7 +83,7 @@ public class MessageDatabase {
     }
     
     public static void updateMessage(Message message) {
-        dev.jojofr.joseta.database.entities.Message dbMessage = Database.get(dev.jojofr.joseta.database.entities.Message.class, message.getIdLong());
+        MessageEntity dbMessage = Database.get(MessageEntity.class, message.getIdLong());
         if (dbMessage == null) return;
         
         // If not null, then it is already eligible
@@ -93,7 +94,7 @@ public class MessageDatabase {
     }
     
     public static void deleteMessage(long messageId) {
-        dev.jojofr.joseta.database.entities.Message dbMessage = Database.get(dev.jojofr.joseta.database.entities.Message.class, messageId);
+        MessageEntity dbMessage = Database.get(MessageEntity.class, messageId);
         if (dbMessage == null) return;
         
         Database.delete(dbMessage);
@@ -102,7 +103,7 @@ public class MessageDatabase {
     public static void deleteChannelMessages(long channelId) {
         try (Session session = Database.getSession()) {
             Transaction tx = session.beginTransaction();
-            Database.queryDelete(dev.jojofr.joseta.database.entities.Message.class, (cb, rt) -> cb.equal(rt.get(Message_.channelId), channelId), session).executeUpdate();
+            Database.queryDelete(MessageEntity.class, (cb, rt) -> cb.equal(rt.get(MessageEntity_.channelId), channelId), session).executeUpdate();
             tx.commit();
         }
     }
@@ -110,7 +111,7 @@ public class MessageDatabase {
     public static void deleteGuildMessages(long guildId) {
         try (Session session = Database.getSession()) {
             Transaction tx = session.beginTransaction();
-            Database.queryDelete(dev.jojofr.joseta.database.entities.Message.class, (cb, rt) -> cb.equal(rt.get(Message_.guildId), guildId), session).executeUpdate();
+            Database.queryDelete(MessageEntity.class, (cb, rt) -> cb.equal(rt.get(MessageEntity_.guildId), guildId), session).executeUpdate();
             tx.commit();
         }
     }
@@ -118,9 +119,9 @@ public class MessageDatabase {
     public static void deleteUserMarkovMessages(long userId) {
         try (Session session = Database.getSession()) {
             Transaction tx = session.beginTransaction();
-            Database.queryUpdate(dev.jojofr.joseta.database.entities.Message.class,
-                (cb, rt) -> cb.equal(rt.get(Message_.authorId), userId),
-                (cb, rt) -> cb.set(rt.get(Message_.markovContent), (String) null),
+            Database.queryUpdate(MessageEntity.class,
+                (cb, rt) -> cb.equal(rt.get(MessageEntity_.authorId), userId),
+                (cb, rt) -> cb.set(rt.get(MessageEntity_.markovContent), (String) null),
                 session
             ).executeUpdate();
             tx.commit();
@@ -129,7 +130,7 @@ public class MessageDatabase {
     
     
     public static void updateMarkovEligibility(long guildId) {
-        Configuration config = BotCache.guildConfigurations.get(guildId);
+        ConfigurationEntity config = BotCache.guildConfigurations.get(guildId);
         updateMarkovEligibility(guildId, config.markovBlacklist);
     }
     
@@ -145,14 +146,14 @@ public class MessageDatabase {
                 Transaction tx = session.beginTransaction();
                 
                 // Allow to process large datasets without loading everything into memory
-                ScrollableResults<dev.jojofr.joseta.database.entities.Message> results = session.createQuery(
-                        "FROM Message WHERE guildId = :gid", dev.jojofr.joseta.database.entities.Message.class)
+                ScrollableResults<MessageEntity> results = session.createQuery(
+                        "FROM MessageEntity WHERE guildId = :gid", MessageEntity.class)
                     .setParameter("gid", guildId)
                     .setCacheMode(CacheMode.IGNORE) // Important for batch performance
                     .scroll(ScrollMode.FORWARD_ONLY);
                 
                 while (results.next()) { try {
-                    dev.jojofr.joseta.database.entities.Message dbMessage = results.get();
+                    MessageEntity dbMessage = results.get();
                     
                     boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage, markovBlacklist);
                     boolean changed = false;
@@ -187,7 +188,7 @@ public class MessageDatabase {
         });
     }
     
-    private static boolean isDatabaseMarkovEligible(Guild guild, dev.jojofr.joseta.database.entities.Message dbMessage, Set<Long> markovBlacklist) {
+    private static boolean isDatabaseMarkovEligible(Guild guild, MessageEntity dbMessage, Set<Long> markovBlacklist) {
         if (markovBlacklist.contains(dbMessage.authorId)) return false;
         
         Member member = guild.getMemberById(dbMessage.authorId);

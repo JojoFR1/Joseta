@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity @Table(name = "reminders")
-public class Reminder {
+public class ReminderEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
     
@@ -16,9 +16,9 @@ public class Reminder {
     @Column public Instant remindAt;
     
     // A non-private and no-arg constructor is required by JPA
-    protected Reminder() {}
+    protected ReminderEntity() {}
     
-    public Reminder(long guildId, long channelId, long userId, String message, Instant remindAt) {
+    public ReminderEntity(long guildId, long channelId, long userId, String message, Instant remindAt) {
         this.guildId = guildId;
         this.channelId = channelId;
         this.userId = userId;
@@ -26,27 +26,27 @@ public class Reminder {
         this.remindAt = remindAt;
     }
     
-    public Reminder setGuildId(long guildId) {
+    public ReminderEntity setGuildId(long guildId) {
         this.guildId = guildId;
         return this;
     }
     
-    public Reminder setChannelId(long channelId) {
+    public ReminderEntity setChannelId(long channelId) {
         this.channelId = channelId;
         return this;
     }
     
-    public Reminder setUserId(long userId) {
+    public ReminderEntity setUserId(long userId) {
         this.userId = userId;
         return this;
     }
     
-    public Reminder setMessage(String message) {
+    public ReminderEntity setMessage(String message) {
         this.message = message;
         return this;
     }
     
-    public Reminder setRemindAt(Instant remindAt) {
+    public ReminderEntity setRemindAt(Instant remindAt) {
         this.remindAt = remindAt;
         return this;
     }

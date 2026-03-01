@@ -1,13 +1,13 @@
 package dev.jojofr.joseta.utils;
 
 import dev.jojofr.joseta.JosetaBot;
-import dev.jojofr.joseta.database.entities.Configuration;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BotCache {
-    public static ConcurrentHashMap<Long, Configuration> guildConfigurations = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Long, ConfigurationEntity> guildConfigurations = new ConcurrentHashMap<>();
     
     public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
     

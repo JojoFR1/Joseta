@@ -2,7 +2,7 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
-import dev.jojofr.joseta.database.entities.Configuration;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
@@ -68,7 +68,7 @@ public class MiscEvents {
     
     @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void autoResponse(MessageReceivedEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.autoResponseEnabled) return;
         
         String text = event.getMessage().getContentRaw();
@@ -79,7 +79,7 @@ public class MiscEvents {
     
     @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void countingCheck(MessageReceivedEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.countingEnabled) return;
         
         if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
@@ -89,7 +89,7 @@ public class MiscEvents {
     
     @EventHandler(type = EventType.GUILD_MEMBER_JOIN)
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.welcomeEnabled) return;
         
         User user = event.getUser();
@@ -121,7 +121,7 @@ public class MiscEvents {
     
     @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void memberRemove(GuildMemberRemoveEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         if (config == null || !config.welcomeEnabled) return;
         
         TextChannel channel;

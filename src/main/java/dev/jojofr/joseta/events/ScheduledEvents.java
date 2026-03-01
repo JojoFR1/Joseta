@@ -2,10 +2,10 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Reminder;
-import dev.jojofr.joseta.database.entities.Reminder_;
-import dev.jojofr.joseta.database.entities.Sanction;
-import dev.jojofr.joseta.database.entities.Sanction_;
+import dev.jojofr.joseta.database.entities.ReminderEntity;
+import dev.jojofr.joseta.database.entities.ReminderEntity_;
+import dev.jojofr.joseta.database.entities.SanctionEntity;
+import dev.jojofr.joseta.database.entities.SanctionEntity_;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -33,10 +33,10 @@ public class ScheduledEvents {
     public static final int REMINDER_MAX_MESSAGE_LENGTH = Message.MAX_CONTENT_LENGTH - REMINDER_PREMESSAGE.replace("%message%", "").replace("%userid%", "").length();
     
     private static void checkReminders() {
-        List<Reminder> reminders = Database.querySelect(Reminder.class, (cb, rt) -> cb.lessThanOrEqualTo(rt.get(Reminder_.remindAt), Instant.now())).getResultList();
+        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class, (cb, rt) -> cb.lessThanOrEqualTo(rt.get(ReminderEntity_.remindAt), Instant.now())).getResultList();
         if (reminders.isEmpty()) return;
         
-        for (Reminder reminder : reminders) {
+        for (ReminderEntity reminder : reminders) {
             GuildChannel channel = JosetaBot.get().getGuildChannelById(reminder.channelId);
             if (channel instanceof GuildMessageChannel msgChannel) {
                 msgChannel.sendMessage(REMINDER_PREMESSAGE
@@ -51,20 +51,20 @@ public class ScheduledEvents {
     }
     
     private static void checkExpiredSanctions() {
-        List<Sanction> sanctions = Database.querySelect(Sanction.class, (cb, rt) -> cb.and(
-            cb.equal(rt.get(Sanction_.isExpired), false),
-            cb.lessThanOrEqualTo(rt.get(Sanction_.expiryTime), Instant.now())
+        List<SanctionEntity> sanctions = Database.querySelect(SanctionEntity.class, (cb, rt) -> cb.and(
+            cb.equal(rt.get(SanctionEntity_.isExpired), false),
+            cb.lessThanOrEqualTo(rt.get(SanctionEntity_.expiryTime), Instant.now())
         )).getResultList();
         if (sanctions.isEmpty()) return;
         
-        for (Sanction sanction : sanctions) {
+        for (SanctionEntity sanction : sanctions) {
             Guild guild = JosetaBot.get().getGuildById(sanction.id.guildId());
             if (guild == null) continue;
             
             // Only ban need action on expiry, others are automatic
             JosetaBot.get().retrieveUserById(sanction.userId).queue(
                 user -> {
-                    if (sanction.sanctionType == Sanction.SanctionType.BAN)
+                    if (sanction.sanctionType == SanctionEntity.SanctionType.BAN)
                         guild.unban(user).queue(
                             null,
                             failure -> Log.warn("Failed to unban user {} (ID: {}) on sanction expiry ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.id)

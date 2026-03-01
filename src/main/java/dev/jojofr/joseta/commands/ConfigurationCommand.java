@@ -7,11 +7,11 @@ import dev.jojofr.joseta.annotations.types.ModalInteraction;
 import dev.jojofr.joseta.annotations.types.SelectMenuInteraction;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Configuration;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
-import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -199,7 +199,7 @@ public class ConfigurationCommand {
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
-        Configuration config = BotCache.guildConfigurations.get(guild.getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(guild.getIdLong());
         
         String rules = config.rules;
         if (rules == null || rules.isBlank()) {
@@ -254,7 +254,7 @@ public class ConfigurationCommand {
     
     @ButtonInteraction(id = "rules:accept")
     public void onRulesAcceptButton(ButtonInteractionEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
