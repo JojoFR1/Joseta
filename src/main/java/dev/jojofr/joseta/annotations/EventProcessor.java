@@ -30,6 +30,7 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
+// TODO optimization is nice but not a priority as it is complex, takes a lot of time to research and test - right now it's just a rabbit hole when i have other things to do
 // TODO cache the instances of the classes containing the events to optimize performance (event though in previous test this did not change much), but some
 //      events might need to have an object instance per event and not global
 // TODO i feel like having one function = one event is nice for readability and organization but i think it could be bad for performance, having to create
@@ -101,7 +102,7 @@ public class EventProcessor {
             for (Event eventAnnotation : eventAnnotations) {
                 try {
                     if (eventAnnotation.isGuildOnly() && !isFromGuild(event)) continue;
-                    
+
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
                     eventAnnotation.getMethod().invoke(o, event);
                 } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {

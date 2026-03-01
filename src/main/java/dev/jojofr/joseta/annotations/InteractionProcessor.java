@@ -36,6 +36,7 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming interactions and invoke the corresponding command methods.
  */
+// TODO optimization is nice but not a priority as it is complex, takes a lot of time to research and test - right now it's just a rabbit hole when i have other things to do
 public class InteractionProcessor {
     private static final Map<String, Interaction> interactionMethods = new HashMap<>();
     
@@ -48,7 +49,7 @@ public class InteractionProcessor {
      *                             It should contain classes annotated with {@link InteractionModule}.
      */
     // TODO if error come from JDA we dont know which interaction caused it
-    // TODO cache the "global" event to avoid needing to recheck each time
+    // TODO maybe cache the "global" event to avoid needing to recheck each time
     public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
