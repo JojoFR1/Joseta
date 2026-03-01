@@ -5,9 +5,10 @@ import dev.jojofr.joseta.annotations.types.ButtonInteraction;
 import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Configuration;
-import dev.jojofr.joseta.database.entities.Sanction;
-import dev.jojofr.joseta.database.entities.Sanction_;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.SanctionEntity;
+import dev.jojofr.joseta.database.entities.SanctionEntity_;
+import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
 import dev.jojofr.joseta.entities.ModlogMessage;
 import dev.jojofr.joseta.utils.BotCache;
@@ -41,7 +42,7 @@ public class ModerationCommands {
     {
         if (member == null) member = event.getMember();
 
-        dev.jojofr.joseta.database.entities.User userDb = Database.get(dev.jojofr.joseta.database.entities.User.class, new dev.jojofr.joseta.database.entities.User.UserId(member.getIdLong(), event.getGuild().getIdLong()));
+        UserEntity userDb = Database.get(UserEntity.class, new UserEntity.UserId(member.getIdLong(), event.getGuild().getIdLong()));
         if (userDb == null || userDb.sanctionCount == 0) {
             event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
@@ -66,12 +67,12 @@ public class ModerationCommands {
     
     private MessageEmbed generateEmbed(Guild guild, User user, int currentPage, int lastPage) {
         // Sort from newest to oldest
-        List<Sanction> sanctions = Database.querySelect(Sanction.class, (cb, rt) ->
+        List<SanctionEntity> sanctions = Database.querySelect(SanctionEntity.class, (cb, rt) ->
             cb.and(
-                cb.equal(rt.get(Sanction_.id).get(Sanction_.SanctionId_.guildId), guild.getIdLong()),
-                cb.equal(rt.get(Sanction_.userId), user.getIdLong())
+                cb.equal(rt.get(SanctionEntity_.id).get(SanctionEntity_.SanctionId_.guildId), guild.getIdLong()),
+                cb.equal(rt.get(SanctionEntity_.userId), user.getIdLong())
             ),
-            (cb, rt) -> cb.desc(rt.get(Sanction_.id).get(Sanction_.SanctionId_.sanctionNumber))
+            (cb, rt) -> cb.desc(rt.get(SanctionEntity_.id).get(SanctionEntity_.SanctionId_.sanctionNumber))
         ).setFirstResult((currentPage - 1) * SANCTION_PER_PAGE).setMaxResults(SANCTION_PER_PAGE).getResultList();
         
         if (sanctions.isEmpty()) return null;
@@ -83,7 +84,7 @@ public class ModerationCommands {
             .setTimestamp(Instant.now());
         
         StringBuilder description = new StringBuilder();
-        for (Sanction sanction : sanctions) {
+        for (SanctionEntity sanction : sanctions) {
             description.append("### ").append(sanction.sanctionType).append(" - #").append(sanction.getSanctionId());
             if (sanction.isExpired) description.append(" (Expirée)");
             
@@ -91,7 +92,7 @@ public class ModerationCommands {
                        .append("\n>    - Raison: ").append(sanction.reason)
                        .append("\n>    - Date: <t:").append(sanction.timestamp.getEpochSecond()).append(":F>");
             
-            if (sanction.sanctionType != Sanction.SanctionType.KICK && sanction.expiryTime != null) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
+            if (sanction.sanctionType != SanctionEntity.SanctionType.KICK && sanction.expiryTime != null) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
             description.append("\n");
         }
         
@@ -144,7 +145,7 @@ public class ModerationCommands {
     public void clear(SlashCommandInteractionEvent event,
                       @Option(description = "Le nombre de messages à supprimer.", minValue = 1, maxValue = 100, required = true) Integer amount)
     {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         
         if (!config.moderationEnabled) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();
@@ -228,7 +229,7 @@ public class ModerationCommands {
             ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
         );
         
-        SanctionDatabase.addSanction(Sanction.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
+        SanctionDatabase.addSanction(SanctionEntity.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
     }
     
     @SlashCommandInteraction(name = "unwarn", description = "Retire un avertissement d'un membre.", permissions = Permission.MODERATE_MEMBERS)
@@ -262,7 +263,7 @@ public class ModerationCommands {
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(Sanction.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
@@ -282,7 +283,7 @@ public class ModerationCommands {
                 event.reply("Le membre a bien été retiré du timeout.").setEphemeral(true).queue();
 
                 // A member can't have 2 timeout active at the same time.
-                Sanction sanction = SanctionDatabase.getLatest(member.getIdLong(), event.getGuild().getIdLong(), Sanction.SanctionType.TIMEOUT);
+                SanctionEntity sanction = SanctionDatabase.getLatest(member.getIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.TIMEOUT);
                 Database.update(sanction.setExpired(true));
             },
             f -> {
@@ -310,7 +311,7 @@ public class ModerationCommands {
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(Sanction.SanctionType.KICK, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.KICK, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
@@ -346,7 +347,7 @@ public class ModerationCommands {
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(Sanction.SanctionType.BAN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
@@ -378,7 +379,7 @@ public class ModerationCommands {
             s -> {
                 event.reply("Le membre a bien été débanni.").setEphemeral(true).queue();
 
-                Sanction sanction = SanctionDatabase.getLatest(userIdLong, event.getGuild().getIdLong(), Sanction.SanctionType.BAN);
+                SanctionEntity sanction = SanctionDatabase.getLatest(userIdLong, event.getGuild().getIdLong(), SanctionEntity.SanctionType.BAN);
                 Database.update(sanction.setExpired(true));
             },
             f -> {
@@ -389,7 +390,7 @@ public class ModerationCommands {
     }
     
     private boolean check(SlashCommandInteractionEvent event, Member member) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         Member executor = event.getMember();
         
         if (!config.moderationEnabled) {

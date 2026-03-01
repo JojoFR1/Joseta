@@ -4,8 +4,8 @@ import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Configuration;
-import dev.jojofr.joseta.database.entities.Reminder;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.BotCache;
@@ -34,7 +34,7 @@ public class MiscCommands {
      */
     @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
     public void markov(SlashCommandInteractionEvent event) {
-        Configuration config = BotCache.guildConfigurations.get(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (config == null || !config.markovEnabled) {
             event.reply("La génération de messages Markov est désactivée sur ce serveur.").setEphemeral(true).queue();
             return;
@@ -68,7 +68,7 @@ public class MiscCommands {
         }
         
         Instant remindAt = Instant.now().plusSeconds(timeSeconds);
-        Database.create(new Reminder(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));
+        Database.create(new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));
         event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
     }
     

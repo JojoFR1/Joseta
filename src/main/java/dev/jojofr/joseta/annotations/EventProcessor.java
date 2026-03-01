@@ -1,6 +1,7 @@
 package dev.jojofr.joseta.annotations;
 
 import dev.jojofr.joseta.annotations.interactions.Event;
+import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
@@ -8,7 +9,7 @@ import net.dv8tion.jda.api.events.GatewayPingEvent;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
 import net.dv8tion.jda.api.events.http.HttpRequestEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.SessionResumeEvent;
@@ -25,12 +26,11 @@ import java.util.*;
  * Processor for scanning, registering events and handling them.
  * <p>
  * It scans the specified package for classes annotated with {@link EventModule} and registers their methods
- * annotated with {@link Event} as events with the JDA bot instance.
+ * annotated with {@link EventHandler} as events with the JDA bot instance.
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
-// TODO a priority system
-// TODO "global" events trigger like if id are "test_event:test" and "test_event:other" both can be triggered by "test_event:*" - i have no idea how this could be implemented
+// TODO optimization is nice but not a priority as it is complex, takes a lot of time to research and test - right now it's just a rabbit hole when i have other things to do
 // TODO cache the instances of the classes containing the events to optimize performance (event though in previous test this did not change much), but some
 //      events might need to have an object instance per event and not global
 // TODO i feel like having one function = one event is nice for readability and organization but i think it could be bad for performance, having to create
@@ -53,13 +53,19 @@ public class EventProcessor {
         
         for (Class<?> eventClass : classes) {
             for (Method method : eventClass.getMethods()) { try {
-                dev.jojofr.joseta.annotations.types.Event eventAnnotation = method.getAnnotation(dev.jojofr.joseta.annotations.types.Event.class);
+                EventHandler eventAnnotation = method.getAnnotation(EventHandler.class);
                 if (eventAnnotation == null) continue;
+                
+                EventHandler.EventPriority priority = eventAnnotation.priority();
+                if (priority == EventHandler.EventPriority.DISABLED) {
+                    Log.warn("Event {}.{} is disabled, skipping registration.", eventClass.getName(), method.getName());
+                    continue;
+                }
                 
                 EventType eventType = eventAnnotation.type();
                 method.setAccessible(true);
                 
-                Event event = new Event(eventClass, method, eventAnnotation.guildOnly());
+                Event event = new Event(eventClass, method, priority, eventAnnotation.guildOnly());
                 if (eventMethods.get(eventType.getEventClass()) == null)
                     eventMethods.put(eventType.getEventClass(), new ArrayList<>(List.of(event)));
                 else
@@ -68,12 +74,14 @@ public class EventProcessor {
             } catch (Exception e) { Log.warn("An error occurred while registering an event. Skipping.", e); }}
         }
         
+        for (List<Event> events : eventMethods.values())
+            events.sort(Comparator.comparingInt(e -> e.getPriority().ordinal()));
         
         bot.addEventListener(new EventProcessor.EventListener());
     }
     
     private static class EventListener extends ListenerAdapter {
-        private static final List<Class<? extends GenericEvent>> blacklist = List.of(
+        private static final Set<Class<? extends GenericEvent>> blacklist = Set.of(
             StatusChangeEvent.class,
             HttpRequestEvent.class,
             GatewayPingEvent.class,
@@ -89,19 +97,13 @@ public class EventProcessor {
             if (blacklist.contains(event.getClass())) return;
             
             List<Event> eventAnnotations = eventMethods.get(event.getClass());
-            
             if (eventAnnotations == null) return;
             
             for (Event eventAnnotation : eventAnnotations) {
                 try {
-                    if (eventAnnotation.isGuildOnly()
-                        && ((event instanceof Interaction interactionEvent && interactionEvent.isFromGuild())
-                            || (event instanceof MessageReceivedEvent messageEvent && !messageEvent.isFromGuild()))
-                    ) continue;
-                    
-                    // TODO also bad, cache instances? might need new instance each time depending on use case
+                    if (eventAnnotation.isGuildOnly() && !isFromGuild(event)) continue;
+
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
-                    
                     eventAnnotation.getMethod().invoke(o, event);
                 } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
                     Log.warn("An error occurred before or while executing an event.", e);
@@ -112,6 +114,12 @@ public class EventProcessor {
             
             long endTime = System.currentTimeMillis();
             Log.debug("Event {} processed in {} ms", event.getClass().getSimpleName(), (endTime - startTime));
+        }
+        
+        private boolean isFromGuild(GenericEvent event) {
+            if (event instanceof Interaction interactionEvent) return interactionEvent.isFromGuild();
+            if (event instanceof GenericMessageEvent messageEvent) return messageEvent.isFromGuild();
+            return false;
         }
     }
 }

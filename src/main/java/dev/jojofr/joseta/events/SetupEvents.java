@@ -1,12 +1,8 @@
 package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
-import dev.jojofr.joseta.annotations.types.Event;
+import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.entities.Configuration;
-import dev.jojofr.joseta.database.entities.Guild;
-import dev.jojofr.joseta.database.entities.Reminder;
-import dev.jojofr.joseta.database.entities.Sanction;
 import dev.jojofr.joseta.database.entities.*;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.database.helper.UserDatabase;
@@ -22,40 +18,40 @@ import org.hibernate.Transaction;
 @EventModule
 public class SetupEvents {
     
-    @Event(type = EventType.GUILD_READY)
+    @EventHandler(type = EventType.GUILD_READY, priority = EventHandler.EventPriority.HIGH)
     public void onGuildAvailable(GuildReadyEvent event) {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
-        Guild guildDatabase = Database.get(Guild.class, event.getGuild().getIdLong());
-        if (guildDatabase == null) {
+        GuildEntity guildEntity = Database.get(GuildEntity.class, event.getGuild().getIdLong());
+        if (guildEntity == null) {
             Log.info("New guild detected. Creating database entries for guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
             
-            guildDatabase = new Guild(event.getGuild());
-            Database.create(guildDatabase);
+            guildEntity = new GuildEntity(event.getGuild());
+            Database.create(guildEntity);
             
-            Configuration config = new Configuration(event.getGuild().getIdLong());
+            ConfigurationEntity config = new ConfigurationEntity(event.getGuild().getIdLong());
             Database.create(config);
             
             MessageDatabase.populateNewGuild(event.getGuild());
         }
         
-        BotCache.guildConfigurations.put(event.getGuild().getIdLong(), Database.get(Configuration.class, event.getGuild().getIdLong()));
+        BotCache.putGuildConfiguration(event.getGuild().getIdLong(), Database.get(ConfigurationEntity.class, event.getGuild().getIdLong()));
     }
     
-    @Event(type = EventType.GUILD_LEAVE)
+    @EventHandler(type = EventType.GUILD_LEAVE, priority = EventHandler.EventPriority.HIGH)
     public void onGuildLeave(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();
         Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), guildId);
         
-        Guild guildDatabase = Database.get(Guild.class, guildId);
-        if (guildDatabase != null) {
+        GuildEntity guildEntity = Database.get(GuildEntity.class, guildId);
+        if (guildEntity != null) {
             Log.info("Removing database entries for guild: {} (ID: {})", event.getGuild().getName(), guildId);
-            Database.delete(guildDatabase);
+            Database.delete(guildEntity);
             
-            Configuration config = BotCache.guildConfigurations.get(guildId);
+            ConfigurationEntity config = BotCache.getGuildConfiguration(guildId);
             if (config != null) {
                 Database.delete(config);
-                BotCache.guildConfigurations.remove(guildId);
+                BotCache.removeGuildConfiguration(guildId);
             }
             
             MessageDatabase.deleteGuildMessages(guildId);
@@ -63,20 +59,20 @@ public class SetupEvents {
             
             try (Session session = Database.getSession()) {
                 Transaction tx = session.beginTransaction();
-                Database.queryDelete(Reminder.class, (cb, rt) -> cb.equal(rt.get(Reminder_.guildId), guildId), session);
-                Database.queryDelete(Sanction.class, (cb, rt) -> cb.equal(rt.get(Sanction_.id).get(Sanction_.SanctionId_.guildId), guildId), session);
+                Database.queryDelete(ReminderEntity.class, (cb, rt) -> cb.equal(rt.get(ReminderEntity_.guildId), guildId), session);
+                Database.queryDelete(SanctionEntity.class, (cb, rt) -> cb.equal(rt.get(SanctionEntity_.id).get(SanctionEntity_.SanctionId_.guildId), guildId), session);
                 tx.commit();
             }
         }
     }
     
-    @Event(type = EventType.GUILD_MEMBER_REMOVE)
+    @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
         MessageDatabase.deleteUserMarkovMessages(event.getGuild().getIdLong());
         
         try (Session session = Database.getSession()) {
             Transaction tx = session.beginTransaction();
-            Database.queryDelete(Reminder.class, (cb, rt) -> cb.equal(rt.get(Reminder_.userId), event.getUser().getIdLong()), session);
+            Database.queryDelete(ReminderEntity.class, (cb, rt) -> cb.equal(rt.get(ReminderEntity_.userId), event.getUser().getIdLong()), session);
             tx.commit();
         }
     }

@@ -3,7 +3,6 @@ package dev.jojofr.joseta.annotations;
 import dev.jojofr.joseta.annotations.interactions.Command;
 import dev.jojofr.joseta.annotations.interactions.Interaction;
 import dev.jojofr.joseta.annotations.types.*;
-import dev.jojofr.joseta.annotations.types.*;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -37,6 +36,7 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming interactions and invoke the corresponding command methods.
  */
+// TODO optimization is nice but not a priority as it is complex, takes a lot of time to research and test - right now it's just a rabbit hole when i have other things to do
 public class InteractionProcessor {
     private static final Map<String, Interaction> interactionMethods = new HashMap<>();
     
@@ -49,6 +49,7 @@ public class InteractionProcessor {
      *                             It should contain classes annotated with {@link InteractionModule}.
      */
     // TODO if error come from JDA we dont know which interaction caused it
+    // TODO maybe cache the "global" event to avoid needing to recheck each time
     public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
@@ -114,7 +115,7 @@ public class InteractionProcessor {
                     method.setAccessible(true);
                     interactionMethods.put(id, new Interaction(commandClass, method, id, modalInteraction.guildOnly()));
                 }
-            } catch (Exception e) { Log.warn("An error occurred while registering an interaction. {}", e); }}
+            } catch (Exception e) { Log.warn("An error occurred while registering an interaction.", e); }}
         }
 
         bot.updateCommands().addCommands(commands).queue();
@@ -129,19 +130,23 @@ public class InteractionProcessor {
             for (int i = 0; i < baseCommandName.length; i++) baseCommandName[i] = baseCommandName[i].toLowerCase();
         }
         
-        String commandName = baseCommandName[0];
-        String subcommandName;
-        String subcommandGroupName;
+        String commandName = baseCommandName[0], subcommandName, subcommandGroupName;
+        if (baseCommandName.length > 3) Log.warn("Command {} too long (max 3 parts).", commandName);
+        
+        // Required to be initialized in if statements because they need to be effectively final for the lambda expressions later
         if (baseCommandName.length == 2) {
-            subcommandGroupName = null;
+            subcommandGroupName = "";
             subcommandName = baseCommandName[1];
         } else if (baseCommandName.length >= 3) {
             subcommandGroupName = baseCommandName[1];
-            subcommandName =  baseCommandName[2];
-        } else { subcommandGroupName = null; subcommandName = null; }
-        if (baseCommandName.length > 3) Log.warn("Command name too long (max 3 parts).");
-
-        String fullCommandName = commandName + (subcommandGroupName != null ? " " + subcommandGroupName : "") + (subcommandName != null ? " " + subcommandName : "");
+            subcommandName = baseCommandName[2];
+        } else {
+            subcommandGroupName = "";
+            subcommandName = "";
+        }
+        String fullCommandName = commandName;
+        if (!subcommandGroupName.isEmpty()) fullCommandName += " " + subcommandGroupName;
+        if (!subcommandName.isEmpty()) fullCommandName += " " + subcommandName;
 
         SlashCommandData commandData;
         boolean commandExists = false;
@@ -160,7 +165,7 @@ public class InteractionProcessor {
         Command command = new Command(commandClass, method, fullCommandName, commandAnnotation.guildOnly());
         interactionMethods.put(fullCommandName, command);
 
-        if (subcommandName != null) {
+        if (!subcommandName.isEmpty()) {
             boolean subcommandExists = true;
             SubcommandData subcommandData = commandData.getSubcommands().stream().filter(s -> s.getName().equals(subcommandName)).findFirst().orElse(null);
             if (subcommandData == null) {
@@ -173,7 +178,7 @@ public class InteractionProcessor {
             boolean subcommandGroupExists = true;
             boolean hasSubcommandGroup = false;
             SubcommandGroupData subcommandGroupData = null;
-            if (subcommandGroupName != null) {
+            if (!subcommandGroupName.isEmpty()) {
                 subcommandGroupData = commandData.getSubcommandGroups().stream().filter(sg -> sg.getName().equals(subcommandGroupName)).findFirst().orElse(null);
                 if (subcommandGroupData == null) {
                     subcommandGroupExists = false;
@@ -336,7 +341,9 @@ public class InteractionProcessor {
 
                 command.getMethod().invoke(o, args.toArray());
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", command.getName(), e);
+                Log.err("An error occurred during command execution ({}):", e, command.getName());
+            } catch (Exception e) {
+                Log.warn("An unexpected error occurred during command execution ({}):", e, command.getName());
             }
             
             long endTime = System.currentTimeMillis();
@@ -365,7 +372,9 @@ public class InteractionProcessor {
 
                 contextInteraction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during context execution ({}):", contextInteraction.getName(), e);
+                Log.err("An error occurred during context execution ({}):", e, contextInteraction.getName());
+            } catch (Exception e) {
+                Log.warn("An unexpected error occurred during context execution ({}):", e, contextInteraction.getName());
             }
             
             long endTime = System.currentTimeMillis();
@@ -392,6 +401,32 @@ public class InteractionProcessor {
             
             Interaction interaction = interactionMethods.get(interactionId);
             if (interaction == null) {
+                String globalInteractionId = "";
+                for (String key : interactionMethods.keySet()) {
+                    if (key.startsWith("*")) {
+                        if (interactionId.endsWith(key.substring(1))) {
+                            globalInteractionId = key;
+                            break;
+                        }
+                    } else if (key.endsWith("*")) {
+                        if (interactionId.startsWith(key.substring(1, key.length() - 1))) {
+                            globalInteractionId = key;
+                            break;
+                        }
+                    } else if (key.contains("*")) {
+                        String[] parts = key.split("\\*", 2);
+                        if (interactionId.startsWith(parts[0]) && interactionId.endsWith(parts[1])) {
+                            globalInteractionId = key;
+                            break;
+                        }
+                    }
+                }
+                
+                interaction = interactionMethods.get(globalInteractionId);
+            }
+            
+            // The interaction 100% doesn't exist
+            if (interaction == null) {
                 Log.warn("Unknown interaction: {}", interactionId);
                 replyCallback.reply("Composant `"+ interactionId +"` inconnu. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
                 return;
@@ -407,7 +442,9 @@ public class InteractionProcessor {
 
                 interaction.getMethod().invoke(o, event);
             } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during interaction execution ({}):", interaction.getName(), e);
+                Log.err("An error occurred during interaction execution ({}):", e, interaction.getName());
+            } catch (Exception e) {
+                Log.warn("An unexpected error occurred during interaction execution ({}):", e, interaction.getName());
             }
             
             long endTime = System.currentTimeMillis();

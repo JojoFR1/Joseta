@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation to mark a class as an event module.
  * <p>
- * Classes annotated with this annotation can have methods annotated with {@link dev.jojofr.joseta.annotations.types.Event Event}.
+ * Classes annotated with this annotation can have methods annotated with {@link dev.jojofr.joseta.annotations.types.EventHandler EventHandler}.
  * <p>
  * It is required for the {@link EventProcessor} to discover, register and handle the events.
  */
