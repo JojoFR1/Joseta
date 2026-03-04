@@ -66,8 +66,6 @@ public class JosetaBot {
         }
         
         ScheduledEvents.schedule();
-        
-        //TODO check for guilds, members, etc. and add them to the database if they don't exist, or remove them if they don't exist anymore
     }
     
     private static void registerShutdown(JDA bot) {
@@ -88,7 +86,7 @@ public class JosetaBot {
                         client.dispatcher().executorService().shutdown();
                     }
                 }
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);
                 bot.shutdownNow();
             }
