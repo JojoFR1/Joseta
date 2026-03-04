@@ -14,26 +14,26 @@ import java.util.Set;
 public class ConfigurationEntity {
     @Id public Long guildId;
 
-    @Column public Boolean welcomeEnabled = false;
+    @Column public boolean welcomeEnabled = false;
     @Column public Long welcomeChannelId = null;
-    @Column public Boolean welcomeImageEnabled = false;
+    @Column public boolean welcomeImageEnabled = false;
     @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
     @Column public Long joinRoleId = null;
     @Column public Long joinBotRoleId = null;
     @Column public Long verifiedRoleId = null;
     
-    @Column public Boolean markovEnabled = false;
+    @Column public boolean markovEnabled = false;
     @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
     
-    @Column public Boolean moderationEnabled = true;
+    @Column public boolean moderationEnabled = true;
     @Column(columnDefinition = "TEXT") public String rules = "";
 
-    @Column public Boolean autoResponseEnabled = false;
+    @Column public boolean autoResponseEnabled = false;
 
-    @Column public Boolean countingEnabled = false;
-    @Column public Boolean countingCommentsEnabled = false;
-    @Column public Boolean countingPenaltyEnabled = false;
+    @Column public boolean countingEnabled = false;
+    @Column public boolean countingCommentsEnabled = false;
+    @Column public boolean countingPenaltyEnabled = false;
     @Column public Long countingChannelId = null;
     
     // A non-private and no-arg constructor is required by JPA
@@ -73,13 +73,13 @@ public class ConfigurationEntity {
         return this;
     }
 
-    public ConfigurationEntity setWelcomeEnabled(Boolean welcomeEnabled) {
-        if (welcomeEnabled != null) this.welcomeEnabled = welcomeEnabled;
+    public ConfigurationEntity setWelcomeEnabled(boolean welcomeEnabled) {
+        this.welcomeEnabled = welcomeEnabled;
         return this;
     }
 
-    public ConfigurationEntity setWelcomeImageEnabled(Boolean welcomeImageEnabled) {
-        if (welcomeImageEnabled != null) this.welcomeImageEnabled = welcomeImageEnabled;
+    public ConfigurationEntity setWelcomeImageEnabled(boolean welcomeImageEnabled) {
+        this.welcomeImageEnabled = welcomeImageEnabled;
         return this;
     }
 
@@ -133,8 +133,8 @@ public class ConfigurationEntity {
         return this;
     }
 
-    public ConfigurationEntity setMarkovEnabled(Boolean markovEnabled) {
-        if (markovEnabled != null) this.markovEnabled = markovEnabled;
+    public ConfigurationEntity setMarkovEnabled(boolean markovEnabled) {
+        this.markovEnabled = markovEnabled;
         return this;
     }
 
@@ -163,8 +163,8 @@ public class ConfigurationEntity {
         return this;
     }
 
-    public ConfigurationEntity setModerationEnabled(Boolean moderationEnabled) {
-        if (moderationEnabled != null) this.moderationEnabled = moderationEnabled;
+    public ConfigurationEntity setModerationEnabled(boolean moderationEnabled) {
+        this.moderationEnabled = moderationEnabled;
         return this;
     }
     
@@ -173,23 +173,23 @@ public class ConfigurationEntity {
         return this;
     }
     
-    public ConfigurationEntity setAutoResponseEnabled(Boolean autoResponseEnabled) {
-        if (autoResponseEnabled != null) this.autoResponseEnabled = autoResponseEnabled;
+    public ConfigurationEntity setAutoResponseEnabled(boolean autoResponseEnabled) {
+        this.autoResponseEnabled = autoResponseEnabled;
         return this;
     }
 
-    public ConfigurationEntity setCountingEnabled(Boolean countingEnabled) {
-        if (countingEnabled != null) this.countingEnabled = countingEnabled;
+    public ConfigurationEntity setCountingEnabled(boolean countingEnabled) {
+        this.countingEnabled = countingEnabled;
         return this;
     }
 
-    public ConfigurationEntity setCountingCommentsEnabled(Boolean countingCommentsEnabled) {
-        if (countingCommentsEnabled != null) this.countingCommentsEnabled = countingCommentsEnabled;
+    public ConfigurationEntity setCountingCommentsEnabled(boolean countingCommentsEnabled) {
+        this.countingCommentsEnabled = countingCommentsEnabled;
         return this;
     }
 
-    public ConfigurationEntity setCountingPenaltyEnabled(Boolean countingPenaltyEnabled) {
-        if (countingPenaltyEnabled != null) this.countingPenaltyEnabled = countingPenaltyEnabled;
+    public ConfigurationEntity setCountingPenaltyEnabled(boolean countingPenaltyEnabled) {
+        this.countingPenaltyEnabled = countingPenaltyEnabled;
         return this;
     }
     
