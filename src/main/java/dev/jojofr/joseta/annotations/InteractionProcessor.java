@@ -409,7 +409,7 @@ public class InteractionProcessor {
                             break;
                         }
                     } else if (key.endsWith("*")) {
-                        if (interactionId.startsWith(key.substring(1, key.length() - 1))) {
+                        if (interactionId.startsWith(key.substring(0, key.length() - 1))) {
                             globalInteractionId = key;
                             break;
                         }
