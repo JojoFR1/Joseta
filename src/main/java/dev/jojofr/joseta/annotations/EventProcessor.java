@@ -99,9 +99,11 @@ public class EventProcessor {
             List<Event> eventAnnotations = eventMethods.get(event.getClass());
             if (eventAnnotations == null) return;
             
+            boolean isFromGuild = isFromGuild(event);
+            
             for (Event eventAnnotation : eventAnnotations) {
                 try {
-                    if (eventAnnotation.isGuildOnly() && !isFromGuild(event)) continue;
+                    if (eventAnnotation.isGuildOnly() && !isFromGuild) continue;
 
                     Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
                     eventAnnotation.getMethod().invoke(o, event);
