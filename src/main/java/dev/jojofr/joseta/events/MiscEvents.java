@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public class MiscEvents {
     //#region Message
     @EventHandler(type = EventType.MESSAGE_RECEIVED)
+    
     public void onMessageReceived(MessageReceivedEvent event) {
         MessageDatabase.addNewMessage(event.getMessage());
     }
@@ -69,7 +70,7 @@ public class MiscEvents {
     @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void autoResponse(MessageReceivedEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (config == null || !config.autoResponseEnabled) return;
+        if (!config.autoResponseEnabled) return;
         
         String text = event.getMessage().getContentRaw();
         if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find())
@@ -80,7 +81,7 @@ public class MiscEvents {
     @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void countingCheck(MessageReceivedEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (config == null || !config.countingEnabled) return;
+        if (!config.countingEnabled) return;
         
         if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
         CountingChannel.check(event.getChannel(), event.getMessage());
@@ -90,7 +91,7 @@ public class MiscEvents {
     @EventHandler(type = EventType.GUILD_MEMBER_JOIN)
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (config == null || !config.welcomeEnabled) return;
+        if (!config.welcomeEnabled) return;
         
         User user = event.getUser();
         TextChannel channel;
@@ -122,7 +123,7 @@ public class MiscEvents {
     @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void memberRemove(GuildMemberRemoveEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (config == null || !config.welcomeEnabled) return;
+        if (!config.welcomeEnabled) return;
         
         TextChannel channel;
         if (config.welcomeChannelId == null || (channel = event.getGuild().getTextChannelById(config.welcomeChannelId)) == null) {

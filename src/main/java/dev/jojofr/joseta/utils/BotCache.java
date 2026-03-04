@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BotCache {
-    private static ConcurrentHashMap<Long, ConfigurationEntity> guildConfigurations = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, ConfigurationEntity> guildConfigurations = new ConcurrentHashMap<>();
     
     public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
     
@@ -31,10 +31,7 @@ public class BotCache {
         });
     }
     
-    public static void putGuildConfiguration(long guildId, ConfigurationEntity config) {
-        guildConfigurations.put(guildId, config);
-    }
-    
+    public static void putGuildConfiguration(long guildId, ConfigurationEntity config) { guildConfigurations.put(guildId, config); }
     public static void removeGuildConfiguration(long guildId) {
         guildConfigurations.remove(guildId);
     }

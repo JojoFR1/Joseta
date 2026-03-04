@@ -19,7 +19,7 @@ import org.hibernate.Transaction;
 public class SetupEvents {
     
     @EventHandler(type = EventType.GUILD_READY, priority = EventHandler.EventPriority.HIGH)
-    public void onGuildAvailable(GuildReadyEvent event) {
+    public void onGuildReady(GuildReadyEvent event) {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
         GuildEntity guildEntity = Database.get(GuildEntity.class, event.getGuild().getIdLong());
