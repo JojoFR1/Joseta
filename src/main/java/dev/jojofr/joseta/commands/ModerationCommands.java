@@ -88,9 +88,13 @@ public class ModerationCommands {
             description.append("### ").append(sanction.sanctionType).append(" - #").append(sanction.getSanctionId());
             if (sanction.isExpired) description.append(" (Expirée)");
             
-            description.append("\n>    - Modérateur: <@").append(sanction.moderatorId).append("> (`").append(sanction.moderatorId).append("`)")
-                       .append("\n>    - Raison: ").append(sanction.reason)
-                       .append("\n>    - Date: <t:").append(sanction.timestamp.getEpochSecond()).append(":F>");
+            description.append("\n>    - Modérateur: ");
+            
+            if (sanction.moderatorId == 0) description.append("Inconnu.");
+            else description.append("<@").append(sanction.moderatorId).append("> (`").append(sanction.moderatorId).append("`)");
+            
+            description.append("\n>    - Raison: ").append(sanction.reason)
+                .append("\n>    - Date: <t:").append(sanction.timestamp.getEpochSecond()).append(":F>");
             
             if (sanction.sanctionType != SanctionEntity.SanctionType.KICK && sanction.expiryTime != null) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
             description.append("\n");
@@ -101,13 +105,8 @@ public class ModerationCommands {
         return embedBuilder.build();
     }
     
-    // TODO maybe allow something like wildcard for interaction IDs, would be cleaner but might be hard to implement
-    @ButtonInteraction(id = "modlog-page_first") public void modlogButtonFirst(ButtonInteractionEvent event) { modlogPage(event); }
-    @ButtonInteraction(id = "modlog-page_prev")  public void modlogButtonPrev(ButtonInteractionEvent event) { modlogPage(event); }
-    @ButtonInteraction(id = "modlog-page_next")  public void modlogButtonNext(ButtonInteractionEvent event) { modlogPage(event); }
-    @ButtonInteraction(id = "modlog-page_last")  public void modlogButtonLast(ButtonInteractionEvent event) { modlogPage(event); }
-    
-    private void modlogPage(ButtonInteractionEvent event) {
+    @ButtonInteraction(id = "moderation:modlog:page:*")
+    public void modlogPage(ButtonInteractionEvent event) {
         ModlogMessage modlogMessage = modlogMessages.get(event.getMessageIdLong());
         // Check if the modlogMessage exists and if the timestamp is still valid (15 minutes)
         if (modlogMessage == null || Instant.now().isAfter(modlogMessage.timestamp.plusSeconds(15 * 60))) {
@@ -131,10 +130,10 @@ public class ModerationCommands {
     
     private ActionRow getModlogButtons(int currentPage, int lastPage) {
         return ActionRow.of(
-            Button.secondary("modlog-page_first", "⏪").withDisabled(currentPage == 1),
-            Button.secondary("modlog-page_prev", "◀️").withDisabled(currentPage <= 1),
-            Button.secondary("modlog-page_next", "▶️").withDisabled(currentPage >= lastPage),
-            Button.secondary("modlog-page_last", "⏩").withDisabled(currentPage == lastPage)
+            Button.secondary("moderation:modlog:page:first", "⏪").withDisabled(currentPage == 1),
+            Button.secondary("moderation:modlog:page:prev", "◀️").withDisabled(currentPage <= 1),
+            Button.secondary("moderation:modlog:page:next", "▶️").withDisabled(currentPage >= lastPage),
+            Button.secondary("moderation:modlog:page:last", "⏩").withDisabled(currentPage == lastPage)
         );
     }
     
@@ -155,7 +154,7 @@ public class ModerationCommands {
         MessageChannelUnion channel = event.getChannel();
         if (amount >= 25) {
             event.reply("Vous allez supprimer " + amount + " messages. Êtes-vous sûr ?").setComponents(
-                ActionRow.of(Button.success("btn-clear_confirm", "Confirmer"))
+                ActionRow.of(Button.success("moderation:clear:confirm", "Confirmer"))
             ).setEphemeral(true).queue(
                 hook -> hook.deleteOriginal().queueAfter(10, TimeUnit.SECONDS, v -> pendingClear.remove(channel))
             );
@@ -180,7 +179,7 @@ public class ModerationCommands {
         }
     }
     
-    @ButtonInteraction(id = "btn-clear_confirm")
+    @ButtonInteraction(id = "moderation:clear:confirm")
     public void clearConfirm(ButtonInteractionEvent event) {
         if (pendingClear.isEmpty()) return;
         if (!pendingClear.containsKey(event.getChannel())) {
@@ -226,10 +225,10 @@ public class ModerationCommands {
             channel -> channel.sendMessage("Vous avez été averti sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
                 " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
                 ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
-            ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
+            ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été averti... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
         );
         
-        SanctionDatabase.addSanction(SanctionEntity.SanctionType.WARN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
+        SanctionDatabase.addSanction(SanctionEntity.SanctionType.WARN, member, event.getUser().getIdLong(), reason, timeSeconds);
     }
     
     @SlashCommandInteraction(name = "unwarn", description = "Retire un avertissement d'un membre.", permissions = Permission.MODERATE_MEMBERS)
@@ -260,10 +259,10 @@ public class ModerationCommands {
                     channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
                         " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
                         ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
-                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
+                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été timeout... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, timeSeconds);
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.TIMEOUT, member, event.getUser().getIdLong(), reason, timeSeconds);
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
@@ -311,7 +310,7 @@ public class ModerationCommands {
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.KICK, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, -1);
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.KICK, member, event.getUser().getIdLong(), reason, -1);
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
@@ -342,12 +341,14 @@ public class ModerationCommands {
                 member.getUser().openPrivateChannel().queue(
                     channel -> channel.sendMessage(
                         "Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                            " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
-                            ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
-                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
+                            " pour la raison suivante : " + reason + ".\n" + (timeSeconds > 0 ?
+                                "Cette sanction expirera : <t:" + (Instant.now().getEpochSecond() + timeSeconds) + ":R>."
+                                : "Cette sanction n'expirera pas automatiquement.")
+                            + "\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été banni... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, member, event.getUser().getIdLong(), event.getGuild().getIdLong(), reason, TimeParser.parse(time));
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, member, event.getUser().getIdLong(), reason, TimeParser.parse(time));
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();

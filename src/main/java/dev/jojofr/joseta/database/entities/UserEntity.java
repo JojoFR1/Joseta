@@ -2,6 +2,7 @@ package dev.jojofr.joseta.database.entities;
 
 import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
 
 import java.time.Instant;
 
@@ -20,12 +21,13 @@ public class UserEntity {
     // A non-private and no-arg constructor is required by JPA
     protected UserEntity() {}
     
-    public UserEntity(Member member) {
-        this(member.getIdLong(),
-             member.getGuild().getIdLong(),
-             member.getUser().getName(),
-             member.getUser().getAvatarUrl(),
-             member.getTimeCreated().toInstant());
+    public UserEntity(Member member) { this(member.getUser(), member.getGuild().getIdLong()); }
+    public UserEntity(User user, long guildId) {
+        this(user.getIdLong(),
+             guildId,
+             user.getName(),
+             user.getAvatarUrl(),
+             user.getTimeCreated().toInstant());
     }
     
     public UserEntity(long id, long guildId, String username, String avatarUrl, Instant creationTime) {
