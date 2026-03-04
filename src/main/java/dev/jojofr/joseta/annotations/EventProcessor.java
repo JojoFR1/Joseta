@@ -93,7 +93,7 @@ public class EventProcessor {
         
         @Override
         public void onGenericEvent(GenericEvent event) {
-            long startTime = System.currentTimeMillis();
+            long startTime = System.nanoTime();
             if (blacklist.contains(event.getClass())) return;
             
             List<Event> eventAnnotations = eventMethods.get(event.getClass());
@@ -114,8 +114,8 @@ public class EventProcessor {
                 }
             }
             
-            long endTime = System.currentTimeMillis();
-            Log.debug("Event {} processed in {} ms", event.getClass().getSimpleName(), (endTime - startTime));
+            long endTime = System.nanoTime();
+            Log.debug("Event {} processed in {} ms", event.getClass().getSimpleName(), (endTime - startTime) / 1_000_000.0);
         }
         
         private boolean isFromGuild(GenericEvent event) {
