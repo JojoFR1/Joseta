@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import net.dv8tion.jda.api.entities.Guild;
 
+@SuppressWarnings("unused")
 @Entity @Table(name = "guilds")
 public class GuildEntity {
     @Id public long id;

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.Instant;
 
+@SuppressWarnings("unused")
 @Entity @Table(name = "reminders")
 public class ReminderEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

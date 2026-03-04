@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
 
+@SuppressWarnings("unused")
 @Entity @Table(name = "messages")
 public class MessageEntity {
     @Id public long id;

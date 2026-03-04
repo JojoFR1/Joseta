@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 @Entity @Table(name = "configurations")
 public class ConfigurationEntity {
     @Id public Long guildId;
@@ -18,7 +19,6 @@ public class ConfigurationEntity {
     @Column public Boolean welcomeImageEnabled = false;
     @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
     @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
-    @Column public String welcomeImageUrl = ""; // Could switch to file upload using modal
     @Column public Long joinRoleId = null;
     @Column public Long joinBotRoleId = null;
     @Column public Long verifiedRoleId = null;
@@ -100,11 +100,6 @@ public class ConfigurationEntity {
 
     public ConfigurationEntity setWelcomeLeaveMessage(String welcomeLeaveMessage) {
         if (welcomeLeaveMessage != null) this.welcomeLeaveMessage = welcomeLeaveMessage;
-        return this;
-    }
-    
-    public ConfigurationEntity setWelcomeImageUrl(String welcomeImageUrl) {
-        if (welcomeImageUrl != null) this.welcomeImageUrl = welcomeImageUrl;
         return this;
     }
 

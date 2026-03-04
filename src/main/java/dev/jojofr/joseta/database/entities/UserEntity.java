@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.User;
 
 import java.time.Instant;
 
+@SuppressWarnings("unused")
 @Entity @Table(name = "users")
 public class UserEntity {
     @Embeddable
