@@ -24,7 +24,8 @@ jobs:
       run: ./gradlew shadowJar --configuration-cache
         
     - name: Upload built jar file
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ github.event.repository.name }}
         path: build/libs/${{ github.event.repository.name }}Bot.jar
+        archive: false
