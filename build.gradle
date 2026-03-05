@@ -75,10 +75,11 @@ tasks.register('runDebug', JavaExec) {
 }
 
 remotes {
+    def keyPath = dotenv.get('REMOTE_KEY_PATH')?.replace('~', System.getProperty('user.home'))
     remoteServer {
         host     = dotenv.get('REMOTE_HOST')
         user     = dotenv.get('REMOTE_USER')
-        identity = file(dotenv.get('REMOTE_KEY_PATH').replace('~', System.getProperty('user.home')))
+        identity = keyPath ? file(keyPath) : null
         port     = dotenv.get('REMOTE_PORT')?.toInteger() ?: 22
     }
 }
@@ -89,7 +90,7 @@ tasks.register('uploadServer') {
 
     doLast {
         def jarFile = shadowJar.archiveFile.get().asFile
-        println 'Uploading ${jarFile} to remote server...'
+        println "Uploading ${jarFile} to remote server..."
         ssh.run {
             session(remotes.remoteServer) {
                 put from: jarFile, into: '.'
