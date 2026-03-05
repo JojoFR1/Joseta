@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.gradleup.shadow' version '9.2.2'
+    id 'com.gradleup.shadow' version '9.3.2'
 }
 
 group = 'joseta'
@@ -18,15 +18,15 @@ dependencies {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.31'
+    implementation 'ch.qos.logback:logback-classic:1.5.32'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
     implementation 'org.reflections:reflections:0.10.2'
 
     implementation 'org.postgresql:postgresql:42.7.10'
-    implementation 'org.hibernate:hibernate-core:7.2.4.Final'
+    implementation 'org.hibernate.orm:hibernate-core:7.2.6.Final'
 
-    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.4.Final'
-    implementation 'org.hibernate:hibernate-hikaricp:7.2.4.Final'
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.6.Final'
+    implementation 'org.hibernate.orm:hibernate-hikaricp:7.2.6.Final'
     implementation 'com.zaxxer:HikariCP:7.0.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:6.0.2'
