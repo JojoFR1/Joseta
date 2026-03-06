@@ -15,7 +15,7 @@ apply from: 'gradle/jdaEventEnumCodeGen.gradle'
 import io.github.cdimascio.dotenv.Dotenv
 
 group = 'joseta'
-version = '2.1.0'
+version = '2.1.1'
 
 def dotenv = Dotenv.configure()
         .directory(project.rootDir.absolutePath)
