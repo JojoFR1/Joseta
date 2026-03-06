@@ -75,11 +75,10 @@ tasks.register('runDebug', JavaExec) {
 }
 
 remotes {
-    def keyPath = dotenv.get('REMOTE_KEY_PATH')?.replace('~', System.getProperty('user.home'))
     remoteServer {
         host     = dotenv.get('REMOTE_HOST')
         user     = dotenv.get('REMOTE_USER')
-        identity = keyPath ? file(keyPath) : null
+        identity = dotenv.get('REMOTE_KEY_PATH') ? file(dotenv.get('REMOTE_KEY_PATH')?.replace('~', System.getProperty('user.home'))) : null
         port     = dotenv.get('REMOTE_PORT')?.toInteger() ?: 22
     }
 }

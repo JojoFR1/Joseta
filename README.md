@@ -4,21 +4,27 @@
 
 ## Project
 
-Joseta is a multipurpose, single server, Discord bot made with the [JDA](https://github.com/discord-jda/JDA) library.
+Joseta is a multipurpose, single server, Discord bot made with in Java with the [JDA](https://github.com/discord-jda/JDA) library.
 
 ### Why single server?
 
-This bot original purpose is to only be used in the official [Mindustry France](https://discord.com/invite/hzGPWhZSGV) Discord server only - so it was made without any plans to support multiple servers nor to be a public bot for now, this could change in the future. Features are only implemented based of our needs.
+This bot original purpose is to only be used in the official [Mindustry France](https://discord.com/invite/hzGPWhZSGV) Discord server. It was made without
+support for multiple servers nor to be for public usage. This could change in the future.
 
-This bot is not *yet* fully usable for personal use due to multiple hardcoded values that are mostly now removed with the configuration command. If you wish to use it you are free to do so buy we do not give any support as of now.
+This bot is not *yet* fully usable for personal use due to multiple hardcoded values that are now mostly removed with
+the configuration menu. If you wish to use it you are free to do so, but we do not give any support as of now.
 
 ### Why Java and JDA?
 
-We could have used JavaScript or Python or literally any other languages, but due to personal preferences we have chosen Java and the JDA library as it was a library we already had experience with. Discussion for a possible Kotlin transition will be explored.
+We could have used JavaScript, Python or literally any other common languages, but due to personal preferences we chose
+Java. The [JDA](https://github.com/discord-jda/JDA) library was a library we already had experience with on top of being popular.
 
 ## Features
 
-This is a multipurpose bot and is not centered around one specific category or idea, all features implemented (updated or removed) are based only on our needs. See below for a list of all the features this bot currently has:
+Being multipurpose and not centered around one specific category or idea. All features implemented, updated or removed
+are based of our needs.
+
+Below is non-exhaustive list of the features this bot currently has:
 
 - An **Image-based Welcome** for new members (or message in case the image is disabled or not properly loaded).
 - A **Goodbye Message** for leaving members.
@@ -58,7 +64,7 @@ The current plans and ideas for this bot are the following, in the likely order 
   - Mainly to make it usable outside our server.
   - Make it actually usable for others.
 
-## How to build
+## Building
 
 Building requires **JDK 21** or later.
 
@@ -67,17 +73,21 @@ At the root of the project, use the following command:
 
 Once the build process is finished, the output will be present in `./build/libs/JosetaBot.jar`.
 
-## How to run
+## Running
 
 You will first need to follow the instructions in the `.env.template` file before being able to run the bot.
+**This is mandatory.**
 
-After this, starting the bot is very easy. You need to execute this command: `java -jar build/libs/JosetaBot.jar`
-
-The following arguments (after the `.jar`) are available to use:
+Then, you can execute this command: `java -jar build/libs/JosetaBot.jar` with the following arguments: (after the `.jar`)
 
 - Default: run the bot normally. (Log level is info level)
 - `--debug`: run the bot in debug mode. (Log level is debug level & intended for testing)
 - `--server`: run the bot in server mode. (Log level is debug level & save log file up to 14 days)
+
+You can also run the `run` gradle task with `./gradlew run`, which is the same as running the jar with the `--debug` argument.
+
+The `runDebug` gradle task is only intended for development purpose with *IntelliJ IDEA*.
+
 
 ## Contributors
 
