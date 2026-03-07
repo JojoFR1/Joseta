@@ -66,14 +66,6 @@ run {
     args = [ '--debug' ]
 }
 
-tasks.register('runDebug', JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = application.mainClass
-
-    jvmArgs = [ '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005' ]
-    args    = [ '--debug' ]
-}
-
 remotes {
     remoteServer {
         host     = dotenv.get('REMOTE_HOST')
