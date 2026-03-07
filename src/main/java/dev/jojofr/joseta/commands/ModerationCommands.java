@@ -242,7 +242,7 @@ public class ModerationCommands {
     @SlashCommandInteraction(name = "timeout", description = "Met un membre en timeout.", permissions = Permission.MODERATE_MEMBERS)
     public void timeout(SlashCommandInteractionEvent event,
                         @Option(description = "Le membre à mettre en timeout.", required = true) Member member,
-                        @Option(description = "La durée du timeout (s, m, h, d, w).") String time,
+                        @Option(description = "La durée du timeout (s, m, h, d, w, M).") String time,
                         @Option(description = "La raison du timeout.") String reason)
     {
         if (!check(event, member)) return;
@@ -251,13 +251,22 @@ public class ModerationCommands {
         if (time != null && !time.isEmpty()) timeSeconds = TimeParser.parse(time);
         else timeSeconds = 300; // Default 5 minutes
         
+        if (timeSeconds <= 0 || timeSeconds > TimeUnit.DAYS.toSeconds(Member.MAX_TIME_OUT_LENGTH)) {
+            event.reply("La durée du timeout doit être comprise entre 1 seconde et "+ Member.MAX_TIME_OUT_LENGTH +"jours.").setEphemeral(true).queue();
+            return;
+        }
+        
+        String reasonFinal;
+        if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
+        else reasonFinal = reason;
+        
         member.timeoutFor(TimeParser.parse(time), TimeUnit.SECONDS).reason(reason).queue(
             s -> {
                 event.reply("Le membre a bien été mis en timeout.").setEphemeral(true).queue();
                 
                 member.getUser().openPrivateChannel().queue(
                     channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                        " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
+                        " pour la raison suivante : " + reasonFinal + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
                         ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été timeout... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
@@ -299,6 +308,10 @@ public class ModerationCommands {
     {
         if (!check(event, member)) return;
         
+        String reasonFinal;
+        if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
+        else reasonFinal = reason;
+        
         member.kick().reason(reason).queue(
             s -> {
                 event.reply("Le membre a bien été expulsé.").setEphemeral(true).queue();
@@ -306,7 +319,7 @@ public class ModerationCommands {
                 member.getUser().openPrivateChannel().queue(
                     channel -> channel.sendMessage(
                         "Vous avez été expulsé du serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                            " pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                            " pour la raison suivante : " + reasonFinal + ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été expulsé... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
@@ -322,7 +335,7 @@ public class ModerationCommands {
     @SlashCommandInteraction(name = "ban", description = "Bannit un membre du serveur.", permissions = Permission.BAN_MEMBERS)
     public void ban(SlashCommandInteractionEvent event,
                     @Option(description = "Le membre à bannir.", required = true) Member member,
-                    @Option(description = "La durée du bannissement (s, m, h, d, w).") String time,
+                    @Option(description = "La durée du bannissement (s, m, h, d, w, M, inf).") String time,
                     @Option(description = "La période de suppression des messages.") String clearTime,
                     @Option(description = "La raison du bannissement.") String reason)
     {
@@ -335,20 +348,24 @@ public class ModerationCommands {
         int clearTimeSeconds = 3600; // Default 1 hour
         if (clearTime != null && !clearTime.isEmpty()) clearTimeSeconds = (int) TimeParser.parse(clearTime);
         
+        String reasonFinal;
+        if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
+        else reasonFinal = reason;
+        
         member.ban(clearTimeSeconds, TimeUnit.SECONDS).reason(reason).queue(
             s -> {
                 event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
                 member.getUser().openPrivateChannel().queue(
                     channel -> channel.sendMessage(
                         "Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                            " pour la raison suivante : " + reason + ".\n" + (timeSeconds > 0 ?
+                            " pour la raison suivante : " + reasonFinal + ".\n" + (timeSeconds > 0 ?
                                 "Cette sanction expirera : <t:" + (Instant.now().getEpochSecond() + timeSeconds) + ":R>."
                                 : "Cette sanction n'expirera pas automatiquement.")
                             + "\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
                     ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été banni... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
                 );
                 
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, member, event.getUser().getIdLong(), reason, TimeParser.parse(time));
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, member, event.getUser().getIdLong(), reason, timeSeconds);
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
