@@ -38,13 +38,13 @@ public class ModerationCommands {
     
     @SlashCommandInteraction(name = "modlog", description = "Obtient l'historique de modérations d'un membre.", permissions = Permission.MODERATE_MEMBERS)
     public void modlog(SlashCommandInteractionEvent event,
-                       @Option(description = "Le membre dont vous voulez voir l'historique de modération.") Member member)
+                       @Option(description = "L'utilisateur dont vous voulez voir l'historique de modération.") User user)
     {
-        if (member == null) member = event.getMember();
+        if (user == null) user = event.getUser();
 
-        UserEntity userDb = Database.get(UserEntity.class, new UserEntity.UserId(member.getIdLong(), event.getGuild().getIdLong()));
+        UserEntity userDb = Database.get(UserEntity.class, new UserEntity.UserId(user.getIdLong(), event.getGuild().getIdLong()));
         if (userDb == null || userDb.sanctionCount == 0) {
-            event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
+            event.reply("Aucun historique de modération trouvé pour " + user.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
         }
 
@@ -52,16 +52,16 @@ public class ModerationCommands {
         int lastPage = userDb.sanctionCount / SANCTION_PER_PAGE + (userDb.sanctionCount % SANCTION_PER_PAGE == 0 ? 0 : 1);
 
         // The user SHOULD have at least one sanction, but just in case
-        MessageEmbed embed = generateEmbed(event.getGuild(), member.getUser(), 1, lastPage);
+        MessageEmbed embed = generateEmbed(event.getGuild(), user, 1, lastPage);
         if (embed == null) {
-            event.reply("Aucun historique de modération trouvé pour " + member.getEffectiveName() + ".").setEphemeral(true).queue();
+            event.reply("Aucun historique de modération trouvé pour " + user.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
         }
         
         // Need this because Java is doing Java things
-        Member finalMember = member;
+        User finalUser = user;
         event.replyEmbeds(embed).setComponents(getModlogButtons(1, lastPage)).queue(
-            hook -> modlogMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ModlogMessage(finalMember.getUser(), lastPage, Instant.now()))
+            hook -> modlogMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ModlogMessage(finalUser, lastPage, Instant.now()))
         );
     }
     
@@ -96,7 +96,7 @@ public class ModerationCommands {
             description.append("\n>    - Raison: ").append(sanction.reason)
                 .append("\n>    - Date: <t:").append(sanction.timestamp.getEpochSecond()).append(":F>");
             
-            if (sanction.sanctionType != SanctionEntity.SanctionType.KICK && sanction.expiryTime != null) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
+            if (sanction.sanctionType != SanctionEntity.SanctionType.KICK && sanction.expiryTime != null && !sanction.permanent) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
             description.append("\n");
         }
         
