@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.GatewayPingEvent;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
+import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.http.HttpRequestEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
@@ -119,6 +120,7 @@ public class EventProcessor {
         }
         
         private boolean isFromGuild(GenericEvent event) {
+            if (event instanceof GenericGuildEvent) return true;
             if (event instanceof Interaction interactionEvent) return interactionEvent.isFromGuild();
             if (event instanceof GenericMessageEvent messageEvent) return messageEvent.isFromGuild();
             return false;
