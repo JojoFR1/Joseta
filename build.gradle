@@ -14,7 +14,7 @@ apply from: 'gradle/jdaEventEnumCodeGen.gradle'
 
 import io.github.cdimascio.dotenv.Dotenv
 
-group = 'joseta'
+group = 'dev.jojofr'
 version = '2.1.1'
 
 def dotenv = Dotenv.configure()
