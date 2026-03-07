@@ -52,6 +52,7 @@ public class ScheduledEvents {
     
     private static void checkExpiredSanctions() {
         List<SanctionEntity> sanctions = Database.querySelect(SanctionEntity.class, (cb, rt) -> cb.and(
+            cb.equal(rt.get(SanctionEntity_.permanent), false),
             cb.equal(rt.get(SanctionEntity_.isExpired), false),
             cb.lessThanOrEqualTo(rt.get(SanctionEntity_.expiryTime), Instant.now())
         )).getResultList();

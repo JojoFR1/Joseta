@@ -19,6 +19,7 @@ public class SanctionEntity {
     @Column public Instant timestamp;
     @Column public Instant expiryTime;
     @Column public boolean isExpired = false;
+    @Column public boolean permanent = false;
     
     // A non-private and no-arg constructor is required by JPA
     protected SanctionEntity() {}
@@ -32,6 +33,7 @@ public class SanctionEntity {
         this.reason = reason;
         this.timestamp = Instant.now();
         this.expiryTime = timestamp.plusSeconds(expiryTime);
+        this.permanent = expiryTime <= 0;
     }
     
     public enum SanctionType {
