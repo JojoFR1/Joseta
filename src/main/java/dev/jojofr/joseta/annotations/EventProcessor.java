@@ -8,13 +8,18 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.GatewayPingEvent;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.StatusChangeEvent;
+import net.dv8tion.jda.api.events.channel.GenericChannelEvent;
+import net.dv8tion.jda.api.events.emoji.GenericEmojiEvent;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.http.HttpRequestEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
+import net.dv8tion.jda.api.events.role.GenericRoleEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.events.session.SessionResumeEvent;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
+import net.dv8tion.jda.api.events.sticker.GenericGuildStickerEvent;
+import net.dv8tion.jda.api.events.thread.GenericThreadEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.Interaction;
 import org.reflections.Reflections;
@@ -121,8 +126,15 @@ public class EventProcessor {
         
         private boolean isFromGuild(GenericEvent event) {
             if (event instanceof GenericGuildEvent) return true;
-            if (event instanceof Interaction interactionEvent) return interactionEvent.isFromGuild();
             if (event instanceof GenericMessageEvent messageEvent) return messageEvent.isFromGuild();
+            if (event instanceof GenericChannelEvent channelEvent) return channelEvent.isFromGuild();
+            if (event instanceof Interaction interactionEvent) return interactionEvent.isFromGuild();
+            
+            if (event instanceof GenericRoleEvent) return true;
+            if (event instanceof GenericThreadEvent) return true;
+            if (event instanceof GenericEmojiEvent) return true;
+            if (event instanceof GenericGuildStickerEvent) return true;
+            
             return false;
         }
     }
