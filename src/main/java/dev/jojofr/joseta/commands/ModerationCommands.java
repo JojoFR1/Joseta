@@ -216,6 +216,10 @@ public class ModerationCommands {
     {
         if (!check(event, member)) return;
         
+        String reasonFinal;
+        if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
+        else reasonFinal = reason;
+        
         long timeSeconds;
         if (time != null && !time.isEmpty()) timeSeconds = TimeParser.parse(time);
         else timeSeconds = 300; // Default 5 minutes
@@ -223,7 +227,7 @@ public class ModerationCommands {
         
         member.getUser().openPrivateChannel().queue(
             channel -> channel.sendMessage("Vous avez été averti sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                " pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
+                " pour la raison suivante : " + reasonFinal + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
                 ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
             ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été averti... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
         );
@@ -353,20 +357,7 @@ public class ModerationCommands {
         else reasonFinal = reason;
         
         member.ban(clearTimeSeconds, TimeUnit.SECONDS).reason(reason).queue(
-            s -> {
-                event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
-                member.getUser().openPrivateChannel().queue(
-                    channel -> channel.sendMessage(
-                        "Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                            " pour la raison suivante : " + reasonFinal + ".\n" + (timeSeconds > 0 ?
-                                "Cette sanction expirera : <t:" + (Instant.now().getEpochSecond() + timeSeconds) + ":R>."
-                                : "Cette sanction n'expirera pas automatiquement.")
-                            + "\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
-                    ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été banni... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
-                );
-                
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, member, event.getUser().getIdLong(), reason, timeSeconds);
-            },
+            s -> event.reply("Le membre a bien été banni.").setEphemeral(true).queue(),
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
                 Log.err("Error while executing a command ('ban').", f);
@@ -394,12 +385,7 @@ public class ModerationCommands {
         }
         
         event.getGuild().unban(UserSnowflake.fromId(userIdLong)).queue(
-            s -> {
-                event.reply("Le membre a bien été débanni.").setEphemeral(true).queue();
-
-                SanctionEntity sanction = SanctionDatabase.getLatest(userIdLong, event.getGuild().getIdLong(), SanctionEntity.SanctionType.BAN);
-                Database.update(sanction.setExpired(true));
-            },
+            s -> event.reply("Le membre a bien été débanni.").setEphemeral(true).queue(),
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
                 Log.err("Error while executing a command ('unban').", f);
