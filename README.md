@@ -53,6 +53,7 @@ The current plans and ideas for this bot are the following, in the likely order 
 
 - Add a Logging system ([PR #15](https://github.com/JojoFR1/Joseta/pull/15)):
 - Add a Ticket system (probably PR 17 or 18).
+- Add permissions check 
 
 - Collect and display statistics (message count, user join/leave)
 
