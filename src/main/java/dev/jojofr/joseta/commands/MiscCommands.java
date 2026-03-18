@@ -67,6 +67,8 @@ public class MiscCommands {
             return;
         }
         
+        message = message.replace("`", "").replace("\\", "");
+        
         Instant remindAt = Instant.now().plusSeconds(timeSeconds);
         Database.create(new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));
         event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
