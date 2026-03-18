@@ -42,7 +42,7 @@ public class ScheduledEvents {
                 msgChannel.sendMessage(REMINDER_PREMESSAGE
                         .replace("%userid%", String.valueOf(reminder.userId))
                         .replace("%message%", reminder.message)
-                ).queue(
+                ).setAllowedMentions(List.of(Message.MentionType.USER)).queue(
                     success -> Database.delete(reminder),
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );

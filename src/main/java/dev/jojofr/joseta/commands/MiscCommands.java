@@ -6,6 +6,7 @@ import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
+import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.BotCache;
@@ -61,13 +62,15 @@ public class MiscCommands {
     {
         long timeSeconds = TimeParser.parse(time);
         
+        String noMentions = MessageDatabase.NO_MENTIONS_PATTERN.matcher(message).replaceAll("");
+        String noUrl = MessageDatabase.NO_URL_PATTERN.matcher(noMentions).replaceAll("");
+        message = noUrl.replace("`", "").replace("\\", "");
+        
         long userId = event.getUser().getIdLong();
         if (message.length() > ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(userId).length()) {
             event.reply("Le message de rappel est trop long. La longueur maximale est de " + (Message.MAX_CONTENT_LENGTH - ScheduledEvents.REMINDER_PREMESSAGE.length()) + " caractères.").setEphemeral(true).queue();
             return;
         }
-        
-        message = message.replace("`", "").replace("\\", "");
         
         Instant remindAt = Instant.now().plusSeconds(timeSeconds);
         Database.create(new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));

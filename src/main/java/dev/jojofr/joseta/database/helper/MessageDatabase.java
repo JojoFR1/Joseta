@@ -224,8 +224,8 @@ public class MessageDatabase {
     
     // You may be like: "Oh, but why compile such simple regex?". Well, caching them is way more efficient than a replaceAll because said method recompiles it every time.
     private static final Pattern NO_SPACE_PATTERN = Pattern.compile("\\S+");
-    private static final Pattern NO_MENTIONS_PATTERN = Pattern.compile("<@[!&]?\\d+>");
-    private static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
+    public static final Pattern NO_MENTIONS_PATTERN = Pattern.compile("<@[!&]?\\d+>");
+    public static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
     
     private static String cleanContent(String content) {
         String noMentions = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
