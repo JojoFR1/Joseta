@@ -30,7 +30,7 @@ sourceSets.main.java.srcDir generatedSourcesDir
 
 repositories { mavenCentral() }
 dependencies {
-    implementation('net.dv8tion:JDA:6.3.1') {
+    implementation('net.dv8tion:JDA:6.3.2') {
         // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
         exclude module: 'opus-java'
         exclude module: 'tink'
@@ -40,10 +40,10 @@ dependencies {
     implementation 'org.reflections:reflections:0.10.2'
 
     implementation 'org.postgresql:postgresql:42.7.10'
-    implementation 'org.hibernate.orm:hibernate-core:7.2.6.Final'
+    implementation 'org.hibernate.orm:hibernate-core:7.3.0.Final'
 
-    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.2.6.Final'
-    implementation 'org.hibernate.orm:hibernate-hikaricp:7.2.6.Final'
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.0.Final'
+    implementation 'org.hibernate.orm:hibernate-hikaricp:7.3.0.Final'
     implementation 'com.zaxxer:HikariCP:7.0.2'
 }
 
@@ -61,7 +61,7 @@ shadowJar {
     archiveFileName = 'JosetaBot.jar'
 }
 
-run {
+runShadow {
     classpath = sourceSets.main.runtimeClasspath
     args = [ '--debug' ]
 }
