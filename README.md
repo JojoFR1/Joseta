@@ -85,9 +85,7 @@ Then, you can execute this command: `java -jar build/libs/JosetaBot.jar` with th
 - `--debug`: run the bot in debug mode. (Log level is debug level & intended for testing)
 - `--server`: run the bot in server mode. (Log level is debug level & save log file up to 14 days)
 
-You can also run the `run` gradle task with `./gradlew run`, which is the same as running the jar with the `--debug` argument.
-
-The `runDebug` gradle task is only intended for development purpose with *IntelliJ IDEA*.
+You can also run the `runShadow` Gradle task with `./gradlew runShadow`, which is the same as running the jar with the `--debug` argument.
 
 
 ## Contributors
