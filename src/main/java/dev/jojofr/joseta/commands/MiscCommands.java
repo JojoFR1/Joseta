@@ -6,16 +6,20 @@ import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
+import dev.jojofr.joseta.database.entities.ReminderEntity_;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.TimeParser;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import java.awt.*;
 import java.time.Instant;
+import java.util.List;
 
 @InteractionModule
 public class MiscCommands {
@@ -77,10 +81,33 @@ public class MiscCommands {
         event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
     }
     
-    // TODO Logic implementation
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
-        event.reply("Cette fonctionnalité n'est pas encore implémentée.").setEphemeral(true).queue();
+        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class,
+            (cb, rt) ->
+                cb.and(cb.equal(rt.get(ReminderEntity_.userId), event.getUser().getIdLong()),
+                    cb.equal(rt.get(ReminderEntity_.guildId), event.getGuild().getIdLong())),
+            (cb, rt) -> cb.asc(rt.get(ReminderEntity_.remindAt))).getResultList();
+        
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .setTitle("Liste des rappels de: " + event.getUser().getEffectiveName())
+            .setColor(new Color(100, 169, 205))
+            .setAuthor(event.getUser().getEffectiveName(), event.getUser().getEffectiveAvatarUrl())
+            .setFooter(event.getGuild().getName(), event.getGuild().getIconUrl())
+            .setTimestamp(Instant.now());
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < reminders.size(); i++) {
+            ReminderEntity reminder = reminders.get(i);
+            
+            sb.append(i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>)\n");
+            sb.append(">     - **Message :** ```").append(reminder.message).append("```");
+            sb.append("\n");
+            if (i != reminders.size() - 1) sb.append("\n");
+        }
+        embedBuilder.setDescription(sb.toString());
+        
+        event.replyEmbeds(embedBuilder.build()).setEphemeral(true).queue();
     }
     //#endregion
 }

@@ -39,7 +39,7 @@ Below is non-exhaustive list of the features this bot currently has:
   | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                                      |
   |            | `/multi`       | Manually send the multiplayer help message.                                            |
   |            | `/markov`      | (Not implemented!) Generate a pseudo-random message using messages sent on the server. |
-  |            | `/reminder`    | Add or (list not implemented) reminders.                                               |
+  |            | `/reminder`    | Add or list reminders.                                                                 |
   | Moderation | `/modlog`      | Get a member current moderation history.                                               |
   |            | `/(un)ban`     | (Un)Ban a member from the server.                                                      |
   |            | `/kick`        | Kick a member from the server.                                                         |
