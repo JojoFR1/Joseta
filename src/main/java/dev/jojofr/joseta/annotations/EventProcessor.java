@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.events.emoji.GenericEmojiEvent;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.http.HttpRequestEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
+import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.role.GenericRoleEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
@@ -134,6 +135,7 @@ public class EventProcessor {
             if (event instanceof GenericThreadEvent) return true;
             if (event instanceof GenericEmojiEvent) return true;
             if (event instanceof GenericGuildStickerEvent) return true;
+            if (event instanceof MessageBulkDeleteEvent) return true;
             
             return false;
         }
