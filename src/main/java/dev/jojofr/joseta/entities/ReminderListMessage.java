@@ -4,15 +4,13 @@ import net.dv8tion.jda.api.entities.User;
 
 import java.time.Instant;
 
-public class ModlogMessage {
-    public final User user;
+public class ReminderListMessage {
     public final Instant timestamp;
     
     public int currentPage;
     public final int lastPage;
     
-    public ModlogMessage(User user, int lastPage) {
-        this.user = user;
+    public ReminderListMessage(int lastPage) {
         this.timestamp = Instant.now();
         this.currentPage = 1;
         this.lastPage = lastPage;
@@ -27,4 +25,5 @@ public class ModlogMessage {
         if (currentPage > 1) return --currentPage;
         return currentPage;
     }
+    
 }

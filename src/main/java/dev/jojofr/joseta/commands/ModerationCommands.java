@@ -61,7 +61,7 @@ public class ModerationCommands {
         // Need this because Java is doing Java things
         User finalUser = user;
         event.replyEmbeds(embed).setComponents(getModlogButtons(1, lastPage)).queue(
-            hook -> modlogMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ModlogMessage(finalUser, lastPage, Instant.now()))
+            hook -> modlogMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ModlogMessage(finalUser, lastPage))
         );
     }
     
@@ -101,7 +101,6 @@ public class ModerationCommands {
         }
         
         embedBuilder.setDescription(description.toString());
-        
         return embedBuilder.build();
     }
     
