@@ -11,19 +11,22 @@ import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ReminderListMessage;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.TimeParser;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import org.hibernate.query.SelectionQuery;
 
 import java.awt.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,13 +75,13 @@ public class ReminderCommand {
         // Integer division always floors the result, so we add 1 if there's a remainder to ceil the value
         int lastPage = reminderAmount / REMINDER_PER_PAGE + (reminderAmount % REMINDER_PER_PAGE == 0 ? 0 : 1);
         
-        MessageEmbed embed = generateEmbed(query, event.getGuild(), event.getUser(), 1, lastPage);
-        if (embed == null) {
+        Container container = generateContainer(query, event.getGuild(), event.getUser(), 1, lastPage);
+        if (container == null) {
             event.reply("Vous n'avez aucun rappel actif.").setEphemeral(true).queue();
             return;
         }
         
-        event.replyEmbeds(embed).setComponents(getPagesButton(1, lastPage)).setEphemeral(true).queue(
+        event.replyComponents(container).useComponentsV2().setEphemeral(true).queue(
             hook -> reminderListMessages.put(event.getUser().getIdLong(), new ReminderListMessage(lastPage))
         );
     }
@@ -109,20 +112,17 @@ public class ReminderCommand {
             (cb, rt) -> cb.asc(rt.get(ReminderEntity_.remindAt))
         );
         
-        event.editMessageEmbeds(generateEmbed(query, event.getGuild(), event.getUser(), currentPage, reminderMessage.lastPage))
-            .setComponents(getPagesButton(currentPage, reminderMessage.lastPage)).queue();
+        event.editComponents(generateContainer(query, event.getGuild(), event.getUser(), currentPage, reminderMessage.lastPage))
+            .useComponentsV2().queue();
     }
     
-    private MessageEmbed generateEmbed(SelectionQuery<ReminderEntity> query, Guild guild, User user, int currentPage, int lastPage) {
+    private Container generateContainer(SelectionQuery<ReminderEntity> query, Guild guild, User user, int currentPage, int lastPage) {
         List<ReminderEntity> reminders = query.setFirstResult((currentPage - 1) * REMINDER_PER_PAGE).setMaxResults(REMINDER_PER_PAGE).getResultList();
         
         if (reminders.isEmpty()) return null;
         
-        EmbedBuilder embedBuilder = new EmbedBuilder()
-            .setTitle("Liste des rappels de " + user.getEffectiveName() + " ┃ Page " +  currentPage + "/"+ lastPage)
-            .setColor(new Color(100, 169, 205))
-            .setFooter(guild.getName(), guild.getIconUrl())
-            .setTimestamp(Instant.now());
+        List<ContainerChildComponent> components = new ArrayList<>();
+        components.add(TextDisplay.of("### Liste des rappels de " + user.getEffectiveName() + " ┃ Page " +  currentPage + "/"+ lastPage));
         
         int reminderNum = REMINDER_PER_PAGE * (currentPage - 1) + 1;
         StringBuilder sb = new StringBuilder();
@@ -130,18 +130,26 @@ public class ReminderCommand {
             sb.append(reminderNum).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>)\n");
             sb.append("> ```").append(reminder.message).append("```\n\n");
             
+            components.add(TextDisplay.of(sb.toString()));
+            components.add(ActionRow.of(
+                Button.primary("reminders:edit:" + reminder.id, "Modifier").withEmoji(Emoji.fromUnicode("✏️")),
+                Button.danger("reminders:delete:" + reminder.id, "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
+            ));
+            sb.setLength(0);
+            
             reminderNum++;
         }
         
-        embedBuilder.setDescription(sb.toString());
-        return embedBuilder.build();
+        components.add(getPagesButton(currentPage, lastPage));
+        
+        return Container.of(components).withAccentColor(new Color(100, 169, 205));
     }
     
     private ActionRow getPagesButton(int currentPage, int lastPage) {
         return ActionRow.of(
-            net.dv8tion.jda.api.components.buttons.Button.secondary("misc:reminders:page:first", "⏪").withDisabled(currentPage == 1),
-            net.dv8tion.jda.api.components.buttons.Button.secondary("misc:reminders:page:prev", "◀️").withDisabled(currentPage <= 1),
-            net.dv8tion.jda.api.components.buttons.Button.secondary("misc:reminders:page:next", "▶️").withDisabled(currentPage >= lastPage),
+            Button.secondary("misc:reminders:page:first", "⏪").withDisabled(currentPage == 1),
+            Button.secondary("misc:reminders:page:prev", "◀️").withDisabled(currentPage <= 1),
+            Button.secondary("misc:reminders:page:next", "▶️").withDisabled(currentPage >= lastPage),
             Button.secondary("misc:reminders:page:last", "⏩").withDisabled(currentPage == lastPage)
         );
     }
