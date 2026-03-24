@@ -43,7 +43,9 @@ public class ReminderCommand {
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
     public void reminderAdd(SlashCommandInteractionEvent event,
                             @Option(description = "Le message du rappel.", required = true) String message,
-                            @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time)
+                            @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time,
+                            @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm,
+                            @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat)
     {
         long timeSeconds = TimeParser.parse(time);
         

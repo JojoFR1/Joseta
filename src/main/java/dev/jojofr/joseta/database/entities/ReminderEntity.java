@@ -13,8 +13,11 @@ public class ReminderEntity {
     @Column public long guildId;
     @Column public long channelId;
     @Column public long userId;
+    
     @Column(columnDefinition = "TEXT") public String message;
     @Column public Instant remindAt;
+    @Column public boolean dm = false;
+    @Column public boolean repeat = false;
     
     // A non-private and no-arg constructor is required by JPA
     protected ReminderEntity() {}
