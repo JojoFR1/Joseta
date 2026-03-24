@@ -33,6 +33,7 @@ import java.util.Map;
 
 @InteractionModule
 public class ReminderCommand {
+    
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
     public void reminderAdd(SlashCommandInteractionEvent event,
                             @Option(description = "Le message du rappel.", required = true) String message,
@@ -54,6 +55,7 @@ public class ReminderCommand {
         Database.create(new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));
         event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
     }
+    
     
     private static final int REMINDER_PER_PAGE = 5;
     private static final Map<Long, ReminderListMessage> reminderListMessages = new HashMap<>();
@@ -86,7 +88,7 @@ public class ReminderCommand {
         );
     }
     
-    @ButtonInteraction(id = "misc:reminders:page:*")
+    @ButtonInteraction(id = "reminders:page:*")
     public void reminderPage(ButtonInteractionEvent event) {
         ReminderListMessage reminderMessage = reminderListMessages.get(event.getUser().getIdLong());
         // Check if the reminderMessage exists and if the timestamp is still valid (15 minutes)
@@ -132,8 +134,8 @@ public class ReminderCommand {
             
             components.add(TextDisplay.of(sb.toString()));
             components.add(ActionRow.of(
-                Button.primary("reminders:edit:" + reminder.id, "Modifier").withEmoji(Emoji.fromUnicode("✏️")),
-                Button.danger("reminders:delete:" + reminder.id, "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
+                Button.primary("reminders:edit:" + i, "Modifier").withEmoji(Emoji.fromUnicode("✏️")),
+                Button.danger("reminders:delete:" + i, "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
             ));
             sb.setLength(0);
             
@@ -147,10 +149,10 @@ public class ReminderCommand {
     
     private ActionRow getPagesButton(int currentPage, int lastPage) {
         return ActionRow.of(
-            Button.secondary("misc:reminders:page:first", "⏪").withDisabled(currentPage == 1),
-            Button.secondary("misc:reminders:page:prev", "◀️").withDisabled(currentPage <= 1),
-            Button.secondary("misc:reminders:page:next", "▶️").withDisabled(currentPage >= lastPage),
-            Button.secondary("misc:reminders:page:last", "⏩").withDisabled(currentPage == lastPage)
+            Button.secondary("reminders:page:first", "⏪").withDisabled(currentPage == 1),
+            Button.secondary("reminders:page:prev", "◀️").withDisabled(currentPage <= 1),
+            Button.secondary("reminders:page:next", "▶️").withDisabled(currentPage >= lastPage),
+            Button.secondary("reminders:page:last", "⏩").withDisabled(currentPage == lastPage)
         );
     }
 }
