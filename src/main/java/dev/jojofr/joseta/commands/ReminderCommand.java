@@ -15,14 +15,20 @@ import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
-import org.hibernate.query.SelectionQuery;
+import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.modals.Modal;
 
 import java.awt.*;
 import java.time.Instant;
@@ -62,44 +68,31 @@ public class ReminderCommand {
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
-        SelectionQuery<ReminderEntity> query = Database.querySelect(ReminderEntity.class,
+        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class,
             (cb, rt) ->
                 cb.and(cb.equal(rt.get(ReminderEntity_.userId), event.getUser().getIdLong()),
                     cb.equal(rt.get(ReminderEntity_.guildId), event.getGuild().getIdLong())),
             (cb, rt) -> cb.asc(rt.get(ReminderEntity_.remindAt))
-        );
-        int reminderAmount = Math.toIntExact(query.getResultCount());
-        if (reminderAmount == 0) {
+        ).getResultList();
+        
+        if (reminders.isEmpty()) {
             event.reply("Vous n'avez aucun rappel actif.").setEphemeral(true).queue();
             return;
         }
         
         // Integer division always floors the result, so we add 1 if there's a remainder to ceil the value
-        int lastPage = reminderAmount / REMINDER_PER_PAGE + (reminderAmount % REMINDER_PER_PAGE == 0 ? 0 : 1);
+        int lastPage = reminders.size() / REMINDER_PER_PAGE + (reminders.size() % REMINDER_PER_PAGE == 0 ? 0 : 1);
         
-        Container container = generateContainer(query, event.getGuild(), event.getUser(), 1, lastPage);
-        if (container == null) {
-            event.reply("Vous n'avez aucun rappel actif.").setEphemeral(true).queue();
-            return;
-        }
-        
-        event.replyComponents(container).useComponentsV2().setEphemeral(true).queue(
-            hook -> reminderListMessages.put(event.getUser().getIdLong(), new ReminderListMessage(lastPage))
-        );
+        event.replyComponents(generateContainer(reminders, event.getGuild(), event.getUser(), 1, lastPage))
+            .useComponentsV2().setEphemeral(true).queue(
+                hook -> reminderListMessages.put(event.getUser().getIdLong(), new ReminderListMessage(reminders, lastPage))
+            );
     }
     
     @ButtonInteraction(id = "reminders:page:*")
     public void reminderPage(ButtonInteractionEvent event) {
-        ReminderListMessage reminderMessage = reminderListMessages.get(event.getUser().getIdLong());
-        // Check if the reminderMessage exists and if the timestamp is still valid (15 minutes)
-        if (reminderMessage == null || Instant.now().isAfter(reminderMessage.timestamp.plusSeconds(15 * 60))) {
-            event.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir une nouvelle liste.").setEphemeral(true).queue();
-            
-            // Remove the button from the message
-            event.getMessage().editMessageComponents().queue();
-            reminderListMessages.remove(event.getUser().getIdLong());
-            return;
-        }
+        ReminderListMessage reminderMessage = getReminderListMessage(event);
+        if (reminderMessage == null) return;
         
         String eventId = event.getComponentId();
         int currentPage = eventId.endsWith("first") ? 1
@@ -107,29 +100,60 @@ public class ReminderCommand {
             : eventId.endsWith("next")  ? reminderMessage.nextPage()
             : reminderMessage.lastPage;
         
-        SelectionQuery<ReminderEntity> query = Database.querySelect(ReminderEntity.class,
-            (cb, rt) ->
-                cb.and(cb.equal(rt.get(ReminderEntity_.userId), event.getUser().getIdLong()),
-                    cb.equal(rt.get(ReminderEntity_.guildId), event.getGuild().getIdLong())),
-            (cb, rt) -> cb.asc(rt.get(ReminderEntity_.remindAt))
-        );
-        
-        event.editComponents(generateContainer(query, event.getGuild(), event.getUser(), currentPage, reminderMessage.lastPage))
+        event.editComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), currentPage, reminderMessage.lastPage))
             .useComponentsV2().queue();
     }
     
-    private Container generateContainer(SelectionQuery<ReminderEntity> query, Guild guild, User user, int currentPage, int lastPage) {
-        List<ReminderEntity> reminders = query.setFirstResult((currentPage - 1) * REMINDER_PER_PAGE).setMaxResults(REMINDER_PER_PAGE).getResultList();
+    @ButtonInteraction(id = "reminders:edit:*")
+    public void reminderEdit(ButtonInteractionEvent event) {
+        long reminderId = Long.parseLong(event.getComponentId().substring("reminders:edit:".length()));
+        String id = event.getCustomId() + ":modal";
         
-        if (reminders.isEmpty()) return null;
+        Modal modal = Modal.create(id, "Modifier le rappel")
+            .addComponents(
+                TextDisplay.of("Truc"),
+                
+                Label.of(
+                    "Modifier le message du rappel :",
+                    TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("Le message de votre rappel...")
+                        .setMinLength(1)
+                        .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
+                        .setValue("to fetch")
+                        .build()
+                )
+            ).build();
         
+        event.replyModal(modal).queue();
+    }
+    
+    @ButtonInteraction(id = "reminders:delete:*")
+    public void reminderDelete(ButtonInteractionEvent event) {
+        ReminderListMessage reminderMessage = getReminderListMessage(event);
+        if (reminderMessage == null) return;
+        
+        int reminderId = Integer.parseInt(event.getComponentId().substring("reminders:delete:".length()));
+        Database.delete(reminderMessage.reminders.get(reminderId));
+        reminderMessage.reminders.remove(reminderId);
+        
+        event.reply("Le rappel a bien été supprimé.").setEphemeral(true).queue();
+        event.getMessage().editMessageComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
+            .useComponentsV2().queue();
+    }
+    
+    private Container generateContainer(List<ReminderEntity> reminders, Guild guild, User user, int currentPage, int lastPage) {
         List<ContainerChildComponent> components = new ArrayList<>();
         components.add(TextDisplay.of("### Liste des rappels de " + user.getEffectiveName() + " ┃ Page " +  currentPage + "/"+ lastPage));
         
-        int reminderNum = REMINDER_PER_PAGE * (currentPage - 1) + 1;
         StringBuilder sb = new StringBuilder();
-        for (ReminderEntity reminder : reminders) {
-            sb.append(reminderNum).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>)\n");
+        
+        int index = (currentPage - 1) * REMINDER_PER_PAGE;
+        for (int i = index; i < index + REMINDER_PER_PAGE; i++) {
+            if (i >= reminders.size()) break;
+            
+            ReminderEntity reminder = reminders.get(i);
+            
+            sb.append(index + i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>)\n");
             sb.append("> ```").append(reminder.message).append("```\n\n");
             
             components.add(TextDisplay.of(sb.toString()));
@@ -138,13 +162,28 @@ public class ReminderCommand {
                 Button.danger("reminders:delete:" + i, "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
             ));
             sb.setLength(0);
-            
-            reminderNum++;
         }
         
         components.add(getPagesButton(currentPage, lastPage));
         
         return Container.of(components).withAccentColor(new Color(100, 169, 205));
+    }
+    
+    private ReminderListMessage getReminderListMessage(GenericInteractionCreateEvent event) {
+        if (!(event instanceof IReplyCallback replyCallback)) return null;
+        
+        ReminderListMessage reminderMessage = reminderListMessages.get(event.getUser().getIdLong());
+        if (reminderMessage == null || Instant.now().isAfter(reminderMessage.timestamp.plusSeconds(15 * 60))) {
+            replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir une nouvelle liste.").setEphemeral(true).queue();
+            
+            // Remove the button from the message
+            if (event instanceof GenericComponentInteractionCreateEvent componentEvent)
+                componentEvent.getMessage().editMessageComponents(TextDisplay.of("⚠️ Cette liste de rappels a expirer. Veuillez réutiliser la commande pour obtenir une nouvelle liste."))
+                    .useComponentsV2().queue();
+
+            reminderListMessages.remove(event.getUser().getIdLong());
+        }
+        return reminderMessage;
     }
     
     private ActionRow getPagesButton(int currentPage, int lastPage) {
