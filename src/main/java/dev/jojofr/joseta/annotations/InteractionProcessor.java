@@ -319,7 +319,8 @@ public class InteractionProcessor {
                         event.reply("Un paramètre obligatoire est manquant. Veuillez contacter un développeur si l'erreur persiste.").queue();
                         return;
                     }
-
+                    
+                    // The option is optional and the user did not provide anything
                     if (option == null) {
                         args.add(null);
                         continue;
