@@ -558,6 +558,7 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder mentionableBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:mentionable_blacklist_select", EntitySelectMenu.SelectTarget.ROLE, EntitySelectMenu.SelectTarget.USER)
             .setPlaceholder("Sélectionnez des membres ou rôles à ajouter ou retirer de la blacklist de Markov")
             .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT);
+        
         if (configurationMessage.configuration.markovBlacklist != null && !configurationMessage.configuration.markovBlacklist.isEmpty()) {
             List<EntitySelectMenu.DefaultValue> defaultValues = configurationMessage.configuration.markovBlacklist.stream()
                 .map(id -> {

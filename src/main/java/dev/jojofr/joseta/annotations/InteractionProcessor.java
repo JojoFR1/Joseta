@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.GenericContextInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.ICustomIdInteraction;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
@@ -341,10 +342,13 @@ public class InteractionProcessor {
                 }
 
                 command.getMethod().invoke(o, args.toArray());
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during command execution ({}):", e, command.getName());
             } catch (Exception e) {
-                Log.warn("An unexpected error occurred during command execution ({}):", e, command.getName());
+                if (e instanceof InsufficientPermissionException ie) {
+                    event.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
+                    return;
+                }
+                
+                Log.err("An error occurred during command execution ({}):", e, command.getName());
             }
             
             long endTime = System.nanoTime();
@@ -372,10 +376,13 @@ public class InteractionProcessor {
                 Object o = contextInteraction.getClazz().getDeclaredConstructor().newInstance();
 
                 contextInteraction.getMethod().invoke(o, event);
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during context execution ({}):", e, contextInteraction.getName());
             } catch (Exception e) {
-                Log.warn("An unexpected error occurred during context execution ({}):", e, contextInteraction.getName());
+                if (e instanceof InsufficientPermissionException ie) {
+                    event.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
+                    return;
+                }
+                
+                Log.err("An error occurred during command execution ({}):", e, contextInteraction.getName());
             }
             
             long endTime = System.nanoTime();
@@ -442,10 +449,13 @@ public class InteractionProcessor {
                 Object o = interaction.getClazz().getDeclaredConstructor().newInstance();
 
                 interaction.getMethod().invoke(o, event);
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
-                Log.err("An error occurred during interaction execution ({}):", e, interaction.getName());
             } catch (Exception e) {
-                Log.warn("An unexpected error occurred during interaction execution ({}):", e, interaction.getName());
+                if (e instanceof InsufficientPermissionException ie) {
+                    replyCallback.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + interaction.getName() + "`.").setEphemeral(true).queue();
+                    return;
+                }
+                
+                Log.err("An error occurred during command execution ({}):", e, interaction.getName());
             }
             
             long endTime = System.nanoTime();

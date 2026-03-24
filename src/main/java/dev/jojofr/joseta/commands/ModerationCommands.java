@@ -251,7 +251,7 @@ public class ModerationCommands {
         if (!check(event, member)) return;
         
         long timeSeconds;
-        if (time != null && !time.isEmpty()) timeSeconds = TimeParser.parse(time);
+        if (time != null && !time.isBlank()) timeSeconds = TimeParser.parse(time);
         else timeSeconds = 300; // Default 5 minutes
         
         if (timeSeconds <= 0 || timeSeconds > TimeUnit.DAYS.toSeconds(Member.MAX_TIME_OUT_LENGTH)) {
