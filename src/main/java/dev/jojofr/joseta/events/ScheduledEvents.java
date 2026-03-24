@@ -9,10 +9,10 @@ import dev.jojofr.joseta.database.entities.SanctionEntity_;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -33,20 +33,54 @@ public class ScheduledEvents {
     public static final int REMINDER_MAX_MESSAGE_LENGTH = Message.MAX_CONTENT_LENGTH - REMINDER_PREMESSAGE.replace("%message%", "").replace("%userid%", "").length();
     
     private static void checkReminders() {
-        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class, (cb, rt) -> cb.lessThanOrEqualTo(rt.get(ReminderEntity_.remindAt), Instant.now())).getResultList();
+        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class, (cb, rt) ->
+            cb.lessThanOrEqualTo(rt.get(ReminderEntity_.remindAt), Instant.now())).getResultList();
         if (reminders.isEmpty()) return;
         
         for (ReminderEntity reminder : reminders) {
-            GuildChannel channel = JosetaBot.get().getGuildChannelById(reminder.channelId);
-            if (channel instanceof GuildMessageChannel msgChannel) {
-                msgChannel.sendMessage(REMINDER_PREMESSAGE
-                        .replace("%userid%", String.valueOf(reminder.userId))
-                        .replace("%message%", reminder.message)
-                ).setAllowedMentions(List.of(Message.MentionType.USER)).queue(
-                    success -> Database.delete(reminder),
+            MessageChannel channel = (MessageChannel) JosetaBot.get().getGuildChannelById(reminder.channelId);
+            boolean shouldDm = reminder.dm || channel == null;
+            
+            String message = REMINDER_PREMESSAGE.replace("%userid%", String.valueOf(reminder.userId))
+                                                .replace("%message%", reminder.message);
+            if (!shouldDm) {
+                channel.sendMessage(message).setAllowedMentions(Collections.singleton(Message.MentionType.USER)).queue(
+                    success -> {
+                        if (!reminder.repeat) {
+                            reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                            Database.update(reminder);
+                            return;
+                        }
+                        
+                        Database.delete(reminder);
+                    },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );
+                return;
             }
+            
+            if (channel == null) return;
+            JosetaBot.get().retrieveUserById(reminder.userId).queue(
+                user -> user.openPrivateChannel().queue(
+                    privateChannel -> {
+                        if (!privateChannel.canTalk()) {
+                            Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
+                            channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai dans 1 heure, vérifie que je peux t'envoyer des messages privés.").queue();
+                            return;
+                        }
+                        
+                        channel.sendMessage(message).queue(
+                            success -> {
+                                if (!reminder.repeat) {
+                                    reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                                    Database.update(reminder);
+                                    return;
+                                }
+                                
+                                Database.delete(reminder);
+                            }
+                        );
+                    }));
         }
     }
     

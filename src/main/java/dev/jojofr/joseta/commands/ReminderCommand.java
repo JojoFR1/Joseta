@@ -47,6 +47,8 @@ public class ReminderCommand {
                             @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm,
                             @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat)
     {
+        if (dm == null) dm = false;
+        if (repeat == null) repeat = false;
         long timeSeconds = TimeParser.parse(time);
         
         String noMentions = MessageDatabase.NO_MENTIONS_PATTERN.matcher(message).replaceAll("");
@@ -59,9 +61,9 @@ public class ReminderCommand {
             return;
         }
         
-        Instant remindAt = Instant.now().plusSeconds(timeSeconds);
-        Database.create(new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt));
-        event.reply("Votre rappel a été ajouté pour le <t:" + remindAt.getEpochSecond() + ":F> (<t:" + remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
+        ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, timeSeconds, dm, repeat);
+        Database.create(reminder);
+        event.reply("Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
     }
     
     
@@ -155,8 +157,11 @@ public class ReminderCommand {
             
             ReminderEntity reminder = reminders.get(i);
             
-            sb.append(index + i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>)\n");
-            sb.append("> ```").append(reminder.message).append("```\n\n");
+            sb.append(index + i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>");
+            
+            if (reminder.repeat) sb.append(", répété");
+            if (reminder.dm) sb.append(", en MP");
+            sb.append(")\n").append("> ```").append(reminder.message).append("```\n\n");
             
             components.add(TextDisplay.of(sb.toString()));
             components.add(ActionRow.of(
