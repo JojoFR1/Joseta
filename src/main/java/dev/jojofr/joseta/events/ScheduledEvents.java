@@ -47,12 +47,12 @@ public class ScheduledEvents {
                 channel.sendMessage(message).setAllowedMentions(Collections.singleton(Message.MentionType.USER)).queue(
                     success -> {
                         if (!reminder.repeat) {
-                            reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
-                            Database.update(reminder);
+                            Database.delete(reminder);
                             return;
                         }
                         
-                        Database.delete(reminder);
+                        reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                        Database.update(reminder);
                     },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );
@@ -72,12 +72,12 @@ public class ScheduledEvents {
                         channel.sendMessage(message).queue(
                             success -> {
                                 if (!reminder.repeat) {
-                                    reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
-                                    Database.update(reminder);
+                                    Database.delete(reminder);
                                     return;
                                 }
                                 
-                                Database.delete(reminder);
+                                reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                                Database.update(reminder);
                             }
                         );
                     }));
