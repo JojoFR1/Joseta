@@ -32,7 +32,9 @@ public class ReminderEntity {
         this.message = message;
         this.createdAt = Instant.now();
         this.remindAfter = remindAfter;
-        this.remindAt = createdAt.plusSeconds(remindAfter);
+
+        if (createdAt.getEpochSecond() + remindAfter > Instant.MAX.getEpochSecond()) this.remindAt = Instant.MAX;
+        else this.remindAt = createdAt.plusSeconds(remindAfter);
         this.dm = dm;
         this.repeat = repeat;
     }
