@@ -63,7 +63,21 @@ public class ReminderCommand {
         
         ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, timeSeconds, dm, repeat);
         Database.create(reminder);
-        event.reply("Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>).").setEphemeral(true).queue();
+        event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
+            + (repeat ? " Il sera répété." : "") + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
+        
+        if (dm)
+            event.getUser().openPrivateChannel().queue(
+                privateChannel -> {
+                    if (!privateChannel.canTalk()) {
+                        event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue();
+                        return;
+                    }
+                    
+                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>). Il vous sera envoyé ici.").queue();
+                },
+                fail -> event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue()
+            );
     }
     
     
@@ -110,25 +124,27 @@ public class ReminderCommand {
     
     @ButtonInteraction(id = "reminders:edit:*")
     public void reminderEdit(ButtonInteractionEvent event) {
-        long reminderId = Long.parseLong(event.getComponentId().substring("reminders:edit:".length()));
-        String id = event.getCustomId() + ":modal";
+        event.reply("Cette fonctionnalité n'est pas encore disponible.").setEphemeral(true).queue();
         
-        Modal modal = Modal.create(id, "Modifier le rappel")
-            .addComponents(
-                TextDisplay.of("Truc"),
-                
-                Label.of(
-                    "Modifier le message du rappel :",
-                    TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
-                        .setPlaceholder("Le message de votre rappel...")
-                        .setMinLength(1)
-                        .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
-                        .setValue("to fetch")
-                        .build()
-                )
-            ).build();
-        
-        event.replyModal(modal).queue();
+        // long reminderId = Long.parseLong(event.getComponentId().substring("reminders:edit:".length()));
+        // String id = event.getCustomId() + ":modal";
+        //
+        // Modal modal = Modal.create(id, "Modifier le rappel")
+        //     .addComponents(
+        //         TextDisplay.of("Truc"),
+        //
+        //         Label.of(
+        //             "Modifier le message du rappel :",
+        //             TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
+        //                 .setPlaceholder("Le message de votre rappel...")
+        //                 .setMinLength(1)
+        //                 .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
+        //                 .setValue("to fetch")
+        //                 .build()
+        //         )
+        //     ).build();
+        //
+        // event.replyModal(modal).queue();
     }
     
     @ButtonInteraction(id = "reminders:delete:*")
@@ -157,7 +173,7 @@ public class ReminderCommand {
             
             ReminderEntity reminder = reminders.get(i);
             
-            sb.append(index + i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>");
+            sb.append(i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>");
             
             if (reminder.repeat) sb.append(", répété");
             if (reminder.dm) sb.append(", en MP");
@@ -165,7 +181,7 @@ public class ReminderCommand {
             
             components.add(TextDisplay.of(sb.toString()));
             components.add(ActionRow.of(
-                Button.primary("reminders:edit:" + i, "Modifier").withEmoji(Emoji.fromUnicode("✏️")),
+                Button.primary("reminders:edit:" + i, "Modifier").withEmoji(Emoji.fromUnicode("✏️")).withDisabled(true),
                 Button.danger("reminders:delete:" + i, "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
             ));
             sb.setLength(0);
