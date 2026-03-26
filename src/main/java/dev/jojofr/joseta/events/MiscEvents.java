@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -66,6 +67,7 @@ public class MiscEvents {
     );
     //TODO unhardcode message & emoji
     public static final String autoResponseMessage = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
+    private static Instant hasProc = Instant.now().minusSeconds(60 * 15);
     
     @EventHandler(type = EventType.MESSAGE_RECEIVED)
     public void autoResponse(MessageReceivedEvent event) {
@@ -73,11 +75,13 @@ public class MiscEvents {
         if (!config.autoResponseEnabled) return;
         
         Random random = BotCache.getRandom(event.getGuild().getIdLong() + event.getAuthor().getIdLong());
-        float shouldActivate = random.nextFloat();
+        boolean shouldActivate = random.nextFloat() <= 0.10f && hasProc.plusSeconds(60 * 15).isBefore(Instant.now());
         
         String text = event.getMessage().getContentRaw();
-        if (shouldActivate <= 0.10f || (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find()))
+        if (shouldActivate || (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find())) {
             event.getMessage().reply(autoResponseMessage + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
+            hasProc = Instant.now();
+        }
     }
     
     
