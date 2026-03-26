@@ -32,7 +32,7 @@ public class SetupEvents {
             ConfigurationEntity config = new ConfigurationEntity(event.getGuild().getIdLong());
             Database.create(config);
             
-            MessageDatabase.populateNewGuild(event.getGuild());
+            // MessageDatabase.populateNewGuild(event.getGuild());
         }
         
         BotCache.putGuildConfiguration(event.getGuild().getIdLong(), Database.get(ConfigurationEntity.class, event.getGuild().getIdLong()));

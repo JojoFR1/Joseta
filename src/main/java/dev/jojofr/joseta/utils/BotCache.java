@@ -16,8 +16,8 @@ public class BotCache {
         boolean debug = JosetaBot.debug;
         
         //                                                    Debug Emoji ID         Production Emoji ID
-        CHECK_EMOJI = Emoji.fromCustom("yes", debug ? 1459377029328801832L : 1451286173791031337L, false);
-        CROSS_EMOJI = Emoji.fromCustom("no", debug ? 1459377027747680266L : 1451286184817987719L, false);
+        CHECK_EMOJI = Emoji.fromCustom("yes", debug ? 1486803003229864147L : 1486803003229864147L, false);
+        CROSS_EMOJI = Emoji.fromCustom("no", debug ? 1486803124411830372L : 1486803124411830372L, false);
     }
     
     public static ConfigurationEntity getGuildConfiguration(long guildId) {

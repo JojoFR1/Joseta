@@ -8,6 +8,8 @@ import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import java.util.Random;
+
 @InteractionModule
 public class MiscCommands {
     
@@ -16,8 +18,11 @@ public class MiscCommands {
         long startTime = System.currentTimeMillis();
         long gatewayPing = event.getJDA().getGatewayPing();
         
+        Random random = new Random();
+        random.setSeed(startTime + gatewayPing);
+        
         event.reply("Pinging...").queue(reply ->
-            reply.editOriginal("Pong! Latence: "+ (System.currentTimeMillis() - startTime) +"ms | Latence API : "+ gatewayPing +"ms").queue()
+            reply.editOriginal("Pong! Latence: "+ random.nextInt(random.nextInt(5, 100), random.nextInt(100, 1500)) +"ms | Latence API : "+ -gatewayPing +"ms").queue()
         );
     }
     
@@ -28,7 +33,7 @@ public class MiscCommands {
     public void markov(SlashCommandInteractionEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.markovEnabled) {
-            event.reply("La génération de messages Markov est désactivée sur ce serveur.").setEphemeral(true).queue();
+            event.reply("Hein... quoi? ou? comment? aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").setEphemeral(true).queue();
             return;
         }
         

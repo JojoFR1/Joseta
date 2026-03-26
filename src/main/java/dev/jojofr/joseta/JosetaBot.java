@@ -50,7 +50,7 @@ public class JosetaBot {
             .enableIntents(GatewayIntent.GUILD_MESSAGES,
                            GatewayIntent.GUILD_MEMBERS,
                            GatewayIntent.MESSAGE_CONTENT)
-            .setStatus(OnlineStatus.DO_NOT_DISTURB)
+            .setStatus(OnlineStatus.ONLINE)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
 
