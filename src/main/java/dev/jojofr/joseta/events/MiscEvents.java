@@ -21,34 +21,34 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 @EventModule
 public class MiscEvents {
     //#region Message
-    @EventHandler(type = EventType.MESSAGE_RECEIVED)
-    
+    @EventHandler(type = EventType.MESSAGE_RECEIVED, priority = EventHandler.EventPriority.DISABLED)
     public void onMessageReceived(MessageReceivedEvent event) {
         MessageDatabase.addNewMessage(event.getMessage());
     }
     
-    @EventHandler(type = EventType.MESSAGE_UPDATE)
+    @EventHandler(type = EventType.MESSAGE_UPDATE, priority = EventHandler.EventPriority.DISABLED)
     public void onMessageUpdate(MessageUpdateEvent event) {
         MessageDatabase.updateMessage(event.getMessage());
     }
     
-    @EventHandler(type = EventType.MESSAGE_DELETE)
+    @EventHandler(type = EventType.MESSAGE_DELETE, priority = EventHandler.EventPriority.DISABLED)
     public void onMessageDelete(MessageDeleteEvent event) {
         MessageDatabase.deleteMessage(event.getMessageIdLong());
     }
     
-    @EventHandler(type = EventType.MESSAGE_BULK_DELETE)
+    @EventHandler(type = EventType.MESSAGE_BULK_DELETE, priority = EventHandler.EventPriority.DISABLED)
     public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
         for (String messageId : event.getMessageIds())
             MessageDatabase.deleteMessage(Long.parseLong(messageId));
     }
     
-    @EventHandler(type = EventType.CHANNEL_DELETE)
+    @EventHandler(type = EventType.CHANNEL_DELETE, priority = EventHandler.EventPriority.DISABLED)
     public void onChannelDelete(net.dv8tion.jda.api.events.channel.ChannelDeleteEvent event) {
         MessageDatabase.deleteChannelMessages(event.getChannel().getIdLong());
     }
@@ -72,8 +72,11 @@ public class MiscEvents {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.autoResponseEnabled) return;
         
+        Random random = BotCache.getRandom(event.getGuild().getIdLong() + event.getAuthor().getIdLong());
+        float shouldActivate = random.nextFloat();
+        
         String text = event.getMessage().getContentRaw();
-        if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find())
+        if (shouldActivate <= 0.10f || (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find()))
             event.getMessage().reply(autoResponseMessage + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
     }
     

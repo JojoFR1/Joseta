@@ -5,12 +5,14 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BotCache {
     private static final ConcurrentHashMap<Long, ConfigurationEntity> guildConfigurations = new ConcurrentHashMap<>();
     
     public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
+    private static final Random random = new Random();
     
     static {
         boolean debug = JosetaBot.debug;
@@ -29,6 +31,11 @@ public class BotCache {
             }
             return config;
         });
+    }
+    
+    public static Random getRandom(long seed) {
+        random.setSeed(seed + System.nanoTime());
+        return random;
     }
     
     public static void putGuildConfiguration(long guildId, ConfigurationEntity config) { guildConfigurations.put(guildId, config); }
