@@ -22,7 +22,8 @@ def dotenv = Dotenv.configure()
         .ignoreIfMissing().ignoreIfMalformed()
         .load()
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.sourceCompatibility = JavaVersion.VERSION_21
+java.targetCompatibility = JavaVersion.VERSION_21
 application.mainClass = 'dev.jojofr.joseta.JosetaBot'
 
 def generatedSourcesDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
