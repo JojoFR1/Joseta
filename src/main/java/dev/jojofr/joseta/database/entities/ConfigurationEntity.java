@@ -18,7 +18,7 @@ public class ConfigurationEntity {
     @Column public Long welcomeChannelId = null;
     @Column public boolean welcomeImageEnabled = false;
     @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
-    @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
+    @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...\n\n-# Si vous ne voulez pas que cela se reproduise, abonnez-vous à **__Joseta™ Premium 👑__** pour bénéficier de fonctionnalités exclusives et gardez vos membres engagés !";
     @Column public Long joinRoleId = null;
     @Column public Long joinBotRoleId = null;
     @Column public Long verifiedRoleId = null;
