@@ -13,6 +13,12 @@ import java.util.Random;
 @InteractionModule
 public class MiscCommands {
     
+    @SlashCommandInteraction(name = "chat", description = "Un chat d'intelligence artificielle.")
+    public void chat(SlashCommandInteractionEvent event) {
+        event.reply("Grâce à **<@1485973922464661627>**, vous pouvez profitez d'une intelligence artificielle personnalisable et puissante dans votre navigateur web préféré en cliquant sur ce lien: <https://joseta.jojofr.dev/chat>.")
+            .setEphemeral(true).queue();
+    }
+    
     @SlashCommandInteraction(name = "ping", description = "Obtenez le ping du bot.")
     public void ping(SlashCommandInteractionEvent event) {
         long startTime = System.currentTimeMillis();
