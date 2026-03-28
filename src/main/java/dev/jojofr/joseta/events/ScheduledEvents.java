@@ -6,9 +6,11 @@ import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.entities.ReminderEntity_;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity_;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.time.Instant;
@@ -19,13 +21,41 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class ScheduledEvents {
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(3);
     
     public static void schedule() {
         // Check reminders every minute
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkReminders, 0, 1, TimeUnit.MINUTES);
         // Check expired sanctions every 15 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
+        // APRIL FOOL - Ad announcement every hour
+        scheduler.scheduleAtFixedRate(ScheduledEvents::sendAd, 0, 1, TimeUnit.HOURS);
+    }
+    
+    private static String[] messages = {
+        """
+Bonjour !
+
+Vous connaissez tous <@1307015890146955285>, mais saviez vous qu'il existait une version *fancy* ?
+
+**"""+ BotCache.ICON_EMOJI.getFormatted() +"""
+\sMindustry France** vous présente **<@1485973922464661627>** ! C'est la même chose que *Joseta* mais avec encore plus de fonctionnalité pour ***seulement*** 4.99€/mois¹ !"""
+    };
+    private static int currentMessageIndex = 0;
+    
+    private static void sendAd() {
+        long id = JosetaBot.debug ? 1020788444592611350L : 1219013344099303576L;
+        TextChannel channel = JosetaBot.get().getTextChannelById(id);
+        if (channel == null) {
+            Log.err("Failed to send ad message, channel not found (ID: {})", id);
+            return;
+        }
+        if (currentMessageIndex >= messages.length) return;
+        
+        String message = messages[currentMessageIndex];
+        currentMessageIndex += 1;
+        
+        channel.sendMessage(message).queue();
     }
     
     
