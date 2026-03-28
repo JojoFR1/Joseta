@@ -11,15 +11,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BotCache {
     private static final ConcurrentHashMap<Long, ConfigurationEntity> guildConfigurations = new ConcurrentHashMap<>();
     
-    public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
+    public static final Emoji CHECK_EMOJI, CROSS_EMOJI, ICON_EMOJI;
     private static final Random random = new Random();
     
     static {
         boolean debug = JosetaBot.debug;
         
         //                                                    Debug Emoji ID         Production Emoji ID
-        CHECK_EMOJI = Emoji.fromCustom("yes", debug ? 1486803003229864147L : 1486803003229864147L, false);
-        CROSS_EMOJI = Emoji.fromCustom("no", debug ? 1486803124411830372L : 1486803124411830372L, false);
+        CHECK_EMOJI = Emoji.fromCustom("yes", 1486803003229864147L, false);
+        CROSS_EMOJI = Emoji.fromCustom("no", 1486803124411830372L, false);
+        ICON_EMOJI = Emoji.fromCustom("mindustryfrance", 1487469879702327336L, false);
     }
     
     public static ConfigurationEntity getGuildConfiguration(long guildId) {
