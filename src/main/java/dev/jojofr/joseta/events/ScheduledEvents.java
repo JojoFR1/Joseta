@@ -81,55 +81,39 @@ Avec nos plus sincères salutations distingués, l'équipe de Mindustry France (
     public static final String REMINDER_PREMESSAGE = "⏰ Rappel pour <@%userid%>:\n ```%message%```";
     public static final int REMINDER_MAX_MESSAGE_LENGTH = Message.MAX_CONTENT_LENGTH - REMINDER_PREMESSAGE.replace("%message%", "").replace("%userid%", "").length();
     
+    // APRIL FOOL send a "I forgot" message and giving another user's reminder (if it exists)
     private static void checkReminders() {
-        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class, (cb, rt) ->
-            cb.lessThanOrEqualTo(rt.get(ReminderEntity_.remindAt), Instant.now())).getResultList();
+        List<ReminderEntity> allReminders = Database.getAll(ReminderEntity.class);
+        List<ReminderEntity> reminders = allReminders.stream().filter(r -> r.remindAt.isBefore(Instant.now()) || r.remindAt.equals(Instant.now())).toList();
         if (reminders.isEmpty()) return;
         
         for (ReminderEntity reminder : reminders) {
             MessageChannel channel = (MessageChannel) JosetaBot.get().getGuildChannelById(reminder.channelId);
-            boolean shouldDm = reminder.dm || channel == null;
+            if (channel == null) continue;
             
-            String message = REMINDER_PREMESSAGE.replace("%userid%", String.valueOf(reminder.userId))
-                                                .replace("%message%", reminder.message);
-            if (!shouldDm) {
-                channel.sendMessage(message).setAllowedMentions(Collections.singleton(Message.MentionType.USER)).queue(
-                    success -> {
-                        if (!reminder.repeat) {
-                            Database.delete(reminder);
-                            return;
-                        }
-                        
-                        reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
-                        Database.update(reminder);
-                    },
-                    failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
+            ReminderEntity newReminder = allReminders.stream().filter(r -> r.userId != reminder.userId).findAny().orElse(null);
+            if (newReminder == null) {
+                channel.sendMessage("um, <@"+ reminder.userId +">, j'ai oublié que t'avais un reminder donc... tiens un autre reminder ? ... ah, y en a pas... bah... voila quoi, va te plaindre j'sais pas.").queue(
+                    success -> Database.delete(reminder)
                 );
-                return;
+                continue;
             }
             
-            if (channel == null) return;
-            JosetaBot.get().retrieveUserById(reminder.userId).queue(
-                user -> user.openPrivateChannel().queue(
-                    privateChannel -> {
-                        if (!privateChannel.canTalk()) {
-                            Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
-                            channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai dans 1 heure, vérifie que je peux t'envoyer des messages privés.").queue();
-                            return;
-                        }
-                        
-                        channel.sendMessage(message).queue(
-                            success -> {
-                                if (!reminder.repeat) {
-                                    Database.delete(reminder);
-                                    return;
-                                }
-                                
-                                reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
-                                Database.update(reminder);
-                            }
-                        );
-                    }));
+            String message = REMINDER_PREMESSAGE.replace("%userid%", String.valueOf(reminder.userId))
+                                                .replace("%message%", newReminder.message);
+            
+            channel.sendMessage("um, <@"+ reminder.userId +">, j'ai oublié que t'avais un reminder donc... tiens un autre reminder ?\n\n" + message).setAllowedMentions(Collections.singleton(Message.MentionType.USER)).queue(
+                success -> {
+                    if (!reminder.repeat) {
+                        Database.delete(reminder);
+                        return;
+                    }
+                    
+                    reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                    Database.update(reminder);
+                },
+                failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
+            );
         }
     }
     

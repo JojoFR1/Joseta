@@ -45,11 +45,22 @@ public class ReminderCommand {
                             @Option(description = "Le message du rappel.", required = true) String message,
                             @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time,
                             @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm,
-                            @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat)
+                            @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat,
+                            // APRIL FOOL options, all fake
+                            @Option(description = "Si nous devons envoyer votre rappel par voie postal.") Boolean postal,
+                            @Option(description = "Si le rappel doit être envoyer par un pigeon voyageur.") Boolean pigeon,
+                            @Option(description = "Si le rappel doit être chanté par un barde itinérant.") Boolean bard,
+                            @Option(description = "Si le rappel doit être livré par Amazon.") Boolean amazon,
+                            @Option(description = "Si une IA doit réécrire votre rappel.") Boolean iarewrite,
+                            @Option(description = "Si le rappel doit être accompagné d'une vidéo de chat mignon.") Boolean catvideo,
+                            @Option(description = "Si le rappel doit être envoyé par télégramme.") Boolean telegram)
     {
         if (dm == null) dm = false;
         if (repeat == null) repeat = false;
         long timeSeconds = TimeParser.parse(time);
+        
+        // FOR APRIL FOOL limit time to betwen now and 6 hours ahead
+        timeSeconds = timeSeconds % (6 * 60 * 60);
         
         String noMentions = MessageDatabase.NO_MENTIONS_PATTERN.matcher(message).replaceAll("");
         String noUrl = MessageDatabase.NO_URL_PATTERN.matcher(noMentions).replaceAll("");
