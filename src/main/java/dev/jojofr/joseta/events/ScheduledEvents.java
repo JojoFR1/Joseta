@@ -29,17 +29,36 @@ public class ScheduledEvents {
         // Check expired sanctions every 15 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
         // APRIL FOOL - Ad announcement every hour
-        scheduler.scheduleAtFixedRate(ScheduledEvents::sendAd, 0, 1, TimeUnit.HOURS);
+        scheduler.scheduleAtFixedRate(ScheduledEvents::sendAd, 0, 3, TimeUnit.HOURS);
     }
     
     private static String[] messages = {
         """
-Bonjour !
+Bonjour, bonsoir et bonne nuit !
 
-Vous connaissez tous <@1307015890146955285>, mais saviez vous qu'il existait une version *fancy* ?
+Vous connaissez tous <@1307015890146955285>, mais saviez vous qu'il existait une version *fancy* ? Plus *extravagante* ? Plus *puissante* ?
 
 **"""+ BotCache.ICON_EMOJI.getFormatted() +"""
-\sMindustry France** vous présente **<@1485973922464661627>** ! C'est la même chose que *Joseta* mais avec encore plus de fonctionnalité pour ***seulement*** 4.99€/mois¹ !"""
+\sMindustry France** à l'honneur de vous présenter **<@1485973922464661627>** ! La même chose que *Joseta* mais avec encore plus de fonctionnalité et plus de personnalisation pour ***seulement*** 4.99€/mois¹ !
+
+-# ¹ d'après le contrat d'utilisation, plus de détail à <https://joseta.jojofr.dev/terms-of-use>.""",
+        
+        "Grâce à **<@1485973922464661627>**, profitez d'une IA personnalisé avec la commande `/chat` et rejoignez des centaines de millions d'autres utilisateurs !\n\n**Ne ratez pas cette opportunité incroyable de faire passer votre expérience avec <@1307015890146955285> au niveau supérieur !**",
+        "Marre que <@1307015890146955285> soit toujours en \"*Ne pas déranger*\" sans pouvoir le personnaliser ? Grâce à **<@1485973922464661627>** profitez d'un bot Discord \"*En ligne*\", \"*Hors-ligne*\" ou en \"*Inactif*\" comme bon vous le sent !",
+        "Voulez-vous être *surpris(e)* ? **<@1485973922464661627>** vous propose de la surprise ***garantie*** grâce à la commande `/surprendmoi` avec un algorithme d'aléatoire surpuissant !",
+        "Rejoignez **plus de 350 millions** d'utilisateurs utilisant **<@1485973922464661627>** dans **plus de 100 000 serveurs** pour booster votre expérience au ***niveau supérieur*** ! Ajoutez **<@1485973922464661627>** à votre serveur dès aujourd'hui et profitez de fonctionnalités exclusives, d'une personnalisation avancée et d'une expérience utilisateur inégalée en cliquant sur ce lien: <https://joseta.jojofr.dev/invite> !",
+        "Avec **<@1485973922464661627>** vous pouvez devenir encore plus *cool* que les autres grâce à la commande `/jeveuxetrecool` !\n-# (résultats non garantis)",
+        "Vous oubliez toujours quelque chose ? <@1307015890146955285> trop basique pour vous ? Et bien **<@1485973922464661627>** est là pour vous !  Level up votre expérience grâce à des options hyper avancé de `/reminder` !",
+        "Vos membres partent trop vite ? Ils ne restent pas ? Grâce à **<@1485973922464661627>** et son bienvenue, passez au luxe avec des images et des messages digne de la haute société directement dans votre serveur Discord !",
+        """
+Malheureusement, dû à des coûts technique trop avancés et de la surutilisation de nos services, nous sommes navrés de devoir vous annoncer que **<@1485973922464661627>** ne sera plus disponible dès à présent.
+
+Nous vous présentons nos plus sincères excuses, mais ne craignez pas ! <@1307015890146955285> restera à vos services ! Cependant, si vous voulez gardez dans vos souvenirs **<@1485973922464661627>**, son code source est disponible [en cliquant ici](<https://github.com/JojoFR1/Joseta/tree/2026-april-fool>) et vous pouvez faire un donc [juste ici](<https://joseta.jojofr.dev/don>) pour nous soutenir !
+
+Avec nos plus sincères salutations distingués, l'équipe de Mindustry France (et surtout Jojo).
+
+-# et bon poisson d'avril :D\s
+"""
     };
     private static int currentMessageIndex = 0;
     
