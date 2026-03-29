@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 @EventModule
@@ -74,8 +75,7 @@ public class MiscEvents {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.autoResponseEnabled) return;
         
-        Random random = BotCache.getRandom(event.getGuild().getIdLong() + event.getAuthor().getIdLong());
-        boolean shouldActivate = random.nextFloat() <= 0.10f && hasProc.plusSeconds(60 * 15).isBefore(Instant.now());
+        boolean shouldActivate = ThreadLocalRandom.current().nextFloat() <= 0.10f && hasProc.plusSeconds(60 * 15).isBefore(Instant.now());
         
         String text = event.getMessage().getContentRaw();
         if (shouldActivate || (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find())) {

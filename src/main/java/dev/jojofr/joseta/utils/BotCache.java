@@ -34,11 +34,6 @@ public class BotCache {
         });
     }
     
-    public static Random getRandom(long seed) {
-        random.setSeed(seed + System.nanoTime());
-        return random;
-    }
-    
     public static void putGuildConfiguration(long guildId, ConfigurationEntity config) { guildConfigurations.put(guildId, config); }
     public static void removeGuildConfiguration(long guildId) {
         guildConfigurations.remove(guildId);
