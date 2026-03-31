@@ -10,7 +10,9 @@ import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.NewsChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.time.Instant;
@@ -64,7 +66,7 @@ Avec nos plus sincères salutations distingués, l'équipe de Mindustry France (
     
     private static void sendAd() {
         long id = JosetaBot.debug ? 1219013344099303576L : 1219013344099303576L;
-        TextChannel channel = JosetaBot.get().getTextChannelById(id);
+        NewsChannel channel = JosetaBot.get().getNewsChannelById(id);
         if (channel == null) {
             Log.err("Failed to send ad message, channel not found (ID: {})", id);
             return;
