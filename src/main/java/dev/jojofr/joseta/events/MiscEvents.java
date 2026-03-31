@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
@@ -97,6 +98,12 @@ public class MiscEvents {
     
     @EventHandler(type = EventType.GUILD_MEMBER_JOIN)
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getMember().getTimeJoined();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            return;
+        }
+        
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.welcomeEnabled) return;
         
@@ -129,6 +136,12 @@ public class MiscEvents {
     
     @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void memberRemove(GuildMemberRemoveEvent event) {
+        // Stop when its April 2nd
+        OffsetDateTime now = OffsetDateTime.now();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            return;
+        }
+        
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.welcomeEnabled) return;
         

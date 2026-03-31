@@ -9,12 +9,47 @@ import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.audit.AuditLogKey;
+import net.dv8tion.jda.api.audit.TargetType;
+import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
 
 @EventModule
 public class SanctionEvents {
 
+    @EventHandler(type = EventType.GUILD_AUDIT_LOG_ENTRY_CREATE, priority = EventHandler.EventPriority.DISABLED)
+    public void onGuildAuditLogEntryCreate(GuildAuditLogEntryCreateEvent event) {
+        AuditLogEntry entry = event.getEntry();
+        Log.debug("New audit log entry in guild {} ({}): action={}, targetType={}, targetId={}, userId={}, reason={}", event.getGuild().getName(), event.getGuild().getIdLong(), entry.getType(), entry.getTargetType(), entry.getTargetIdLong(), entry.getUserIdLong(), entry.getReason());
+        
+        // Check for timeout start/end time
+        if (entry.getType() == ActionType.MEMBER_UPDATE && entry.getTargetType() == TargetType.MEMBER) {
+            // Check if the audit log entry is for a timeout start or end
+            if (entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) != null) {
+                Log.debug("Audit log entry is for a timeout update, ignoring as it will be handled by the GuildMemberUpdateTimeOutEvent.");
+                return;
+            }
+        }
+    }
+    
+    @EventHandler(type = EventType.GUILD_MEMBER_UPDATE_TIME_OUT, priority = EventHandler.EventPriority.DISABLED)
+    public void onGuildMemberUpdate(GuildMemberUpdateTimeOutEvent event) {
+        // event.getGuild().retrieveAuditLogs().type(ActionType.).queue(
+        //     logs -> {
+        //         if (logs.isEmpty()) throw new RuntimeException("No audit logs found for timeout event.");
+        //
+        //         AuditLogEntry log = logs.getFirst();
+        //         if (log.getTargetIdLong() != event.getMember().getIdLong()) throw new RuntimeException("The latest timeout audit log entry does not match the timed out user.");
+        //         String reason = log.getReason() == null ? "Aucun motif fourni." : log.getReason();
+        //
+        //         SanctionDatabase.addSanction(SanctionEntity.SanctionType.TIMEOUT, event.getMember().getUser(), log.getUserIdLong(), event.getGuild().getIdLong(), reason, (event.getNewTimeOutEnd().toEpochMilli() - System.currentTimeMillis()) / 1000);
+        //     },
+        //     failure -> Log.warn("Failed to retrieve audit logs for timeout event in guild: {} ({}), for user: {} ({}).", failure, event.getGuild().getName(), event.getGuild().getIdLong(), event.getMember().getUser().getAsTag(), event.getMember().getUser().getIdLong())
+        // );
+    }
+    
     @EventHandler(type = EventType.GUILD_BAN)
     public void onGuildBan(GuildBanEvent event) {
         event.getGuild().retrieveAuditLogs().type(ActionType.BAN).queue(

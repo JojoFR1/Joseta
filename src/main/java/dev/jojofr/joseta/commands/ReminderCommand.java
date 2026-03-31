@@ -32,6 +32,7 @@ import net.dv8tion.jda.api.modals.Modal;
 
 import java.awt.*;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,13 @@ public class ReminderCommand {
                             @Option(description = "Si le rappel doit être accompagné d'une vidéo de chat mignon.") Boolean catvideo,
                             @Option(description = "Si le rappel doit être envoyé par télégramme.") Boolean telegram)
     {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getTimeCreated();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
+            return;
+        }
+        
         if (dm == null) dm = false;
         if (repeat == null) repeat = false;
         long timeSeconds = TimeParser.parse(time);
@@ -97,6 +105,13 @@ public class ReminderCommand {
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getTimeCreated();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
+            return;
+        }
+        
         List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class,
             (cb, rt) ->
                 cb.and(cb.equal(rt.get(ReminderEntity_.userId), event.getUser().getIdLong()),

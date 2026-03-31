@@ -19,6 +19,13 @@ public class MiscCommands {
     
     @SlashCommandInteraction(name = "chat", description = "Un chat d'intelligence artificielle.")
     public void chat(SlashCommandInteractionEvent event) {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getTimeCreated();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
+            return;
+        }
+        
         event.reply("Grâce à **<@1485973922464661627>**, vous pouvez profiter d'une intelligence artificielle personnalisable et puissante dans votre navigateur web préféré en cliquant sur ce lien: <https://joseta.jojofr.dev/chat>.")
             .queue();
     }
@@ -86,6 +93,13 @@ public class MiscCommands {
     
     @SlashCommandInteraction(name = "jeveuxetrecool")
     public void cool(SlashCommandInteractionEvent event) {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getTimeCreated();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
+            return;
+        }
+        
         float chance = ThreadLocalRandom.current().nextFloat();
         
         if (chance <= 0.5) {
@@ -102,6 +116,13 @@ public class MiscCommands {
     
     @SlashCommandInteraction(name = "ping", description = "Obtenez le ping du bot.")
     public void ping(SlashCommandInteractionEvent event) {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getTimeCreated();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
+            return;
+        }
+        
         long startTime = System.currentTimeMillis();
         long gatewayPing = event.getJDA().getGatewayPing();
         
@@ -118,6 +139,13 @@ public class MiscCommands {
      */
     @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
     public void markov(SlashCommandInteractionEvent event) {
+        // Stop when its April 2nd
+        OffsetDateTime now = event.getTimeCreated();
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
+            return;
+        }
+        
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.markovEnabled) {
             event.reply("Hein... quoi? ou? comment? aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").setEphemeral(true).queue();
