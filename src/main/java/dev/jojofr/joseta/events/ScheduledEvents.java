@@ -63,7 +63,7 @@ Avec nos plus sincères salutations distingués, l'équipe de Mindustry France (
     private static int currentMessageIndex = 0;
     
     private static void sendAd() {
-        long id = JosetaBot.debug ? 1020788444592611350L : 1219013344099303576L;
+        long id = JosetaBot.debug ? 1219013344099303576L : 1219013344099303576L;
         TextChannel channel = JosetaBot.get().getTextChannelById(id);
         if (channel == null) {
             Log.err("Failed to send ad message, channel not found (ID: {})", id);
