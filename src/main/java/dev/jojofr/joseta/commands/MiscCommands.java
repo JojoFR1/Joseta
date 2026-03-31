@@ -45,42 +45,59 @@ public class MiscCommands {
         if (member == null) return;
         
         if (chance < 1/1_000_000f) {
-            member.timeoutFor(12, TimeUnit.HOURS).queue();
-            event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 12 heures ! (mais c'était ultra rare ! 1 chance sur 1 000 000 !)").queue();
+            member.timeoutFor(12, TimeUnit.HOURS).queue(
+                success -> event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 12 heures ! (mais c'était ultra rare ! 1 chance sur 1 000 000 !)").queue(),
+                fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour mettre " + member.getAsMention() + " en exclusion, du coup je t'ai juste ignoré ! (mais c'était ultra rare ! 1 chance sur 1 000 000 !)").queue()
+            );
         }
         else if (chance < 0.01) {
-            member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1487494404863426701L)).queue();
-            event.reply("Surprise ! " + member.getAsMention() + " a obtenu un rôle très spécial ! (1% de chance)").queue();
+            member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1487494404863426701L)).queue(
+                success -> event.reply("Surprise ! " + member.getAsMention() + " a obtenu un rôle très spécial ! (1% de chance)").queue(),
+                fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour donner le rôle très spécial à " + member.getAsMention() + ", du coup je t'ai juste ignoré ! (1% de chance)").queue()
+            );
         }
         else if (chance < 0.10) {
-            member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1483155563251499231L)).queue();
-            event.reply("Surprise ! " + member.getAsMention() + " a obtenu un rôle spécial pendant 12 heures ! (10% de chance)").queue(
-                success -> member.getGuild().removeRoleFromMember(member, member.getGuild().getRoleById(1483155563251499231L)).queueAfter(12, TimeUnit.HOURS)
+            member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1483155563251499231L)).queue(
+                success -> event.reply("Surprise ! " + member.getAsMention() + " a obtenu un rôle spécial pendant 12 heures ! (10% de chance)").queue(
+                    successs -> member.getGuild().removeRoleFromMember(member, member.getGuild().getRoleById(1483155563251499231L)).queueAfter(12, TimeUnit.HOURS)
+                ),
+                fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour donner le rôle spécial à " + member.getAsMention() + ", du coup je t'ai juste ignoré ! (10% de chance)").queue()
             );
         } else if (chance < 0.20) {
-            member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1346232611483156635L)).queue();
-            event.reply("Surprise ! " + member.getAsMention() + " a obtenu un rôle cool pendant 6 heures ! (20% de chance)").queue(
-                success -> member.getGuild().removeRoleFromMember(member, member.getGuild().getRoleById(1346232611483156635L)).queueAfter(6, TimeUnit.HOURS)
+            member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1346232611483156635L)).queue(
+                success -> event.reply("Surprise ! " + member.getAsMention() + " a obtenu un rôle cool pendant 6 heures ! (20% de chance)").queue(
+                    successs -> member.getGuild().removeRoleFromMember(member, member.getGuild().getRoleById(1346232611483156635L)).queueAfter(6, TimeUnit.HOURS)
+                ),
+                fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour donner le rôle cool à " + member.getAsMention() + ", du coup je t'ai juste ignoré ! (20% de chance)").queue()
             );
+            
         } else {
             float newChance = ThreadLocalRandom.current().nextFloat();
             
             if (newChance < 0.05) {
-                member.timeoutFor(1, TimeUnit.HOURS).queue();
-                event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 1 heure ! (4% de chance)").queue();
+                member.timeoutFor(1, TimeUnit.HOURS).queue(
+                    success -> event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 1 heure ! (4% de chance)").queue(),
+                    fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour mettre " + member.getAsMention() + " en exclusion, du coup je t'ai juste ignoré ! (4% de chance)").queue()
+                );
             } else if  (newChance < 0.15) {
-                member.timeoutFor(30, TimeUnit.MINUTES).queue();
-                event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 30 minutes ! (12% de chance)").queue();
+                member.timeoutFor(30, TimeUnit.MINUTES).queue(
+                    success -> event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 30 minutes ! (12% de chance)").queue(),
+                    fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour mettre " + member.getAsMention() + " en exclusion, du coup je t'ai juste ignoré ! (12% de chance)").queue()
+                );
             } else if (newChance < 0.20) {
-                member.timeoutFor(15, TimeUnit.MINUTES).queue();
-                event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 15 minutes ! (16% de chance)").queue();
+                member.timeoutFor(15, TimeUnit.MINUTES).queue(
+                    success -> event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 15 minutes ! (16% de chance)").queue(),
+                    fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour mettre " + member.getAsMention() + " en exclusion, du coup je t'ai juste ignoré ! (16% de chance)").queue()
+                );
             } else if (newChance < 0.25) {
                 member.getGuild().addRoleToMember(member, member.getGuild().getRoleById(1259874357384056852L)).queue();
                 member.getGuild().removeRoleFromMember(member, member.getGuild().getRoleById(1235571503412543552L)).queue();
                 event.reply("Surprise ! " + member.getAsMention() + " n'est plus vérifier ! (20% de chance)").queue();
             } else if (newChance < 0.30) {
-                member.timeoutFor(10, TimeUnit.MINUTES).queue();
-                event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 10 minutes ! (24% de chance)").queue();
+                member.timeoutFor(10, TimeUnit.MINUTES).queue(
+                    success -> event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 10 minutes ! (24% de chance)").queue(),
+                    fail -> event.reply("Surprise--... ah mince, je n'ai pas les permissions pour mettre " + member.getAsMention() + " en exclusion, du coup je t'ai juste ignoré ! (24% de chance)").queue()
+                );
             } else if (newChance < 0.5) {
                 member.timeoutFor(5, TimeUnit.MINUTES).queue();
                 event.reply("Surprise ! " + member.getAsMention() + " a été mis en exclusion pendant 5 minutes ! (40% de chance)").queue();
@@ -103,8 +120,10 @@ public class MiscCommands {
         float chance = ThreadLocalRandom.current().nextFloat();
         
         if (chance <= 0.5) {
-            event.reply(event.getUser().getAsMention() + ", désolé, tu n'es pas assez cool pour obtenir ce rôle !").queue();
-            event.getMember().timeoutFor(5, TimeUnit.MINUTES).queue();
+            event.getMember().timeoutFor(5, TimeUnit.MINUTES).queue(
+                success -> event.reply(event.getUser().getAsMention() + ", désolé, tu n'es pas assez cool pour obtenir ce rôle !").queue(),
+                fail -> event.reply(event.getUser().getAsMention() + ", désolé, tu n'es pas assez cool pour obtenir ce rôle, mais tu n'es pas assez uncool pour être mis en exclusion, du coup je t'ai juste ignoré !").queue()
+            );
             return;
         }
         
