@@ -137,7 +137,7 @@ public class MiscEvents {
     @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
     public void memberRemove(GuildMemberRemoveEvent event) {
         // Stop when its April 2nd
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now().plusHours(2);
         if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             return;
         }

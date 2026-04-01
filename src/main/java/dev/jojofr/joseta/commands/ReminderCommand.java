@@ -57,8 +57,7 @@ public class ReminderCommand {
                             @Option(description = "Si le rappel doit être envoyé par télégramme.") Boolean telegram)
     {
         // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
-        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;
         }
@@ -106,7 +105,7 @@ public class ReminderCommand {
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
         // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);
         if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;

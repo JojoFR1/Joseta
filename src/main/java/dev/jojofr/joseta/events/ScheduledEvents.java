@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -65,6 +66,11 @@ Avec nos plus sincères salutations distingués, l'équipe de Mindustry France (
     private static int currentMessageIndex = 0;
     
     private static void sendAd() {
+        OffsetDateTime now = OffsetDateTime.now().plusHours(2);
+        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+            return;
+        }
+        
         long id = JosetaBot.debug ? 1219013344099303576L : 1219013344099303576L;
         NewsChannel channel = JosetaBot.get().getNewsChannelById(id);
         if (channel == null) {

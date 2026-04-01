@@ -5,6 +5,7 @@ import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.utils.BotCache;
+import dev.jojofr.joseta.utils.Log;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -20,7 +21,7 @@ public class MiscCommands {
     @SlashCommandInteraction(name = "chat", description = "Un chat d'intelligence artificielle.")
     public void chat(SlashCommandInteractionEvent event) {
         // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);
         if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;
@@ -32,8 +33,8 @@ public class MiscCommands {
     
     @SlashCommandInteraction(name = "surprendmoi", description = "Obtenez une surprise aléatoire.")
     public void surprise(SlashCommandInteractionEvent event) {
-        // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
+        // Stop when its April 2nd - UTC + 2
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);
         if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;
@@ -111,7 +112,7 @@ public class MiscCommands {
     @SlashCommandInteraction(name = "jeveuxetrecool")
     public void cool(SlashCommandInteractionEvent event) {
         // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);
         if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;
@@ -136,8 +137,7 @@ public class MiscCommands {
     @SlashCommandInteraction(name = "ping", description = "Obtenez le ping du bot.")
     public void ping(SlashCommandInteractionEvent event) {
         // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
-        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;
         }
@@ -159,8 +159,7 @@ public class MiscCommands {
     @SlashCommandInteraction(name = "markov", description = "Génère un message aléatoire à partir des messages du serveur.")
     public void markov(SlashCommandInteractionEvent event) {
         // Stop when its April 2nd
-        OffsetDateTime now = event.getTimeCreated();
-        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
+        OffsetDateTime now = event.getTimeCreated().plusHours(2);        if (now.getMonthValue() == 4 && now.getDayOfMonth() > 1) {
             event.reply("L'équipe de Mindustry France est navré de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment. En effet, après une période de test très concluante, nous avons décidé de la retirer pour le moment afin de pouvoir la retravailler et l'améliorer pour vous offrir une meilleure expérience à l'avenir. Nous vous remercions de votre compréhension et de votre soutien continu !").queue();
             return;
         }
