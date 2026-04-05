@@ -2,7 +2,6 @@ package dev.jojofr.joseta.annotations;
 
 import dev.jojofr.joseta.annotations.interactions.Event;
 import dev.jojofr.joseta.annotations.types.EventHandler;
-import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.GatewayPingEvent;
@@ -69,14 +68,22 @@ public class EventProcessor {
                     continue;
                 }
                 
-                EventType eventType = eventAnnotation.type();
-                method.setAccessible(true);
+                if (method.getParameterCount() < 1) {
+                    Log.warn("Event {}.{} has no parameters, skipping registration.", eventClass.getName(), method.getName());
+                    continue;
+                }
                 
+                Class<?> eventType = method.getParameters()[0].getType();
+                if (!GenericEvent.class.isAssignableFrom(eventType)) {
+                    Log.warn("Event {}.{} has an invalid parameter type ({}), skipping registration.", eventClass.getName(), method.getName(), eventType.getName());
+                    continue;
+                }
+                Class<? extends GenericEvent> eventClassType = eventType.asSubclass(GenericEvent.class);
+                
+                method.setAccessible(true);
                 Event event = new Event(eventClass, method, priority, eventAnnotation.guildOnly());
-                if (eventMethods.get(eventType.getEventClass()) == null)
-                    eventMethods.put(eventType.getEventClass(), new ArrayList<>(List.of(event)));
-                else
-                    eventMethods.get(eventType.getEventClass()).add(event);
+                if (eventMethods.get(eventClassType) == null) eventMethods.put(eventClassType, new ArrayList<>(List.of(event)));
+                else eventMethods.get(eventClassType).add(event);
                 
             } catch (Exception e) { Log.warn("An error occurred while registering an event. Skipping.", e); }}
         }

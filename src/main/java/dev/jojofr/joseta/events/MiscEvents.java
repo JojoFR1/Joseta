@@ -26,29 +26,28 @@ import java.util.regex.Pattern;
 @EventModule
 public class MiscEvents {
     //#region Message
-    @EventHandler(type = EventType.MESSAGE_RECEIVED)
-    
+    @EventHandler
     public void onMessageReceived(MessageReceivedEvent event) {
         MessageDatabase.addNewMessage(event.getMessage());
     }
     
-    @EventHandler(type = EventType.MESSAGE_UPDATE)
+    @EventHandler
     public void onMessageUpdate(MessageUpdateEvent event) {
         MessageDatabase.updateMessage(event.getMessage());
     }
     
-    @EventHandler(type = EventType.MESSAGE_DELETE)
+    @EventHandler
     public void onMessageDelete(MessageDeleteEvent event) {
         MessageDatabase.deleteMessage(event.getMessageIdLong());
     }
     
-    @EventHandler(type = EventType.MESSAGE_BULK_DELETE)
+    @EventHandler
     public void onMessageBulkDelete(MessageBulkDeleteEvent event) {
         for (String messageId : event.getMessageIds())
             MessageDatabase.deleteMessage(Long.parseLong(messageId));
     }
     
-    @EventHandler(type = EventType.CHANNEL_DELETE)
+    @EventHandler
     public void onChannelDelete(net.dv8tion.jda.api.events.channel.ChannelDeleteEvent event) {
         MessageDatabase.deleteChannelMessages(event.getChannel().getIdLong());
     }
@@ -67,7 +66,7 @@ public class MiscEvents {
     //TODO unhardcode message & emoji
     public static final String autoResponseMessage = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
     
-    @EventHandler(type = EventType.MESSAGE_RECEIVED)
+    @EventHandler
     public void autoResponse(MessageReceivedEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.autoResponseEnabled) return;
@@ -78,7 +77,7 @@ public class MiscEvents {
     }
     
     
-    @EventHandler(type = EventType.MESSAGE_RECEIVED)
+    @EventHandler
     public void countingCheck(MessageReceivedEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.countingEnabled) return;
@@ -88,7 +87,7 @@ public class MiscEvents {
     }
     
     
-    @EventHandler(type = EventType.GUILD_MEMBER_JOIN)
+    @EventHandler
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.welcomeEnabled) return;
@@ -120,7 +119,7 @@ public class MiscEvents {
         else event.getGuild().addRoleToMember(user, memberRole).reason("Rôle d'arrivée automatique").queue();
     }
     
-    @EventHandler(type = EventType.GUILD_MEMBER_REMOVE)
+    @EventHandler
     public void memberRemove(GuildMemberRemoveEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!config.welcomeEnabled) return;
