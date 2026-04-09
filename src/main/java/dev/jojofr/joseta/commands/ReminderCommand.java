@@ -46,7 +46,7 @@ public class ReminderCommand {
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
     public void reminderAdd(SlashCommandInteractionEvent event,
                             @Option(description = "Le message du rappel.", required = true) String message,
-                            @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time,
+                            @Option(description = "Le temps avant que vous recevez le rappel (A/Y, M, S/w, j/d, h, m, s).", required = true) String time,
                             @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm,
                             @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat)
     {
@@ -138,12 +138,20 @@ public class ReminderCommand {
         Modal modal = Modal.create(id, "Modifier le rappel")
             .addComponents(
                 Label.of(
-                    "Modifier le message du rappel :",
+                    "Modifier le message du rappel",
                     TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
                         .setPlaceholder("Le message de votre rappel...")
                         .setMinLength(1)
                         .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
                         .setValue(reminder.message)
+                        .build()
+                ),
+                
+                Label.of(
+                    "Modifier le temps du rappel",
+                    "Le temps avant que vous recevez le rappel (A/Y, M, S/w, j/d, h, m, s).",
+                    TextInput.create(id + ":time", TextInputStyle.SHORT)
+                        .setValue(TimeParser.format(reminder.remindAfter))
                         .build()
                 ),
                 
@@ -172,10 +180,11 @@ public class ReminderCommand {
         ReminderEntity reminder = reminderMessage.reminders.get(reminderId);
         
         String newMessage = event.getValue(event.getCustomId() + ":input").getAsString();
+        long newTime = TimeParser.parse(event.getValue(event.getCustomId() + ":time").getAsString());
         boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
         boolean newRepeat = event.getValue(event.getCustomId() + ":repeat").getAsBoolean();
         
-        Database.update(reminder.setMessage(newMessage).setDm(newDm).setRepeat(newRepeat));
+        Database.update(reminder.setMessage(newMessage).setRemindAfter(newTime).setDm(newDm).setRepeat(newRepeat));
         
         if (newDm)
             event.getUser().openPrivateChannel().queue(
