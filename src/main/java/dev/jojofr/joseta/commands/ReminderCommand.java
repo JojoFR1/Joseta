@@ -149,11 +149,13 @@ public class ReminderCommand {
                 
                 Label.of(
                     "Envoyé en privé",
+                    "Si le rappel doit être envoyé en message privé ou dans le canal.",
                     Checkbox.of(id + ":dm", reminder.dm)
                 ),
                 
                 Label.of(
                     "Répété",
+                    "Si le rappel doit être répété ou non.",
                     Checkbox.of(id + ":repeat", reminder.repeat)
                 )
             ).build();
@@ -174,6 +176,20 @@ public class ReminderCommand {
         boolean newRepeat = event.getValue(event.getCustomId() + ":repeat").getAsBoolean();
         
         Database.update(reminder.setMessage(newMessage).setDm(newDm).setRepeat(newRepeat));
+        
+        if (newDm)
+            event.getUser().openPrivateChannel().queue(
+                privateChannel -> {
+                    if (!privateChannel.canTalk()) {
+                        event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue();
+                        return;
+                    }
+                    
+                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>). Il vous sera envoyé ici.").queue();
+                },
+                fail -> event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue()
+            );
+        
         event.editComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
             .useComponentsV2().queue();
     }
