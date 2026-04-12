@@ -63,7 +63,7 @@ public class CountingChannel {
         if (!preCheck(channel, message)) return;
         
         ConfigurationEntity config = BotCache.getGuildConfiguration(message.getGuild().getIdLong());
-        long number = parseNumber(message.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
+        long number = parseNumber(message.getContentStripped().replace(" ", ""), config.countingCommentsEnabled);
         
         if (number == lastNumber && message.getTimeCreated().toInstant().toEpochMilli() - lastTimestamp < 2000) {
             message.delete().queue();
@@ -123,11 +123,14 @@ public class CountingChannel {
     
     
     // Start with a number
-    private static final Pattern numberRegex = Pattern.compile("^-?\\d+");
+    private static final Pattern NUMBER_REGEX = Pattern.compile("^-?\\d+");
+    private static final Pattern ZERO_WIDTH_SPACE_REGEX = Pattern.compile("[\\u200B-\\u200D\\uFEFF]");
     
     private static long parseNumber(String message, boolean commentsEnabled) {
+        String cleanedMessage = ZERO_WIDTH_SPACE_REGEX.matcher(message).replaceAll("");
+        
         long number = -1;
-        Matcher numberMatcher = numberRegex.matcher(message);
+        Matcher numberMatcher = NUMBER_REGEX.matcher(cleanedMessage);
         if ((!commentsEnabled && numberMatcher.matches()) || (commentsEnabled && numberMatcher.find()))
             try { number = Long.parseLong(numberMatcher.group()); }
             catch (NumberFormatException e) { Log.err("Failed to parse the number from the counting message.", e); }
