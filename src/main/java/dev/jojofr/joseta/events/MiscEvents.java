@@ -6,7 +6,6 @@ import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
-import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Role;

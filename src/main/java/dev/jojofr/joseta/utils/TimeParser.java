@@ -9,8 +9,9 @@ public class TimeParser {
     private static final long SECONDS_IN_DAY = 24L * SECONDS_IN_HOUR;
     private static final long SECONDS_IN_WEEK = 7L * SECONDS_IN_DAY;
     private static final long SECONDS_IN_MONTH = 30L * SECONDS_IN_DAY;
+    private static final long SECONDS_IN_YEAR = 365L * SECONDS_IN_DAY;
     
-    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d+)([smhdwM])");
+    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d+)([smhdjwSMYA])");
     
     /**
      * Converts a duration in seconds to a formatted human-readable string.
@@ -19,38 +20,44 @@ public class TimeParser {
      * @return A formatted string representing the time in months, weeks, days, hours, minutes and seconds.
      * @throws IllegalArgumentException if the input seconds is negative.
      */
-    public static String convertSecond(long seconds) {
+    public static String format(long seconds) {
         if (seconds < 0) throw new IllegalArgumentException("Seconds cannot be negative.");
         if (seconds == 0) return "0s";
         
         StringBuilder timeBuilder = new StringBuilder();
+        long years = seconds / SECONDS_IN_YEAR;
+        if (years > 0) {
+            timeBuilder.append(years).append("A ");
+            seconds %= SECONDS_IN_YEAR;
+        }
+        
         long months = seconds / SECONDS_IN_MONTH;
         if (months > 0) {
-            timeBuilder.append(months).append("M");
+            timeBuilder.append(months).append("M ");
             seconds %= SECONDS_IN_MONTH;
         }
         
         long weeks = seconds / SECONDS_IN_WEEK;
         if (weeks > 0) {
-            timeBuilder.append(weeks).append("w");
+            timeBuilder.append(weeks).append("S ");
             seconds %= SECONDS_IN_WEEK;
         }
         
         long days = seconds / SECONDS_IN_DAY;
         if (days > 0) {
-            timeBuilder.append(days).append("d");
+            timeBuilder.append(days).append("j ");
             seconds %= SECONDS_IN_DAY;
         }
         
         long hours = seconds / SECONDS_IN_HOUR;
         if (hours > 0) {
-            timeBuilder.append(hours).append("h");
+            timeBuilder.append(hours).append("h ");
             seconds %= SECONDS_IN_HOUR;
         }
         
         long minutes = seconds / SECONDS_IN_MINUTE;
         if (minutes > 0) {
-            timeBuilder.append(minutes).append("m");
+            timeBuilder.append(minutes).append("m ");
             seconds %= SECONDS_IN_MINUTE;
         }
         
@@ -78,9 +85,10 @@ public class TimeParser {
             char unit = matcher.group(2).charAt(0);
             
             totalSeconds += switch (unit) {
+                case 'Y', 'A' -> value * SECONDS_IN_YEAR;
                 case 'M' -> value * SECONDS_IN_MONTH;
-                case 'w' -> value * SECONDS_IN_WEEK;
-                case 'd' -> value * SECONDS_IN_DAY;
+                case 'w', 'S' -> value * SECONDS_IN_WEEK;
+                case 'd', 'j' -> value * SECONDS_IN_DAY;
                 case 'h' -> value * SECONDS_IN_HOUR;
                 case 'm' -> value * SECONDS_IN_MINUTE;
                 case 's' -> value;

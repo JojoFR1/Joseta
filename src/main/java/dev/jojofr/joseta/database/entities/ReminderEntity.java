@@ -61,6 +61,7 @@ public class ReminderEntity {
     
     public ReminderEntity setRemindAfter(long remindAfter) {
         this.remindAfter = remindAfter;
+        this.remindAt = createdAt.plusSeconds(remindAfter);
         return this;
     }
     

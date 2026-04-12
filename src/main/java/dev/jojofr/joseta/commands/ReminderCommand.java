@@ -2,6 +2,7 @@ package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.ButtonInteraction;
+import dev.jojofr.joseta.annotations.types.ModalInteraction;
 import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
@@ -13,6 +14,7 @@ import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.TimeParser;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.checkbox.Checkbox;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.label.Label;
@@ -24,6 +26,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
@@ -43,7 +46,7 @@ public class ReminderCommand {
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
     public void reminderAdd(SlashCommandInteractionEvent event,
                             @Option(description = "Le message du rappel.", required = true) String message,
-                            @Option(description = "Le temps avant que vous recevez le rappel (M, w, d, h, m, s).", required = true) String time,
+                            @Option(description = "Le temps avant que vous recevez le rappel (A/Y, M, S/w, j/d, h, m, s).", required = true) String time,
                             @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm,
                             @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat)
     {
@@ -122,37 +125,90 @@ public class ReminderCommand {
             .useComponentsV2().queue();
     }
     
-    @ButtonInteraction(id = "reminders:edit:*")
+    @ButtonInteraction(id = "reminders:edit:*n")
     public void reminderEdit(ButtonInteractionEvent event) {
-        event.reply("Cette fonctionnalité n'est pas encore disponible.").setEphemeral(true).queue();
+        ReminderListMessage reminderMessage = getReminderListMessage(event);
+        if (reminderMessage == null) return;
         
-        // long reminderId = Long.parseLong(event.getComponentId().substring("reminders:edit:".length()));
-        // String id = event.getCustomId() + ":modal";
-        //
-        // Modal modal = Modal.create(id, "Modifier le rappel")
-        //     .addComponents(
-        //         TextDisplay.of("Truc"),
-        //
-        //         Label.of(
-        //             "Modifier le message du rappel :",
-        //             TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
-        //                 .setPlaceholder("Le message de votre rappel...")
-        //                 .setMinLength(1)
-        //                 .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
-        //                 .setValue("to fetch")
-        //                 .build()
-        //         )
-        //     ).build();
-        //
-        // event.replyModal(modal).queue();
+        int reminderId = Integer.parseInt(event.getComponentId().substring("reminders:edit:".length(), event.getComponentId().length() - 1));
+        String id = event.getCustomId() + ":modal";
+        
+        ReminderEntity reminder = reminderMessage.reminders.get(reminderId);
+        
+        Modal modal = Modal.create(id, "Modifier le rappel")
+            .addComponents(
+                Label.of(
+                    "Modifier le message du rappel",
+                    TextInput.create(id + ":input", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("Le message de votre rappel...")
+                        .setMinLength(1)
+                        .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
+                        .setValue(reminder.message)
+                        .build()
+                ),
+                
+                Label.of(
+                    "Modifier le temps du rappel",
+                    "Le temps avant que vous recevez le rappel (A/Y, M, S/w, j/d, h, m, s).",
+                    TextInput.create(id + ":time", TextInputStyle.SHORT)
+                        .setValue(TimeParser.format(reminder.remindAfter))
+                        .build()
+                ),
+                
+                Label.of(
+                    "Envoyé en privé",
+                    "Si le rappel doit être envoyé en message privé ou dans le canal.",
+                    Checkbox.of(id + ":dm", reminder.dm)
+                ),
+                
+                Label.of(
+                    "Répété",
+                    "Si le rappel doit être répété ou non.",
+                    Checkbox.of(id + ":repeat", reminder.repeat)
+                )
+            ).build();
+
+        event.replyModal(modal).queue();
     }
     
-    @ButtonInteraction(id = "reminders:delete:*")
+    @ModalInteraction(id = "reminders:edit:*n:modal")
+    public void reminderEditModal(ModalInteractionEvent event) {
+        ReminderListMessage reminderMessage = getReminderListMessage(event);
+        if (reminderMessage == null) return;
+        
+        int reminderId = Integer.parseInt(event.getCustomId().substring("reminders:edit:".length(), event.getCustomId().length() - "n:modal".length()));
+        ReminderEntity reminder = reminderMessage.reminders.get(reminderId);
+        
+        String newMessage = event.getValue(event.getCustomId() + ":input").getAsString();
+        long newTime = TimeParser.parse(event.getValue(event.getCustomId() + ":time").getAsString());
+        boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
+        boolean newRepeat = event.getValue(event.getCustomId() + ":repeat").getAsBoolean();
+        
+        Database.update(reminder.setMessage(newMessage).setRemindAfter(newTime).setDm(newDm).setRepeat(newRepeat));
+        
+        if (newDm)
+            event.getUser().openPrivateChannel().queue(
+                privateChannel -> {
+                    if (!privateChannel.canTalk()) {
+                        event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue();
+                        return;
+                    }
+                    
+                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>). Il vous sera envoyé ici.").queue();
+                },
+                fail -> event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue()
+            );
+        
+        event.editComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
+            .useComponentsV2().queue();
+    }
+    
+    @ButtonInteraction(id = "reminders:delete:*n")
     public void reminderDelete(ButtonInteractionEvent event) {
         ReminderListMessage reminderMessage = getReminderListMessage(event);
         if (reminderMessage == null) return;
         
-        int reminderId = Integer.parseInt(event.getComponentId().substring("reminders:delete:".length()));
+        int reminderId = Integer.parseInt(event.getComponentId().substring("reminders:delete:".length(), event.getComponentId().length() - 1));
         Database.delete(reminderMessage.reminders.get(reminderId));
         reminderMessage.reminders.remove(reminderId);
         
@@ -181,8 +237,8 @@ public class ReminderCommand {
             
             components.add(TextDisplay.of(sb.toString()));
             components.add(ActionRow.of(
-                Button.primary("reminders:edit:" + i, "Modifier").withEmoji(Emoji.fromUnicode("✏️")).withDisabled(true),
-                Button.danger("reminders:delete:" + i, "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
+                Button.primary("reminders:edit:" + i + "n", "Modifier").withEmoji(Emoji.fromUnicode("✏️")),
+                Button.danger("reminders:delete:" + i + "n", "Supprimer").withEmoji(Emoji.fromUnicode("🗑️"))
             ));
             sb.setLength(0);
         }

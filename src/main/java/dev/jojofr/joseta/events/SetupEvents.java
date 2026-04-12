@@ -6,7 +6,6 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.*;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.database.helper.UserDatabase;
-import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;

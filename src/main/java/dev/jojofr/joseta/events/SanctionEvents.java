@@ -5,7 +5,6 @@ import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
-import dev.jojofr.joseta.generated.EventType;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
