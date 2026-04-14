@@ -134,6 +134,7 @@ public class ConfigurationCommand {
             case "config:cat_counting:penalty:toggle" -> configurationMessage.configuration.setCountingPenaltyEnabled(!configurationMessage.configuration.countingPenaltyEnabled);
             case "config:cat_markov:toggle" -> configurationMessage.configuration.setMarkovEnabled(!configurationMessage.configuration.markovEnabled);
             case "config:cat_moderation:toggle" -> configurationMessage.configuration.setModerationEnabled(!configurationMessage.configuration.moderationEnabled);
+            case "config:cat_moderation:honey_pot:toggle" -> configurationMessage.configuration.setModerationHoneypotEnabled(!configurationMessage.configuration.moderationHoneypotEnabled);
             case "config:cat_autores:toggle" -> configurationMessage.configuration.setAutoResponseEnabled(!configurationMessage.configuration.autoResponseEnabled);
         }
         
@@ -142,7 +143,7 @@ public class ConfigurationCommand {
             case "config:cat_welcome:toggle", "config:cat_welcome:image:toggle" -> createWelcomeMenuContainer(configurationMessage);
             case "config:cat_counting:toggle", "config:cat_counting:comments:toggle", "config:cat_counting:penalty:toggle" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:toggle" -> createMarkovMenuContainer(configurationMessage);
-            case "config:cat_moderation:toggle" -> createModerationMenuContainer(configurationMessage);
+            case "config:cat_moderation:toggle", "config:cat_moderation:honey_pot:toggle" -> createModerationMenuContainer(configurationMessage);
             case "config:cat_autores:toggle" -> createAutoResponseMenuContainer(configurationMessage);
             default -> null;
         }).useComponentsV2().queue();
@@ -379,6 +380,7 @@ public class ConfigurationCommand {
 
                 configurationMessage.configuration.markovBlacklist.addAll(newBlacklist);
             }
+            case "config:cat_moderation:honey_pot:channel_select" -> configurationMessage.configuration.setModerationHoneypotChannelId(selectedId);
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
@@ -391,7 +393,7 @@ public class ConfigurationCommand {
         event.editComponents(switch (menuId) {
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);
-            case "config:cat_moderation:rules:channel_select" -> createModerationMenuContainer(configurationMessage);
+            case "config:cat_moderation:rules:channel_select", "config:cat_moderation:honey_pot:channel_select" -> createModerationMenuContainer(configurationMessage);
             case "config:cat_welcome:channel_select", "config:cat_welcome:join_role_select", "config:cat_welcome:join_bot_role_select", "config:cat_welcome:verified_role_select" -> createWelcomeMenuContainer(configurationMessage);
             default -> null;
         }).useComponentsV2().queue();
@@ -613,13 +615,21 @@ public class ConfigurationCommand {
     }
     
     private Container createModerationMenuContainer(ConfigurationMessage configurationMessage) {
-        EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:rules:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+        EntitySelectMenu.Builder rulesChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:rules:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon pour envoyer les règles du serveur")
             .setChannelTypes(ChannelType.TEXT);
         if (configurationMessage.currentRulesChannelId != null)
-            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.currentRulesChannelId));
+            rulesChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.currentRulesChannelId));
         
-        EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
+        EntitySelectMenu rulesChannelSelectMenu = rulesChannelSelectMenuBuilder.build();
+        
+        EntitySelectMenu.Builder honeyPotChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:honey_pot:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+            .setPlaceholder("Sélectionnez un salon pour le \"pot de miel\"")
+            .setChannelTypes(ChannelType.TEXT);
+        if (configurationMessage.configuration.moderationHoneypotChannelId != null)
+            honeyPotChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.moderationHoneypotChannelId));
+        
+        EntitySelectMenu honeyPoChannelSelectMenu = honeyPotChannelSelectMenuBuilder.build();
         
         return Container.of(
             TextDisplay.of("# Configuration - Modération"),
@@ -627,6 +637,14 @@ public class ConfigurationCommand {
             createToggleSection("Système de modération",
                 "Active ou désactive les commande de modération.",
                 "config:cat_moderation:toggle", configurationMessage.configuration.moderationEnabled),
+            
+            createToggleSection("Salon \"pot de miel\"",
+                "Active ou désactive le salon \"pot de miel\".",
+                "config:cat_moderation:honey_pot:toggle", configurationMessage.configuration.moderationHoneypotEnabled),
+            
+            TextDisplay.of("### Salon \"pot de miel\""),
+            TextDisplay.of("-# Le salon \"pot de miel\""),
+            ActionRow.of(honeyPoChannelSelectMenu),
             
             Section.of(
                 Button.primary("config:cat_moderation:edit_rules", "Modifier les règles du serveur"),
@@ -640,7 +658,7 @@ public class ConfigurationCommand {
                 TextDisplay.of("### Envoyer les règles du serveur"),
                 TextDisplay.of("-# Envoie les règles du serveur dans un salon spécifique, avec un bouton de vérification à la fin. Le salon est choisi lors de l'envoi des règles.")
             ),
-            ActionRow.of(channelSelectMenu),
+            ActionRow.of(rulesChannelSelectMenu),
             
             createBottomRow(configurationMessage)
         );

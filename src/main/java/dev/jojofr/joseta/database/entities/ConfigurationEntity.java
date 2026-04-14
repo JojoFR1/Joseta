@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -14,27 +15,29 @@ import java.util.Set;
 public class ConfigurationEntity {
     @Id public Long guildId;
 
-    @Column public boolean welcomeEnabled = false;
-    @Column public Long welcomeChannelId = null;
-    @Column public boolean welcomeImageEnabled = false;
-    @Column public String welcomeJoinMessage = "Bienvenue {{user}} !";
-    @Column public String welcomeLeaveMessage = "**{{userName}}** nous a quitté...";
-    @Column public Long joinRoleId = null;
-    @Column public Long joinBotRoleId = null;
-    @Column public Long verifiedRoleId = null;
+    @Column @ColumnDefault("false") public boolean welcomeEnabled;
+    @Column public Long welcomeChannelId;
+    @Column @ColumnDefault("false") public boolean welcomeImageEnabled;
+    @Column(columnDefinition = "TEXT") @ColumnDefault("'Bienvenue {{user}} !'") public String welcomeJoinMessage;
+    @Column(columnDefinition = "TEXT") @ColumnDefault("'**{{userName}}** nous a quitté...'") public String welcomeLeaveMessage;
+    @Column public Long joinRoleId;
+    @Column public Long joinBotRoleId;
+    @Column public Long verifiedRoleId;
     
-    @Column public boolean markovEnabled = false;
+    @Column @ColumnDefault("false") public boolean markovEnabled;
     @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
     
-    @Column public boolean moderationEnabled = true;
-    @Column(columnDefinition = "TEXT") public String rules = "";
+    @Column @ColumnDefault("true") public boolean moderationEnabled;
+    @Column @ColumnDefault("false") public boolean moderationHoneypotEnabled;
+    @Column public Long moderationHoneypotChannelId;
+    @Column(columnDefinition = "TEXT") @ColumnDefault("''") public String rules;
 
-    @Column public boolean autoResponseEnabled = false;
+    @Column @ColumnDefault("false") public boolean autoResponseEnabled;
 
-    @Column public boolean countingEnabled = false;
-    @Column public boolean countingCommentsEnabled = false;
-    @Column public boolean countingPenaltyEnabled = false;
-    @Column public Long countingChannelId = null;
+    @Column @ColumnDefault("false") public boolean countingEnabled;
+    @Column @ColumnDefault("false") public boolean countingCommentsEnabled;
+    @Column @ColumnDefault("false") public boolean countingPenaltyEnabled;
+    @Column public Long countingChannelId;
     
     // A non-private and no-arg constructor is required by JPA
     protected ConfigurationEntity() {}
@@ -165,6 +168,21 @@ public class ConfigurationEntity {
 
     public ConfigurationEntity setModerationEnabled(boolean moderationEnabled) {
         this.moderationEnabled = moderationEnabled;
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationHoneypotEnabled(boolean moderationHoneypotEnabled) {
+        this.moderationHoneypotEnabled = moderationHoneypotEnabled;
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationHoneypotChannel(GuildMessageChannel moderationHoneypotChannel) {
+        if (moderationHoneypotChannel != null) this.moderationHoneypotChannelId = moderationHoneypotChannel.getIdLong();
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationHoneypotChannelId(Long moderationHoneypotChannelId) {
+        if (moderationHoneypotChannelId != null) this.moderationHoneypotChannelId = moderationHoneypotChannelId;
         return this;
     }
     
