@@ -25,9 +25,6 @@ java.sourceCompatibility = JavaVersion.VERSION_21
 java.targetCompatibility = JavaVersion.VERSION_21
 application.mainClass = 'dev.jojofr.joseta.JosetaBot'
 
-def generatedSourcesDir = layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
-sourceSets.main.java.srcDir generatedSourcesDir
-
 repositories { mavenCentral() }
 dependencies {
     implementation('net.dv8tion:JDA:6.4.1') {
@@ -51,8 +48,6 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.incremental = true
     options.compilerArgs << '-parameters' // Enable parameter name retention at runtime, required for the InteractionProcessor
-
-    options.getGeneratedSourceOutputDirectory().set(file(generatedSourcesDir))
 }
 
 shadowJar {
