@@ -179,7 +179,11 @@ public class ReminderCommand {
         int reminderId = Integer.parseInt(event.getCustomId().substring("reminders:edit:".length(), event.getCustomId().length() - "n:modal".length()));
         ReminderEntity reminder = reminderMessage.reminders.get(reminderId);
         
-        String newMessage = event.getValue(event.getCustomId() + ":input").getAsString();
+        String message = event.getValue(event.getCustomId() + ":input").getAsString();
+        String noMentions = MessageDatabase.NO_MENTIONS_PATTERN.matcher(message).replaceAll("");
+        String noUrl = MessageDatabase.NO_URL_PATTERN.matcher(noMentions).replaceAll("");
+        String newMessage = noUrl.replace("`", "").replace("\\", "");
+        
         long newTime = TimeParser.parse(event.getValue(event.getCustomId() + ":time").getAsString());
         boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
         boolean newRepeat = event.getValue(event.getCustomId() + ":repeat").getAsBoolean();
@@ -233,7 +237,7 @@ public class ReminderCommand {
             
             if (reminder.repeat) sb.append(", répété");
             if (reminder.dm) sb.append(", en MP");
-            sb.append(")\n").append("> ```").append(reminder.message).append("```\n\n");
+            sb.append(")\n").append(">>> ```").append(reminder.message).append("```\n\n");
             
             components.add(TextDisplay.of(sb.toString()));
             components.add(ActionRow.of(

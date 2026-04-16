@@ -208,7 +208,7 @@ public class MessageDatabase {
 
     private static boolean isMarkovEligible(Message message, Set<Long> markovBlacklist) {
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return false;
-        if (markovBlacklist.contains(message.getAuthor().getIdLong())) return  false;
+        if (markovBlacklist.contains(message.getAuthor().getIdLong())) return false;
         
         Member member =  message.getMember();
         if (member != null && member.getUnsortedRoles().stream().anyMatch(role -> markovBlacklist.contains(role.getIdLong()))) return false;
