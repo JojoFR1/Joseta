@@ -56,20 +56,24 @@ public class ScheduledEvents {
                     },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );
-                return;
+                continue;
             }
             
-            if (channel == null) return;
             JosetaBot.get().retrieveUserById(reminder.userId).queue(
                 user -> user.openPrivateChannel().queue(
                     privateChannel -> {
                         if (!privateChannel.canTalk()) {
                             Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
-                            channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai dans 1 heure, vérifie que je peux t'envoyer des messages privés.").queue();
+                            
+                            reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter + 60 * 60 * 6); // 6 hours
+                            Database.update(reminder);
+                            
+                            if (channel == null) return;
+                            channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai plus tard, vérifie que je peux t'envoyer des messages privés.").queue();
                             return;
                         }
                         
-                        channel.sendMessage(message).queue(
+                        privateChannel.sendMessage(message).queue(
                             success -> {
                                 if (!reminder.repeat) {
                                     Database.delete(reminder);
@@ -80,7 +84,11 @@ public class ScheduledEvents {
                                 Database.update(reminder);
                             }
                         );
-                    }));
+                    }),
+                failure -> {
+                    Log.warn("Failed to retrieve user {} (ID: {}) for reminder ID {}. The reminder will be deleted.", failure, reminder.userId, reminder.id);
+                    Database.delete(reminder);
+                });
         }
     }
     
@@ -94,6 +102,8 @@ public class ScheduledEvents {
         
         for (SanctionEntity sanction : sanctions) {
             Guild guild = JosetaBot.get().getGuildById(sanction.id.guildId());
+            Database.update(sanction.setExpired(true));
+            
             if (guild == null) continue;
             
             // Only ban need action on expiry, others are automatic
@@ -116,8 +126,6 @@ public class ScheduledEvents {
                 },
                 failure -> Log.err("Failed to retrieve user {} (ID: {}) for expired sanction ID {}", failure, sanction.userId, sanction.id)
             );
-            
-            Database.update(sanction.setExpired(true));
         }
     }
 }
