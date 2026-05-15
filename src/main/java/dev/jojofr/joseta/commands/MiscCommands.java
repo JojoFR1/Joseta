@@ -44,4 +44,9 @@ public class MiscCommands {
     
     @SlashCommandInteraction(name = "multi", description = "Envoie le texte d'aide pour le multijoueur.")
     public void multiInfo(SlashCommandInteractionEvent event) { event.reply(MiscEvents.autoResponseMessage).queue(); }
+    
+    @SlashCommandInteraction(name = "surprendmoi", description = "Obtenez une surprise aléatoire.")
+    public void surprises(SlashCommandInteractionEvent event) {
+        event.reply("Les addictions aux jeux d'argents et d'hasard sont dangereuses, si vous avez besoin d'aide, n'hésitez pas à contacter des associations spécialisées comme <https://www.joueurs-info-service.fr/> ou <https://sos-jeu.ch/>.").queue();
+    }
 }
