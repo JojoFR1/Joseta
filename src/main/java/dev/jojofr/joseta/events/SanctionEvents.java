@@ -2,6 +2,7 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
+import dev.jojofr.joseta.annotations.types.EventPriority;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
@@ -18,7 +19,7 @@ import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEv
 @EventModule
 public class SanctionEvents {
 
-    @EventHandler(priority = EventHandler.EventPriority.DISABLED)
+    @EventHandler(priority = EventPriority.DISABLED)
     public void onGuildAuditLogEntryCreate(GuildAuditLogEntryCreateEvent event) {
         AuditLogEntry entry = event.getEntry();
         Log.debug("New audit log entry in guild {} ({}): action={}, targetType={}, targetId={}, userId={}, reason={}", event.getGuild().getName(), event.getGuild().getIdLong(), entry.getType(), entry.getTargetType(), entry.getTargetIdLong(), entry.getUserIdLong(), entry.getReason());
@@ -33,7 +34,7 @@ public class SanctionEvents {
         }
     }
     
-    @EventHandler(priority = EventHandler.EventPriority.DISABLED)
+    @EventHandler(priority = EventPriority.DISABLED)
     public void onGuildMemberUpdate(GuildMemberUpdateTimeOutEvent event) {
         // event.getGuild().retrieveAuditLogs().type(ActionType.).queue(
         //     logs -> {

@@ -2,6 +2,7 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
+import dev.jojofr.joseta.annotations.types.EventPriority;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.*;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
@@ -17,7 +18,7 @@ import org.hibernate.Transaction;
 @EventModule
 public class SetupEvents {
     
-    @EventHandler(priority = EventHandler.EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onGuildReady(GuildReadyEvent event) {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
@@ -37,7 +38,7 @@ public class SetupEvents {
         BotCache.putGuildConfiguration(event.getGuild().getIdLong(), Database.get(ConfigurationEntity.class, event.getGuild().getIdLong()));
     }
     
-    @EventHandler(priority = EventHandler.EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onGuildLeave(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();
         Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), guildId);

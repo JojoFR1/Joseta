@@ -1,5 +1,7 @@
 package dev.jojofr.joseta.annotations.interactions;
 
+import dev.jojofr.joseta.annotations.types.EventPriority;
+
 import java.lang.reflect.Method;
 
 /**
@@ -8,10 +10,10 @@ import java.lang.reflect.Method;
 public class Event {
     private final Class<?> clazz;
     private final Method method;
-    private final dev.jojofr.joseta.annotations.types.EventHandler.EventPriority priority;
+    private final EventPriority priority;
     private final boolean guildOnly;
     
-    public Event(Class<?> clazz, Method method, dev.jojofr.joseta.annotations.types.EventHandler.EventPriority priority, boolean guildOnly) {
+    public Event(Class<?> clazz, Method method, EventPriority priority, boolean guildOnly) {
         this.clazz = clazz;
         this.method = method;
         this.priority = priority;
@@ -20,6 +22,6 @@ public class Event {
     
     public Class<?> getClazz() { return clazz; }
     public Method getMethod() { return method; }
-    public dev.jojofr.joseta.annotations.types.EventHandler.EventPriority getPriority() { return priority; }
+    public EventPriority getPriority() { return priority; }
     public boolean isGuildOnly() { return guildOnly; }
 }

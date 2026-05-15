@@ -2,6 +2,7 @@ package dev.jojofr.joseta.annotations;
 
 import dev.jojofr.joseta.annotations.interactions.Event;
 import dev.jojofr.joseta.annotations.types.EventHandler;
+import dev.jojofr.joseta.annotations.types.EventPriority;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.GatewayPingEvent;
@@ -62,8 +63,8 @@ public class EventProcessor {
                 EventHandler eventAnnotation = method.getAnnotation(EventHandler.class);
                 if (eventAnnotation == null) continue;
                 
-                EventHandler.EventPriority priority = eventAnnotation.priority();
-                if (priority == EventHandler.EventPriority.DISABLED) {
+                EventPriority priority = eventAnnotation.priority();
+                if (priority == EventPriority.DISABLED) {
                     Log.warn("Event {}.{} is disabled, skipping registration.", eventClass.getName(), method.getName());
                     continue;
                 }
