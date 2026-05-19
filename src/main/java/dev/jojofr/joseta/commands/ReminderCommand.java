@@ -104,7 +104,7 @@ public class ReminderCommand {
         // Integer division always floors the result, so we add 1 if there's a remainder to ceil the value
         int lastPage = reminders.size() / REMINDER_PER_PAGE + (reminders.size() % REMINDER_PER_PAGE == 0 ? 0 : 1);
         
-        event.replyComponents(generateContainer(reminders, event.getGuild(), event.getUser(), 1, lastPage))
+        event.replyComponents(generateContainer(reminders, event.getUser(), 1, lastPage))
             .useComponentsV2().setEphemeral(true).queue(
                 hook -> reminderListMessages.put(event.getUser().getIdLong(), new ReminderListMessage(reminders, lastPage))
             );
@@ -121,7 +121,7 @@ public class ReminderCommand {
             : eventId.endsWith("next")  ? reminderMessage.nextPage()
             : reminderMessage.lastPage;
         
-        event.editComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), currentPage, reminderMessage.lastPage))
+        event.editComponents(generateContainer(reminderMessage.reminders, event.getUser(), currentPage, reminderMessage.lastPage))
             .useComponentsV2().queue();
     }
     
@@ -203,7 +203,7 @@ public class ReminderCommand {
                 fail -> event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue()
             );
         
-        event.editComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
+        event.editComponents(generateContainer(reminderMessage.reminders, event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
             .useComponentsV2().queue();
     }
     
@@ -217,11 +217,11 @@ public class ReminderCommand {
         reminderMessage.reminders.remove(reminderId);
         
         event.reply("Le rappel a bien été supprimé.").setEphemeral(true).queue();
-        event.getMessage().editMessageComponents(generateContainer(reminderMessage.reminders, event.getGuild(), event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
+        event.getMessage().editMessageComponents(generateContainer(reminderMessage.reminders, event.getUser(), reminderMessage.currentPage, reminderMessage.lastPage))
             .useComponentsV2().queue();
     }
     
-    private Container generateContainer(List<ReminderEntity> reminders, Guild guild, User user, int currentPage, int lastPage) {
+    private Container generateContainer(List<ReminderEntity> reminders, User user, int currentPage, int lastPage) {
         List<ContainerChildComponent> components = new ArrayList<>();
         components.add(TextDisplay.of("### Liste des rappels de " + user.getEffectiveName() + " ┃ Page " +  currentPage + "/"+ lastPage));
         
