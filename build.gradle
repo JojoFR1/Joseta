@@ -70,13 +70,17 @@ remotes {
 
 tasks.register('uploadServer') {
     dependsOn shadowJar
-    inputs.file shadowJar.archiveFile
 
+    def archiveFile = shadowJar.archiveFile
+    def ssh = project.ssh
+    def remote = remotes.remoteServer
+
+    inputs.file archiveFile
     doLast {
-        def jarFile = shadowJar.archiveFile.get().asFile
+        def jarFile = archiveFile.get().asFile
         println "Uploading ${jarFile} to remote server..."
         ssh.run {
-            session(remotes.remoteServer) {
+            session(remote) {
                 put from: jarFile, into: '.'
             }
         }
