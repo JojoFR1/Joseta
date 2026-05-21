@@ -14,7 +14,7 @@ plugins {
 import io.github.cdimascio.dotenv.Dotenv
 
 group = 'dev.jojofr'
-version = '2.2.2'
+version = '2.3.0'
 
 def dotenv = Dotenv.configure()
         .directory(project.rootDir.absolutePath)
