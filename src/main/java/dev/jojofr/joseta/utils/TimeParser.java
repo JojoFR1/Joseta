@@ -85,11 +85,11 @@ public class TimeParser {
             char unit = matcher.group(2).charAt(0);
             
             totalSeconds += switch (unit) {
-                case 'Y', 'A' -> value * SECONDS_IN_YEAR;
+                case 'Y', 'y', 'A', 'a' -> value * SECONDS_IN_YEAR;
                 case 'M' -> value * SECONDS_IN_MONTH;
-                case 'w', 'S' -> value * SECONDS_IN_WEEK;
-                case 'd', 'j' -> value * SECONDS_IN_DAY;
-                case 'h' -> value * SECONDS_IN_HOUR;
+                case 'W', 'w', 'S' -> value * SECONDS_IN_WEEK;
+                case 'D', 'd', 'J', 'j' -> value * SECONDS_IN_DAY;
+                case 'H', 'h' -> value * SECONDS_IN_HOUR;
                 case 'm' -> value * SECONDS_IN_MINUTE;
                 case 's' -> value;
                 default -> 0;
