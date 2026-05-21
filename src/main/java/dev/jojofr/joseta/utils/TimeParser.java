@@ -21,7 +21,7 @@ public class TimeParser {
      * @throws IllegalArgumentException if the input seconds is negative.
      */
     public static String format(long seconds) {
-        if (seconds < 0) throw new IllegalArgumentException("Seconds cannot be negative.");
+        if (seconds < 0) return "inf";
         if (seconds == 0) return "0s";
         
         StringBuilder timeBuilder = new StringBuilder();
@@ -62,6 +62,52 @@ public class TimeParser {
         }
         
         if (seconds > 0) timeBuilder.append(seconds).append("s");
+        
+        return timeBuilder.toString();
+    }
+    
+    public static String formatReadable(long seconds) {
+        if (seconds < 0) return "infini";
+        if (seconds == 0) return "0 seconde";
+        
+        StringBuilder timeBuilder = new StringBuilder();
+        long years = seconds / SECONDS_IN_YEAR;
+        if (years > 0) {
+            timeBuilder.append(years).append("année").append(years > 1 ? "s " : " ");
+            seconds %= SECONDS_IN_YEAR;
+        }
+        
+        long months = seconds / SECONDS_IN_MONTH;
+        if (months > 0) {
+            timeBuilder.append(months).append("mois ");
+            seconds %= SECONDS_IN_MONTH;
+        }
+        
+        long weeks = seconds / SECONDS_IN_WEEK;
+        if (weeks > 0) {
+            timeBuilder.append(weeks).append("semaine").append(weeks > 1 ? "s " : " ");
+            seconds %= SECONDS_IN_WEEK;
+        }
+        
+        long days = seconds / SECONDS_IN_DAY;
+        if (days > 0) {
+            timeBuilder.append(days).append("jour").append(days > 1 ? "s " : " ");
+            seconds %= SECONDS_IN_DAY;
+        }
+        
+        long hours = seconds / SECONDS_IN_HOUR;
+        if (hours > 0) {
+            timeBuilder.append(hours).append("heure").append(hours > 1 ? "s " : " ");
+            seconds %= SECONDS_IN_HOUR;
+        }
+        
+        long minutes = seconds / SECONDS_IN_MINUTE;
+        if (minutes > 0) {
+            timeBuilder.append(minutes).append("minute").append(minutes > 1 ? "s " : " ");
+            seconds %= SECONDS_IN_MINUTE;
+        }
+        
+        if (seconds > 0) timeBuilder.append(seconds).append("seconde").append(seconds > 1 ? "s" : "");
         
         return timeBuilder.toString();
     }
