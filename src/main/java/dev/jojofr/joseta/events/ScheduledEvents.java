@@ -51,7 +51,7 @@ public class ScheduledEvents {
                             return;
                         }
                         
-                        reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                        reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
                         Database.update(reminder);
                     },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
@@ -65,7 +65,7 @@ public class ScheduledEvents {
                         if (!privateChannel.canTalk()) {
                             Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
                             
-                            reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter + 60 * 60 * 6); // 6 hours
+                            reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter + 60 * 60 * 6); // 6 hours
                             Database.update(reminder);
                             
                             if (channel == null) return;
@@ -80,7 +80,7 @@ public class ScheduledEvents {
                                     return;
                                 }
                                 
-                                reminder.remindAt = Instant.now().plusSeconds(reminder.remindAfter);
+                                reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
                                 Database.update(reminder);
                             }
                         );

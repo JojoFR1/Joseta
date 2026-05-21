@@ -21,7 +21,6 @@ import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -34,7 +33,9 @@ import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.modals.Modal;
 
 import java.awt.*;
-import java.time.Instant;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,13 +47,31 @@ public class ReminderCommand {
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
     public void reminderAdd(SlashCommandInteractionEvent event,
                             @Option(description = "Le message du rappel.", required = true) String message,
-                            @Option(description = "Le temps avant que vous recevez le rappel (A/Y, M, S/w, j/d, h, m, s).", required = true) String time,
-                            @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm,
-                            @Option(description = "Si le rappel doit être répété (par défaut non).") Boolean repeat)
+                            @Option(description = "L'année où le rappel doit être envoyé. Par défaut: cette année.") Integer year,
+                            @Option(description = "Le mois où le rappel doit être envoyé (1-12). Par défaut: ce mois-ci.", minValue = 1, maxValue = 12) Integer month,
+                            @Option(description = "Le jour où le rappel doit être envoyé (1-31). Par défaut: aujourd'hui.",minValue = 1, maxValue = 31) Integer day,
+                            @Option(description = "L'heure où le rappel doit être envoyé (0-23). Par défaut: l'heure actuelle.", minValue = 0, maxValue = 23) Integer hour,
+                            @Option(description = "La minute où le rappel doit être envoyé (0-59). Par défaut: la minute actuelle.", minValue = 0, maxValue = 59) Integer minute,
+                            @Option(description = "Le temps avant de répéter le rappel (A/Y, M, S/w, j/d, H/h, m, s). Si vide, aucune répétition.") String repeatTime,
+                            @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm)
     {
         if (dm == null) dm = false;
-        if (repeat == null) repeat = false;
-        long timeSeconds = TimeParser.parse(time);
+        boolean repeat = repeatTime != null;
+        
+        ZoneId parisZone = ZoneId.of("Europe/Paris");
+        LocalDateTime now = LocalDateTime.now(parisZone);
+        LocalDateTime remindAt = LocalDateTime.of(
+            year   != null ? year   : now.getYear(),
+            month  != null ? month  : now.getMonthValue(),
+            day    != null ? day    : now.getDayOfMonth(),
+            hour   != null ? hour   : now.getHour(),
+            minute != null ? minute : now.getMinute()
+        );
+        
+        if (remindAt.isBefore(now.plusMinutes(5))) {
+            event.reply("Le rappel doit être défini pour une date future d'au moins 5 minutes.").setEphemeral(true).queue();
+            return;
+        }
         
         String noMentions = MessageDatabase.NO_MENTIONS_PATTERN.matcher(message).replaceAll("");
         String noUrl = MessageDatabase.NO_URL_PATTERN.matcher(noMentions).replaceAll("");
@@ -64,10 +83,11 @@ public class ReminderCommand {
             return;
         }
         
-        ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, timeSeconds, dm, repeat);
+        ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? TimeParser.parse(repeatTime) : -1, dm, repeat);
         Database.create(reminder);
         event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
-            + (repeat ? " Il sera répété." : "") + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
+            + (repeat ? " Il sera répété tous les " + TimeParser.formatReadable(reminder.repeatAfter) + "." : "")
+            + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
         
         if (dm)
             event.getUser().openPrivateChannel().queue(
@@ -134,6 +154,10 @@ public class ReminderCommand {
         String id = event.getCustomId() + ":modal";
         
         ReminderEntity reminder = reminderMessage.reminders.get(reminderId);
+        LocalDateTime time = LocalDateTime.ofInstant(reminder.remindAt, ZoneId.of("Europe/Paris"));
+        
+        TextInput.Builder repeatInput = TextInput.create(id + ":repeat", TextInputStyle.SHORT);
+        if (reminder.repeatAfter > 0) repeatInput.setValue(TimeParser.format(reminder.repeatAfter));
         
         Modal modal = Modal.create(id, "Modifier le rappel")
             .addComponents(
@@ -148,23 +172,24 @@ public class ReminderCommand {
                 ),
                 
                 Label.of(
-                    "Modifier le temps du rappel",
-                    "Le temps avant que vous recevez le rappel (A/Y, M, S/w, j/d, h, m, s).",
+                    "Modifier la date du rappel",
+                    "La date à laquelle le rappel doit être envoyé. Format: YYYY-MM-DD HH:mm - Fuseau: Europe/Paris.",
                     TextInput.create(id + ":time", TextInputStyle.SHORT)
-                        .setValue(TimeParser.format(reminder.remindAfter))
+                        .setPlaceholder("YYYY-MM-DD HH:mm")
+                        .setValue(time.getYear() + "-" + String.format("%02d", time.getMonthValue()) + "-" + String.format("%02d", time.getDayOfMonth()) + " " + String.format("%02d", time.getHour()) + ":" + String.format("%02d", time.getMinute()))
                         .build()
+                ),
+                
+                Label.of(
+                    "Modifier le temps de répétition du rappel",
+                    "Le temps avant de répéter le rappel (A/Y, M, S/w, j/d, H/h, m, s). Si vide, aucune répétition.",
+                    repeatInput.setRequired(false).build()
                 ),
                 
                 Label.of(
                     "Envoyé en privé",
                     "Si le rappel doit être envoyé en message privé ou dans le canal.",
                     Checkbox.of(id + ":dm", reminder.dm)
-                ),
-                
-                Label.of(
-                    "Répété",
-                    "Si le rappel doit être répété ou non.",
-                    Checkbox.of(id + ":repeat", reminder.repeat)
                 )
             ).build();
 
@@ -184,11 +209,20 @@ public class ReminderCommand {
         String noUrl = MessageDatabase.NO_URL_PATTERN.matcher(noMentions).replaceAll("");
         String newMessage = noUrl.replace("`", "").replace("\\", "");
         
-        long newTime = TimeParser.parse(event.getValue(event.getCustomId() + ":time").getAsString());
-        boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
-        boolean newRepeat = event.getValue(event.getCustomId() + ":repeat").getAsBoolean();
+        String timeString = event.getValue(event.getCustomId() + ":time").getAsString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime newRemindAt;
+        try {
+            newRemindAt = LocalDateTime.parse(timeString, formatter);
+        }  catch (DateTimeParseException e) {
+            newRemindAt = LocalDateTime.ofInstant(reminder.remindAt, ZoneId.of("Europe/Paris"));
+        }
         
-        Database.update(reminder.setMessage(newMessage).setRemindAfter(newTime).setDm(newDm).setRepeat(newRepeat));
+        long repeatTime = TimeParser.parse(event.getValue(event.getCustomId() + ":repeat").getAsString());
+        boolean newRepeat = repeatTime > 0;
+        boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
+        
+        Database.update(reminder.setMessage(newMessage).setRemindAt(newRemindAt).setRepeatAfter(newRepeat ? repeatTime : -1).setDm(newDm).setRepeat(newRepeat));
         
         if (newDm)
             event.getUser().openPrivateChannel().queue(
