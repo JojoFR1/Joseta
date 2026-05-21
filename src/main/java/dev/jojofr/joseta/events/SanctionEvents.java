@@ -2,77 +2,102 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
-import dev.jojofr.joseta.annotations.types.EventPriority;
+import dev.jojofr.joseta.commands.ModerationCommands;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
-import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
 import net.dv8tion.jda.api.audit.TargetType;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
-import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @EventModule
 public class SanctionEvents {
-
-    @EventHandler(priority = EventPriority.DISABLED)
+    
+    @EventHandler
     public void onGuildAuditLogEntryCreate(GuildAuditLogEntryCreateEvent event) {
         AuditLogEntry entry = event.getEntry();
-        Log.debug("New audit log entry in guild {} ({}): action={}, targetType={}, targetId={}, userId={}, reason={}", event.getGuild().getName(), event.getGuild().getIdLong(), entry.getType(), entry.getTargetType(), entry.getTargetIdLong(), entry.getUserIdLong(), entry.getReason());
+        if (entry.getType() != ActionType.MEMBER_UPDATE || entry.getTargetType() != TargetType.MEMBER || entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) == null) return;
         
-        // Check for timeout start/end time
-        if (entry.getType() == ActionType.MEMBER_UPDATE && entry.getTargetType() == TargetType.MEMBER) {
-            // Check if the audit log entry is for a timeout start or end
-            if (entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) != null) {
-                Log.debug("Audit log entry is for a timeout update, ignoring as it will be handled by the GuildMemberUpdateTimeOutEvent.");
-                return;
-            }
+        String timeOutEndDate = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT).getNewValue();
+        if (timeOutEndDate == null) {
+            SanctionEntity sanction = SanctionDatabase.getLatest(entry.getTargetIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.TIMEOUT);
+            Database.update(sanction.setExpired(true));
+            return;
         }
+        
+        User user = event.getGuild().getMemberById(entry.getTargetIdLong()).getUser();
+        String reason = entry.getReason() == null ? "Aucun motif fourni." : entry.getReason();
+        long moderatorId = ModerationCommands.pendingSanctions.getOrDefault(user.getIdLong() + ":timeout", entry.getUserIdLong());
+        long timeOutEnd = OffsetDateTime.parse(timeOutEndDate).toInstant().getEpochSecond();
+        
+        user.openPrivateChannel().queue(
+            channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par <@" +  moderatorId +
+                "> pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + timeOutEnd +
+                ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+            ).queue()
+        );
+        
+        SanctionDatabase.addSanction(SanctionEntity.SanctionType.TIMEOUT, user, moderatorId, event.getGuild().getIdLong(), reason, timeOutEnd - Instant.now().getEpochSecond());
+        ModerationCommands.pendingSanctions.remove(user.getIdLong() + ":timeout");
     }
     
-    @EventHandler(priority = EventPriority.DISABLED)
-    public void onGuildMemberUpdate(GuildMemberUpdateTimeOutEvent event) {
-        // event.getGuild().retrieveAuditLogs().type(ActionType.).queue(
-        //     logs -> {
-        //         if (logs.isEmpty()) throw new RuntimeException("No audit logs found for timeout event.");
-        //
-        //         AuditLogEntry log = logs.getFirst();
-        //         if (log.getTargetIdLong() != event.getMember().getIdLong()) throw new RuntimeException("The latest timeout audit log entry does not match the timed out user.");
-        //         String reason = log.getReason() == null ? "Aucun motif fourni." : log.getReason();
-        //
-        //         SanctionDatabase.addSanction(SanctionEntity.SanctionType.TIMEOUT, event.getMember().getUser(), log.getUserIdLong(), event.getGuild().getIdLong(), reason, (event.getNewTimeOutEnd().toEpochMilli() - System.currentTimeMillis()) / 1000);
-        //     },
-        //     failure -> Log.warn("Failed to retrieve audit logs for timeout event in guild: {} ({}), for user: {} ({}).", failure, event.getGuild().getName(), event.getGuild().getIdLong(), event.getMember().getUser().getAsTag(), event.getMember().getUser().getIdLong())
-        // );
-    }
+    // TODO handle kick
+    // @EventHandler
+    // public void onMemberLeave(GuildMemberRemoveEvent event) {
+    //     event.getGuild().retrieveAuditLogs().type(ActionType.KICK).limit(1).queue(
+    //         entries -> {
+    //             if (entries.isEmpty()) return;
+    //             AuditLogEntry entry = entries.getFirst();
+    //
+    //             if (entry.getTargetIdLong() != event.getUser().getIdLong()) return;
+    //
+    //             String reason = entry.getReason() == null ? "Aucun motif fourni." : entry.getReason();
+    //             long moderatorId = ModerationCommands.pendingSanctions.getOrDefault(event.getUser().getIdLong() + ":kick", entry.getUserIdLong());
+    //
+    //             event.getUser().openPrivateChannel().queue(
+    //                 channel -> channel.sendMessage(
+    //                     "Vous avez été expulsé du serveur **`" + event.getGuild().getName() + "`** par <@" + moderatorId +
+    //                         "> pour la raison suivante : " + reason + ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+    //                 ).queue()
+    //             );
+    //
+    //             SanctionDatabase.addSanction(SanctionEntity.SanctionType.KICK, event.getUser(), moderatorId, event.getGuild().getIdLong(), reason, -1);
+    //             ModerationCommands.pendingSanctions.remove(event.getUser().getIdLong() + ":kick");
+    //         }
+    //     );
+    // }
     
     @EventHandler
     public void onGuildBan(GuildBanEvent event) {
-        event.getGuild().retrieveAuditLogs().type(ActionType.BAN).queue(
-            logs -> {
-                if (logs.isEmpty()) throw new RuntimeException("No audit logs found for ban event.");
+        event.getGuild().retrieveAuditLogs().type(ActionType.BAN).limit(1).queue(
+            entries -> {
+                if (entries.isEmpty()) return;
+                AuditLogEntry entry = entries.getFirst();
                 
-                AuditLogEntry log = logs.getFirst();
-                if (log.getTargetIdLong() != event.getUser().getIdLong()) throw new RuntimeException("The latest ban audit log entry does not match the banned user.");
-                String reason = log.getReason() == null ? "Aucun motif fourni." : log.getReason();
+                if (entry.getTargetIdLong() != event.getUser().getIdLong()) return;
+                
+                String reason = entry.getReason() == null ? "Aucun motif fourni." : entry.getReason();
+                long moderatorId = ModerationCommands.pendingSanctions.getOrDefault(event.getUser().getIdLong() + ":ban", entry.getUserIdLong());
                 
                 event.getUser().openPrivateChannel().queue(
                     channel -> channel.sendMessage(
-                        "Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                            " pour la raison suivante : " + reason + ".\nCette sanction n'expirera pas automatiquement." +
+                        "Vous avez été banni sur le serveur **`" + event.getGuild().getName() + "`** par <@" + moderatorId +
+                            "> pour la raison suivante : " + reason + ".\nCette sanction n'expirera pas automatiquement." +
                             "\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
                     ).queue()
                 );
                 
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, event.getUser(), log.getUserIdLong(), event.getGuild().getIdLong(), reason, -1);
-            },
-            failure -> {
-                Log.warn("Failed to retrieve audit logs for ban event in guild: {} ({}), for user: {} ({}).", failure, event.getGuild().getName(), event.getGuild().getIdLong(), event.getUser().getAsTag(), event.getUser().getIdLong());
-                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, event.getUser(), 0, event.getGuild().getIdLong(), "Aucun motif fourni.", -1);
+                SanctionDatabase.addSanction(SanctionEntity.SanctionType.BAN, event.getUser(), moderatorId, event.getGuild().getIdLong(), reason, -1);
+                ModerationCommands.pendingSanctions.remove(event.getUser().getIdLong() + ":ban");
             }
         );
     }
