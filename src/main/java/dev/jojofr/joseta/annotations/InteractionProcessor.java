@@ -328,7 +328,10 @@ public class InteractionProcessor {
 
                     switch (option.getType()) {
                         case STRING -> args.add(option.getAsString());
-                        case INTEGER -> args.add(parameter.type() == Long.class ? option.getAsLong() : option.getAsInt());
+                        case INTEGER -> {
+                            if (parameter.type() == Long.class) args.add(option.getAsLong());
+                            else args.add(option.getAsInt());
+                        }
                         case BOOLEAN -> args.add(option.getAsBoolean());
                         case USER -> args.add(User.class.isAssignableFrom(parameter.type()) ? option.getAsUser() : option.getAsMember());
                         case CHANNEL -> args.add(option.getAsChannel());
