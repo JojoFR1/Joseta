@@ -48,14 +48,24 @@ public class InteractionProcessor {
      * @param packagesName         The packages name to scan for interaction modules.
      *                             It should contain classes annotated with {@link InteractionModule}.
      */
-    // TODO if error come from JDA we dont know which interaction caused it
-    // TODO maybe cache the "global" event to avoid needing to recheck each time
     public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
+        initialize(bot, reflections);
+    }
+    /**
+     * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
+     * registering their commands and setting up event listeners with the provided JDA bot instance.
+     *
+     * @param bot                  The JDA bot instance to register commands with.
+     * @param reflections          The Reflections instance to use for scanning classes.
+     *                             It should be configured to scan for classes annotated with {@link InteractionModule}.
+     */
+    // TODO if error come from JDA we dont know which interaction caused it
+    // TODO maybe cache the "global" event to avoid needing to recheck each time
+    public static void initialize(JDA bot, Reflections reflections) {
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
 
         List<CommandData> commands = new ArrayList<>();
-
         for (Class<?> commandClass : classes) {
             for (Method method : commandClass.getMethods()) { try {
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);

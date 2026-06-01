@@ -50,12 +50,24 @@ public class EventProcessor {
      * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
      * registering their events  and setting up event listeners with the provided JDA bot instance.
      *
-     * @param bot         The JDA bot instance to register events with.
+     * @param bot          The JDA bot instance to register events with.
      * @param packagesName The packages name to scan for event modules.
      *                     It should contain classes annotated with {@link EventModule}.
      */
     public static void initialize(JDA bot, String... packagesName) {
         Reflections reflections = new Reflections((Object[]) packagesName);
+        initialize(bot, reflections);
+    }
+    
+    /**
+     * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
+     * registering their events  and setting up event listeners with the provided JDA bot instance.
+     *
+     * @param bot         The JDA bot instance to register events with.
+     * @param reflections The Reflections instance to use for scanning for event modules.
+     *                    It should be configured to scan for classes annotated with {@link EventModule}.
+     */
+    public static void initialize(JDA bot, Reflections reflections) {
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(EventModule.class);
         
         for (Class<?> eventClass : classes) {

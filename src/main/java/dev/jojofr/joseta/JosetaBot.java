@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import okhttp3.OkHttpClient;
+import org.reflections.Reflections;
 
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +41,9 @@ public class JosetaBot {
         }
         Dotenv dotenv = DotenvDebug.load(debug);
         
-        if (!Database.initialize("dev.jojofr.joseta.database.entities", dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_NAME"))) {
+        Reflections globalReflections = new Reflections("dev.jojofr.joseta.database.entities", "dev.jojofr.joseta.commands", "dev.jojofr.joseta.events");
+        
+        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"), globalReflections)) {
             Log.err("Database initialization failed. Exiting...");
             System.exit(1);
         }
@@ -54,8 +57,8 @@ public class JosetaBot {
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
 
-        InteractionProcessor.initialize(botInstance, "dev.jojofr.joseta.commands");
-        EventProcessor.initialize(botInstance, "dev.jojofr.joseta.events", "dev.jojofr.joseta.commands");
+        InteractionProcessor.initialize(botInstance, globalReflections);
+        EventProcessor.initialize(botInstance, globalReflections);
         
         registerShutdown(botInstance);
 

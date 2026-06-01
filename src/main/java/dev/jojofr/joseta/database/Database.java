@@ -32,38 +32,6 @@ public class Database {
     /**
      * Initializes the database connection and entity manager factory.
      *
-     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
-     * @param user The database username. Cannot be null or blank.
-     * @param password The database password. Can be null or blank (not recommended).
-     * @param host The database host. Cannot be null or blank.
-     * @param database The database name. Cannot be null or blank.
-     *
-     * @return {@code true} if initialization was successful, {@code false} otherwise.
-     */
-    public static boolean initialize(String entitiesPath, String user, String password, String host, String database) {
-        return initialize(entitiesPath, user, password, host, "5432", database, false);
-    }
-    
-    /**
-     * Initializes the database connection and entity manager factory.
-     *
-     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
-     * @param user The database username. Cannot be null or blank.
-     * @param password The database password. Can be null or blank (not recommended).
-     * @param host The database host. Cannot be null or blank.
-     * @param database The database name. Cannot be null or blank.
-     * @param showSql Whether to show SQL statements in the logs.
-     *
-     * @return {@code true} if initialization was successful, {@code false} otherwise.
-     */
-    public static boolean initialize(String entitiesPath, String user, String password, String host, String database, boolean showSql) {
-        return initialize(entitiesPath, user, password, host, "5432", database, showSql);
-    }
-    
-    /**
-     * Initializes the database connection and entity manager factory.
-     *
-     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
      * @param user The database username. Cannot be null or blank.
      * @param password The database password. Can be null or blank (not recommended).
      * @param host The database host. Cannot be null or blank.
@@ -72,14 +40,13 @@ public class Database {
      *
      * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
-    public static boolean initialize(String entitiesPath, String user, String password, String host, String port, String database) {
-        return initialize(entitiesPath, user, password, host, port, database, false);
+    public static boolean initialize(String user, String password, String host, String port, String database, Reflections reflections) {
+        return initialize(user, password, host, port, database, false, reflections);
     }
     
     /**
      * Initializes the database connection and entity manager factory.
      *
-     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
      * @param user The database username. Cannot be null or blank.
      * @param password The database password. Can be null or blank (not recommended).
      * @param host The database host. Cannot be null or blank.
@@ -89,29 +56,14 @@ public class Database {
      *
      * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
-    public static boolean initialize(String entitiesPath, String user, String password, String host, String port, String database, boolean showSql) {
+    public static boolean initialize(String user, String password, String host, String port, String database, boolean showSql, Reflections reflections) {
         String url = host + (port != null && !port.isBlank() ? ":" + port : "5432") + "/" + database;
-        return initialize(entitiesPath, user, password, url, showSql);
+        return initialize(user, password, url, showSql, reflections);
     }
     
     /**
      * Initializes the database connection and entity manager factory.
      *
-     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
-     * @param user The database username. Cannot be null or blank.
-     * @param password The database password. Can be null or blank (not recommended).
-     * @param url The database URL. Cannot be null or blank. Must be a PostgreSQL server.
-     *
-     * @return {@code true} if initialization was successful, {@code false} otherwise.
-     */
-    public static boolean initialize(String entitiesPath, String user, String password, String url) {
-        return initialize(entitiesPath, user, password, url, false);
-    }
-    
-    /**
-     * Initializes the database connection and entity manager factory.
-     *
-     * @param entitiesPath The path of the package containing the entity classes. Cannot be null or blank.
      * @param user The database username. Cannot be null or blank.
      * @param password The database password. Can be null or blank (not recommended).
      * @param url The database URL. Cannot be null or blank. Must be a PostgreSQL server.
@@ -119,28 +71,22 @@ public class Database {
      *
      * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
-    public static boolean initialize(String entitiesPath, String user, String password, String url, boolean showSql) {
-        if (entitiesPath == null || entitiesPath.isEmpty()) {
-            Log.err("Entities package path is not provided.");
-            return false;
-        }
-        
-        Reflections reflections = new Reflections(entitiesPath);
+    public static boolean initialize(String user, String password, String url, boolean showSql, Reflections reflections) {
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Entity.class);
         
         if (classes.isEmpty()) {
-            Log.warn("No entity classes found in the specified path: " + entitiesPath);
+            Log.warn("No entity classes found in the specified path: " + reflections.getConfiguration().getUrls());
             return false;
         }
         
         if (user == null || user.isBlank()) {
-            Log.err("Database user ('"+ user +"') is not provided.");
+            Log.err("Database user ('" + user + "') is not provided.");
             return false;
         }
         if (password == null || password.isBlank()) Log.warn("Database password is not provided.");
         
         if (url == null || url.isBlank()) {
-            Log.err("Database URL ('"+ url +"') is not provided.");
+            Log.err("Database URL ('" + url + "') is not provided.");
             return false;
         }
         
