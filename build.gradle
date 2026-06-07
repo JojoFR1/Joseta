@@ -7,7 +7,7 @@ buildscript {
 plugins {
     id 'java'
     id 'application'
-    id 'com.gradleup.shadow' version '9.4.1'
+    id 'com.gradleup.shadow' version '9.4.2'
     id 'org.hidetake.ssh' version '2.12.0'
     id 'org.kordamp.gradle.jandex' version '2.3.0'
 }
@@ -28,17 +28,18 @@ application.mainClass = 'dev.jojofr.joseta.JosetaBot'
 
 repositories { mavenCentral() }
 dependencies {
-    implementation('net.dv8tion:JDA:6.4.1') {
+    implementation('net.dv8tion:JDA:6.4.2') {
         // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation 'ch.qos.logback:logback-classic:1.5.32'
+    implementation 'ch.qos.logback:logback-classic:1.5.34'
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 
     implementation 'io.smallrye:jandex:3.5.3'
 
     implementation 'org.postgresql:postgresql:42.7.11'
+    // Maybe find a more lightweight ORM in the future, this is too much for a simple bot
     implementation 'org.hibernate.orm:hibernate-core:7.3.4.Final'
 
     annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.4.Final'
