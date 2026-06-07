@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;

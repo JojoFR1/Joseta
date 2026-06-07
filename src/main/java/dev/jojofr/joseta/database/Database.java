@@ -15,8 +15,11 @@ import org.hibernate.query.MutationQuery;
 import org.hibernate.query.SelectionQuery;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.hibernate.tool.schema.Action;
-import org.reflections.Reflections;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,8 +43,8 @@ public class Database {
      *
      * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
-    public static boolean initialize(String user, String password, String host, String port, String database, Reflections reflections) {
-        return initialize(user, password, host, port, database, false, reflections);
+    public static boolean initialize(String user, String password, String host, String port, String database, Index index) {
+        return initialize(user, password, host, port, database, false, index);
     }
     
     /**
@@ -56,9 +59,9 @@ public class Database {
      *
      * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
-    public static boolean initialize(String user, String password, String host, String port, String database, boolean showSql, Reflections reflections) {
-        String url = host + (port != null && !port.isBlank() ? ":" + port : "5432") + "/" + database;
-        return initialize(user, password, url, showSql, reflections);
+    public static boolean initialize(String user, String password, String host, String port, String database, boolean showSql, Index index) {
+        String url = host + ":" + (port != null && !port.isBlank() ? port : "5432") + "/" + database;
+        return initialize(user, password, url, showSql, index);
     }
     
     /**
@@ -71,11 +74,15 @@ public class Database {
      *
      * @return {@code true} if initialization was successful, {@code false} otherwise.
      */
-    public static boolean initialize(String user, String password, String url, boolean showSql, Reflections reflections) {
-        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Entity.class);
+    public static boolean initialize(String user, String password, String url, boolean showSql, Index index) {
+        Set<Class<?>> classes = new HashSet<>();
+        for (AnnotationInstance annotation : index.getAnnotations(DotName.createSimple(Entity.class))) {
+            String className = annotation.target().asClass().name().toString();
+            try { classes.add(Class.forName(className)); } catch (ClassNotFoundException e) { Log.err("Failed to load entity class: " + className, e); }
+        }
         
         if (classes.isEmpty()) {
-            Log.warn("No entity classes found in the specified path: " + reflections.getConfiguration().getUrls());
+            Log.warn("No entity classes found.");
             return false;
         }
         

@@ -22,7 +22,9 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.*;
-import org.reflections.Reflections;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -44,27 +46,18 @@ public class InteractionProcessor {
      * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
      * registering their commands and setting up event listeners with the provided JDA bot instance.
      *
-     * @param bot                  The JDA bot instance to register commands with.
-     * @param packagesName         The packages name to scan for interaction modules.
-     *                             It should contain classes annotated with {@link InteractionModule}.
-     */
-    public static void initialize(JDA bot, String... packagesName) {
-        Reflections reflections = new Reflections((Object[]) packagesName);
-        initialize(bot, reflections);
-    }
-    /**
-     * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
-     * registering their commands and setting up event listeners with the provided JDA bot instance.
-     *
-     * @param bot                  The JDA bot instance to register commands with.
-     * @param reflections          The Reflections instance to use for scanning classes.
-     *                             It should be configured to scan for classes annotated with {@link InteractionModule}.
+     * @param bot   The JDA bot instance to register commands with.
+     * @param index The Jandex index to use for scanning for {@link InteractionModule} classes and their annotated methods.
      */
     // TODO if error come from JDA we dont know which interaction caused it
     // TODO maybe cache the "global" event to avoid needing to recheck each time
-    public static void initialize(JDA bot, Reflections reflections) {
-        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(InteractionModule.class);
-
+    public static void initialize(JDA bot, Index index) {
+        Set<Class<?>> classes = new HashSet<>();
+        for (AnnotationInstance annotation : index.getAnnotations(DotName.createSimple(InteractionModule.class))) {
+            String className = annotation.target().asClass().name().toString();
+            try { classes.add(Class.forName(className)); } catch (ClassNotFoundException e) { Log.err("Failed to load interaction class: " + className, e); }
+        }
+        
         List<CommandData> commands = new ArrayList<>();
         for (Class<?> commandClass : classes) {
             for (Method method : commandClass.getMethods()) { try {

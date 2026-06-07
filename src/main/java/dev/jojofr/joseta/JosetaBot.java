@@ -15,8 +15,10 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import okhttp3.OkHttpClient;
-import org.reflections.Reflections;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.IndexReader;
 
+import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 public class JosetaBot {
@@ -41,9 +43,19 @@ public class JosetaBot {
         }
         Dotenv dotenv = DotenvDebug.load(debug);
         
-        Reflections globalReflections = new Reflections("dev.jojofr.joseta.database.entities", "dev.jojofr.joseta.commands", "dev.jojofr.joseta.events");
+        Index globalIndex = null;
+        try (InputStream indexStream = JosetaBot.class.getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
+            if (indexStream == null) {
+                Log.err("Failed to load Jandex index. The file 'META-INF/jandex.idx' was not found in the classpath.");
+                System.exit(1);
+            }
+            globalIndex = new IndexReader(indexStream).read();
+        } catch (Exception e) {
+            Log.err("An error occurred while loading the Jandex index.", e);
+            System.exit(1);
+        }
         
-        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"), globalReflections)) {
+        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"), globalIndex)) {
             Log.err("Database initialization failed. Exiting...");
             System.exit(1);
         }
@@ -57,11 +69,11 @@ public class JosetaBot {
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
 
-        InteractionProcessor.initialize(botInstance, globalReflections);
-        EventProcessor.initialize(botInstance, globalReflections);
+        InteractionProcessor.initialize(botInstance, globalIndex);
+        EventProcessor.initialize(botInstance, globalIndex);
         
         registerShutdown(botInstance);
-
+        
         // Wait for JDA to be ready and connected
         try { botInstance.awaitReady(); } catch (InterruptedException e) {
             Log.err("An error occurred while waiting for the instance to be ready (connected).", e);

@@ -23,7 +23,9 @@ import net.dv8tion.jda.api.events.sticker.GenericGuildStickerEvent;
 import net.dv8tion.jda.api.events.thread.GenericThreadEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.Interaction;
-import org.reflections.Reflections;
+import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,25 +52,15 @@ public class EventProcessor {
      * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
      * registering their events  and setting up event listeners with the provided JDA bot instance.
      *
-     * @param bot          The JDA bot instance to register events with.
-     * @param packagesName The packages name to scan for event modules.
-     *                     It should contain classes annotated with {@link EventModule}.
+     * @param bot   The JDA bot instance to register events with.
+     * @param index The Jandex index to use for scanning for {@link InteractionModule} classes and their annotated methods.
      */
-    public static void initialize(JDA bot, String... packagesName) {
-        Reflections reflections = new Reflections((Object[]) packagesName);
-        initialize(bot, reflections);
-    }
-    
-    /**
-     * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
-     * registering their events  and setting up event listeners with the provided JDA bot instance.
-     *
-     * @param bot         The JDA bot instance to register events with.
-     * @param reflections The Reflections instance to use for scanning for event modules.
-     *                    It should be configured to scan for classes annotated with {@link EventModule}.
-     */
-    public static void initialize(JDA bot, Reflections reflections) {
-        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(EventModule.class);
+    public static void initialize(JDA bot, Index index) {
+        Set<Class<?>> classes = new HashSet<>();
+        for (AnnotationInstance annotation : index.getAnnotations(DotName.createSimple(EventModule.class))) {
+            String className = annotation.target().asClass().name().toString();
+            try { classes.add(Class.forName(className)); } catch (ClassNotFoundException e) { Log.err("Failed to load event class: " + className, e); }
+        }
         
         for (Class<?> eventClass : classes) {
             for (Method method : eventClass.getMethods()) { try {
@@ -95,9 +87,7 @@ public class EventProcessor {
                 
                 method.setAccessible(true);
                 Event event = new Event(eventClass, method, priority, eventAnnotation.guildOnly());
-                if (eventMethods.get(eventClassType) == null) eventMethods.put(eventClassType, new ArrayList<>(List.of(event)));
-                else eventMethods.get(eventClassType).add(event);
-                
+                eventMethods.computeIfAbsent(eventClassType, k -> new ArrayList<>()).add(event);
             } catch (Exception e) { Log.warn("An error occurred while registering an event. Skipping.", e); }}
         }
         
