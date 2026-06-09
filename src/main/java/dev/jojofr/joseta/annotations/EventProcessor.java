@@ -32,25 +32,21 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Processor for scanning, registering events and handling them.
+ * Processor for scanning, registering events, and handling them.
  * <p>
  * It scans the specified package for classes annotated with {@link EventModule} and registers their methods
  * annotated with {@link EventHandler} as events with the JDA bot instance.
  * <p>
  * The processor sets up event listeners to handle incoming events and invoke the corresponding event methods.
  */
-// TODO optimization is nice but not a priority as it is complex, takes a lot of time to research and test - right now it's just a rabbit hole when i have other things to do
-// TODO cache the instances of the classes containing the events to optimize performance (event though in previous test this did not change much), but some
-//      events might need to have an object instance per event and not global
-// TODO i feel like having one function = one event is nice for readability and organization but i think it could be bad for performance, having to create
+// TODO I feel like having one function = one event is nice for readability and organization but i think it could be bad for performance, having to create
 //      an object each time and execute the function one after the other
 public class EventProcessor {
-    // TODO Maybe use a Set, it is supposedly faster and i dont care about order or duplicates - but if i do implement a priority system then order might matter needing a list ordered by priority (pre ordered instead of oredering each time)
     private static final Map<Class<? extends GenericEvent>, List<Event>> eventMethods = new HashMap<>();
     
     /**
      * Initializes the event processor by scanning the specified package for classes annotated with {@link EventModule},
-     * registering their events  and setting up event listeners with the provided JDA bot instance.
+     * registering their events, and setting up event listeners with the provided JDA bot instance.
      *
      * @param bot   The JDA bot instance to register events with.
      * @param index The Jandex index to use for scanning for {@link InteractionModule} classes and their annotated methods.

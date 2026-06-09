@@ -38,7 +38,6 @@ import java.util.*;
  * <p>
  * The processor sets up event listeners to handle incoming interactions and invoke the corresponding command methods.
  */
-// TODO optimization is nice but not a priority as it is complex, takes a lot of time to research and test - right now it's just a rabbit hole when i have other things to do
 public class InteractionProcessor {
     private static final Map<String, Interaction> interactionMethods = new HashMap<>();
     
@@ -60,7 +59,7 @@ public class InteractionProcessor {
         
         Map<String, CommandData> commands = new HashMap<>();
         for (Class<?> commandClass : classes) {
-            for (Method method : commandClass.getMethods()) { try {
+            for (Method method : commandClass.getDeclaredMethods()) { try {
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
                 if (commandInteraction != null) {
                     processCommand(commandInteraction, commandClass, method, commands);
@@ -120,9 +119,8 @@ public class InteractionProcessor {
                 }
             } catch (Exception e) { Log.warn("An error occurred while registering an interaction.", e); }}
         }
-
+        
         bot.updateCommands().addCommands(commands.values()).queue();
-
         bot.addEventListener(new InteractionListener());
     }
 
@@ -156,7 +154,7 @@ public class InteractionProcessor {
         method.setAccessible(true);
         Command command = new Command(commandClass, method, fullCommandName, commandAnnotation.guildOnly());
         interactionMethods.put(fullCommandName, command);
-
+        
         if (!subcommandName.isEmpty()) {
             boolean subcommandExists = true;
             SubcommandData subcommandData = commandData.getSubcommands().stream().filter(s -> s.getName().equals(subcommandName)).findFirst().orElse(null);
@@ -185,7 +183,7 @@ public class InteractionProcessor {
             else if (!subcommandExists) commandData.addSubcommands(subcommandData);
         }
         else addParameters(method.getParameters(), command, commandData);
-
+        
         Permission[] permissions = commandAnnotation.permissions();
         if (permissions.length > 0 && permissions[0] != Permission.UNKNOWN)
             commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(permissions));
@@ -209,7 +207,6 @@ public class InteractionProcessor {
         }
         
         List<OptionData> optionsData = new ArrayList<>();
-
         for (Parameter parameter : parameters) {
             if (GenericEvent.class.isAssignableFrom(parameter.getType())) continue; // Skip the event parameter
             
@@ -219,11 +216,12 @@ public class InteractionProcessor {
                 continue;
             }
 
+            
             String name = option.name();
             if (name.isEmpty()) name = parameter.getName();
             // Separate at uppercase letters and convert to lowercase with underscores
             name = name.replaceAll("([a-z])([A-Z]+)", "$1_$2").toLowerCase();
-
+            
             Class<?> type = parameter.getType();
             OptionType optionType;
 
