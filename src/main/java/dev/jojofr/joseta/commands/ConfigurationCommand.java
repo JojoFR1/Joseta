@@ -2,10 +2,7 @@ package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.ButtonInteraction;
-import dev.jojofr.joseta.annotations.types.ModalInteraction;
-import dev.jojofr.joseta.annotations.types.SelectMenuInteraction;
-import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
+import dev.jojofr.joseta.annotations.types.interaction.*;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
@@ -61,12 +58,12 @@ public class ConfigurationCommand {
         );
     }
     
-    @ButtonInteraction(id = "config:cat_autores") public void onConfigAutoResponseButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @ButtonInteraction(id = "config:cat_counting") public void onConfigCountingButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @ButtonInteraction(id = "config:cat_markov") public void onConfigMarkovButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @ButtonInteraction(id = "config:cat_moderation") public void onConfigModerationButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @ButtonInteraction(id = "config:cat_welcome") public void onConfigWelcomeButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @ButtonInteraction(id = "config:menu_back") public void onConfigBackButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:cat_autores") public void onConfigAutoResponseButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:cat_counting") public void onConfigCountingButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:cat_markov") public void onConfigMarkovButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:cat_moderation") public void onConfigModerationButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:cat_welcome") public void onConfigWelcomeButton(ButtonInteractionEvent event) { onCategoryButton(event); }
+    @Interaction(id = "config:menu_back") public void onConfigBackButton(ButtonInteractionEvent event) { onCategoryButton(event); }
     private void onCategoryButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -87,7 +84,7 @@ public class ConfigurationCommand {
         event.editComponents(container).useComponentsV2().queue();
     }
     
-    @ButtonInteraction(id = "config:save")
+    @Interaction(id = "config:save")
     public void onConfigSaveButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -111,15 +108,15 @@ public class ConfigurationCommand {
         event.getMessage().editMessageComponents(createMainMenuContainer(configurationMessage)).useComponentsV2().queue();
     }
     
-    // @ButtonInteraction(id = "config:cat_welcome:toggle") public void onConfigWelcomeToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_welcome:image:toggle") public void onConfigWelcomeToggleImageButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_counting:toggle") public void onConfigCountingToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_counting:comments:toggle") public void onConfigCountingToggleCommentsButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_counting:penalty:toggle") public void onConfigCountingTogglePenaltyButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_markov:toggle") public void onConfigMarkovToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_moderation:toggle") public void onConfigModerationToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @ButtonInteraction(id = "config:cat_autores:toggle") public void onConfigAutoResponseToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    @ButtonInteraction(id = "config:cat_*:toggle")
+    // @Interaction(id = "config:cat_welcome:toggle") public void onConfigWelcomeToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_welcome:image:toggle") public void onConfigWelcomeToggleImageButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_counting:toggle") public void onConfigCountingToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_counting:comments:toggle") public void onConfigCountingToggleCommentsButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_counting:penalty:toggle") public void onConfigCountingTogglePenaltyButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_markov:toggle") public void onConfigMarkovToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_moderation:toggle") public void onConfigModerationToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    // @Interaction(id = "config:cat_autores:toggle") public void onConfigAutoResponseToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
+    @Interaction(id = "config:cat_*:toggle")
     public void onToggleButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -149,8 +146,8 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
-    @ButtonInteraction(id = "config:cat_counting:reset_number") public void onConfigCountingResetNumberButton(ButtonInteractionEvent event) { onResetButton(event); }
-    @ButtonInteraction(id = "config:cat_counting:reset_author") public void onConfigCountingResetAuthorButton(ButtonInteractionEvent event) { onResetButton(event); }
+    @Interaction(id = "config:cat_counting:reset_number") public void onConfigCountingResetNumberButton(ButtonInteractionEvent event) { onResetButton(event); }
+    @Interaction(id = "config:cat_counting:reset_author") public void onConfigCountingResetAuthorButton(ButtonInteractionEvent event) { onResetButton(event); }
     private void onResetButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -170,7 +167,7 @@ public class ConfigurationCommand {
     
     private static final ActionRow rulesAcceptButton = ActionRow.of(Button.success("rules:accept", "Accepter"));
     
-    @ButtonInteraction(id = "config:cat_moderation:rules:send")
+    @Interaction(id = "config:cat_moderation:rules:send")
     public void onConfigModerationRulesSendButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -258,7 +255,7 @@ public class ConfigurationCommand {
     }
     
     
-    @ButtonInteraction(id = "rules:accept")
+    @Interaction(id = "rules:accept")
     public void onRulesAcceptButton(ButtonInteractionEvent event) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         
@@ -271,10 +268,10 @@ public class ConfigurationCommand {
         event.deferEdit().queue();
     }
     
-    @ButtonInteraction(id = "config:cat_counting:set_number") public void onConfigCountingSetNumberButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
-    @ButtonInteraction(id = "config:cat_moderation:edit_rules") public void onConfigModerationEditRulesButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
-    @ButtonInteraction(id = "config:cat_welcome:edit_join_message") public void onConfigWelcomeEditJoinMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
-    @ButtonInteraction(id = "config:cat_welcome:edit_leave_message") public void onConfigWelcomeEditLeaveMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
+    @Interaction(id = "config:cat_counting:set_number") public void onConfigCountingSetNumberButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
+    @Interaction(id = "config:cat_moderation:edit_rules") public void onConfigModerationEditRulesButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
+    @Interaction(id = "config:cat_welcome:edit_join_message") public void onConfigWelcomeEditJoinMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
+    @Interaction(id = "config:cat_welcome:edit_leave_message") public void onConfigWelcomeEditLeaveMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     private void onEditMessageButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -336,15 +333,15 @@ public class ConfigurationCommand {
         }
     }
     
-    @SelectMenuInteraction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_markov:mentionable_blacklist_select") public void onConfigMarkovBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_markov:channel_blacklist_select") public void onConfigMarkovChannelBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_welcome:channel_select") public void onConfigWelcomeChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_welcome:join_bot_role_select") public void onConfigWelcomeJoinBotRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @SelectMenuInteraction(id = "config:cat_welcome:verified_role_select") public void onConfigWelcomeVerifiedRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    // @SelectMenuInteraction(id = "config:cat_*_select")
+    @Interaction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_markov:mentionable_blacklist_select") public void onConfigMarkovBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_markov:channel_blacklist_select") public void onConfigMarkovChannelBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_welcome:channel_select") public void onConfigWelcomeChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_welcome:join_bot_role_select") public void onConfigWelcomeJoinBotRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_welcome:verified_role_select") public void onConfigWelcomeVerifiedRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    // @Interaction(id = "config:cat_*_select")
     public void onSelectMenu(EntitySelectInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -399,10 +396,10 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
-    @ModalInteraction(id = "config:cat_counting:set_number:modal") public void onConfigCountingSetNumber(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
-    @ModalInteraction(id = "config:cat_moderation:edit_rules:modal") public void onConfigModerationEditRulesModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
-    @ModalInteraction(id = "config:cat_welcome:edit_join_message:modal") public void onConfigWelcomeEditJoinMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
-    @ModalInteraction(id = "config:cat_welcome:edit_leave_message:modal") public void onConfigWelcomeEditLeaveMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
+    @Interaction(id = "config:cat_counting:set_number:modal") public void onConfigCountingSetNumber(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
+    @Interaction(id = "config:cat_moderation:edit_rules:modal") public void onConfigModerationEditRulesModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
+    @Interaction(id = "config:cat_welcome:edit_join_message:modal") public void onConfigWelcomeEditJoinMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
+    @Interaction(id = "config:cat_welcome:edit_leave_message:modal") public void onConfigWelcomeEditLeaveMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     private void onEditMessageModalSubmit(ModalInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessage().getIdLong());
         if (configurationMessage == null) return;

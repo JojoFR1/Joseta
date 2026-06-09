@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation to mark a method parameter as a slash command option.
  * <p>
- * The parameter must be inside a method that is annotated with {@link dev.jojofr.joseta.annotations.types.SlashCommandInteraction SlashCommand},
+ * The parameter must be inside a method that is annotated with {@link dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction SlashCommand},
  * which is inside a class that implements {@link dev.jojofr.joseta.annotations.InteractionModule InteractionModule}.
  * <p>
  * It is handled by the {@link dev.jojofr.joseta.annotations.InteractionProcessor InteractionProcessor}, which provides the options values to the method.

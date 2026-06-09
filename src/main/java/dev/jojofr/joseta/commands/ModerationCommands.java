@@ -1,9 +1,9 @@
 package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.ButtonInteraction;
 import dev.jojofr.joseta.annotations.types.Option;
-import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
+import dev.jojofr.joseta.annotations.types.interaction.Interaction;
+import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
@@ -105,7 +105,7 @@ public class ModerationCommands {
         return embedBuilder.build();
     }
     
-    @ButtonInteraction(id = "moderation:modlog:page:*")
+    @Interaction(id = "moderation:modlog:page:*")
     public void modlogPage(ButtonInteractionEvent event) {
         ModlogMessage modlogMessage = modlogMessages.get(event.getMessageIdLong());
         // Check if the modlogMessage exists and if the timestamp is still valid (15 minutes)
@@ -179,7 +179,7 @@ public class ModerationCommands {
         }
     }
     
-    @ButtonInteraction(id = "moderation:clear:confirm")
+    @Interaction(id = "moderation:clear:confirm")
     public void clearConfirm(ButtonInteractionEvent event) {
         if (pendingClear.isEmpty()) return;
         if (!pendingClear.containsKey(event.getChannel())) {

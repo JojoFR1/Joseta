@@ -1,10 +1,9 @@
 package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.ButtonInteraction;
-import dev.jojofr.joseta.annotations.types.ModalInteraction;
+import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.Option;
-import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
+import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.entities.ReminderEntity_;
@@ -132,7 +131,7 @@ public class ReminderCommand {
             );
     }
     
-    @ButtonInteraction(id = "reminders:page:*")
+    @Interaction(id = "reminders:page:*")
     public void reminderPage(ButtonInteractionEvent event) {
         ReminderListMessage reminderMessage = getReminderListMessage(event);
         if (reminderMessage == null) return;
@@ -147,7 +146,7 @@ public class ReminderCommand {
             .useComponentsV2().queue();
     }
     
-    @ButtonInteraction(id = "reminders:edit:*n")
+    @Interaction(id = "reminders:edit:*n")
     public void reminderEdit(ButtonInteractionEvent event) {
         ReminderListMessage reminderMessage = getReminderListMessage(event);
         if (reminderMessage == null) return;
@@ -198,7 +197,7 @@ public class ReminderCommand {
         event.replyModal(modal).queue();
     }
     
-    @ModalInteraction(id = "reminders:edit:*n:modal")
+    @Interaction(id = "reminders:edit:*n:modal")
     public void reminderEditModal(ModalInteractionEvent event) {
         ReminderListMessage reminderMessage = getReminderListMessage(event);
         if (reminderMessage == null) return;
@@ -243,7 +242,7 @@ public class ReminderCommand {
             .useComponentsV2().queue();
     }
     
-    @ButtonInteraction(id = "reminders:delete:*n")
+    @Interaction(id = "reminders:delete:*n")
     public void reminderDelete(ButtonInteractionEvent event) {
         ReminderListMessage reminderMessage = getReminderListMessage(event);
         if (reminderMessage == null) return;

@@ -3,6 +3,8 @@ package dev.jojofr.joseta.annotations;
 import dev.jojofr.joseta.annotations.interactions.Command;
 import dev.jojofr.joseta.annotations.interactions.Interaction;
 import dev.jojofr.joseta.annotations.types.*;
+import dev.jojofr.joseta.annotations.types.interaction.ContextCommandInteraction;
+import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -32,7 +34,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * Processor for scanning, registering interaction (such as {@link SlashCommandInteraction}, {@link ButtonInteraction}, ...) and handling them.
+ * Processor for scanning, registering interaction ({@link SlashCommandInteraction}, {@link ContextCommandInteraction}, and {@link Interaction}) and handling them.
  * <p>
  * It scans the specified package for classes annotated with {@link InteractionModule} and registers their methods
  * annotated with {@link SlashCommandInteraction} as slash commands with the JDA bot instance.
@@ -45,7 +47,7 @@ public class InteractionProcessor {
     
     /**
      * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
-     * registering their commands and setting up event listeners with the provided JDA bot instance.
+     * registering their commands, and setting up event listeners with the provided JDA bot instance.
      *
      * @param bot   The JDA bot instance to register commands with.
      * @param index The Jandex index to use for scanning for {@link InteractionModule} classes and their annotated methods.
@@ -94,30 +96,12 @@ public class InteractionProcessor {
                     continue;
                 }
                 
-                ButtonInteraction buttonInteraction = method.getAnnotation(ButtonInteraction.class);
-                if (buttonInteraction != null) {
-                    String id = buttonInteraction.id();
+                dev.jojofr.joseta.annotations.types.interaction.Interaction genericInteraction = method.getAnnotation(dev.jojofr.joseta.annotations.types.interaction.Interaction.class);
+                if (genericInteraction != null) {
+                    String id = genericInteraction.id();
                     if (id.isEmpty()) id = method.getName().toLowerCase();
                     method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id, buttonInteraction.guildOnly()));
-                    continue;
-                }
-
-                SelectMenuInteraction selectMenuInteraction = method.getAnnotation(SelectMenuInteraction.class);
-                if (selectMenuInteraction != null) {
-                    String id = selectMenuInteraction.id();
-                    if (id.isEmpty()) id = method.getName().toLowerCase();
-                    method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id, selectMenuInteraction.guildOnly()));
-                    continue;
-                }
-
-                ModalInteraction modalInteraction = method.getAnnotation(ModalInteraction.class);
-                if (modalInteraction != null) {
-                    String id = modalInteraction.id();
-                    if (id.isEmpty()) id = method.getName().toLowerCase();
-                    method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id, modalInteraction.guildOnly()));
+                    interactionMethods.put(id, new Interaction(commandClass, method, id, genericInteraction.guildOnly()));
                 }
             } catch (Exception e) { Log.warn("An error occurred while registering an interaction.", e); }}
         }

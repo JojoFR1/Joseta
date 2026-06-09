@@ -1,4 +1,4 @@
-package dev.jojofr.joseta.annotations.types;
+package dev.jojofr.joseta.annotations.types.interaction;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  * It is handled by the {@link dev.jojofr.joseta.annotations.InteractionProcessor InteractionProcessor}, which provides the event and options to the method.
  * <p>
  * The method must have a single parameter of type {@link net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent SlashCommandInteractionEvent},
- * followed by a maximum of 25 parameters annotated with {@link Option Option}.
+ * followed by a maximum of 25 parameters annotated with {@link dev.jojofr.joseta.annotations.types.Option Option}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

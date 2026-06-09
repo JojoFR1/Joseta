@@ -1,4 +1,4 @@
-package dev.jojofr.joseta.annotations.types;
+package dev.jojofr.joseta.annotations.types.interaction;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

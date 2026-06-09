@@ -1,7 +1,7 @@
 package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.SlashCommandInteraction;
+import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.utils.BotCache;
