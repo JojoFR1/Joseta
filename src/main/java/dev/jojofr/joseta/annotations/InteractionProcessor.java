@@ -310,7 +310,12 @@ public class InteractionProcessor {
             }
             
             try {
-                Object o = command.getClazz().getDeclaredConstructor().newInstance();
+                Object o = command.getInstance();
+                if (o == null) {
+                    Log.err("Failed to get instance for command: {}", command.getName());
+                    event.reply("Une erreur interne est survenue lors de l'exécution de la commande. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
+                    return;
+                }
 
                 List<Object> args = new ArrayList<>();
                 args.add(event); // First parameter is always the event
@@ -378,7 +383,12 @@ public class InteractionProcessor {
             }
 
             try {
-                Object o = contextInteraction.getClazz().getDeclaredConstructor().newInstance();
+                Object o = contextInteraction.getInstance();
+                if (o == null) {
+                    Log.err("Failed to get instance for context interaction: {}", contextInteraction.getName());
+                    event.reply("Une erreur interne est survenue lors de l'exécution de l'interaction. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
+                    return;
+                }
 
                 contextInteraction.getMethod().invoke(o, event);
             } catch (Exception e) {
@@ -451,7 +461,12 @@ public class InteractionProcessor {
             }
             
             try {
-                Object o = interaction.getClazz().getDeclaredConstructor().newInstance();
+                Object o = interaction.getInstance();
+                if (o == null) {
+                    Log.err("Failed to get instance for interaction: {}", interaction.getName());
+                    replyCallback.reply("Une erreur interne est survenue lors de l'exécution de l'interaction. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
+                    return;
+                }
 
                 interaction.getMethod().invoke(o, event);
             } catch (Exception e) {

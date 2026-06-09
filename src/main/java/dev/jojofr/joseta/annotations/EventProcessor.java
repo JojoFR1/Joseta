@@ -122,9 +122,14 @@ public class EventProcessor {
                 try {
                     if (eventAnnotation.isGuildOnly() && !isFromGuild) continue;
 
-                    Object o = eventAnnotation.getClazz().getDeclaredConstructor().newInstance();
+                    Object o = eventAnnotation.getInstance();
+                    if (o == null) {
+                        Log.warn("Failed to get instance of event class {} for event {}.{}.", eventAnnotation.getClazz().getName(), eventAnnotation.getMethod().getDeclaringClass().getName(), eventAnnotation.getMethod().getName());
+                        continue;
+                    }
+                    
                     eventAnnotation.getMethod().invoke(o, event);
-                } catch (IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException e) {
+                } catch (IllegalAccessException | InvocationTargetException  e) {
                     Log.warn("An error occurred before or while executing an event.", e);
                 } catch (Exception e) {
                     Log.warn("An unexpected error occurred while executing the event {}.{}", e, eventAnnotation.getMethod().getClass().getName(), eventAnnotation.getMethod().getName());

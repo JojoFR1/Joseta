@@ -1,5 +1,7 @@
 package dev.jojofr.joseta.annotations.interactions;
 
+import dev.jojofr.joseta.utils.Log;
+
 import java.lang.reflect.Method;
 
 /**
@@ -10,16 +12,25 @@ public class Interaction {
     private final Method method;
     private final String name;
     private final boolean guildOnly;
+    
+    private final Object instace;
 
     public Interaction(Class<?> clazz, Method method, String name, boolean guildOnly) {
         this.clazz = clazz;
         this.method = method;
         this.guildOnly = guildOnly;
         this.name = name;
+        
+        Object instance = null;
+        try { instance = clazz.getDeclaredConstructor().newInstance(); } catch (Exception e) {
+            Log.err("Failed to pre-instantiate interaction class: " + clazz.getName(), e);
+        }
+        this.instace = instance;
     }
     
     public Class<?> getClazz() { return clazz; }
     public Method getMethod() { return method; }
     public String getName() { return name; }
     public boolean isGuildOnly() { return guildOnly; }
+    public Object getInstance() { return instace; }
 }
