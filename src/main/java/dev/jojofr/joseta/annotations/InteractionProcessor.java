@@ -304,7 +304,7 @@ public class InteractionProcessor {
                     return;
                 }
 
-                List<Object> args = new ArrayList<>();
+                List<Object> args = new ArrayList<>(command.getParameters().size() + 1);
                 args.add(event); // First parameter is always the event
                 for (Command.Parameter parameter : command.getParameters()) {
                     OptionMapping option = event.getOption(parameter.name());
