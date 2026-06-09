@@ -29,6 +29,7 @@ import org.jboss.jandex.Index;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Processor for scanning, registering interaction (such as {@link SlashCommandInteraction}, {@link ButtonInteraction}, ...) and handling them.
@@ -40,6 +41,7 @@ import java.util.*;
  */
 public class InteractionProcessor {
     private static final Map<String, Interaction> interactionMethods = new HashMap<>();
+    private static final Pattern NAME_REGEX = Pattern.compile("([a-z])([A-Z]+)");
     
     /**
      * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
@@ -215,12 +217,11 @@ public class InteractionProcessor {
                 Log.warn("Parameter {} in method {}.{}() is missing the @Option annotation. You might have forgotten to add it.", parameter.getName(), command.getClazz(), command.getMethod().getName());
                 continue;
             }
-
             
             String name = option.name();
             if (name.isEmpty()) name = parameter.getName();
             // Separate at uppercase letters and convert to lowercase with underscores
-            name = name.replaceAll("([a-z])([A-Z]+)", "$1_$2").toLowerCase();
+            name = NAME_REGEX.matcher(name).replaceAll("$1_$2").toLowerCase();
             
             Class<?> type = parameter.getType();
             OptionType optionType;
