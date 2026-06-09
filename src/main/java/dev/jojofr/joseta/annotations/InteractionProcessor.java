@@ -58,7 +58,7 @@ public class InteractionProcessor {
             try { classes.add(Class.forName(className)); } catch (ClassNotFoundException e) { Log.err("Failed to load interaction class: " + className, e); }
         }
         
-        List<CommandData> commands = new ArrayList<>();
+        Map<String, CommandData> commands = new HashMap<>();
         for (Class<?> commandClass : classes) {
             for (Method method : commandClass.getMethods()) { try {
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
@@ -88,7 +88,7 @@ public class InteractionProcessor {
                     commandData.setIntegrationTypes(contextCommandInteraction.integrationTypes());
                     commandData.setNSFW(contextCommandInteraction.nsfw());
                     
-                    commands.add(commandData);
+                    commands.put(name, commandData);
                     interactionMethods.put(name, new Interaction(commandClass, method, name, contextCommandInteraction.guildOnly()));
                     continue;
                 }
@@ -121,12 +121,12 @@ public class InteractionProcessor {
             } catch (Exception e) { Log.warn("An error occurred while registering an interaction.", e); }}
         }
 
-        bot.updateCommands().addCommands(commands).queue();
+        bot.updateCommands().addCommands(commands.values()).queue();
 
         bot.addEventListener(new InteractionListener());
     }
 
-    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, List<CommandData> commands) {
+    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, Map<String, CommandData> commands) {
         String[] baseCommandName = commandAnnotation.name().isEmpty() ? null : commandAnnotation.name().split(" ");
         if (baseCommandName == null) {
             baseCommandName = method.getName().split("(?=\\p{Upper})");
@@ -150,20 +150,9 @@ public class InteractionProcessor {
         String fullCommandName = commandName;
         if (!subcommandGroupName.isEmpty()) fullCommandName += " " + subcommandGroupName;
         if (!subcommandName.isEmpty()) fullCommandName += " " + subcommandName;
-
-        SlashCommandData commandData;
-        boolean commandExists = false;
-        if (commands.stream().noneMatch(c -> c.getName().equals(commandName))) commandData = Commands.slash(commandName, commandAnnotation.description());
-        else {
-            commandData = (SlashCommandData) commands.stream().filter(c -> c.getName().equals(commandName)).findFirst().orElse(null);
-            commandExists = true;
-        }
-
-        if (commandData == null) {
-            Log.err("An error occurred while registering the command: " + fullCommandName);
-            return;
-        }
-
+        
+        SlashCommandData commandData = (SlashCommandData) commands.computeIfAbsent(commandName, name -> Commands.slash(name, commandAnnotation.description()));
+        
         method.setAccessible(true);
         Command command = new Command(commandClass, method, fullCommandName, commandAnnotation.guildOnly());
         interactionMethods.put(fullCommandName, command);
@@ -207,8 +196,6 @@ public class InteractionProcessor {
         
         commandData.setIntegrationTypes(commandAnnotation.integrationTypes());
         commandData.setNSFW(commandAnnotation.nsfw());
-        
-        if (!commandExists) commands.add(commandData);
     }
 
     private static void addParameters(Parameter[] parameters, Command command, Object commandObject) {
