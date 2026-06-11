@@ -14,7 +14,7 @@ public class Event {
     private final EventPriority priority;
     private final boolean guildOnly;
     
-    private final Object instace;
+    private final Object instance;
     
     public Event(Class<?> clazz, Method method, EventPriority priority, boolean guildOnly) {
         this.clazz = clazz;
@@ -26,12 +26,12 @@ public class Event {
         try { instance = clazz.getDeclaredConstructor().newInstance(); } catch (Exception e) {
             Log.err("Failed to pre-instantiate event class: " + clazz.getName(), e);
         }
-        this.instace = instance;
+        this.instance = instance;
     }
     
     public Class<?> getClazz() { return clazz; }
     public Method getMethod() { return method; }
     public EventPriority getPriority() { return priority; }
     public boolean isGuildOnly() { return guildOnly; }
-    public Object getInstance() { return instace; }
+    public Object getInstance() { return instance; }
 }
