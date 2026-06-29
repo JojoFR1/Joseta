@@ -198,7 +198,7 @@ public class InteractionProcessor {
             
             Option option = parameter.getAnnotation(Option.class);
             if (option == null) {
-                Log.warn("Parameter {} in method {}.{}() is missing the @Option annotation. You might have forgotten to add it.", parameter.getName(), command.getClazz(), command.getMethod().getName());
+                Log.warn("Parameter {} is missing the @Option annotation. You might have forgotten to add it.", parameter.getName());
                 continue;
             }
             
@@ -280,15 +280,9 @@ public class InteractionProcessor {
             }
             
             try {
-                Object o = command.getInstance();
-                if (o == null) {
-                    Log.err("Failed to get instance for command: {}", command.getName());
-                    event.reply("Une erreur interne est survenue lors de l'exécution de la commande. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
-                    return;
-                }
-
-                List<Object> args = new ArrayList<>(command.getParameters().size() + 1);
-                args.add(event); // First parameter is always the event
+                Object[] args = new Object[command.getParameters().size() + 1];
+                args[0] = event; // First parameter is always the event
+                int i = 1;
                 for (Command.Parameter parameter : command.getParameters()) {
                     OptionMapping option = event.getOption(parameter.name());
 
@@ -300,34 +294,31 @@ public class InteractionProcessor {
                     
                     // The option is optional and the user did not provide anything
                     if (option == null) {
-                        args.add(null);
+                        args[i++] = null;
                         continue;
                     }
 
                     switch (option.getType()) {
-                        case STRING -> args.add(option.getAsString());
+                        case STRING -> args[i++] = option.getAsString();
                         case INTEGER -> {
-                            if (parameter.type() == Long.class) args.add(option.getAsLong());
-                            else args.add(option.getAsInt());
+                            if (parameter.type() == Long.class) args[i++] = option.getAsLong();
+                            else args[i++] = option.getAsInt();
                         }
-                        case BOOLEAN -> args.add(option.getAsBoolean());
-                        case USER -> args.add(User.class.isAssignableFrom(parameter.type()) ? option.getAsUser() : option.getAsMember());
-                        case CHANNEL -> args.add(option.getAsChannel());
-                        case ROLE -> args.add(option.getAsRole());
-                        case MENTIONABLE -> args.add(option.getAsMentionable());
-                        case NUMBER -> args.add(option.getAsDouble());
-                        case ATTACHMENT -> args.add(option.getAsAttachment());
-                        default -> args.add(null);
+                        case BOOLEAN -> args[i++] = option.getAsBoolean();
+                        case USER -> args[i++] = User.class.isAssignableFrom(parameter.type()) ? option.getAsUser() : option.getAsMember();
+                        case CHANNEL -> args[i++] = option.getAsChannel();
+                        case ROLE -> args[i++] = option.getAsRole();
+                        case MENTIONABLE -> args[i++] = option.getAsMentionable();
+                        case NUMBER -> args[i++] = option.getAsDouble();
+                        case ATTACHMENT -> args[i++] = option.getAsAttachment();
+                        default -> args[i++] = null;
                     }
                 }
-
-                command.getMethod().invoke(o, args.toArray());
-            } catch (Exception e) {
-                if (e instanceof InsufficientPermissionException ie) {
-                    event.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
-                    return;
-                }
                 
+                command.getHandle().invokeExact(args);
+            } catch (InsufficientPermissionException e) {
+                event.reply("Je n'ai pas les permissions requises (" + e.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
+            } catch (Throwable e) {
                 Log.err("An error occurred during command execution ({}):", e, command.getName());
             }
             
@@ -353,20 +344,15 @@ public class InteractionProcessor {
             }
 
             try {
-                Object o = contextInteraction.getInstance();
-                if (o == null) {
-                    Log.err("Failed to get instance for context interaction: {}", contextInteraction.getName());
-                    event.reply("Une erreur interne est survenue lors de l'exécution de l'interaction. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
-                    return;
-                }
-
-                contextInteraction.getMethod().invoke(o, event);
+                contextInteraction.getHandle().invokeExact(event);
             } catch (Exception e) {
                 if (e instanceof InsufficientPermissionException ie) {
                     event.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
                     return;
                 }
                 
+                Log.err("An error occurred during command execution ({}):", e, contextInteraction.getName());
+            } catch (Throwable e) {
                 Log.err("An error occurred during command execution ({}):", e, contextInteraction.getName());
             }
             
@@ -431,20 +417,15 @@ public class InteractionProcessor {
             }
             
             try {
-                Object o = interaction.getInstance();
-                if (o == null) {
-                    Log.err("Failed to get instance for interaction: {}", interaction.getName());
-                    replyCallback.reply("Une erreur interne est survenue lors de l'exécution de l'interaction. Veuillez contacter un développeur si l'erreur persiste.").setEphemeral(true).queue();
-                    return;
-                }
-
-                interaction.getMethod().invoke(o, event);
+                interaction.getHandle().invokeExact(event);
             } catch (Exception e) {
                 if (e instanceof InsufficientPermissionException ie) {
                     replyCallback.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + interaction.getName() + "`.").setEphemeral(true).queue();
                     return;
                 }
                 
+                Log.err("An error occurred during command execution ({}):", e, interaction.getName());
+            } catch (Throwable e) {
                 Log.err("An error occurred during command execution ({}):", e, interaction.getName());
             }
             

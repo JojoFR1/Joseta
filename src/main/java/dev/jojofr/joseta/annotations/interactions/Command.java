@@ -12,6 +12,7 @@ public class Command extends Interaction {
 
     public Command(Class<?> clazz, Method method, String name, boolean guildOnly) {
         super(clazz, method, name, guildOnly);
+        this.handle = this.handle.asSpreader(Object[].class, method.getParameterCount());
     }
 
     public List<Parameter> getParameters() { return parameters; }
