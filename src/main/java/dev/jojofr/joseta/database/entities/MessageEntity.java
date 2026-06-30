@@ -1,28 +1,20 @@
 package dev.jojofr.joseta.database.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import java.time.OffsetDateTime;
 
-@SuppressWarnings("unused")
-@Entity @Table(name = "messages")
 public class MessageEntity {
-    @Id public long id;
+    public long id;
     
-    @Column public long guildId;
-    @Column public long channelId;
-    @Column public long authorId;
-    @Column(columnDefinition = "TEXT") public String content;
-    @Column(columnDefinition = "TEXT") public String markovContent;
-    @Column public OffsetDateTime creationTime;
+    public long guildId;
+    public long channelId;
+    public long authorId;
+    public String content;
+    public String markovContent;
+    public OffsetDateTime createdAt;
     
-    // A non-private and no-arg constructor is required by JPA
+    // A non-private and no-arg constructor is required by JDBI
     protected MessageEntity() {}
-    
-    public MessageEntity(long id, long guildId, long channelId, long authorId, String content, String markovContent, OffsetDateTime timestamp) {
+    public MessageEntity(long id, long guildId, long channelId, long authorId, String content, String markovContent, OffsetDateTime createdAt) {
         this.id = id;
         
         this.guildId = guildId;
@@ -30,9 +22,8 @@ public class MessageEntity {
         this.authorId = authorId;
         this.content = content;
         this.markovContent = markovContent;
-        this.creationTime = timestamp;
+        this.createdAt = createdAt;
     }
-    
     
     public MessageEntity setId(long id) {
         this.id = id;
@@ -64,8 +55,8 @@ public class MessageEntity {
         return this;
     }
     
-    public MessageEntity setCreationTime(OffsetDateTime creationTime) {
-        this.creationTime = creationTime;
+    public MessageEntity setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
         return this;
     }
 }

@@ -1,32 +1,19 @@
 package dev.jojofr.joseta.database.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import net.dv8tion.jda.api.entities.Guild;
 
-@SuppressWarnings("unused")
-@Entity @Table(name = "guilds")
 public class GuildEntity {
-    @Id public long id;
+    public long id;
 
-    @Column public String name;
-    @Column public String iconUrl;
-    @Column public long ownerId;
+    public String name;
+    public String iconUrl;
+    public long ownerId;
     
-    @Column public int lastSanctionId = 0;
+    public int lastSanctionId = 0;
 
-    // A non-private and no-arg constructor is required by JPA
+    // A non-private and no-arg constructor is required by JDBI
     protected GuildEntity() {}
-    
-    public GuildEntity(Guild guild) {
-        this(guild.getIdLong(),
-             guild.getName(),
-             guild.getIconUrl(),
-             guild.getOwnerIdLong());
-    }
-    
+    public GuildEntity(Guild guild) { this(guild.getIdLong(), guild.getName(), guild.getIconUrl(), guild.getOwnerIdLong()); }
     public GuildEntity(long id, String name, String iconUrl, long ownerId) {
         this.id = id;
         this.name = name;

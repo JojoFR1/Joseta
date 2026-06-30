@@ -1,278 +1,107 @@
 package dev.jojofr.joseta.database;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.utils.Log;
-import dev.jojofr.joseta.utils.function.Consumer2;
-import dev.jojofr.joseta.utils.function.Function2;
-import jakarta.persistence.Entity;
-import jakarta.persistence.criteria.*;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.HikariCPSettings;
-import org.hibernate.jpa.HibernatePersistenceConfiguration;
-import org.hibernate.query.MutationQuery;
-import org.hibernate.query.SelectionQuery;
-import org.hibernate.query.criteria.HibernateCriteriaBuilder;
-import org.hibernate.tool.schema.Action;
-import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
+import org.flywaydb.core.Flyway;
+import org.jdbi.v3.core.HandleCallback;
+import org.jdbi.v3.core.HandleConsumer;
+import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.argument.AbstractArgumentFactory;
+import org.jdbi.v3.core.argument.Argument;
+import org.jdbi.v3.core.config.ConfigRegistry;
+import org.jdbi.v3.postgres.PostgresPlugin;
+import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.sql.Types;
 
-/**
- * Database utility class for managing database connections and operations.
- * <p>
- * This class provides methods to initialize the database connection, create sessions,
- * and perform CRUD operations on entities.
- */
 public class Database {
-    private static SessionFactory sessionFactory;
+    private static Jdbi jdbi;
     
-    /**
-     * Initializes the database connection and entity manager factory.
-     *
-     * @param user The database username. Cannot be null or blank.
-     * @param password The database password. Can be null or blank (not recommended).
-     * @param host The database host. Cannot be null or blank.
-     * @param port The database port. If null or blank, defaults to 5432.
-     * @param database The database name. Cannot be null or blank.
-     *
-     * @return {@code true} if initialization was successful, {@code false} otherwise.
-     */
-    public static boolean initialize(String user, String password, String host, String port, String database, Index index) {
-        return initialize(user, password, host, port, database, false, index);
-    }
-    
-    /**
-     * Initializes the database connection and entity manager factory.
-     *
-     * @param user The database username. Cannot be null or blank.
-     * @param password The database password. Can be null or blank (not recommended).
-     * @param host The database host. Cannot be null or blank.
-     * @param port The database port. If null or blank, defaults to 5432.
-     * @param database The database name. Cannot be null or blank.
-     * @param showSql Whether to show SQL statements in the logs.
-     *
-     * @return {@code true} if initialization was successful, {@code false} otherwise.
-     */
-    public static boolean initialize(String user, String password, String host, String port, String database, boolean showSql, Index index) {
-        String url = host + ":" + (port != null && !port.isBlank() ? port : "5432") + "/" + database;
-        return initialize(user, password, url, showSql, index);
-    }
-    
-    /**
-     * Initializes the database connection and entity manager factory.
-     *
-     * @param user The database username. Cannot be null or blank.
-     * @param password The database password. Can be null or blank (not recommended).
-     * @param url The database URL. Cannot be null or blank. Must be a PostgreSQL server.
-     * @param showSql Whether to show SQL statements in the logs.
-     *
-     * @return {@code true} if initialization was successful, {@code false} otherwise.
-     */
-    public static boolean initialize(String user, String password, String url, boolean showSql, Index index) {
-        Set<Class<?>> classes = new HashSet<>();
-        for (AnnotationInstance annotation : index.getAnnotations(DotName.createSimple(Entity.class))) {
-            String className = annotation.target().asClass().name().toString();
-            try { classes.add(Class.forName(className)); } catch (ClassNotFoundException e) { Log.err("Failed to load entity class: " + className, e); }
-        }
-        
-        if (classes.isEmpty()) {
-            Log.warn("No entity classes found.");
-            return false;
-        }
-        
+    public static boolean initialize(String user, String password, String host, String port, String database) {
         if (user == null || user.isBlank()) {
-            Log.err("Database user ('" + user + "') is not provided.");
+            Log.err("Database user is not provided.");
             return false;
         }
         if (password == null || password.isBlank()) Log.warn("Database password is not provided.");
         
-        if (url == null || url.isBlank()) {
-            Log.err("Database URL ('" + url + "') is not provided.");
+        if (host == null || host.isBlank()) Log.warn("Database host is not provided. Using default host 'localhost'.");
+        if (port == null || port.isBlank()) Log.warn("Database port is not provided. Using default port 5432.");
+        if (database == null || database.isBlank()) {
+            Log.err("Database name is not provided.");
             return false;
         }
         
-        HibernatePersistenceConfiguration configuration = new HibernatePersistenceConfiguration("DiscordDatabase")
-            .managedClasses(classes)
-            .jdbcUrl("jdbc:postgresql://" + url)
-            .jdbcCredentials(user, password)
-            .schemaToolingAction(Action.UPDATE)
-            .showSql(showSql, true, true)
-            
-            .property("hibernate.connection.provider_class", org.hibernate.hikaricp.internal.HikariCPConnectionProvider.class)
-            .property(HikariCPSettings.HIKARI_MAX_SIZE, 10)
-            .property(HikariCPSettings.HIKARI_MIN_IDLE_SIZE, 2)
-            .property(HikariCPSettings.HIKARI_ACQUISITION_TIMEOUT, 10 * 1000)
-            .property(HikariCPSettings.HIKARI_IDLE_TIMEOUT, 10 * 60 * 1000)
-            .property(HikariCPSettings.HIKARI_MAX_LIFETIME, 30 * 60 * 1000)
-            .property(HikariCPSettings.HIKARI_POOL_NAME, "JosetaHikariPool")
-            
-            .property("hibernate.jdbc.batch_size", 100)
-            .property("hibernate.order_inserts", "true")
-            .property("hibernate.order_updates", "true");
+        String url = "jdbc:postgresql://"
+                    + (host != null && !host.isBlank() ? host : "localhost") + ":"
+                    + (port != null && !port.isBlank() ? port : "5432") + "/"
+                    + database;
         
-        sessionFactory = configuration.createEntityManagerFactory();
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setUsername(user);
+        config.setPassword(password);
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
+        config.setConnectionTimeout(10_000);
+        config.setIdleTimeout(600_000);
+        config.setMaxLifetime(1_800_000);
+        config.setPoolName("JosetaHikariPool");
         
-        if (sessionFactory == null) {
-            Log.err("SessionFactory creation failed.");
+        try {
+            HikariDataSource dataSource = new HikariDataSource(config);
+            
+            Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .validateMigrationNaming(true)
+                .loggers("slf4j")
+                .load()
+                .migrate();
+            
+            jdbi = Jdbi.create(dataSource);
+            jdbi.installPlugin(new SqlObjectPlugin());
+            jdbi.installPlugin(new PostgresPlugin());
+            
+            jdbi.registerColumnMapper(SanctionEntity.SanctionType.class, (rs, col, ctx) -> {
+                String value = rs.getString(col);
+                if (value == null) return null;
+                
+                return switch (value.charAt(0)) {
+                    case 'W' -> SanctionEntity.SanctionType.WARN;
+                    case 'T' -> SanctionEntity.SanctionType.TIMEOUT;
+                    case 'K' -> SanctionEntity.SanctionType.KICK;
+                    case 'B' -> SanctionEntity.SanctionType.BAN;
+                    default -> throw new IllegalArgumentException("Unknown SanctionType code: " + value);
+                };
+            });
+            jdbi.registerArgument(new AbstractArgumentFactory<SanctionEntity.SanctionType>(Types.CHAR) {
+                @Override
+                protected Argument build(SanctionEntity.SanctionType value, ConfigRegistry config) {
+                    return (position, statement, ctx) -> statement.setString(position, String.valueOf(value.code));
+                }
+            });
+            
+            return true;
+        } catch (Exception e) {
+            Log.err("Database initialization failed.", e);
             return false;
         }
-        
-        return true;
     }
     
-    private static void reconnect() {
-        if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
-        // if (sessionFactory.isClosed()) sessionFactory = sessionFactory.;
-        else Log.warn("Attempted to reconnect to the database, but the connection is still open.");
+    public static Jdbi get() {
+        if (jdbi == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        return jdbi;
     }
     
-    /**
-     * Open a new {@link Session}.
-     *
-     * @return The created session.
-     *
-     * @throws IllegalStateException If the database has not been initialized yet.
-     * @throws HibernateException Indicates a problem opening the session; pretty rare here.
-     */
-    public static Session getSession() {
-        if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
-        if (sessionFactory.isClosed()) reconnect();
-        return sessionFactory.openSession();
+    public static <T> T withHandle(HandleCallback<T, RuntimeException> callback) {
+        if (jdbi == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        return jdbi.inTransaction(callback);
     }
     
-    /**
-     * Obtain a {@link HibernateCriteriaBuilder} which may be used to {@linkplain HibernateCriteriaBuilder#createQuery(Class) construct} {@linkplain org.hibernate.query.criteria.JpaCriteriaQuery criteria queries}.
-     *
-     * @return The criteria builder.
-     *
-     * @throws IllegalStateException If the database has not been initialized yet.
-     */
-    public static HibernateCriteriaBuilder getCriteriaBuilder() {
-        if (sessionFactory == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
-        if (sessionFactory.isClosed()) reconnect();
-        return sessionFactory.getCriteriaBuilder();
-    }
-    
-    /**
-     * Create (or insert) new objects in the database.
-     *
-     * @param objects The objects to create.
-     */
-    public static void create(Object... objects) {
-        try (Session session = getSession()) {
-            Transaction transaction = session.beginTransaction();
-            for (Object object : objects) session.persist(object);
-            transaction.commit();
-        }
-    }
-    
-    /**
-     * Retrieve an object from the database by its type and primary key.
-     *
-     * @param clazz The class type.
-     * @param id The primary key.
-     *
-     * @param <T> The object type.
-     *
-     * @return A fully-fetched persistent instance or null.
-     */
-    public static <T> T get(Class<T> clazz, Object id) {
-        try (Session session = getSession()) { return session.find(clazz, id); }
-    }
-    
-    public static <T> List<T> getAll(Class<T> clazz) {
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaQuery<T> query = criteriaBuilder.createQuery(clazz);
-        query.from(clazz);
-        
-        try (Session session = getSession()) {
-            return session.createSelectionQuery(query).getResultList();
-        }
-    }
-    
-    /**
-     * Update an existing object in the database.
-     *
-     * @param object The object to update.
-     *
-     * @param <T> The object type.
-     *
-     * @return The updated persistent object.
-     */
-    public static <T> T update(T object) {
-        return createOrUpdate(object);
-    }
-    
-    /**
-     * Create or update an object in the database.
-     *
-     * @param object The object to create or update.
-     *
-     * @param <T> The object type.
-     *
-     * @return The updated persistent object.
-     */
-    public static <T> T createOrUpdate(T object) {
-        try (Session session = getSession()) {
-            Transaction transaction = session.beginTransaction();
-            T persistent = session.merge(object);
-            transaction.commit();
-            return persistent;
-        }
-    }
-    
-    /**
-     * Delete an object from the database.
-     *
-     * @param object The object to delete.
-     */
-    public static void delete(Object object) {
-        try (Session session = getSession()) {
-            Transaction transaction = session.beginTransaction();
-            if(!session.contains(object)) object = session.merge(object);
-            session.remove(object);
-            transaction.commit();
-        }
-    }
-    
-    public static <E> SelectionQuery<E> querySelect(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> func) {
-        return querySelect(clazz, func, null);
-    }
-    
-    public static <E> SelectionQuery<E> querySelect(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> queryFunc, Function2<Order, HibernateCriteriaBuilder, Root<E>> orderFunc) {
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaQuery<E> query = criteriaBuilder.createQuery(clazz);
-        Root<E> root = query.from(clazz);
-        query.select(root).where(queryFunc.get(criteriaBuilder, root));
-        if (orderFunc != null) query.orderBy(orderFunc.get(criteriaBuilder, root));
-        
-        return getSession().createSelectionQuery(query);
-    }
-    
-    public static <E> MutationQuery queryUpdate(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> whereFunc, Consumer2<CriteriaUpdate<E>, Root<E>> setFunc, Session session) {
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaUpdate<E> update = criteriaBuilder.createCriteriaUpdate(clazz);
-        Root<E> root = update.from(clazz);
-        Predicate where = whereFunc.get(criteriaBuilder, root);
-        update.where(where);
-        setFunc.apply(update, root);
-        
-        return session.createMutationQuery(update);
-    }
-    
-    public static <E> MutationQuery queryDelete(Class<E> clazz, Function2<Predicate, HibernateCriteriaBuilder, Root<E>> func, Session session) {
-        HibernateCriteriaBuilder criteriaBuilder = Database.getCriteriaBuilder();
-        CriteriaDelete<E> delete = criteriaBuilder.createCriteriaDelete(clazz);
-        Root<E> root = delete.from(clazz);
-        Predicate where = func.get(criteriaBuilder, root);
-        delete.where(where);
-        
-        return session.createMutationQuery(delete);
+    public static void useHandle(HandleConsumer<RuntimeException> callback) {
+        if (jdbi == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        jdbi.useHandle(callback);
     }
 }

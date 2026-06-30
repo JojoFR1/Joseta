@@ -142,6 +142,7 @@ public class EventProcessor {
             if (event instanceof GenericGuildStickerEvent) return true;
             if (event instanceof MessageBulkDeleteEvent) return true;
             
+            Log.warn("Unable to determine if event {} is from a guild. Defaulting to false.", event.getClass().getSimpleName());
             return false;
         }
     }

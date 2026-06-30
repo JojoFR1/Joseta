@@ -1,39 +1,33 @@
 package dev.jojofr.joseta.database.entities;
 
-import jakarta.persistence.*;
-
 import java.time.Instant;
 
-@SuppressWarnings("unused")
-@Entity @Table(name = "sanctions")
 public class SanctionEntity {
-    @Embeddable
-    public record SanctionId(long guildId, int sanctionNumber) {}
+    public long guildId;
+    public int sanctionNumber;
     
-    @EmbeddedId public SanctionId id;
+    public SanctionType type;
+    public long userId;
+    public long moderatorId;
+    public String reason = "Aucun motif fourni.";
+    public Instant createdAt;
+    public Instant expiresAt;
+    public boolean isExpired = false;
+    public boolean isPermanent = false;
     
-    @Column @Convert(converter = SanctionTypeConverter.class) public SanctionType sanctionType;
-    @Column public long userId;
-    @Column public long moderatorId;
-    @Column(columnDefinition = "TEXT") public String reason = "Aucun motif fourni.";
-    @Column public Instant timestamp;
-    @Column public Instant expiryTime;
-    @Column public boolean isExpired = false;
-    @Column public boolean permanent = false;
-    
-    // A non-private and no-arg constructor is required by JPA
+    // A non-private and no-arg constructor is required by JDBI
     protected SanctionEntity() {}
-    
-    public SanctionEntity(long guildId, int sanctionNumber, SanctionType sanctionType, long userId, long moderatorId, String reason, long expiryTime) {
-        this.id = new SanctionId(guildId, sanctionNumber);
+    public SanctionEntity(long guildId, int sanctionNumber, SanctionType type, long userId, long moderatorId, String reason, long expiresAt) {
+        this.guildId = guildId;
+        this.sanctionNumber = sanctionNumber;
         
-        this.sanctionType = sanctionType;
+        this.type = type;
         this.userId = userId;
         this.moderatorId = moderatorId;
         this.reason = reason;
-        this.timestamp = Instant.now();
-        this.expiryTime = timestamp.plusSeconds(expiryTime);
-        this.permanent = expiryTime <= 0;
+        this.createdAt = Instant.now();
+        this.expiresAt = createdAt.plusSeconds(expiresAt);
+        this.isPermanent = expiresAt <= 0;
     }
     
     public enum SanctionType {
@@ -58,35 +52,18 @@ public class SanctionEntity {
         }
     }
     
-    public static class SanctionTypeConverter implements AttributeConverter<SanctionType, Character> {
-        @Override
-        public Character convertToDatabaseColumn(SanctionType attribute) {
-            return attribute.code;
-        }
-        
-        @Override
-        public SanctionType convertToEntityAttribute(Character dbData) {
-            return switch (dbData) {
-                case 'W' -> SanctionType.WARN;
-                case 'T' -> SanctionType.TIMEOUT;
-                case 'K' -> SanctionType.KICK;
-                case 'B' -> SanctionType.BAN;
-                default -> throw new IllegalArgumentException("Unknown SanctionType code: " + dbData);
-            };
-        }
-    }
-    
     public String getSanctionId() {
-        return sanctionType.code + String.valueOf(id.sanctionNumber);
+        return type.code + String.valueOf(sanctionNumber);
     }
     
     public SanctionEntity setId(long guildId, int sanctionNumber) {
-        this.id = new SanctionId(guildId, sanctionNumber);
+        this.guildId = guildId;
+        this.sanctionNumber = sanctionNumber;
         return this;
     }
     
-    public SanctionEntity setSanctionType(SanctionType sanctionType) {
-        this.sanctionType = sanctionType;
+    public SanctionEntity setType(SanctionType type) {
+        this.type = type;
         return this;
     }
     
@@ -105,13 +82,13 @@ public class SanctionEntity {
         return this;
     }
     
-    public SanctionEntity setTimestamp(Instant timestamp) {
-        this.timestamp = timestamp;
+    public SanctionEntity setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
         return this;
     }
     
-    public SanctionEntity setExpiryTime(Instant expiryTime) {
-        this.expiryTime = expiryTime;
+    public SanctionEntity setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
         return this;
     }
     
