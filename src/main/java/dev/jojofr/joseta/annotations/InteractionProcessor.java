@@ -315,7 +315,7 @@ public class InteractionProcessor {
                     }
                 }
                 
-                command.getHandle().invokeExact(args);
+                command.getHandle().invoke(args);
             } catch (InsufficientPermissionException e) {
                 event.reply("Je n'ai pas les permissions requises (" + e.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
             } catch (Throwable e) {
@@ -344,7 +344,7 @@ public class InteractionProcessor {
             }
 
             try {
-                contextInteraction.getHandle().invokeExact(event);
+                contextInteraction.getHandle().invoke(event);
             } catch (Exception e) {
                 if (e instanceof InsufficientPermissionException ie) {
                     event.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + event.getName() + "`.").setEphemeral(true).queue();
@@ -417,7 +417,7 @@ public class InteractionProcessor {
             }
             
             try {
-                interaction.getHandle().invokeExact(event);
+                interaction.getHandle().invoke(event);
             } catch (Exception e) {
                 if (e instanceof InsufficientPermissionException ie) {
                     replyCallback.reply("Je n'ai pas les permissions requises (" + ie.getPermission().getName() + ") pour exécuter `" + interaction.getName() + "`.").setEphemeral(true).queue();

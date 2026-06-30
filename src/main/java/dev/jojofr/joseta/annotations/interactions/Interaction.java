@@ -22,8 +22,7 @@ public class Interaction {
         
         MethodHandle handle = null;
         try {
-            handle = MethodHandles.lookup().unreflect(method).bindTo(clazz.getDeclaredConstructor().newInstance())
-                .asType(MethodType.methodType(void.class, GenericInteractionCreateEvent.class));
+            handle = MethodHandles.lookup().unreflect(method).bindTo(clazz.getDeclaredConstructor().newInstance());
         } catch (Exception e) {
             Log.err("Failed to pre-instantiate interaction class: " + clazz.getName(), e);
         }
