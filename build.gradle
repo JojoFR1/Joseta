@@ -59,6 +59,9 @@ tasks.withType(JavaCompile).configureEach {
 shadowJar {
     dependsOn 'jandex'
     archiveFileName = 'JosetaBot.jar'
+
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 runShadow {
