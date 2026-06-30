@@ -2,8 +2,10 @@ package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.interaction.*;
+import dev.jojofr.joseta.annotations.types.interaction.Interaction;
+import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.ConfigurationDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
@@ -93,7 +95,7 @@ public class ConfigurationCommand {
             return;
         };
         
-        Database.createOrUpdate(configurationMessage.configuration);
+        Database.useHandle(handle -> handle.attach(ConfigurationDao.class).upsert(configurationMessage.configuration));
         BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
         
         if (configurationMessage.hasMarkovBlacklistChanged)
@@ -261,7 +263,7 @@ public class ConfigurationCommand {
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
-        if (config.verifiedRoleId == null || (verifiedRole = event.getGuild().getRoleById(config.verifiedRoleId)) == null) return;
+        if (config.roleVerifiedId == null || (verifiedRole = event.getGuild().getRoleById(config.roleVerifiedId)) == null) return;
         
         event.getGuild().removeRoleFromMember(event.getUser(), joinRole).queue();
         event.getGuild().addRoleToMember(event.getUser(), verifiedRole).queue();
@@ -381,8 +383,8 @@ public class ConfigurationCommand {
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
-            case "config:cat_welcome:join_bot_role_select" -> configurationMessage.configuration.setJoinBotRoleId(selectedId);
-            case "config:cat_welcome:verified_role_select" -> configurationMessage.configuration.setVerifiedRoleId(selectedId);
+            case "config:cat_welcome:join_bot_role_select" -> configurationMessage.configuration.setJoinRoleBotId(selectedId);
+            case "config:cat_welcome:verified_role_select" -> configurationMessage.configuration.setRoleVerifiedId(selectedId);
         }
         
         configurationMessage.hasChanged = true;
@@ -679,15 +681,15 @@ public class ConfigurationCommand {
         
         EntitySelectMenu.Builder joinBotRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:join_bot_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux bots");
-        if (configurationMessage.configuration.joinBotRoleId != null)
-            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinBotRoleId));
+        if (configurationMessage.configuration.joinRoleBotId != null)
+            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinRoleBotId));
         
         EntitySelectMenu joinBotRoleSelectMenu = joinBotRoleSelectMenuBuilder.build();
         
         EntitySelectMenu.Builder verifiedRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:verified_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux membres vérifiés");
-        if (configurationMessage.configuration.verifiedRoleId != null)
-            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.verifiedRoleId));
+        if (configurationMessage.configuration.roleVerifiedId != null)
+            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.roleVerifiedId));
         
         EntitySelectMenu verifiedRoleSelectMenu = verifiedRoleSelectMenuBuilder.build();
         

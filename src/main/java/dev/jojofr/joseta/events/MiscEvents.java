@@ -2,6 +2,8 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
+import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.events.misc.CountingChannel;
@@ -11,6 +13,7 @@ import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
@@ -47,8 +50,8 @@ public class MiscEvents {
     }
     
     @EventHandler
-    public void onChannelDelete(net.dv8tion.jda.api.events.channel.ChannelDeleteEvent event) {
-        MessageDatabase.deleteChannelMessages(event.getChannel().getIdLong());
+    public void onChannelDelete(ChannelDeleteEvent event) {
+        Database.useHandle(handle -> handle.attach(MessageDao.class).deleteByChannelId(event.getChannel().getIdLong()));
     }
     //#endregion
     
@@ -102,7 +105,7 @@ public class MiscEvents {
             Log.warn("Join role not found for guild " + event.getGuild().getIdLong());
             return;
         }
-        if (user.isBot() && (config.joinBotRoleId == null || (botRole = event.getGuild().getRoleById(config.joinBotRoleId)) == null)) {
+        if (user.isBot() && (config.joinRoleBotId == null || (botRole = event.getGuild().getRoleById(config.joinRoleBotId)) == null)) {
             Log.warn("Bot role not found for guild " + event.getGuild().getIdLong());
             return;
         }

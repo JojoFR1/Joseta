@@ -1,37 +1,31 @@
 package dev.jojofr.joseta.database.entities;
 
-import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-@SuppressWarnings("unused")
-@Entity @Table(name = "reminders")
 public class ReminderEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    public long id;
     
-    @Column public long guildId;
-    @Column public long channelId;
-    @Column public long userId;
+     public long guildId;
+     public long channelId;
+     public long userId;
     
-    @Column(columnDefinition = "TEXT") public String message;
-    @Column public Instant createdAt;
-    @Column public Instant remindAt;
-    @Column public long repeatAfter;
-    @Column public boolean dm = false;
-    @Column public boolean repeat = false;
+     public String text;
+     public Instant createdAt;
+     public Instant remindAt;
+     public long repeatAfter;
+     public boolean dm = false;
+     public boolean repeat = false;
     
-    // A non-private and no-arg constructor is required by JPA
+    // A non-private and no-arg constructor is required by JDBI
     protected ReminderEntity() {}
-    
     public ReminderEntity(long guildId, long channelId, long userId, String message, Instant remindAt, long repeatAfter, boolean dm, boolean repeat) {
         this.guildId = guildId;
         this.channelId = channelId;
         this.userId = userId;
         
-        this.message = message;
+        this.text = message;
         this.createdAt = Instant.now();
         this.remindAt = remindAt;
         this.repeatAfter = repeatAfter;
@@ -55,8 +49,8 @@ public class ReminderEntity {
         return this;
     }
     
-    public ReminderEntity setMessage(String message) {
-        this.message = message;
+    public ReminderEntity setText(String text) {
+        this.text = text;
         return this;
     }
     

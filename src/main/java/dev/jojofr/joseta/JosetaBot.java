@@ -43,19 +43,7 @@ public class JosetaBot {
         }
         Dotenv dotenv = DotenvDebug.load(debug);
         
-        Index globalIndex = null;
-        try (InputStream indexStream = JosetaBot.class.getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
-            if (indexStream == null) {
-                Log.err("Failed to load Jandex index. The file 'META-INF/jandex.idx' was not found in the classpath.");
-                System.exit(1);
-            }
-            globalIndex = new IndexReader(indexStream).read();
-        } catch (Exception e) {
-            Log.err("An error occurred while loading the Jandex index.", e);
-            System.exit(1);
-        }
-        
-        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"), globalIndex)) {
+        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"))) {
             Log.err("Database initialization failed. Exiting...");
             System.exit(1);
         }
@@ -68,7 +56,19 @@ public class JosetaBot {
             .setStatus(OnlineStatus.DO_NOT_DISTURB)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
-
+        
+        Index globalIndex = null;
+        try (InputStream indexStream = JosetaBot.class.getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
+            if (indexStream == null) {
+                Log.err("Failed to load Jandex index. The file 'META-INF/jandex.idx' was not found in the classpath.");
+                System.exit(1);
+            }
+            globalIndex = new IndexReader(indexStream).read();
+        } catch (Exception e) {
+            Log.err("An error occurred while loading the Jandex index.", e);
+            System.exit(1);
+        }
+        
         InteractionProcessor.initialize(botInstance, globalIndex);
         EventProcessor.initialize(botInstance, globalIndex);
         

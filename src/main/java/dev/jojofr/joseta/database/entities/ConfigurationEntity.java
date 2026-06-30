@@ -1,91 +1,59 @@
 package dev.jojofr.joseta.database.entities;
 
-import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-@SuppressWarnings("unused")
-@Entity @Table(name = "configurations")
 public class ConfigurationEntity {
-    @Id public Long guildId;
-
-    @Column @ColumnDefault("false") public boolean welcomeEnabled;
-    @Column public Long welcomeChannelId;
-    @Column @ColumnDefault("false") public boolean welcomeImageEnabled;
-    @Column(columnDefinition = "TEXT") @ColumnDefault("'Bienvenue {{user}} !'") public String welcomeJoinMessage;
-    @Column(columnDefinition = "TEXT") @ColumnDefault("'**{{userName}}** nous a quitté...'") public String welcomeLeaveMessage;
-    @Column public Long joinRoleId;
-    @Column public Long joinBotRoleId;
-    @Column public Long verifiedRoleId;
+    public long guildId;
     
-    @Column @ColumnDefault("false") public boolean markovEnabled;
-    @Column @ElementCollection(fetch = FetchType.EAGER) public Set<Long> markovBlacklist = new HashSet<>();
+    public boolean welcomeEnabled = false;
+    public boolean welcomeImageEnabled = false;
+    public Long welcomeChannelId;
+    public String welcomeJoinMessage = "Bienvenue {{user}} !";
+    public String welcomeLeaveMessage= "**{{userName}}** nous a quitté...";
+    public Long joinRoleId;
+    public Long joinRoleBotId;
+    public Long roleVerifiedId;
     
-    @Column @ColumnDefault("true") public boolean moderationEnabled;
-    @Column @ColumnDefault("false") public boolean moderationHoneypotEnabled;
-    @Column public Long moderationHoneypotChannelId;
-    @Column(columnDefinition = "TEXT") @ColumnDefault("''") public String rules;
-
-    @Column @ColumnDefault("false") public boolean autoResponseEnabled;
-
-    @Column @ColumnDefault("false") public boolean countingEnabled;
-    @Column @ColumnDefault("false") public boolean countingCommentsEnabled;
-    @Column @ColumnDefault("false") public boolean countingPenaltyEnabled;
-    @Column public Long countingChannelId;
+    public boolean markovEnabled = false;
+    public Set<Long> markovBlacklist = new HashSet<>();
     
-    // A non-private and no-arg constructor is required by JPA
+    public boolean moderationEnabled = true;
+    public boolean moderationHoneypotEnabled = false;
+    public Long moderationHoneypotChannelId;
+    public String rules = "";
+    
+     public boolean autoResponseEnabled = false;
+    
+     public boolean countingEnabled = false;
+     public boolean countingCommentsEnabled = false;
+     public boolean countingPenaltyEnabled = false;
+     public Long countingChannelId;
+    
+    // A non-private and no-arg constructor is required by JDBI
     protected ConfigurationEntity() {}
-
     public ConfigurationEntity(long guildId) { this.guildId = guildId; }
-
-    public ConfigurationEntity(ConfigurationEntity other) {
-        this.guildId = other.guildId;
-
-        this.welcomeEnabled = other.welcomeEnabled;
-        this.welcomeChannelId = other.welcomeChannelId;
-        this.welcomeImageEnabled = other.welcomeImageEnabled;
-        this.welcomeJoinMessage = other.welcomeJoinMessage;
-        this.welcomeLeaveMessage = other.welcomeLeaveMessage;
-        this.joinRoleId = other.joinRoleId;
-        this.joinBotRoleId = other.joinBotRoleId;
-        this.verifiedRoleId = other.verifiedRoleId;
-
-        this.markovEnabled = other.markovEnabled;
-        this.markovBlacklist = other.markovBlacklist;
-
-        this.moderationEnabled = other.moderationEnabled;
-        this.rules = other.rules;
-        
-        this.autoResponseEnabled = other.autoResponseEnabled;
-
-        this.countingEnabled = other.countingEnabled;
-        this.countingCommentsEnabled = other.countingCommentsEnabled;
-        this.countingPenaltyEnabled = other.countingPenaltyEnabled;
-        this.countingChannelId = other.countingChannelId;
-    }
-    
     
     public ConfigurationEntity setGuildId(Long guildId) {
         if (guildId != null) this.guildId = guildId;
         return this;
     }
-
+    
     public ConfigurationEntity setWelcomeEnabled(boolean welcomeEnabled) {
         this.welcomeEnabled = welcomeEnabled;
         return this;
     }
-
+    
     public ConfigurationEntity setWelcomeImageEnabled(boolean welcomeImageEnabled) {
         this.welcomeImageEnabled = welcomeImageEnabled;
         return this;
     }
-
+    
     public ConfigurationEntity setWelcomeChannel(GuildMessageChannel welcomeChannel) {
         if (welcomeChannel != null) this.welcomeChannelId = welcomeChannel.getIdLong();
         return this;
@@ -95,29 +63,29 @@ public class ConfigurationEntity {
         if (welcomeChannelId != null) this.welcomeChannelId = welcomeChannelId;
         return this;
     }
-
+    
     public ConfigurationEntity setWelcomeJoinMessage(String welcomeJoinMessage) {
         if (welcomeJoinMessage != null) this.welcomeJoinMessage = welcomeJoinMessage;
         return this;
     }
-
+    
     public ConfigurationEntity setWelcomeLeaveMessage(String welcomeLeaveMessage) {
         if (welcomeLeaveMessage != null) this.welcomeLeaveMessage = welcomeLeaveMessage;
         return this;
     }
-
+    
     public ConfigurationEntity setJoinRole(Role joinRole) {
         if (joinRole != null) this.joinRoleId = joinRole.getIdLong();
         return this;
     }
     
-    public ConfigurationEntity setJoinBotRoleId(Long joinBotRoleId) {
-        if (joinBotRoleId != null) this.joinBotRoleId = joinBotRoleId;
+    public ConfigurationEntity setJoinRoleBotId(Long joinRoleBotId) {
+        if (joinRoleBotId != null) this.joinRoleBotId = joinRoleBotId;
         return this;
     }
-
+    
     public ConfigurationEntity setJoinBotRole(Role joinBotRole) {
-        if (joinBotRole != null) this.joinBotRoleId = joinBotRole.getIdLong();
+        if (joinBotRole != null) this.joinRoleBotId = joinBotRole.getIdLong();
         return this;
     }
     
@@ -127,20 +95,20 @@ public class ConfigurationEntity {
     }
     
     public ConfigurationEntity setVerifiedRole(Role verifiedRole) {
-        if (verifiedRole != null) this.verifiedRoleId = verifiedRole.getIdLong();
+        if (verifiedRole != null) this.roleVerifiedId = verifiedRole.getIdLong();
         return this;
     }
     
-    public ConfigurationEntity setVerifiedRoleId(Long verifiedRoleId) {
-        if (verifiedRoleId != null) this.verifiedRoleId = verifiedRoleId;
+    public ConfigurationEntity setRoleVerifiedId(Long roleVerifiedId) {
+        if (roleVerifiedId != null) this.roleVerifiedId = roleVerifiedId;
         return this;
     }
-
+    
     public ConfigurationEntity setMarkovEnabled(boolean markovEnabled) {
         this.markovEnabled = markovEnabled;
         return this;
     }
-
+    
     public ConfigurationEntity setMarkovBlacklist(Set<Long> markovBlackList) {
         if (markovBlackList != null) this.markovBlacklist = markovBlackList;
         return this;
@@ -165,7 +133,7 @@ public class ConfigurationEntity {
         if (id != null) this.markovBlacklist.remove(id);
         return this;
     }
-
+    
     public ConfigurationEntity setModerationEnabled(boolean moderationEnabled) {
         this.moderationEnabled = moderationEnabled;
         return this;
@@ -195,17 +163,17 @@ public class ConfigurationEntity {
         this.autoResponseEnabled = autoResponseEnabled;
         return this;
     }
-
+    
     public ConfigurationEntity setCountingEnabled(boolean countingEnabled) {
         this.countingEnabled = countingEnabled;
         return this;
     }
-
+    
     public ConfigurationEntity setCountingCommentsEnabled(boolean countingCommentsEnabled) {
         this.countingCommentsEnabled = countingCommentsEnabled;
         return this;
     }
-
+    
     public ConfigurationEntity setCountingPenaltyEnabled(boolean countingPenaltyEnabled) {
         this.countingPenaltyEnabled = countingPenaltyEnabled;
         return this;

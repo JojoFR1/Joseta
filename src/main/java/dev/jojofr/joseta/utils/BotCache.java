@@ -2,6 +2,7 @@ package dev.jojofr.joseta.utils;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.ConfigurationDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
@@ -22,10 +23,12 @@ public class BotCache {
     
     public static ConfigurationEntity getGuildConfiguration(long guildId) {
         return guildConfigurations.computeIfAbsent(guildId, id -> {
-            ConfigurationEntity config = Database.get(ConfigurationEntity.class, id);
+            ConfigurationEntity config = Database.withHandle(handle -> handle.attach(ConfigurationDao.class).getByGuildId(id));
             if (config == null) {
                 config = new ConfigurationEntity(id);
-                Database.create(config);
+                
+                ConfigurationEntity finalConfig = config;
+                Database.useHandle(handle -> handle.attach(ConfigurationDao.class).upsert(finalConfig));
             }
             return config;
         });

@@ -2,9 +2,9 @@ package dev.jojofr.joseta.database.helper;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.MessageEntity;
-import dev.jojofr.joseta.database.entities.MessageEntity_;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
@@ -16,11 +16,13 @@ import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
-import org.hibernate.*;
+import org.jdbi.v3.core.statement.PreparedBatch;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class MessageDatabase {
     
@@ -65,11 +67,11 @@ public class MessageDatabase {
         String content = message.getContentRaw();
         if (content.isEmpty()) return;
         
-        String markovContent = null;
-        if (isMarkovEligible(message, markovBlackList))
-            markovContent = cleanContent(content);
+        String markovContent;
+        if (isMarkovEligible(message, markovBlackList)) markovContent = cleanContent(content);
+        else  markovContent = null;
         
-        Database.create(
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(
             new MessageEntity(
                 message.getIdLong(),
                 message.getGuild().getIdLong(),
@@ -79,55 +81,26 @@ public class MessageDatabase {
                 markovContent,
                 message.getTimeCreated()
             )
-        );
+        ));
     }
     
     public static void updateMessage(Message message) {
-        MessageEntity dbMessage = Database.get(MessageEntity.class, message.getIdLong());
+        MessageEntity dbMessage = Database.withHandle(handle -> handle.attach(MessageDao.class).getById(message.getIdLong()));
         if (dbMessage == null) return;
         
         // If not null, then it is already eligible
         if (dbMessage.markovContent != null)
             dbMessage.setMarkovContent(cleanContent(message.getContentRaw()));
         
-        Database.update(dbMessage.setContent(message.getContentRaw()));
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(dbMessage.setContent(message.getContentRaw())));
     }
     
     public static void deleteMessage(long messageId) {
-        MessageEntity dbMessage = Database.get(MessageEntity.class, messageId);
+        MessageEntity dbMessage = Database.withHandle(handle -> handle.attach(MessageDao.class).getById(messageId));
         if (dbMessage == null) return;
         
-        Database.delete(dbMessage);
+        Database.useHandle(handle -> handle.attach(MessageDao.class).delete(messageId));
     }
-    
-    public static void deleteChannelMessages(long channelId) {
-        try (Session session = Database.getSession()) {
-            Transaction tx = session.beginTransaction();
-            Database.queryDelete(MessageEntity.class, (cb, rt) -> cb.equal(rt.get(MessageEntity_.channelId), channelId), session).executeUpdate();
-            tx.commit();
-        }
-    }
-    
-    public static void deleteGuildMessages(long guildId) {
-        try (Session session = Database.getSession()) {
-            Transaction tx = session.beginTransaction();
-            Database.queryDelete(MessageEntity.class, (cb, rt) -> cb.equal(rt.get(MessageEntity_.guildId), guildId), session).executeUpdate();
-            tx.commit();
-        }
-    }
-    
-    public static void deleteUserMarkovMessages(long userId) {
-        try (Session session = Database.getSession()) {
-            Transaction tx = session.beginTransaction();
-            Database.queryUpdate(MessageEntity.class,
-                (cb, rt) -> cb.equal(rt.get(MessageEntity_.authorId), userId),
-                (cb, rt) -> cb.set(rt.get(MessageEntity_.markovContent), (String) null),
-                session
-            ).executeUpdate();
-            tx.commit();
-        }
-    }
-    
     
     public static void updateMarkovEligibility(long guildId) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(guildId);
@@ -139,50 +112,43 @@ public class MessageDatabase {
             Guild guild = JosetaBot.get().getGuildById(guildId);
             if (guild == null) return;
         
-            Log.debug("Updating markov eligibility for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
+            Log.debug("Updating markov eligibility for guild: {} (ID: {})", guild.getName(), guildId);
             
-            int updatedCount = 0;
-            try (Session session = Database.getSession()) {
-                Transaction tx = session.beginTransaction();
+            int updatedCount = Database.withHandle(handle -> {
+                MessageDao messageDao = handle.attach(MessageDao.class);
                 
-                // Allow to process large datasets without loading everything into memory
-                ScrollableResults<MessageEntity> results = session.createQuery(
-                        "FROM MessageEntity WHERE guildId = :gid", MessageEntity.class)
-                    .setParameter("gid", guildId)
-                    .setCacheMode(CacheMode.IGNORE) // Important for batch performance
-                    .scroll(ScrollMode.FORWARD_ONLY);
+                final PreparedBatch batch = handle.prepareBatch("UPDATE messages SET markov_content = :markovContent WHERE id = :id");
+                AtomicInteger batchSize = new AtomicInteger();
+                AtomicInteger updateCount = new AtomicInteger();
                 
-                while (results.next()) { try {
-                    MessageEntity dbMessage = results.get();
-                    
-                    boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage, markovBlacklist);
-                    boolean changed = false;
-                    
-                    if (!isEligible && dbMessage.markovContent != null) {
-                        dbMessage.setMarkovContent(null);
-                        changed = true;
-                    } else if (isEligible && dbMessage.markovContent == null) {
-                        dbMessage.setMarkovContent(cleanContent(dbMessage.content));
-                        changed = true;
-                    }
-                    
-                    if (changed) {
-                        session.merge(dbMessage);
-                        updatedCount++;
-                    }
-                    
-                    // Periodic flush and clear to manage memory
-                    if (updatedCount % 50 == 0 && changed) {
-                        session.flush();
-                        session.clear();
-                    }
-                } catch (Exception e) {
-                    Log.err("Error processing message. Skipping to next message.", e);
-                }}
+                try (Stream<MessageEntity> results = messageDao.getByGuildId(guildId)) {
+                    results.forEach(dbMessage -> {
+                        try {
+                            boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage, markovBlacklist);
+                            String newMarkovContent = isEligible ? cleanContent(dbMessage.content) : null;
+                            
+                            if (dbMessage.markovContent.equals(newMarkovContent)) return;
+                            
+                            
+                            batch.bind("id", dbMessage.id)
+                                .bind("markovContent", dbMessage.markovContent)
+                                .add();
+                            
+                            updateCount.incrementAndGet();
+                            if (batchSize.getAndIncrement() >= 500) {
+                                batch.execute();
+                                batchSize.set(0);
+                            }
+                        } catch (Exception e) {
+                            Log.err("Error processing message.", e);
+                        }
+                    });
+                }
                 
-                tx.commit();
-                results.close();
-            }
+                if (batchSize.get() > 0) batch.execute();
+                
+                return updateCount.get();
+            });
             
             Log.debug("Finished update. Updated {} messages for guild: {}", updatedCount, guild.getName());
         });

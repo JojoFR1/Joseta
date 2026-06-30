@@ -2,7 +2,7 @@ package dev.jojofr.joseta.annotations;
 
 import dev.jojofr.joseta.annotations.interactions.Command;
 import dev.jojofr.joseta.annotations.interactions.Interaction;
-import dev.jojofr.joseta.annotations.types.*;
+import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.interaction.ContextCommandInteraction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.utils.Log;

@@ -2,10 +2,10 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.ReminderDao;
+import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
-import dev.jojofr.joseta.database.entities.ReminderEntity_;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
-import dev.jojofr.joseta.database.entities.SanctionEntity_;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -33,8 +33,7 @@ public class ScheduledEvents {
     public static final int REMINDER_MAX_MESSAGE_LENGTH = Message.MAX_CONTENT_LENGTH - REMINDER_PREMESSAGE.replace("%message%", "").replace("%userid%", "").length();
     
     private static void checkReminders() {
-        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class, (cb, rt) ->
-            cb.lessThanOrEqualTo(rt.get(ReminderEntity_.remindAt), Instant.now())).getResultList();
+        List<ReminderEntity> reminders = Database.withHandle(handle -> handle.attach(ReminderDao.class).getExpiredReminders());
         if (reminders.isEmpty()) return;
         
         for (ReminderEntity reminder : reminders) {
@@ -42,17 +41,17 @@ public class ScheduledEvents {
             boolean shouldDm = reminder.dm || channel == null;
             
             String message = REMINDER_PREMESSAGE.replace("%userid%", String.valueOf(reminder.userId))
-                                                .replace("%message%", reminder.message);
+                                                .replace("%message%", reminder.text);
             if (!shouldDm) {
                 channel.sendMessage(message).setAllowedMentions(Collections.singleton(Message.MentionType.USER)).queue(
                     success -> {
                         if (!reminder.repeat) {
-                            Database.delete(reminder);
+                            Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminder.id));
                             return;
                         }
                         
                         reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
-                        Database.update(reminder);
+                        Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
                     },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );
@@ -66,7 +65,7 @@ public class ScheduledEvents {
                             Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
                             
                             reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter + 60 * 60 * 6); // 6 hours
-                            Database.update(reminder);
+                            Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
                             
                             if (channel == null) return;
                             channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai plus tard, vérifie que je peux t'envoyer des messages privés.").queue();
@@ -76,55 +75,51 @@ public class ScheduledEvents {
                         privateChannel.sendMessage(message).queue(
                             success -> {
                                 if (!reminder.repeat) {
-                                    Database.delete(reminder);
+                                    Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminder.id));
                                     return;
                                 }
                                 
                                 reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
-                                Database.update(reminder);
+                                Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
                             }
                         );
                     }),
                 failure -> {
                     Log.warn("Failed to retrieve user {} (ID: {}) for reminder ID {}. The reminder will be deleted.", failure, reminder.userId, reminder.id);
-                    Database.delete(reminder);
+                    Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminder.id));
                 });
         }
     }
     
     private static void checkExpiredSanctions() {
-        List<SanctionEntity> sanctions = Database.querySelect(SanctionEntity.class, (cb, rt) -> cb.and(
-            cb.equal(rt.get(SanctionEntity_.permanent), false),
-            cb.equal(rt.get(SanctionEntity_.isExpired), false),
-            cb.lessThanOrEqualTo(rt.get(SanctionEntity_.expiryTime), Instant.now())
-        )).getResultList();
+        List<SanctionEntity> sanctions = Database.withHandle(handle -> handle.attach(SanctionDao.class).getExpiredSanctions());
         if (sanctions.isEmpty()) return;
         
         for (SanctionEntity sanction : sanctions) {
-            Guild guild = JosetaBot.get().getGuildById(sanction.id.guildId());
-            Database.update(sanction.setExpired(true));
+            Guild guild = JosetaBot.get().getGuildById(sanction.guildId);
+            Database.useHandle(handle -> handle.attach(SanctionDao.class).upsert(sanction.setExpired(true)));
             
             if (guild == null) continue;
             
             // Only ban need action on expiry, others are automatic
             JosetaBot.get().retrieveUserById(sanction.userId).queue(
                 user -> {
-                    if (sanction.sanctionType == SanctionEntity.SanctionType.BAN)
+                    if (sanction.type == SanctionEntity.SanctionType.BAN)
                         guild.unban(user).queue(
                             null,
-                            failure -> Log.warn("Failed to unban user {} (ID: {}) on sanction expiry ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.id)
+                            failure -> Log.warn("Failed to unban user {} (ID: {}) on sanction expiry ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.getSanctionId())
                         );
                     
                     user.openPrivateChannel().queue(
                         channel ->
-                            channel.sendMessage("Votre sanction sur le serveur **`"+ guild.getName() +"`** d'identifiant **`"+ sanction.getSanctionId() +"`** du <t:"+ sanction.timestamp.getEpochSecond() +":F> a expiré.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***").queue(
+                            channel.sendMessage("Votre sanction sur le serveur **`"+ guild.getName() +"`** d'identifiant **`"+ sanction.getSanctionId() +"`** du <t:"+ sanction.createdAt.getEpochSecond() +":F> a expiré.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***").queue(
                                 null,
-                                failure -> Log.err("Failed to send private message to user {} (ID: {}) for expired sanction ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.id)
+                                failure -> Log.err("Failed to send private message to user {} (ID: {}) for expired sanction ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.getSanctionId())
                             ),
-                        failure -> Log.err("Failed to open private channel for user {} (ID: {}) for expired sanction ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.id)
+                        failure -> Log.err("Failed to open private channel for user {} (ID: {}) for expired sanction ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.getSanctionId())
                     );
                 },
-                failure -> Log.err("Failed to retrieve user {} (ID: {}) for expired sanction ID {}", failure, sanction.userId, sanction.id)
+                failure -> Log.err("Failed to retrieve user {} (ID: {}) for expired sanction ID {}", failure, sanction.userId, sanction.getSanctionId())
             );
         }
     }
