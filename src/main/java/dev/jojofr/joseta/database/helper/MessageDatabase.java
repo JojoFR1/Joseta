@@ -103,30 +103,38 @@ public class MessageDatabase {
         );
     }
     
+    private static MessageEntity buildMessageEntity(Message message, Set<Long> markovBlackList) {
+        String content = message.getContentRaw();
+        if (content.isEmpty()) return null;
+        
+        String markovContent;
+        if (isMarkovEligible(message, markovBlackList)) markovContent = cleanContent(content);
+        else markovContent = null;
+        
+        return new MessageEntity(
+            message.getIdLong(),
+            message.getGuild().getIdLong(),
+            message.getChannel().getIdLong(),
+            message.getAuthor().getIdLong(),
+            content,
+            markovContent,
+            message.getTimeCreated()
+        );
+    }
+    
+    private static void flush(List<MessageEntity> buffer) {
+        if (buffer.isEmpty()) return;
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsertBatch(buffer));
+        buffer.clear();
+    }
+    
     public static void addNewMessage(Message message) {
         ConfigurationEntity config = BotCache.getGuildConfiguration(message.getGuild().getIdLong());
         addNewMessage(message, config.markovBlacklist);
     }
     
     public static void addNewMessage(Message message, Set<Long> markovBlackList) {
-        String content = message.getContentRaw();
-        if (content.isEmpty()) return;
-        
-        String markovContent;
-        if (isMarkovEligible(message, markovBlackList)) markovContent = cleanContent(content);
-        else  markovContent = null;
-        
-        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(
-            new MessageEntity(
-                message.getIdLong(),
-                message.getGuild().getIdLong(),
-                message.getChannel().getIdLong(),
-                message.getAuthor().getIdLong(),
-                content,
-                markovContent,
-                message.getTimeCreated()
-            )
-        ));
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(buildMessageEntity(message, markovBlackList)));
     }
     
     public static void updateMessage(Message message) {

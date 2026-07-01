@@ -4,11 +4,11 @@ import dev.jojofr.joseta.database.entities.MessageEntity;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
 import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindFields;
-import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 public interface MessageDao {
@@ -36,7 +36,7 @@ public interface MessageDao {
             markov_content = EXCLUDED.markov_content,
             created_at = EXCLUDED.created_at
     """)
-    void upsertBatch(@BindFields Iterable<MessageEntity> messages);
+    void upsertBatch(@BindFields List<MessageEntity> messages);
     
     @SqlQuery("SELECT * FROM messages WHERE id = :id")
     @RegisterFieldMapper(value = MessageEntity.class)
