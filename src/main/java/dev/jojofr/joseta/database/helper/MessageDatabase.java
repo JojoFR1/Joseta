@@ -12,50 +12,97 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel;
 import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
 import org.jdbi.v3.core.statement.PreparedBatch;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class MessageDatabase {
     
-    public static void populateNewGuild(Guild guild) {
-        int count = 0;
-        Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
-        for (GuildChannel channel : guild.getChannels()) {
+    public static CompletableFuture<Void> populateNewGuild(Guild guild) {
+        return CompletableFuture.runAsync(() -> {
+            Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
+            
             ConfigurationEntity config = BotCache.getGuildConfiguration(guild.getIdLong());
             
-            if (!(channel instanceof GuildMessageChannel messageChannel)) continue;
-            count += addChannelMessageHistory(messageChannel, guild, config.markovBlacklist);
-            
-            if (channel instanceof StandardGuildMessageChannel standardChannel) {
-                for (ThreadChannel thread : standardChannel.getThreadChannels())
-                    count += addChannelMessageHistory(thread, guild, config.markovBlacklist);
+            List<GuildMessageChannel> channels = new ArrayList<>();
+            for (GuildChannel channel : guild.getChannels()) {
+                if (channel instanceof GuildMessageChannel messageChannel) channels.add(messageChannel);
+                if (channel instanceof StandardGuildMessageChannel standardChannel) {
+                    channels.addAll(standardChannel.getThreadChannels());
+                    // channels.addAll(standardChannel.retrieveArchivedPrivateThreadChannels().stream().toList());
+                    // channels.addAll(standardChannel.retrieveArchivedPublicThreadChannels().stream().toList());
+                }
             }
-        }
-        
-        Log.debug("Populated messages table with {} messages for guild: {} (ID: {})", count, guild.getName(), guild.getIdLong());
+            
+            ExecutorService executor = Executors.newFixedThreadPool(4);
+            try {
+                List<CompletableFuture<Integer>> futures = channels.stream()
+                    .map(channel -> CompletableFuture.supplyAsync(() -> addChannelMessageHistory(channel, guild, config.markovBlacklist), executor))
+                    .toList();
+                
+                int total = futures.stream().mapToInt(CompletableFuture::join).sum();
+                Log.debug("Populated messages table with {} messages for guild: {} (ID: {})", total, guild.getName(), guild.getIdLong());
+            } finally {
+                executor.shutdown(); // Non-blocking compared to 'close()'
+            }
+        });
     }
     
     public static int addChannelMessageHistory(GuildMessageChannel channel, Guild guild, Set<Long> markovBlackList) {
+        List<MessageEntity> buffer = new ArrayList<>(500);
+        
         int count = 0;
         try {
-            for (Message message : channel.getIterableHistory().stream().toList()) {
-                addNewMessage(message, markovBlackList);
+            for (Message message : channel.getIterableHistory()) {
+                MessageEntity entity = buildMessageEntity(message, markovBlackList);
+                if (entity == null) continue;
+                
+                buffer.add(entity);
                 count++;
+                
+                if (buffer.size() >= 500) flush(buffer);
             }
         } catch (Exception e) {
             Log.err("Could not populate the messages table for channel ID: {} in guild: {} (ID: {}).", e, channel.getIdLong(), guild.getName(), guild.getIdLong());
-        }
+        } finally { flush(buffer); }
         
         return count;
+    }
+    
+    private static MessageEntity buildMessageEntity(Message message, Set<Long> markovBlackList) {
+        String content = message.getContentRaw();
+        if (content.isEmpty()) return null;
+        
+        String markovContent;
+        if (isMarkovEligible(message, markovBlackList)) markovContent = cleanContent(content);
+        else markovContent = null;
+        
+        return new MessageEntity(
+            message.getIdLong(),
+            message.getGuild().getIdLong(),
+            message.getChannel().getIdLong(),
+            message.getAuthor().getIdLong(),
+            content,
+            markovContent,
+            message.getTimeCreated()
+        );
+    }
+    
+    private static void flush(List<MessageEntity> buffer) {
+        if (buffer.isEmpty()) return;
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsertBatch(buffer));
+        buffer.clear();
     }
     
     public static void addNewMessage(Message message) {
@@ -64,24 +111,7 @@ public class MessageDatabase {
     }
     
     public static void addNewMessage(Message message, Set<Long> markovBlackList) {
-        String content = message.getContentRaw();
-        if (content.isEmpty()) return;
-        
-        String markovContent;
-        if (isMarkovEligible(message, markovBlackList)) markovContent = cleanContent(content);
-        else  markovContent = null;
-        
-        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(
-            new MessageEntity(
-                message.getIdLong(),
-                message.getGuild().getIdLong(),
-                message.getChannel().getIdLong(),
-                message.getAuthor().getIdLong(),
-                content,
-                markovContent,
-                message.getTimeCreated()
-            )
-        ));
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(buildMessageEntity(message, markovBlackList)));
     }
     
     public static void updateMessage(Message message) {

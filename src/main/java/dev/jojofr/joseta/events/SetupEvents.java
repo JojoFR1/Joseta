@@ -33,7 +33,10 @@ public class SetupEvents {
             ConfigurationEntity config = new ConfigurationEntity(event.getGuild().getIdLong());
             Database.useHandle(handle -> handle.attach(ConfigurationDao.class).upsert(config));
             
-            MessageDatabase.populateNewGuild(event.getGuild());
+            MessageDatabase.populateNewGuild(event.getGuild()).exceptionally(throwable -> {
+                Log.err("Failed to populate new guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong(), throwable);
+                return null;
+            });
         }
         
         BotCache.putGuildConfiguration(event.getGuild().getIdLong(), Database.withHandle(handle -> handle.attach(ConfigurationDao.class).getByGuildId(event.getGuild().getIdLong())));
