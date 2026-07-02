@@ -21,7 +21,6 @@ public class ConfigurationEntity {
     public Long roleVerifiedId;
     
     public boolean markovEnabled = false;
-    public Set<Long> markovBlacklist = new HashSet<>();
     
     public boolean moderationEnabled = true;
     public boolean moderationHoneypotEnabled = false;
@@ -106,31 +105,6 @@ public class ConfigurationEntity {
     
     public ConfigurationEntity setMarkovEnabled(boolean markovEnabled) {
         this.markovEnabled = markovEnabled;
-        return this;
-    }
-    
-    public ConfigurationEntity setMarkovBlacklist(Set<Long> markovBlackList) {
-        if (markovBlackList != null) this.markovBlacklist = markovBlackList;
-        return this;
-    }
-    
-    public ConfigurationEntity addMarkovBlacklist(IMentionable mentionable) {
-        if (mentionable != null) this.markovBlacklist.add(mentionable.getIdLong());
-        return this;
-    }
-    
-    public ConfigurationEntity addIdMarkovBlacklist(Long id) {
-        if (id != null) this.markovBlacklist.add(id);
-        return this;
-    }
-    
-    public ConfigurationEntity removeMarkovBlacklist(IMentionable mentionable) {
-        if (mentionable != null) this.markovBlacklist.remove(mentionable.getIdLong());
-        return this;
-    }
-    
-    public ConfigurationEntity removeIdMarkovBlacklist(Long id) {
-        if (id != null) this.markovBlacklist.remove(id);
         return this;
     }
     

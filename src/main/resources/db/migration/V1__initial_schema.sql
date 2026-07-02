@@ -35,6 +35,19 @@ CREATE TABLE IF NOT EXISTS configurations (
     FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE CASCADE
 );
 
+
+CREATE TYPE ENTITY_TYPE AS ENUM ('USER', 'ROLE', 'CHANNEL');
+
+CREATE TABLE IF NOT EXISTS markov_blacklist (
+    guild_id BIGINT NOT NULL,
+    entity_id BIGINT NOT NULL,
+
+    type ENTITY_TYPE NOT NULL,
+
+    PRIMARY KEY (guild_id, entity_id),
+    FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id              BIGINT NOT NULL,
     guild_id        BIGINT NOT NULL,
