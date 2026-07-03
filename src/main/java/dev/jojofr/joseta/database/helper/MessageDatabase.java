@@ -132,7 +132,10 @@ public class MessageDatabase {
     }
     
     public static void addNewMessage(Message message) {
-        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(buildMessageEntity(message)));
+        MessageEntity messageEntity = buildMessageEntity(message);
+        if (messageEntity == null) return;
+        
+        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(messageEntity));
     }
     
     public static void updateMessage(Message message) {
@@ -173,8 +176,7 @@ public class MessageDatabase {
                             boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage);
                             String newMarkovContent = isEligible ? cleanContent(dbMessage.content) : null;
                             
-                            if (dbMessage.markovContent.equals(newMarkovContent)) return;
-                            
+                            if (dbMessage.markovContent != null && dbMessage.markovContent.equals(newMarkovContent)) return;
                             
                             batch.bind("id", dbMessage.id)
                                 .bind("markovContent", dbMessage.markovContent)

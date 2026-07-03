@@ -351,7 +351,7 @@ public class ConfigurationCommand {
             case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
             case "config:cat_markov:mentionable_blacklist_select" -> {
                 Set<Long> userSelectedIds = selectedValues.stream()
-                    .filter(mentionable -> mentionable instanceof User)
+                    .filter(mentionable -> mentionable instanceof User || mentionable instanceof Member)
                     .map(ISnowflake::getIdLong)
                     .collect(Collectors.toSet());
                 Set<Long> roleSelectedIds = selectedValues.stream()

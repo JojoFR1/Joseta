@@ -85,7 +85,7 @@ public interface MessageDao {
         @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id = :guildId AND entity_id = :entityId")
         void remove(@Bind("guildId") long guildId, @Bind("entityId") long entityId);
         @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id = :guildId AND entity_id IN (<entityIds>) AND type = CAST(:type AS ENTITY_TYPE)")
-        void removeAll(@Bind("guildId") long guildIds, @Bind("type") EntityType type, @Bind("entityId") Iterable<Long> entityId);
+        void removeAll(@Bind("guildId") long guildIds, @Bind("type") EntityType type, @BindList("entityIds") Iterable<Long> entityId);
     }
     
     enum EntityType { USER, ROLE, CHANNEL }
