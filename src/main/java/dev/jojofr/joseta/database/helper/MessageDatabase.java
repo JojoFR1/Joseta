@@ -16,12 +16,13 @@ import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
+import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.statement.PreparedBatch;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -61,23 +62,10 @@ public class MessageDatabase {
         int[] count = {0};
         
         return channel.getIterableHistory().forEachAsync(message -> {
-            MessageEntity entity;
+            MessageEntity entity = buildMessageEntity(message, false);
+            if (entity == null) return true;
             
-            String content = message.getContentRaw();
-            if (!content.isEmpty()) {
-                String markovContent = null;
-                if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) markovContent = cleanContent(message.getContentRaw());
-                
-                entity = new MessageEntity(
-                    message.getIdLong(),
-                    guild.getIdLong(),
-                    channel.getIdLong(),
-                    message.getAuthor().getIdLong(),
-                    content,
-                    markovContent,
-                    message.getTimeCreated()
-                );
-            } else return true;
+            if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
             
             buffer.add(entity);
             count[0]++;
@@ -106,25 +94,6 @@ public class MessageDatabase {
         );
     }
     
-    private static MessageEntity buildMessageEntity(Message message) {
-        String content = message.getContentRaw();
-        if (content.isEmpty()) return null;
-        
-        String markovContent;
-        if (isMarkovEligible(message)) markovContent = cleanContent(content);
-        else markovContent = null;
-        
-        return new MessageEntity(
-            message.getIdLong(),
-            message.getGuild().getIdLong(),
-            message.getChannel().getIdLong(),
-            message.getAuthor().getIdLong(),
-            content,
-            markovContent,
-            message.getTimeCreated()
-        );
-    }
-    
     private static void flush(List<MessageEntity> buffer) {
         if (buffer.isEmpty()) return;
         Database.useHandle(handle -> handle.attach(MessageDao.class).upsertBatch(buffer));
@@ -139,21 +108,29 @@ public class MessageDatabase {
     }
     
     public static void updateMessage(Message message) {
-        MessageEntity dbMessage = Database.withHandle(handle -> handle.attach(MessageDao.class).getById(message.getIdLong()));
-        if (dbMessage == null) return;
-        
-        // If not null, then it is already eligible
-        if (dbMessage.markovContent != null)
-            dbMessage.setMarkovContent(cleanContent(message.getContentRaw()));
-        
-        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(dbMessage.setContent(message.getContentRaw())));
+        Database.useHandle(handle -> {
+            MessageDao messageDao = handle.attach(MessageDao.class);
+            
+            MessageEntity dbMessage = messageDao.getById(message.getIdLong());
+            if (dbMessage == null) return;
+            
+            // If not null, then it is already eligible
+            if (dbMessage.markovContent != null)
+                dbMessage.setMarkovContent(cleanContent(message.getContentRaw()));
+            
+            messageDao.upsert(dbMessage.setContent(message.getContentRaw()));
+        });
     }
     
     public static void deleteMessage(long messageId) {
-        MessageEntity dbMessage = Database.withHandle(handle -> handle.attach(MessageDao.class).getById(messageId));
-        if (dbMessage == null) return;
-        
-        Database.useHandle(handle -> handle.attach(MessageDao.class).delete(messageId));
+        Database.useHandle(handle -> {
+            MessageDao messageDao = handle.attach(MessageDao.class);
+            
+            MessageEntity dbMessage = messageDao.getById(messageId);
+            if (dbMessage == null) return;
+            
+            messageDao.delete(messageId);
+        });
     }
     
     public static void updateMarkovEligibility(long guildId) {
@@ -161,7 +138,7 @@ public class MessageDatabase {
             Guild guild = JosetaBot.get().getGuildById(guildId);
             if (guild == null) return;
         
-            Log.debug("Updating markov eligibility for guild: {} (ID: {})", guild.getName(), guildId);
+            Log.debug("Updating Markov eligibility for guild: {} (ID: {})", guild.getName(), guildId);
             
             int updatedCount = Database.withHandle(handle -> {
                 MessageDao messageDao = handle.attach(MessageDao.class);
@@ -176,14 +153,14 @@ public class MessageDatabase {
                             boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage);
                             String newMarkovContent = isEligible ? cleanContent(dbMessage.content) : null;
                             
-                            if (dbMessage.markovContent != null && dbMessage.markovContent.equals(newMarkovContent)) return;
+                            if (Objects.equals(dbMessage.markovContent, newMarkovContent)) return;
                             
                             batch.bind("id", dbMessage.id)
-                                .bind("markovContent", dbMessage.markovContent)
+                                .bind("markovContent", newMarkovContent)
                                 .add();
                             
                             updateCount.incrementAndGet();
-                            if (batchSize.getAndIncrement() >= 500) {
+                            if (batchSize.incrementAndGet() >= 500) {
                                 batch.execute();
                                 batchSize.set(0);
                             }
@@ -192,7 +169,6 @@ public class MessageDatabase {
                         }
                     });
                 }
-                
                 if (batchSize.get() > 0) batch.execute();
                 
                 return updateCount.get();
@@ -258,8 +234,6 @@ public class MessageDatabase {
             if (!roleIds.isEmpty() && markovBlacklistDao.isAnyIdBlacklisted(message.getGuild().getIdLong(), roleIds)) return false;
             
             GuildMessageChannel channel = message.getGuildChannel();
-            
-            
             if (markovBlacklistDao.isIdBlacklisted(message.getGuild().getIdLong(), channel.getIdLong())) return false;
             if (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW()) return false;
             if (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0
@@ -279,5 +253,24 @@ public class MessageDatabase {
         String noUrl = NO_URL_PATTERN.matcher(noMentions).replaceAll("");
         
         return NO_SPACE_PATTERN.matcher(noUrl.trim()).replaceAll(" ");
+    }
+    
+    private static MessageEntity buildMessageEntity(Message message) { return buildMessageEntity(message, true); }
+    private static MessageEntity buildMessageEntity(Message message, boolean checkMarkov) {
+        String content = message.getContentRaw();
+        if (content.isEmpty()) return null;
+        
+        String markovContent = null;
+        if (checkMarkov && isMarkovEligible(message)) markovContent = cleanContent(content);
+        
+        return new MessageEntity(
+            message.getIdLong(),
+            message.getGuild().getIdLong(),
+            message.getChannel().getIdLong(),
+            message.getAuthor().getIdLong(),
+            content,
+            markovContent,
+            message.getTimeCreated()
+        );
     }
 }
