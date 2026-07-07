@@ -286,7 +286,7 @@ public class ModerationCommands {
 
                 // A member can't have 2 timeout active at the same time.
                 SanctionEntity sanction = Database.withHandle(handle ->
-                    handle.attach(SanctionDao.class).getLatestByUserIdAndByType(member.getIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.TIMEOUT));
+                    handle.attach(SanctionDao.class).getLatestByUserIdAndByType(event.getGuild().getIdLong(), member.getIdLong(), SanctionEntity.SanctionType.TIMEOUT));
                 Database.useHandle(handle -> handle.attach(SanctionDao.class).upsert(sanction.setExpired(true)));
             },
             f -> {

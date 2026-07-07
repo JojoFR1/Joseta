@@ -35,5 +35,5 @@ public interface SanctionDao {
     
     @SqlQuery("SELECT * FROM sanctions WHERE guild_id = :guildId AND user_id = :userId AND type = :sanctionType ORDER BY sanction_number DESC LIMIT 1")
     @RegisterFieldMapper(value = SanctionEntity.class)
-    SanctionEntity getLatestByUserIdAndByType(long userId, long guildId, SanctionEntity.SanctionType sanctionType);
+    SanctionEntity getLatestByUserIdAndByType(@Bind("guildId") long guildId, @Bind("userId") long userId, @Bind("sanctionType") SanctionEntity.SanctionType sanctionType);
 }

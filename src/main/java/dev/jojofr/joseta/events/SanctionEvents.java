@@ -30,7 +30,7 @@ public class SanctionEvents {
         String timeOutEndDate = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT).getNewValue();
         if (timeOutEndDate == null) {
             SanctionEntity sanction = Database.withHandle(handle ->
-                handle.attach(SanctionDao.class).getLatestByUserIdAndByType(entry.getTargetIdLong(), entry.getGuild().getIdLong(), SanctionEntity.SanctionType.TIMEOUT));
+                handle.attach(SanctionDao.class).getLatestByUserIdAndByType(entry.getGuild().getIdLong(), entry.getTargetIdLong(), SanctionEntity.SanctionType.TIMEOUT));
             Database.useHandle(handle -> handle.attach(SanctionDao.class).upsert(sanction.setExpired(true)));
             return;
         }
@@ -107,7 +107,7 @@ public class SanctionEvents {
     public void onGuildUnban(GuildUnbanEvent event) {
         // A user can't have 2 bans active at the same time.
         SanctionEntity sanction = Database.withHandle(handle ->
-            handle.attach(SanctionDao.class).getLatestByUserIdAndByType(event.getUser().getIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.BAN));
+            handle.attach(SanctionDao.class).getLatestByUserIdAndByType(event.getGuild().getIdLong(), event.getUser().getIdLong(), SanctionEntity.SanctionType.BAN));
         Database.useHandle(handle -> handle.attach(SanctionDao.class).upsert(sanction.setExpired(true)));
     }
 }

@@ -21,6 +21,6 @@ public interface UserDao {
     @RegisterFieldMapper(value = UserEntity.class)
     UserEntity getById(@Bind("id") long id, @Bind("guildId") long guildId);
     
-    @SqlUpdate("DELETE FROM users WHERE id = :id")
-    void delete(@Bind("id") long id);
+    @SqlUpdate("DELETE FROM users WHERE id = :id AND guild_id = :guildId")
+    void delete(@Bind("id") long id, @Bind("guildId") long guildId);
 }
