@@ -3,9 +3,7 @@ package dev.jojofr.joseta.database.helper;
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
-import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.MessageEntity;
-import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.ISnowflake;
@@ -158,16 +156,15 @@ public class MessageDatabase {
                                 .add();
                             
                             updateCount.incrementAndGet();
-                            if (batchSize.incrementAndGet() >= 500) {
+                            if (batch.size() >= 500) {
                                 batch.execute();
-                                batchSize.set(0);
                             }
                         } catch (Exception e) {
                             Log.err("Error processing message.", e);
                         }
                     });
                 }
-                if (batchSize.get() > 0) batch.execute();
+                if (batch.size() > 0) batch.execute();
                 
                 return updateCount.get();
             });
