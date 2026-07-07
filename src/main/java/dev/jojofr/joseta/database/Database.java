@@ -109,12 +109,10 @@ public class Database {
     }
     
     public static <T> T withHandle(HandleCallback<T, RuntimeException> callback) {
-        if (jdbi == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
-        return jdbi.inTransaction(callback);
+        return get().inTransaction(callback);
     }
     
     public static void useHandle(HandleConsumer<RuntimeException> callback) {
-        if (jdbi == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
-        jdbi.useHandle(callback);
+        get().useHandle(callback);
     }
 }
