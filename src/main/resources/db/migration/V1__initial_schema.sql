@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS users (
 
     name            VARCHAR(255) NOT NULL,
     avatar_url      VARCHAR(255),
-    creation_date   TIMESTAMP NOT NULL,
+    creation_date   TIMESTAMPTZ NOT NULL,
     sanction_count  INT NOT NULL DEFAULT 0,
 
     PRIMARY KEY (id, guild_id),
@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS sanctions (
     user_id          BIGINT NOT NULL,
     moderator_id     BIGINT NOT NULL,
     reason           TEXT DEFAULT 'Aucun motif fourni.',
-    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at       TIMESTAMP,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at       TIMESTAMPTZ,
     is_expired       BOOLEAN NOT NULL DEFAULT FALSE,
     is_permanent     BOOLEAN NOT NULL DEFAULT FALSE,
 
@@ -87,8 +87,8 @@ CREATE TABLE IF NOT EXISTS reminders (
     user_id       BIGINT NOT NULL,
 
     text          TEXT NOT NULL,
-    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    remind_at     TIMESTAMP NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    remind_at     TIMESTAMPTZ NOT NULL,
     repeat_after  BIGINT,
     dm            BOOLEAN NOT NULL DEFAULT FALSE,
     repeat        BOOLEAN NOT NULL DEFAULT FALSE,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS messages (
     author_id       BIGINT NOT NULL,
     content         TEXT NOT NULL,
     markov_content  TEXT DEFAULT NULL,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (guild_id) REFERENCES guilds(id) ON DELETE CASCADE
 );

@@ -135,7 +135,7 @@ public class MessageDatabase {
         CompletableFuture.runAsync(() -> {
             Guild guild = JosetaBot.get().getGuildById(guildId);
             if (guild == null) return;
-        
+            
             Log.debug("Updating Markov eligibility for guild: {} (ID: {})", guild.getName(), guildId);
             
             int updatedCount = Database.withHandle(handle -> {
@@ -268,7 +268,7 @@ public class MessageDatabase {
             message.getAuthor().getIdLong(),
             content,
             markovContent,
-            message.getTimeCreated()
+            message.getTimeCreated().toInstant()
         );
     }
 }

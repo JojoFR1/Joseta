@@ -1,6 +1,6 @@
 package dev.jojofr.joseta.database.entities;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 public class MessageEntity {
     public long id;
@@ -10,11 +10,11 @@ public class MessageEntity {
     public long authorId;
     public String content;
     public String markovContent;
-    public OffsetDateTime createdAt;
+    public Instant createdAt;
     
     // A non-private and no-arg constructor is required by JDBI
     protected MessageEntity() {}
-    public MessageEntity(long id, long guildId, long channelId, long authorId, String content, String markovContent, OffsetDateTime createdAt) {
+    public MessageEntity(long id, long guildId, long channelId, long authorId, String content, String markovContent, Instant createdAt) {
         this.id = id;
         
         this.guildId = guildId;
@@ -55,7 +55,7 @@ public class MessageEntity {
         return this;
     }
     
-    public MessageEntity setCreatedAt(OffsetDateTime createdAt) {
+    public MessageEntity setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
         return this;
     }
