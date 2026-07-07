@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import dev.jojofr.joseta.annotations.EventProcessor;
 import dev.jojofr.joseta.annotations.InteractionProcessor;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.BotDao;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DotenvDebug;
 import dev.jojofr.joseta.utils.Log;
@@ -85,9 +86,13 @@ public class JosetaBot {
     
     private static void registerShutdown(JDA bot) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Log.info("Shutting down...");
+            
             bot.setAutoReconnect(false);
             bot.shutdown();
-
+            
+            Database.useHandle(handle -> handle.attach(BotDao.class).setLastOnline());
+            
             try {
                 if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
                     Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");

@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS bot (
+    last_online TIMESTAMPTZ
+);
+INSERT INTO bot (last_online) VALUES (NULL);
+
 CREATE TABLE IF NOT EXISTS guilds (
     id BIGINT             PRIMARY KEY,
     name                  VARCHAR(255) NOT NULL,
