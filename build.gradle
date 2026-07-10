@@ -60,12 +60,6 @@ shadowJar {
     archiveFileName = 'JosetaBot.jar'
 }
 
-runShadow {
-    dependsOn 'jandex'
-    classpath = sourceSets.main.runtimeClasspath
-    args = [ '--debug' ]
-}
-
 remotes {
     remoteServer {
         host     = dotenv.get('REMOTE_HOST') ?: 'localhost'
