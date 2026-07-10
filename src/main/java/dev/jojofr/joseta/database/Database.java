@@ -112,7 +112,7 @@ public class Database {
             .property(HikariCPSettings.HIKARI_MAX_LIFETIME, 30 * 60 * 1000)
             .property(HikariCPSettings.HIKARI_POOL_NAME, "JosetaHikariPool")
             
-            .property("hibernate.jdbc.batch_size", 10)
+            .property("hibernate.jdbc.batch_size", 100)
             .property("hibernate.order_inserts", "true")
             .property("hibernate.order_updates", "true");
         
