@@ -19,7 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class ScheduledEvents {
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     
     public static void schedule() {
         // Check reminders every minute
