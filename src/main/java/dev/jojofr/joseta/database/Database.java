@@ -57,7 +57,7 @@ public class Database {
             
             Flyway.configure()
                 .dataSource(dataSource)
-                .locations("classpath:db/migration")
+                .locations("classpath:database")
                 .validateMigrationNaming(true)
                 .loggers("slf4j")
                 .load()
