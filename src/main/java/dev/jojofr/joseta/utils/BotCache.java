@@ -3,6 +3,7 @@ package dev.jojofr.joseta.utils;
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ConfigurationDao;
+import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
