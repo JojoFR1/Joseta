@@ -32,7 +32,7 @@ public class BotCache {
                 Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(finalConfig));
             }
             
-            config.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(guildId));
+            config.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
             return config;
         });
     }

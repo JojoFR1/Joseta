@@ -24,7 +24,15 @@ public interface SanctionDao {
     """)
     void upsert(@BindFields SanctionEntity sanction);
     
-    @SqlUpdate("UPDATE sanctions SET is_expired = TRUE WHERE guild_id = :guildId AND user_id = :userId AND type = :sanctionType AND is_expired = FALSE")
+    @SqlUpdate("""
+        UPDATE sanctions SET is_expired = TRUE
+        WHERE guild_id = :guildId AND user_id = :userId AND type = :sanctionType AND is_expired = FALSE
+            AND sanction_number = (
+                SELECT sanction_number FROM sanctions
+                WHERE guild_id = :guildId AND user_id = :userId AND type = :sanctionType AND is_expired = FALSE
+                ORDER BY sanction_number DESC LIMIT 1
+            )
+    """)
     void setLatestUserSanctionByTypeAsExpired(long guildId, long userId, SanctionEntity.SanctionType sanctionType);
     
     @SqlQuery("SELECT * FROM sanctions WHERE guild_id = :guildId AND user_id = :userId ORDER BY sanction_number DESC LIMIT :limit OFFSET :offset")

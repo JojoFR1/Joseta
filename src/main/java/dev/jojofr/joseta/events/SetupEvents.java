@@ -40,6 +40,8 @@ public class SetupEvents {
             });
         } else config = Database.withExtension(ConfigurationDao.class, dao -> dao.getByGuildId(event.getGuild().getIdLong()));
         
+        config.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(event.getGuild().getIdLong()));
+        
         BotCache.putGuildConfiguration(event.getGuild().getIdLong(), config);
     }
     

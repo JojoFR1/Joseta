@@ -31,7 +31,7 @@ public class ScheduledEvents {
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkReminders, 0, 1, TimeUnit.MINUTES);
         // Check expired sanctions every 15 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
-        // Check expired "Message" entities every 15 minutes
+        // Check expired "Message" entities every 30 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredMessages, 30, 30, TimeUnit.MINUTES);
     }
     

@@ -10,6 +10,11 @@ public interface UserDao {
     @SqlUpdate("""
         INSERT INTO users (id, guild_id, name, avatar_url, creation_date, sanction_count)
         VALUES (:id, :guildId, :name, :avatarUrl, :creationDate, :sanctionCount)
+        ON CONFLICT (id, guild_id) DO UPDATE SET
+            name = EXCLUDED.name,
+            avatar_url = EXCLUDED.avatar_url,
+            creation_date = EXCLUDED.creation_date,
+            sanction_count = EXCLUDED.sanction_count
     """)
     void upsert(@BindFields UserEntity user);
     
