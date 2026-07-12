@@ -48,7 +48,7 @@ public class JosetaBot {
             Log.err("Database initialization failed. Exiting...");
             System.exit(1);
         }
-
+        
         botInstance = JDABuilder.createDefault(dotenv.get("TOKEN"))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
             .enableIntents(GatewayIntent.GUILD_MESSAGES,
@@ -88,16 +88,16 @@ public class JosetaBot {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Log.info("Shutting down...");
             
+            ScheduledEvents.shutdown();
+            
             bot.setAutoReconnect(false);
             bot.shutdown();
-            
-            Database.useExtension(BotDao.class, dao -> dao.setLastOnline());
             
             try {
                 if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
                     Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");
                     bot.shutdownNow();
-
+                    
                     // TODO Not sure if that works
                     if (!bot.awaitShutdown(1, TimeUnit.MINUTES)) {
                         Log.err("The bot did not shutdown after the forced shutdown. Exiting...");
@@ -110,6 +110,8 @@ public class JosetaBot {
                 Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);
                 bot.shutdownNow();
             }
+            
+            Database.useExtension(BotDao.class, dao -> dao.setLastOnline());
         }, "ShutdownThread"));
     }
 }

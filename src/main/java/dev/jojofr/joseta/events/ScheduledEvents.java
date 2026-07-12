@@ -35,6 +35,18 @@ public class ScheduledEvents {
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredMessages, 30, 30, TimeUnit.MINUTES);
     }
     
+    public static void shutdown() {
+        scheduler.shutdown();
+        try {
+            if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
+                Log.warn("The scheduled event thread shutdown 10 second limit was exceeded. Force shutting down...");
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException ie) {
+            scheduler.shutdownNow();
+        }
+    }
+    
     
     public static final String REMINDER_PREMESSAGE = "⏰ Rappel pour <@%userid%>:\n ```%message%```";
     public static final int REMINDER_MAX_MESSAGE_LENGTH = Message.MAX_CONTENT_LENGTH - REMINDER_PREMESSAGE.replace("%message%", "").replace("%userid%", "").length();
