@@ -125,4 +125,12 @@ public class Database {
     public static void useHandle(HandleConsumer<RuntimeException> callback) {
         get().useHandle(callback);
     }
+    
+    public static <T> T inTransaction(HandleCallback<T, RuntimeException> callback) {
+        return get().inTransaction(callback);
+    }
+    
+    public static void useTransaction(HandleConsumer<RuntimeException> callback) {
+        get().useTransaction(callback);
+    }
 }

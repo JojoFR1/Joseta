@@ -575,14 +575,15 @@ public class ConfigurationCommand {
         mentionableBlacklistSelectBuilder.setDefaultValues(Stream.concat(
             configurationMessage.pendingMarkovUserBlacklist.stream().map(EntitySelectMenu.DefaultValue::user),
             configurationMessage.pendingMarkovRoleBlacklist.stream().map(EntitySelectMenu.DefaultValue::role)
-        ).toList());
+        ).limit(EntitySelectMenu.OPTIONS_MAX_AMOUNT).toList());
         
         EntitySelectMenu mentionableBlacklistSelect = mentionableBlacklistSelectBuilder.build();
         
         EntitySelectMenu.Builder channelBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:channel_blacklist_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT)
             .setPlaceholder("Sélectionnez des salons à ajouter ou retirer de la blacklist de Markov");
-        channelBlacklistSelectBuilder.setDefaultValues(configurationMessage.pendingMarkovChannelBlacklist.stream().map(EntitySelectMenu.DefaultValue::channel).toList());
+        channelBlacklistSelectBuilder.setDefaultValues(configurationMessage.pendingMarkovChannelBlacklist.stream()
+            .map(EntitySelectMenu.DefaultValue::channel).limit(EntitySelectMenu.OPTIONS_MAX_AMOUNT).toList());
         
         EntitySelectMenu channelBlacklistSelect = channelBlacklistSelectBuilder.build();
         
