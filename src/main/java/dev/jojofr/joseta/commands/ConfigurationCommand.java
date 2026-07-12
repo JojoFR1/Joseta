@@ -41,15 +41,15 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @InteractionModule
 public class ConfigurationCommand {
-    private static final Map<Long, ConfigurationMessage> configurationMessages = new HashMap<>();
+    public static final Map<Long, ConfigurationMessage> configurationMessages = new ConcurrentHashMap<>();
     
     // TODO add a reset button?
     @SlashCommandInteraction(name = "config", description = "Configure les paramètres du bot.", permissions = Permission.MANAGE_SERVER)

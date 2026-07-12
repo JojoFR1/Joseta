@@ -1,12 +1,16 @@
 package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.JosetaBot;
+import dev.jojofr.joseta.commands.ConfigurationCommand;
+import dev.jojofr.joseta.commands.ModerationCommands;
+import dev.jojofr.joseta.commands.ReminderCommand;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.utils.Log;
+import dev.jojofr.joseta.utils.function.Function;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -14,6 +18,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +31,8 @@ public class ScheduledEvents {
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkReminders, 0, 1, TimeUnit.MINUTES);
         // Check expired sanctions every 15 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
+        // Check expired "Message" entities every 15 minutes
+        scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredMessages, 30, 30, TimeUnit.MINUTES);
     }
     
     
@@ -122,5 +129,20 @@ public class ScheduledEvents {
                 failure -> Log.err("Failed to retrieve user {} (ID: {}) for expired sanction ID {}", failure, sanction.userId, sanction.getSanctionId())
             );
         }
+    }
+    
+    private static void checkExpiredMessages() {
+        removeExpiredMessages(ConfigurationCommand.configurationMessages, message -> message.timestamp);
+        removeExpiredMessages(ModerationCommands.modlogMessages, message -> message.timestamp);
+        removeExpiredMessages(ReminderCommand.reminderListMessages, message -> message.timestamp);
+    }
+    
+    private static <T> void removeExpiredMessages(Map<?, T> messages, Function<Instant, T> instantGetter) {
+        Instant expiration = Instant.now().minusSeconds(15 * 60);
+        
+        messages.entrySet().removeIf(entry ->
+            entry.getValue() == null ||
+            instantGetter.get(entry.getValue()).isBefore(expiration)
+        );
     }
 }

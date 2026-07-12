@@ -29,13 +29,14 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @InteractionModule
 public class ModerationCommands {
     private static final int SANCTION_PER_PAGE = 5;
-    private static final Map<Long, ModlogMessage> modlogMessages = new HashMap<>();
+    public static final Map<Long, ModlogMessage> modlogMessages = new ConcurrentHashMap<>();
     public static final Map<String, Long> pendingSanctions = new HashMap<>();
     
     @SlashCommandInteraction(name = "modlog", description = "Obtient l'historique de modérations d'un membre.", permissions = Permission.MODERATE_MEMBERS)

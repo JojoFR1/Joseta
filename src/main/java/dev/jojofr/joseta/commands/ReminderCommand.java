@@ -38,9 +38,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @InteractionModule
 public class ReminderCommand {
@@ -106,7 +106,7 @@ public class ReminderCommand {
     
     
     private static final int REMINDER_PER_PAGE = 5;
-    private static final Map<Long, ReminderListMessage> reminderListMessages = new HashMap<>();
+    public static final Map<Long, ReminderListMessage> reminderListMessages = new ConcurrentHashMap<>();
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
