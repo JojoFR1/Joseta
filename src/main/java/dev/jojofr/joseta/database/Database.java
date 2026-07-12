@@ -12,6 +12,8 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.argument.AbstractArgumentFactory;
 import org.jdbi.v3.core.argument.Argument;
 import org.jdbi.v3.core.config.ConfigRegistry;
+import org.jdbi.v3.core.extension.ExtensionCallback;
+import org.jdbi.v3.core.extension.ExtensionConsumer;
 import org.jdbi.v3.postgres.PostgresPlugin;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
@@ -108,8 +110,16 @@ public class Database {
         return jdbi;
     }
     
+    public static <R, E> R withExtension(Class<E> extensionType, ExtensionCallback<R, E, RuntimeException> callback) {
+        return get().withExtension(extensionType, callback);
+    }
+    
+    public static <E> void useExtension(Class<E> extensionType, ExtensionConsumer<E, RuntimeException> callback) {
+        get().useExtension(extensionType, callback);
+    }
+    
     public static <T> T withHandle(HandleCallback<T, RuntimeException> callback) {
-        return get().inTransaction(callback);
+        return get().withHandle(callback);
     }
     
     public static void useHandle(HandleConsumer<RuntimeException> callback) {

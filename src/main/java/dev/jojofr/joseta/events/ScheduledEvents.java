@@ -33,7 +33,7 @@ public class ScheduledEvents {
     public static final int REMINDER_MAX_MESSAGE_LENGTH = Message.MAX_CONTENT_LENGTH - REMINDER_PREMESSAGE.replace("%message%", "").replace("%userid%", "").length();
     
     private static void checkReminders() {
-        List<ReminderEntity> reminders = Database.withHandle(handle -> handle.attach(ReminderDao.class).getExpiredReminders());
+        List<ReminderEntity> reminders = Database.withExtension(ReminderDao.class, dao -> dao.getExpiredReminders());
         if (reminders.isEmpty()) return;
         
         for (ReminderEntity reminder : reminders) {
@@ -46,12 +46,12 @@ public class ScheduledEvents {
                 channel.sendMessage(message).setAllowedMentions(Collections.singleton(Message.MentionType.USER)).queue(
                     success -> {
                         if (!reminder.repeat) {
-                            Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminder.id));
+                            Database.useExtension(ReminderDao.class, dao -> dao.delete(reminder.id));
                             return;
                         }
                         
                         reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
-                        Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
+                        Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
                     },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );
@@ -65,7 +65,7 @@ public class ScheduledEvents {
                             Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
                             
                             reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter + 60 * 60 * 6); // 6 hours
-                            Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
+                            Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
                             
                             if (channel == null) return;
                             channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai plus tard, vérifie que je peux t'envoyer des messages privés.").queue();
@@ -75,29 +75,29 @@ public class ScheduledEvents {
                         privateChannel.sendMessage(message).queue(
                             success -> {
                                 if (!reminder.repeat) {
-                                    Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminder.id));
+                                    Database.useExtension(ReminderDao.class, dao -> dao.delete(reminder.id));
                                     return;
                                 }
                                 
                                 reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
-                                Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
+                                Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
                             }
                         );
                     }),
                 failure -> {
                     Log.warn("Failed to retrieve user {} (ID: {}) for reminder ID {}. The reminder will be deleted.", failure, reminder.userId, reminder.id);
-                    Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminder.id));
+                    Database.useExtension(ReminderDao.class, dao -> dao.delete(reminder.id));
                 });
         }
     }
     
     private static void checkExpiredSanctions() {
-        List<SanctionEntity> sanctions = Database.withHandle(handle -> handle.attach(SanctionDao.class).getExpiredSanctions());
+        List<SanctionEntity> sanctions = Database.withExtension(SanctionDao.class, dao -> dao.getExpiredSanctions());
         if (sanctions.isEmpty()) return;
         
         for (SanctionEntity sanction : sanctions) {
             Guild guild = JosetaBot.get().getGuildById(sanction.guildId);
-            Database.useHandle(handle -> handle.attach(SanctionDao.class).upsert(sanction.setExpired(true)));
+            Database.useExtension(SanctionDao.class, dao -> dao.upsert(sanction.setExpired(true)));
             
             if (guild == null) continue;
             

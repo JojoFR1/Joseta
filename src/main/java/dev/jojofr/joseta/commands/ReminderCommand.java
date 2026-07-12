@@ -85,7 +85,7 @@ public class ReminderCommand {
         }
         
         ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? TimeParser.parse(repeatTime) : -1, dm, repeat);
-        Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
+        Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
         event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
             + (repeat ? " Il sera répété tous les " + TimeParser.formatReadable(reminder.repeatAfter) + "." : "")
             + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
@@ -110,7 +110,7 @@ public class ReminderCommand {
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
-        List<ReminderEntity> reminders = Database.withHandle(handle -> handle.attach(ReminderDao.class).getByUserId(event.getGuild().getIdLong(), event.getUser().getIdLong()));
+        List<ReminderEntity> reminders = Database.withExtension(ReminderDao.class, dao -> dao.getByUserId(event.getGuild().getIdLong(), event.getUser().getIdLong()));
         
         if (reminders.isEmpty()) {
             event.reply("Vous n'avez aucun rappel actif.").setEphemeral(true).queue();
@@ -219,7 +219,7 @@ public class ReminderCommand {
         boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
         
         reminder.setText(newMessage).setRemindAt(newRemindAt).setRepeatAfter(newRepeat ? repeatTime : -1).setDm(newDm).setRepeat(newRepeat);
-        Database.useHandle(handle -> handle.attach(ReminderDao.class).upsert(reminder));
+        Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
         
         if (newDm)
             event.getUser().openPrivateChannel().queue(
@@ -244,7 +244,7 @@ public class ReminderCommand {
         if (reminderMessage == null) return;
         
         int reminderId = Integer.parseInt(event.getComponentId().substring("reminders:delete:".length(), event.getComponentId().length() - 1));
-        Database.useHandle(handle -> handle.attach(ReminderDao.class).delete(reminderMessage.reminders.get(reminderId).id));
+        Database.useExtension(ReminderDao.class, dao -> dao.delete(reminderMessage.reminders.get(reminderId).id));
         reminderMessage.reminders.remove(reminderId);
         
         event.reply("Le rappel a bien été supprimé.").setEphemeral(true).queue();

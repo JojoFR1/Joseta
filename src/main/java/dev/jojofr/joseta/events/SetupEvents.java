@@ -24,22 +24,23 @@ public class SetupEvents {
     public void onGuildReady(GuildReadyEvent event) {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
-        GuildEntity guildEntity = Database.withHandle(handle -> handle.attach(GuildDao.class).getById(event.getGuild().getIdLong()));
+        GuildEntity guildEntity = Database.withExtension(GuildDao.class, dao -> dao.getById(event.getGuild().getIdLong()));
+        ConfigurationEntity config;
         if (guildEntity == null) {
             Log.info("New guild detected. Creating database entries for guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
             
-            Database.useHandle(handle -> handle.attach(GuildDao.class).upsert(new GuildEntity(event.getGuild())));
+            Database.useExtension(GuildDao.class, dao -> dao.upsert(new GuildEntity(event.getGuild())));
             
-            ConfigurationEntity config = new ConfigurationEntity(event.getGuild().getIdLong());
-            Database.useHandle(handle -> handle.attach(ConfigurationDao.class).upsert(config));
+            config = new ConfigurationEntity(event.getGuild().getIdLong());
+            Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(config));
             
             MessageDatabase.populateNewGuild(event.getGuild()).exceptionally(throwable -> {
-                Log.err("Failed to populate messages table for guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
+                Log.err("Failed to populate new guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
                 return null;
             });
-        }
+        } else config = Database.withExtension(ConfigurationDao.class, dao -> dao.getByGuildId(event.getGuild().getIdLong()));
         
-        BotCache.putGuildConfiguration(event.getGuild().getIdLong(), Database.withHandle(handle -> handle.attach(ConfigurationDao.class).getByGuildId(event.getGuild().getIdLong())));
+        BotCache.putGuildConfiguration(event.getGuild().getIdLong(), config);
     }
     
     @EventHandler(priority = EventPriority.HIGH)
@@ -47,13 +48,15 @@ public class SetupEvents {
         long guildId = event.getGuild().getIdLong();
         Log.info("Left guild: {} (ID: {})", event.getGuild().getName(), guildId);
         
-        Database.useHandle(handle -> handle.attach(GuildDao.class).delete(guildId));
+        Database.useExtension(GuildDao.class, dao -> dao.delete(guildId));
         BotCache.removeGuildConfiguration(guildId);
     }
     
     @EventHandler
     public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        Database.useHandle(handle -> handle.attach(MessageDao.class).clearMarkovContent(event.getUser().getIdLong(), event.getGuild().getIdLong()));
-        Database.useHandle(handle -> handle.attach(ReminderDao.class).deleteByUserId(event.getUser().getIdLong(), event.getGuild().getIdLong()));
+        Database.useHandle(handle -> {
+            handle.attach(MessageDao.class).clearMarkovContent(event.getUser().getIdLong(), event.getGuild().getIdLong());
+            handle.attach(ReminderDao.class).deleteByUserId(event.getUser().getIdLong(), event.getGuild().getIdLong());
+        });
     }
 }

@@ -25,6 +25,9 @@ public interface SanctionDao {
     """)
     void upsert(@BindFields SanctionEntity sanction);
     
+    @SqlUpdate("UPDATE sanctions SET is_expired = TRUE WHERE guild_id = :guildId AND user_id = :userId AND type = :sanctionType AND is_expired = FALSE")
+    void setLatestUserSanctionByTypeAsExpired(@Bind("guildId") long guildId, @Bind("userId") long userId, @Bind("sanctionType") SanctionEntity.SanctionType sanctionType);
+    
     @SqlQuery("SELECT * FROM sanctions WHERE guild_id = :guildId AND user_id = :userId ORDER BY sanction_number DESC LIMIT :limit OFFSET :offset")
     @RegisterFieldMapper(value = SanctionEntity.class)
     List<SanctionEntity> getByUserId(@Bind("guildId") long guildId, @Bind("userId") long userId, @Bind("offset") int offset, @Bind("limit") int limit);
@@ -32,8 +35,4 @@ public interface SanctionDao {
     @SqlQuery("SELECT * FROM sanctions WHERE is_permanent = false AND is_expired = FALSE AND expires_at <= NOW()")
     @RegisterFieldMapper(value = SanctionEntity.class)
     List<SanctionEntity> getExpiredSanctions();
-    
-    @SqlQuery("SELECT * FROM sanctions WHERE guild_id = :guildId AND user_id = :userId AND type = :sanctionType ORDER BY sanction_number DESC LIMIT 1")
-    @RegisterFieldMapper(value = SanctionEntity.class)
-    SanctionEntity getLatestByUserIdAndByType(@Bind("guildId") long guildId, @Bind("userId") long userId, @Bind("sanctionType") SanctionEntity.SanctionType sanctionType);
 }

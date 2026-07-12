@@ -100,7 +100,7 @@ public class MessageDatabase {
         MessageEntity messageEntity = buildMessageEntity(message);
         if (messageEntity == null) return;
         
-        Database.useHandle(handle -> handle.attach(MessageDao.class).upsert(messageEntity));
+        Database.useExtension(MessageDao.class, dao -> dao.upsert(messageEntity));
     }
     
     public static void updateMessage(Message message) {

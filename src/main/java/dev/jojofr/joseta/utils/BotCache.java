@@ -23,12 +23,12 @@ public class BotCache {
     
     public static ConfigurationEntity getGuildConfiguration(long guildId) {
         return guildConfigurations.computeIfAbsent(guildId, id -> {
-            ConfigurationEntity config = Database.withHandle(handle -> handle.attach(ConfigurationDao.class).getByGuildId(id));
+            ConfigurationEntity config = Database.withExtension(ConfigurationDao.class, dao -> dao.getByGuildId(id));
             if (config == null) {
                 config = new ConfigurationEntity(id);
                 
                 ConfigurationEntity finalConfig = config;
-                Database.useHandle(handle -> handle.attach(ConfigurationDao.class).upsert(finalConfig));
+                Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(finalConfig));
             }
             return config;
         });

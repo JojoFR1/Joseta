@@ -51,7 +51,7 @@ public class MiscEvents {
     
     @EventHandler
     public void onChannelDelete(ChannelDeleteEvent event) {
-        Database.useHandle(handle -> handle.attach(MessageDao.class).deleteByChannelId(event.getChannel().getIdLong()));
+        Database.useExtension(MessageDao.class, dao -> dao.deleteByChannelId(event.getChannel().getIdLong()));
     }
     //#endregion
     

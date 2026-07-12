@@ -45,7 +45,7 @@ public class ModerationCommands {
         if (user == null) user = event.getUser();
         
         long userId = user.getIdLong();
-        UserEntity userDb = Database.withHandle(handle -> handle.attach(UserDao.class).getById(userId, event.getGuild().getIdLong()));
+        UserEntity userDb = Database.withExtension(UserDao.class, dao -> dao.getById(userId, event.getGuild().getIdLong()));
         if (userDb == null || userDb.sanctionCount == 0) {
             event.reply("Aucun historique de modération trouvé pour " + user.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
@@ -70,8 +70,8 @@ public class ModerationCommands {
     
     private MessageEmbed generateEmbed(Guild guild, User user, int currentPage, int lastPage) {
         // Sort from newest to oldest
-        List<SanctionEntity> sanctions = Database.withHandle(handle ->
-            handle.attach(SanctionDao.class).getByUserId(guild.getIdLong(), user.getIdLong(), (currentPage - 1) * SANCTION_PER_PAGE, SANCTION_PER_PAGE));
+        List<SanctionEntity> sanctions = Database.withExtension(SanctionDao.class, dao ->
+            dao.getByUserId(guild.getIdLong(), user.getIdLong(), (currentPage - 1) * SANCTION_PER_PAGE, SANCTION_PER_PAGE));
         
         if (sanctions.isEmpty()) return null;
         
@@ -285,9 +285,8 @@ public class ModerationCommands {
                 event.reply("Le membre a bien été retiré du timeout.").setEphemeral(true).queue();
 
                 // A member can't have 2 timeout active at the same time.
-                SanctionEntity sanction = Database.withHandle(handle ->
-                    handle.attach(SanctionDao.class).getLatestByUserIdAndByType(event.getGuild().getIdLong(), member.getIdLong(), SanctionEntity.SanctionType.TIMEOUT));
-                Database.useHandle(handle -> handle.attach(SanctionDao.class).upsert(sanction.setExpired(true)));
+                Database.useExtension(SanctionDao.class, dao ->
+                    dao.setLatestUserSanctionByTypeAsExpired(event.getGuild().getIdLong(), member.getIdLong(), SanctionEntity.SanctionType.TIMEOUT));
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();

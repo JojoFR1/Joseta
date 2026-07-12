@@ -92,7 +92,7 @@ public class ConfigurationCommand {
             return;
         };
         
-        Database.useHandle(handle -> handle.attach(ConfigurationDao.class).upsert(configurationMessage.configuration));
+        Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(configurationMessage.configuration));
         BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
         
         if (configurationMessage.hasMarkovBlacklistChanged)
