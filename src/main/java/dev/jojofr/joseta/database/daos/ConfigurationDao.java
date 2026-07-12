@@ -49,5 +49,5 @@ public interface ConfigurationDao {
     
     @SqlQuery("SELECT * FROM configurations WHERE guild_id = :guildId")
     @RegisterFieldMapper(value = ConfigurationEntity.class)
-    ConfigurationEntity getByGuildId(@Bind("guildId") long guildId);
+    ConfigurationEntity getByGuildId(long guildId);
 }

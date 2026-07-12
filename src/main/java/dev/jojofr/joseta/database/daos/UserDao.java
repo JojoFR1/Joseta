@@ -15,12 +15,12 @@ public interface UserDao {
     void upsert(@BindFields UserEntity user);
     
     @SqlUpdate("UPDATE users SET sanction_count = sanction_count + 1 WHERE id = :id AND guild_id = :guildId")
-    void incrementSanctionCount(@Bind("id") long id, @Bind("guildId") long guildId);
+    void incrementSanctionCount(long id, long guildId);
     
     @SqlQuery("SELECT * FROM users WHERE id = :id AND guild_id = :guildId")
     @RegisterFieldMapper(value = UserEntity.class)
-    UserEntity getById(@Bind("id") long id, @Bind("guildId") long guildId);
+    UserEntity getById(long id, long guildId);
     
     @SqlUpdate("DELETE FROM users WHERE id = :id AND guild_id = :guildId")
-    void delete(@Bind("id") long id, @Bind("guildId") long guildId);
+    void delete(long id, long guildId);
 }

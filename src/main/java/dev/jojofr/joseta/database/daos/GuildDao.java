@@ -20,11 +20,11 @@ public interface GuildDao {
     
     @SqlQuery("SELECT * FROM guilds WHERE id = :id")
     @RegisterFieldMapper(value = GuildEntity.class)
-    GuildEntity getById(@Bind("id") long id);
+    GuildEntity getById(long id);
     
     @SqlQuery("UPDATE guilds SET last_sanction_number = last_sanction_number + 1 WHERE id = :guildId RETURNING last_sanction_number")
-    int nextSanctionNumber(@Bind("guildId") long guildId);
+    int nextSanctionNumber(long guildId);
     
     @SqlUpdate("DELETE FROM guilds WHERE id = :id")
-    void delete(@Bind("id") long id);
+    void delete(long id);
 }

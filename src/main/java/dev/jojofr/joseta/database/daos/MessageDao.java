@@ -42,23 +42,23 @@ public interface MessageDao {
     
     @SqlQuery("SELECT * FROM messages WHERE id = :id")
     @RegisterFieldMapper(value = MessageEntity.class)
-    MessageEntity getById(@Bind("id") long id);
+    MessageEntity getById(long id);
     
     @SqlQuery("SELECT * FROM messages WHERE guild_id = :guildId")
     @RegisterFieldMapper(value = MessageEntity.class)
-    Stream<MessageEntity> getByGuildId(@Bind("guildId") long guildId);
+    Stream<MessageEntity> getByGuildId(long guildId);
     
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
-    void clearMarkovContent(@Bind("authorId") long authorId, @Bind("guildId") long guildId);
+    void clearMarkovContent(long authorId, long guildId);
     
     @SqlUpdate("DELETE FROM messages WHERE id = :id")
-    void delete(@Bind("id") long id);
+    void delete(long id);
     @SqlUpdate("DELETE FROM messages WHERE guild_id = :guildId AND author_id = :authordId")
-    void deleteByAuthorId(@Bind("guildId") long guildId, @Bind("authordId") long authordId);
+    void deleteByAuthorId(long guildId, long authordId);
     @SqlUpdate("DELETE FROM messages WHERE channel_id = :channelId")
-    void deleteByChannelId(@Bind("channelId") long channelId);
+    void deleteByChannelId(long channelId);
     @SqlUpdate("DELETE FROM messages WHERE guild_id = :guildId")
-    void deleteByGuildId(@Bind("guildId") long guildId);
+    void deleteByGuildId(long guildId);
     
     interface MarkovBlacklistDao {
         @SqlUpdate("""
@@ -66,16 +66,18 @@ public interface MessageDao {
             VALUES (:guildId, :entityId, CAST(:type AS ENTITY_TYPE))
             ON CONFLICT (guild_id, entity_id) DO NOTHING
         """)
-        void add(@Bind("guildId") long guildId, @Bind("type") EntityType type, @Bind("entityId") long entityId);
+        void add(long guildId, EntityType type, long entityId);
         @SqlBatch("""
             INSERT INTO markov_blacklist (guild_id, entity_id, type)
-            VALUES (:guildId, :entityId, CAST(:type AS ENTITY_TYPE))
+            VALUES (:guildId, :entityIds, CAST(:type AS ENTITY_TYPE))
             ON CONFLICT (guild_id, entity_id) DO NOTHING
         """)
-        void addAll(@Bind("guildId") long guildId, @Bind("type") EntityType type, @Bind("entityId") Iterable<Long> entityIds);
+        void addAll(long guildId, EntityType type, Iterable<Long> entityIds);
         
+        @SqlQuery("SELECT entity_id FROM markov_blacklist WHERE guild_id = :guildId")
+        Set<Long> getAllIds(long guildId);
         @SqlQuery("SELECT entity_id FROM markov_blacklist WHERE guild_id = :guildId AND type = CAST(:type AS ENTITY_TYPE)")
-        Set<Long> getIds(@Bind("guildId") long guildId, @Bind("type") EntityType type);
+        Set<Long> getIds(long guildId, EntityType type);
         
         @SqlQuery("SELECT EXISTS (SELECT 1 FROM markov_blacklist WHERE guild_id = :guildId AND entity_id = :entityId)")
         boolean isIdBlacklisted(@Bind("guildId") long guildId, @Bind("entityId") long entityId);
@@ -83,9 +85,11 @@ public interface MessageDao {
         boolean isAnyIdBlacklisted(@Bind("guildId") long guildId, @BindList("entityIds") Iterable<Long> entityIds);
         
         @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id = :guildId AND entity_id = :entityId")
-        void remove(@Bind("guildId") long guildId, @Bind("entityId") long entityId);
+        void remove(long guildId, long entityId);
         @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id = :guildId AND entity_id IN (<entityIds>) AND type = CAST(:type AS ENTITY_TYPE)")
-        void removeAll(@Bind("guildId") long guildIds, @Bind("type") EntityType type, @BindList("entityIds") Iterable<Long> entityId);
+        void removeAll(long guildIds, EntityType type, Iterable<Long> entityIds);
+        @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id := guild_id AND type = CAST(:type AS ENTITY_TYPE);")
+        void clearByType(long guildId, EntityType type);
     }
     
     enum EntityType { USER, ROLE, CHANNEL }

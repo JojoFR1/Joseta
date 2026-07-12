@@ -27,16 +27,16 @@ public interface ReminderDao {
     
     @SqlQuery("SELECT * FROM reminders WHERE guild_id = :guildId AND user_id = :userId ORDER BY remind_at")
     @RegisterFieldMapper(value = ReminderEntity.class)
-    List<ReminderEntity> getByUserId(@Bind("guildId") long guildId, @Bind("userId") long userId);
+    List<ReminderEntity> getByUserId(long guildId, long userId);
     
     @SqlQuery("SELECT * FROM reminders WHERE remind_at <= NOW()")
     @RegisterFieldMapper(value = ReminderEntity.class)
     List<ReminderEntity> getExpiredReminders();
     
     @SqlUpdate("DELETE FROM reminders WHERE id = :id")
-    void delete(@Bind("id") long id);
+    void delete(long id);
     @SqlUpdate("DELETE FROM reminders WHERE user_id = :userId AND guild_id = :guildId")
-    void deleteByUserId(@Bind("userId") long userId, @Bind("guildId") long guildId);
+    void deleteByUserId(long userId, long guildId);
     @SqlUpdate("DELETE FROM reminders WHERE guild_id = :guildId")
-    void deleteByGuildId(@Bind("guildId") long guildId);
+    void deleteByGuildId(long guildId);
 }
