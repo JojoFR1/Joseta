@@ -4,11 +4,9 @@ import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.MessageEntity;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.ISnowflake;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.attribute.IAgeRestrictedChannel;
 import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -126,36 +124,37 @@ public class MessageDatabase {
             Guild guild = JosetaBot.get().getGuildById(guildId);
             if (guild == null) return;
             
+            Set<Long> markovBlacklist = BotCache.getGuildConfiguration(guildId).markovBlacklistIds;
             Log.debug("Updating Markov eligibility for guild: {} (ID: {})", guild.getName(), guildId);
             
             int updatedCount = Database.withHandle(handle -> {
                 MessageDao messageDao = handle.attach(MessageDao.class);
                 
-                final PreparedBatch batch = handle.prepareBatch("UPDATE messages SET markov_content = :markovContent WHERE id = :id");
-                int[] updateCount = {0};
+                PreparedBatch batch = handle.prepareBatch("UPDATE messages SET markov_content = :markovContent WHERE id = :id");
+                int updateCount = 0;
                 
                 try (Stream<MessageEntity> results = messageDao.getByGuildId(guildId)) {
-                    results.forEach(dbMessage -> {
+                    for (MessageEntity dbMessage : (Iterable<MessageEntity>) results::iterator) {
                         try {
-                            boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage);
+                            boolean isEligible = isDatabaseMarkovEligible(guild, dbMessage, markovBlacklist);
                             String newMarkovContent = isEligible ? cleanContent(dbMessage.content) : null;
                             
-                            if (Objects.equals(dbMessage.markovContent, newMarkovContent)) return;
+                            if (Objects.equals(dbMessage.markovContent, newMarkovContent)) continue;
                             
                             batch.bind("id", dbMessage.id)
                                 .bind("markovContent", newMarkovContent)
                                 .add();
                             
-                            updateCount[0]++;
+                            updateCount++;
                             if (batch.size() >= 500) batch.execute();
                         } catch (Exception e) {
                             Log.err("Error processing message.", e);
                         }
-                    });
+                    }
                 }
                 if (batch.size() > 0) batch.execute();
                 
-                return updateCount[0];
+                return updateCount;
             });
             
             Log.debug("Finished update. Updated {} messages for guild: {}", updatedCount, guild.getName());
@@ -178,53 +177,60 @@ public class MessageDatabase {
         return CompletableFuture.allOf(pending.toArray(CompletableFuture[]::new)).thenApply(v -> channels);
     }
     
-    private static boolean isDatabaseMarkovEligible(Guild guild, MessageEntity dbMessage) {
-        return Database.withHandle(handle -> {
-            MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
-            
-            if (markovBlacklistDao.isIdBlacklisted(guild.getIdLong(), dbMessage.authorId)) return false;
-            
-            Member member = guild.getMemberById(dbMessage.authorId);
-            if (member == null) return false;
-            
-            Set<Long> roleIds = member.getUnsortedRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toSet());
-            if (!roleIds.isEmpty() && markovBlacklistDao.isAnyIdBlacklisted(guild.getIdLong(), roleIds)) return false;
-            
-            GuildChannel channel = guild.getGuildChannelById(dbMessage.channelId);
-            // Very likely an archived thread, less likely a deleted channel. Can't check, assume ineligible.
-            if (channel == null) return  false;
-            
-            if (markovBlacklistDao.isIdBlacklisted(guild.getIdLong(), channel.getIdLong())) return false;
-            if (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW()) return false;
-            if (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0
-                && markovBlacklistDao.isIdBlacklisted(guild.getIdLong(), categorizableChannel.getParentCategoryIdLong())) return false;
-            
-            return true;
-        });
+    private static MessageEntity buildMessageEntity(Message message) { return buildMessageEntity(message, true); }
+    private static MessageEntity buildMessageEntity(Message message, boolean checkMarkov) {
+        String content = message.getContentRaw();
+        if (content.isEmpty()) return null;
+        
+        String markovContent = null;
+        if (checkMarkov && isMarkovEligible(message, BotCache.getGuildConfiguration(message.getGuild().getIdLong()).markovBlacklistIds))
+            markovContent = cleanContent(content);
+        
+        return new MessageEntity(
+            message.getIdLong(),
+            message.getGuild().getIdLong(),
+            message.getChannel().getIdLong(),
+            message.getAuthor().getIdLong(),
+            content,
+            markovContent,
+            message.getTimeCreated().toInstant()
+        );
+    }
+    
+    private static boolean isDatabaseMarkovEligible(Guild guild, MessageEntity dbMessage, Set<Long> markovBlacklist) {
+        if (markovBlacklist.contains(dbMessage.authorId)) return false;
+        
+        GuildChannel channel = guild.getGuildChannelById(dbMessage.channelId);
+        // Very likely an archived thread, less likely a deleted channel. Can't check, assume ineligible.
+        if (channel == null) return  false;
+        
+        if (markovBlacklist.contains(channel.getIdLong())) return false;
+        if (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW()) return false;
+        if (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0
+            && markovBlacklist.contains(categorizableChannel.getParentCategoryIdLong())) return false;
+        
+        Member member = guild.getMemberById(dbMessage.authorId);
+        if (member != null)
+            for (Role role : member.getUnsortedRoles()) if (markovBlacklist.contains(role.getIdLong())) return false;
+        
+        return true;
     }
 
-    private static boolean isMarkovEligible(Message message) {
+    private static boolean isMarkovEligible(Message message, Set<Long> markovBlacklist) {
         if (message.getAuthor().isBot() || message.getAuthor().isSystem()) return false;
+        if (markovBlacklist.contains(message.getAuthor().getIdLong())) return false;
         
-        return Database.withHandle(handle -> {
-            MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
-            
-            if (markovBlacklistDao.isIdBlacklisted(message.getGuild().getIdLong(), message.getAuthor().getIdLong())) return false;
-            
-            Member member =  message.getMember();
-            if (member == null) return false;
-            
-            Set<Long> roleIds = member.getUnsortedRoles().stream().map(ISnowflake::getIdLong).collect(Collectors.toSet());
-            if (!roleIds.isEmpty() && markovBlacklistDao.isAnyIdBlacklisted(message.getGuild().getIdLong(), roleIds)) return false;
-            
-            GuildMessageChannel channel = message.getGuildChannel();
-            if (markovBlacklistDao.isIdBlacklisted(message.getGuild().getIdLong(), channel.getIdLong())) return false;
-            if (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW()) return false;
-            if (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0
-                && markovBlacklistDao.isIdBlacklisted(message.getGuild().getIdLong(), categorizableChannel.getParentCategoryIdLong())) return false;
-            
-            return true;
-        });
+        GuildChannel channel = message.getGuildChannel();
+        if (markovBlacklist.contains(channel.getIdLong()))  return false;
+        if (channel instanceof IAgeRestrictedChannel ageRestrictedChannel && ageRestrictedChannel.isNSFW()) return false;
+        if (channel instanceof ICategorizableChannel categorizableChannel && categorizableChannel.getParentCategoryIdLong() != 0
+            && markovBlacklist.contains(categorizableChannel.getParentCategoryIdLong())) return false;
+        
+        Member member = message.getMember();
+        if (member != null)
+            for (Role role : member.getUnsortedRoles()) if (markovBlacklist.contains(role.getIdLong())) return false;
+        
+        return true;
     }
     
     // You may be like: "Oh, but why compile such simple regex?". Well, caching them is way more efficient than a replaceAll because said method recompiles it every time.
@@ -237,24 +243,5 @@ public class MessageDatabase {
         String noUrl = NO_URL_PATTERN.matcher(noMentions).replaceAll("");
         
         return NO_SPACE_PATTERN.matcher(noUrl.trim()).replaceAll(" ");
-    }
-    
-    private static MessageEntity buildMessageEntity(Message message) { return buildMessageEntity(message, true); }
-    private static MessageEntity buildMessageEntity(Message message, boolean checkMarkov) {
-        String content = message.getContentRaw();
-        if (content.isEmpty()) return null;
-        
-        String markovContent = null;
-        if (checkMarkov && isMarkovEligible(message)) markovContent = cleanContent(content);
-        
-        return new MessageEntity(
-            message.getIdLong(),
-            message.getGuild().getIdLong(),
-            message.getChannel().getIdLong(),
-            message.getAuthor().getIdLong(),
-            content,
-            markovContent,
-            message.getTimeCreated().toInstant()
-        );
     }
 }

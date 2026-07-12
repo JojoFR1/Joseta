@@ -1,6 +1,5 @@
 package dev.jojofr.joseta.database.entities;
 
-import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
@@ -21,6 +20,7 @@ public class ConfigurationEntity {
     public Long roleVerifiedId;
     
     public boolean markovEnabled = false;
+    public Set<Long> markovBlacklistIds = new HashSet<>();
     
     public boolean moderationEnabled = true;
     public boolean moderationHoneypotEnabled = false;
