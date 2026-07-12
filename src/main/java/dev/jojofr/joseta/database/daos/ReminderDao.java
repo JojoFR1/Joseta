@@ -12,17 +12,16 @@ public interface ReminderDao {
     @SqlUpdate("""
         INSERT INTO reminders (guild_id, channel_id, user_id, text, remind_at, repeat_after, dm, repeat)
         VALUES (:guildId, :channelId, :userId, :text, :remindAt, :repeatAfter, :dm, :repeat)
-        ON CONFLICT (id) DO UPDATE SET
-            guild_id = EXCLUDED.guild_id,
-            channel_id = EXCLUDED.channel_id,
-            user_id = EXCLUDED.user_id,
-            text = EXCLUDED.text,
-            remind_at = EXCLUDED.remind_at,
-            repeat_after = EXCLUDED.repeat_after,
-            dm = EXCLUDED.dm,
-            repeat = EXCLUDED.repeat
     """)
-    void upsert(@BindFields ReminderEntity reminder);
+    void insert(@BindFields ReminderEntity reminder);
+    
+    @SqlUpdate("""
+        UPDATE reminders SET
+            guild_id = :guildId, channel_id = :channelId, user_id = :userId, text = :text,
+            remind_at = :remindAt, repeat_after = :repeatAfter, dm = :dm, repeat = :repeat
+        WHERE id = :id
+    """)
+    void update(@BindFields ReminderEntity reminder);
     
     @SqlQuery("SELECT * FROM reminders WHERE guild_id = :guildId AND user_id = :userId ORDER BY remind_at")
     @RegisterFieldMapper(value = ReminderEntity.class)

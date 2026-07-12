@@ -51,7 +51,7 @@ public class ScheduledEvents {
                         }
                         
                         reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
-                        Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
+                        Database.useExtension(ReminderDao.class, dao -> dao.update(reminder));
                     },
                     failure -> Log.err("Failed to send reminder message for reminder ID {}, in channel ID {}", failure, reminder.id, reminder.channelId)
                 );
@@ -65,7 +65,7 @@ public class ScheduledEvents {
                             Log.warn("Cannot send reminder DM to user {} (ID: {}) for reminder ID {} because the bot cannot talk in the private channel", user.getAsTag(), user.getIdLong(), reminder.id);
                             
                             reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter + 60 * 60 * 6); // 6 hours
-                            Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
+                            Database.useExtension(ReminderDao.class, dao -> dao.update(reminder));
                             
                             if (channel == null) return;
                             channel.sendMessage("⚠️ "+ user.getAsMention() +", je n'ai pas pu t'envoyer un message privé pour ton rappel. Je réessayerai plus tard, vérifie que je peux t'envoyer des messages privés.").queue();
@@ -80,7 +80,7 @@ public class ScheduledEvents {
                                 }
                                 
                                 reminder.remindAt = Instant.now().plusSeconds(reminder.repeatAfter);
-                                Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
+                                Database.useExtension(ReminderDao.class, dao -> dao.update(reminder));
                             }
                         );
                     }),

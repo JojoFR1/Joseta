@@ -7,16 +7,16 @@ import java.time.ZoneId;
 public class ReminderEntity {
     public long id;
     
-     public long guildId;
-     public long channelId;
-     public long userId;
+    public long guildId;
+    public long channelId;
+    public long userId;
     
-     public String text;
-     public Instant createdAt;
-     public Instant remindAt;
-     public long repeatAfter;
-     public boolean dm = false;
-     public boolean repeat = false;
+    public String text;
+    public Instant createdAt;
+    public Instant remindAt;
+    public long repeatAfter;
+    public boolean dm = false;
+    public boolean repeat = false;
     
     // A non-private and no-arg constructor is required by JDBI
     protected ReminderEntity() {}

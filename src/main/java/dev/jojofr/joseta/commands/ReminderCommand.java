@@ -85,7 +85,7 @@ public class ReminderCommand {
         }
         
         ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? TimeParser.parse(repeatTime) : -1, dm, repeat);
-        Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
+        Database.useExtension(ReminderDao.class, dao -> dao.insert(reminder));
         event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
             + (repeat ? " Il sera répété tous les " + TimeParser.formatReadable(reminder.repeatAfter) + "." : "")
             + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
@@ -219,7 +219,7 @@ public class ReminderCommand {
         boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
         
         reminder.setText(newMessage).setRemindAt(newRemindAt).setRepeatAfter(newRepeat ? repeatTime : -1).setDm(newDm).setRepeat(newRepeat);
-        Database.useExtension(ReminderDao.class, dao -> dao.upsert(reminder));
+        Database.useExtension(ReminderDao.class, dao -> dao.update(reminder));
         
         if (newDm)
             event.getUser().openPrivateChannel().queue(
