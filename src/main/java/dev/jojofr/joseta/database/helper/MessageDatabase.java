@@ -14,15 +14,13 @@ import net.dv8tion.jda.api.entities.channel.attribute.ICategorizableChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChannel;
-import net.dv8tion.jda.internal.utils.Helpers;
-import org.jdbi.v3.core.Handle;
+import org.jdbi.v3.core.async.JdbiExecutor;
 import org.jdbi.v3.core.statement.PreparedBatch;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,10 +32,11 @@ public class MessageDatabase {
         Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         
         ExecutorService writeExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        JdbiExecutor executor = JdbiExecutor.create(Database.get(), writeExecutor);
         
         return getGuildMessageChannels(guild).thenCompose(channels -> {
             List<CompletableFuture<Integer>> futures = channels.stream()
-                .map(channel -> addChannelMessageHistory(channel, guild, writeExecutor))
+                .map(channel -> addChannelMessageHistory(channel, guild, executor))
                 .toList();
             
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
@@ -51,7 +50,7 @@ public class MessageDatabase {
         }).thenAccept(ignore -> {});
     }
     
-    public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, Guild guild, ExecutorService writeExecutor) {
+    public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, Guild guild, JdbiExecutor executor) {
         List<MessageEntity> buffer = new ArrayList<>(500);
         List<CompletableFuture<Void>> pendingFlushes = new ArrayList<>();
         int[] count = {0};
@@ -65,11 +64,11 @@ public class MessageDatabase {
             buffer.add(entity);
             count[0]++;
             
-            if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, writeExecutor));
+            if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, executor));
             
             return true;
         }).thenCompose(v -> {
-            pendingFlushes.add(flushBufferAsync(buffer, writeExecutor));
+            pendingFlushes.add(flushBufferAsync(buffer, executor));
             return CompletableFuture.allOf(pendingFlushes.toArray(CompletableFuture[]::new));
         }).thenApply(v -> count[0]).exceptionally(throwable -> {
             Log.err("Could not populate the messages table for channel ID: {} in guild: {} (ID: {}).", throwable, channel.getIdLong(), guild.getName(), guild.getIdLong());
@@ -77,23 +76,16 @@ public class MessageDatabase {
         });
     }
     
-    private static CompletableFuture<Void> flushBufferAsync(List<MessageEntity> buffer, ExecutorService writeExecutor) {
+    private static CompletableFuture<Void> flushBufferAsync(List<MessageEntity> buffer, JdbiExecutor executor) {
         if (buffer.isEmpty()) return CompletableFuture.completedFuture(null);
         
         List<MessageEntity> toFlush = new ArrayList<>(buffer);
         buffer.clear();
         
-        return CompletableFuture.runAsync(() ->
-            Database.useHandle(handle -> handle.attach(MessageDao.class).upsertBatch(toFlush)),
-            writeExecutor
-        );
-    }
-    
-    private static void flush(List<MessageEntity> buffer) {
-        if (buffer.isEmpty()) return;
-        
-        Database.useHandle(handle -> handle.attach(MessageDao.class).upsertBatch(buffer));
-        buffer.clear();
+        return executor.useExtension(MessageDao.class, dao -> dao.upsertBatch(toFlush)).exceptionally(throwable -> {
+            Log.err("Failed to flush message buffer to database.", throwable);
+            return null;
+        }).toCompletableFuture();
     }
     
     public static void addNewMessage(Message message) {
@@ -140,8 +132,7 @@ public class MessageDatabase {
                 MessageDao messageDao = handle.attach(MessageDao.class);
                 
                 final PreparedBatch batch = handle.prepareBatch("UPDATE messages SET markov_content = :markovContent WHERE id = :id");
-                AtomicInteger batchSize = new AtomicInteger();
-                AtomicInteger updateCount = new AtomicInteger();
+                int[] updateCount = {0};
                 
                 try (Stream<MessageEntity> results = messageDao.getByGuildId(guildId)) {
                     results.forEach(dbMessage -> {
@@ -155,10 +146,8 @@ public class MessageDatabase {
                                 .bind("markovContent", newMarkovContent)
                                 .add();
                             
-                            updateCount.incrementAndGet();
-                            if (batch.size() >= 500) {
-                                batch.execute();
-                            }
+                            updateCount[0]++;
+                            if (batch.size() >= 500) batch.execute();
                         } catch (Exception e) {
                             Log.err("Error processing message.", e);
                         }
@@ -166,7 +155,7 @@ public class MessageDatabase {
                 }
                 if (batch.size() > 0) batch.execute();
                 
-                return updateCount.get();
+                return updateCount[0];
             });
             
             Log.debug("Finished update. Updated {} messages for guild: {}", updatedCount, guild.getName());
