@@ -2,7 +2,6 @@ package dev.jojofr.joseta.database.daos;
 
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
-import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindFields;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;

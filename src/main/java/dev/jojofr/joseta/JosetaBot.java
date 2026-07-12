@@ -5,8 +5,6 @@ import dev.jojofr.joseta.annotations.EventProcessor;
 import dev.jojofr.joseta.annotations.InteractionProcessor;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.BotDao;
-import dev.jojofr.joseta.database.daos.GuildDao;
-import dev.jojofr.joseta.database.entities.GuildEntity;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DotenvDebug;
 import dev.jojofr.joseta.utils.Log;
