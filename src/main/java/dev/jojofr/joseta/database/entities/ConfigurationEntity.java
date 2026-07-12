@@ -37,6 +37,28 @@ public class ConfigurationEntity {
     // A non-private and no-arg constructor is required by JDBI
     protected ConfigurationEntity() {}
     public ConfigurationEntity(long guildId) { this.guildId = guildId; }
+    public ConfigurationEntity(ConfigurationEntity other) {
+        this.guildId = other.guildId;
+        this.welcomeEnabled = other.welcomeEnabled;
+        this.welcomeImageEnabled = other.welcomeImageEnabled;
+        this.welcomeChannelId = other.welcomeChannelId;
+        this.welcomeJoinMessage = other.welcomeJoinMessage;
+        this.welcomeLeaveMessage = other.welcomeLeaveMessage;
+        this.joinRoleId = other.joinRoleId;
+        this.joinRoleBotId = other.joinRoleBotId;
+        this.roleVerifiedId = other.roleVerifiedId;
+        this.markovEnabled = other.markovEnabled;
+        this.markovBlacklistIds = new HashSet<>(other.markovBlacklistIds);
+        this.moderationEnabled = other.moderationEnabled;
+        this.moderationHoneypotEnabled = other.moderationHoneypotEnabled;
+        this.moderationHoneypotChannelId = other.moderationHoneypotChannelId;
+        this.rules = other.rules;
+        this.autoResponseEnabled = other.autoResponseEnabled;
+        this.countingEnabled = other.countingEnabled;
+        this.countingCommentsEnabled = other.countingCommentsEnabled;
+        this.countingPenaltyEnabled = other.countingPenaltyEnabled;
+        this.countingChannelId = other.countingChannelId;
+    }
     
     public ConfigurationEntity setGuildId(Long guildId) {
         if (guildId != null) this.guildId = guildId;

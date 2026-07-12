@@ -92,7 +92,29 @@ public class ConfigurationCommand {
             return;
         };
         
-        Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(configurationMessage.configuration));
+        Database.useHandle(handle -> {
+            ConfigurationDao configurationDao = handle.attach(ConfigurationDao.class);
+            
+            if (configurationMessage.hasMarkovBlacklistChanged) {
+                MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
+                
+                long guildId = configurationMessage.configuration.guildId;
+                
+                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.USER);
+                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.USER, configurationMessage.pendingMarkovUserBlacklist);
+                
+                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.ROLE);
+                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.ROLE, configurationMessage.pendingMarkovRoleBlacklist);
+                
+                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.CHANNEL);
+                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.CHANNEL, configurationMessage.pendingMarkovChannelBlacklist);
+                
+                configurationMessage.configuration.markovBlacklistIds = markovBlacklistDao.getAllIds(guildId);
+            }
+            
+            configurationDao.upsert(configurationMessage.configuration);
+        });
+        
         BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
         
         if (configurationMessage.hasMarkovBlacklistChanged)
@@ -350,58 +372,22 @@ public class ConfigurationCommand {
         switch (menuId) {
             case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
             case "config:cat_markov:mentionable_blacklist_select" -> {
-                Set<Long> userSelectedIds = selectedValues.stream()
-                    .filter(mentionable -> mentionable instanceof User || mentionable instanceof Member)
-                    .map(ISnowflake::getIdLong)
-                    .collect(Collectors.toSet());
-                Set<Long> roleSelectedIds = selectedValues.stream()
-                    .filter(mentionable -> mentionable instanceof Role)
-                    .map(ISnowflake::getIdLong)
-                    .collect(Collectors.toSet());
+                configurationMessage.pendingMarkovUserBlacklist.clear();
+                configurationMessage.pendingMarkovRoleBlacklist.clear();
                 
-                Database.useHandle(handle -> {
-                    MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
-                    
-                    Set<Long> userCurrent = markovBlacklistDao.getIds(configurationMessage.configuration.guildId, MessageDao.EntityType.USER);
-                    
-                    Set<Long> userToAdd =  new HashSet<>(userSelectedIds);
-                    userToAdd.removeAll(userCurrent);
-                    Set<Long> userToRemove = new HashSet<>(userCurrent);
-                    userToRemove.removeAll(userSelectedIds);
-                    
-                    if (!userToAdd.isEmpty()) markovBlacklistDao.addAll(configurationMessage.configuration.guildId, MessageDao.EntityType.USER, userToAdd);
-                    if (!userToRemove.isEmpty()) markovBlacklistDao.removeAll(configurationMessage.configuration.guildId, MessageDao.EntityType.USER, userToRemove);
-                    
-                    
-                    Set<Long> roleCurrent = markovBlacklistDao.getIds(configurationMessage.configuration.guildId, MessageDao.EntityType.ROLE);
-                    
-                    Set<Long> roleToAdd =  new HashSet<>(roleSelectedIds);
-                    roleToAdd.removeAll(roleCurrent);
-                    Set<Long> roleToRemove = new HashSet<>(roleCurrent);
-                    roleToRemove.removeAll(roleSelectedIds);
-                    
-                    if (!roleToAdd.isEmpty()) markovBlacklistDao.addAll(configurationMessage.configuration.guildId, MessageDao.EntityType.ROLE, roleToAdd);
-                    if (!roleToRemove.isEmpty()) markovBlacklistDao.removeAll(configurationMessage.configuration.guildId, MessageDao.EntityType.ROLE, roleToRemove);
+                selectedValues.forEach(mentionable -> {
+                    if (mentionable instanceof User || mentionable instanceof Member) {
+                        configurationMessage.pendingMarkovUserBlacklist.add(mentionable.getIdLong());
+                    } else if (mentionable instanceof Role) {
+                        configurationMessage.pendingMarkovRoleBlacklist.add(mentionable.getIdLong());
+                    }
                 });
                 
                 configurationMessage.hasMarkovBlacklistChanged = true;
             }
             case "config:cat_markov:channel_blacklist_select" -> {
-                Set<Long> selectedIds = selectedValues.stream().map(ISnowflake::getIdLong).collect(Collectors.toSet());
-                
-                Database.useHandle(handle -> {
-                    MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
-                    
-                    Set<Long> current = markovBlacklistDao.getIds(configurationMessage.configuration.guildId, MessageDao.EntityType.CHANNEL);
-                    
-                    Set<Long> toAdd =  new HashSet<>(selectedIds);
-                    toAdd.removeAll(current);
-                    Set<Long> toRemove = new HashSet<>(current);
-                    toRemove.removeAll(selectedIds);
-                    
-                    if (!toAdd.isEmpty()) markovBlacklistDao.addAll(configurationMessage.configuration.guildId, MessageDao.EntityType.CHANNEL, toAdd);
-                    if (!toRemove.isEmpty()) markovBlacklistDao.removeAll(configurationMessage.configuration.guildId, MessageDao.EntityType.CHANNEL, toRemove);
-                });
+                configurationMessage.pendingMarkovChannelBlacklist.clear();
+                configurationMessage.pendingMarkovChannelBlacklist.addAll(selectedValues.stream().map(ISnowflake::getIdLong).collect(Collectors.toSet()));
                 
                 configurationMessage.hasMarkovBlacklistChanged = true;
             }
@@ -584,30 +570,18 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder mentionableBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:mentionable_blacklist_select", EntitySelectMenu.SelectTarget.ROLE, EntitySelectMenu.SelectTarget.USER)
             .setPlaceholder("Sélectionnez des membres ou rôles à ajouter ou retirer de la blacklist de Markov")
             .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT);
-
-        Database.useHandle(handle -> {
-            MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
-            
-            Set<Long> userIds = markovBlacklistDao.getIds(configurationMessage.configuration.guildId, MessageDao.EntityType.USER);
-            Set<Long> roleIds = markovBlacklistDao.getIds(configurationMessage.configuration.guildId, MessageDao.EntityType.ROLE);
-            
-            mentionableBlacklistSelectBuilder.setDefaultValues(Stream.concat(
-                userIds.stream().map(EntitySelectMenu.DefaultValue::user),
-                roleIds.stream().map(EntitySelectMenu.DefaultValue::role)
-            ).toList());
-        });
-        EntitySelectMenu mentionableBlacklistSelect = mentionableBlacklistSelectBuilder.build();
+        mentionableBlacklistSelectBuilder.setDefaultValues(Stream.concat(
+            configurationMessage.pendingMarkovUserBlacklist.stream().map(EntitySelectMenu.DefaultValue::user),
+            configurationMessage.pendingMarkovRoleBlacklist.stream().map(EntitySelectMenu.DefaultValue::role)
+        ).toList());
         
+        EntitySelectMenu mentionableBlacklistSelect = mentionableBlacklistSelectBuilder.build();
         
         EntitySelectMenu.Builder channelBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:channel_blacklist_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT)
             .setPlaceholder("Sélectionnez des salons à ajouter ou retirer de la blacklist de Markov");
+        channelBlacklistSelectBuilder.setDefaultValues(configurationMessage.pendingMarkovChannelBlacklist.stream().map(EntitySelectMenu.DefaultValue::channel).toList());
         
-        Database.useHandle(handle -> {
-            Set<Long> ids = handle.attach(MessageDao.MarkovBlacklistDao.class).getIds(configurationMessage.configuration.guildId, MessageDao.EntityType.CHANNEL);
-            
-            channelBlacklistSelectBuilder.setDefaultValues(ids.stream().map(EntitySelectMenu.DefaultValue::channel).toList());
-        });
         EntitySelectMenu channelBlacklistSelect = channelBlacklistSelectBuilder.build();
         
         return Container.of(
