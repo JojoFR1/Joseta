@@ -46,8 +46,8 @@ dependencies {
     implementation 'org.jdbi:jdbi3-sqlobject'
     implementation 'org.jdbi:jdbi3-postgres'
 
-    implementation 'org.flywaydb:flyway-core:12.9.0'
-    implementation 'org.flywaydb:flyway-database-postgresql:12.9.0'
+    implementation 'org.flywaydb:flyway-core:12.11.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:12.11.0'
 }
 jandex { version = '3.6.0' }
 
