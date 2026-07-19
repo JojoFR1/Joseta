@@ -88,7 +88,7 @@ public interface MessageDao {
         void remove(long guildId, long entityId);
         @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id = :guildId AND entity_id IN (<entityIds>) AND type = CAST(:type AS ENTITY_TYPE)")
         void removeAll(long guildId, EntityType type, @BindList("entityIds") Iterable<Long> entityIds);
-        @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id := :guildId AND type = CAST(:type AS ENTITY_TYPE);")
+        @SqlUpdate("DELETE FROM markov_blacklist WHERE guild_id = :guildId AND type = CAST(:type AS ENTITY_TYPE);")
         void clearByType(long guildId, EntityType type);
     }
     
