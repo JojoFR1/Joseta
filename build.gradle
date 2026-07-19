@@ -7,7 +7,7 @@ buildscript {
 plugins {
     id 'java'
     id 'application'
-    id 'com.gradleup.shadow' version '9.5.1'
+    id 'com.gradleup.shadow' version '9.6.0'
     id 'org.hidetake.ssh' version '2.12.0'
     id 'org.kordamp.gradle.jandex' version '2.3.0'
 }
@@ -38,7 +38,7 @@ dependencies {
 
     implementation 'io.smallrye:jandex:3.6.0'
 
-    implementation 'org.postgresql:postgresql:42.7.12'
+    implementation 'org.postgresql:postgresql:42.7.13'
     implementation 'com.zaxxer:HikariCP:7.1.0'
 
     implementation platform('org.jdbi:jdbi3-bom:3.54.0')
