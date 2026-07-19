@@ -5,9 +5,10 @@ import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.SanctionDao;
+import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
-import dev.jojofr.joseta.database.entities.SanctionEntity_;
 import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
 import dev.jojofr.joseta.entities.ModlogMessage;
@@ -28,13 +29,14 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @InteractionModule
 public class ModerationCommands {
     private static final int SANCTION_PER_PAGE = 5;
-    private static final Map<Long, ModlogMessage> modlogMessages = new HashMap<>();
+    public static final Map<Long, ModlogMessage> modlogMessages = new ConcurrentHashMap<>();
     public static final Map<String, Long> pendingSanctions = new HashMap<>();
     
     @SlashCommandInteraction(name = "modlog", description = "Obtient l'historique de modérations d'un membre.", permissions = Permission.MODERATE_MEMBERS)
@@ -42,8 +44,9 @@ public class ModerationCommands {
                        @Option(description = "L'utilisateur dont vous voulez voir l'historique de modération.") User user)
     {
         if (user == null) user = event.getUser();
-
-        UserEntity userDb = Database.get(UserEntity.class, new UserEntity.UserId(user.getIdLong(), event.getGuild().getIdLong()));
+        
+        long userId = user.getIdLong();
+        UserEntity userDb = Database.withExtension(UserDao.class, dao -> dao.getById(userId, event.getGuild().getIdLong()));
         if (userDb == null || userDb.sanctionCount == 0) {
             event.reply("Aucun historique de modération trouvé pour " + user.getEffectiveName() + ".").setEphemeral(true).queue();
             return;
@@ -68,13 +71,8 @@ public class ModerationCommands {
     
     private MessageEmbed generateEmbed(Guild guild, User user, int currentPage, int lastPage) {
         // Sort from newest to oldest
-        List<SanctionEntity> sanctions = Database.querySelect(SanctionEntity.class, (cb, rt) ->
-            cb.and(
-                cb.equal(rt.get(SanctionEntity_.id).get(SanctionEntity_.SanctionId_.guildId), guild.getIdLong()),
-                cb.equal(rt.get(SanctionEntity_.userId), user.getIdLong())
-            ),
-            (cb, rt) -> cb.desc(rt.get(SanctionEntity_.id).get(SanctionEntity_.SanctionId_.sanctionNumber))
-        ).setFirstResult((currentPage - 1) * SANCTION_PER_PAGE).setMaxResults(SANCTION_PER_PAGE).getResultList();
+        List<SanctionEntity> sanctions = Database.withExtension(SanctionDao.class, dao ->
+            dao.getByUserId(guild.getIdLong(), user.getIdLong(), (currentPage - 1) * SANCTION_PER_PAGE, SANCTION_PER_PAGE));
         
         if (sanctions.isEmpty()) return null;
         
@@ -86,7 +84,7 @@ public class ModerationCommands {
         
         StringBuilder description = new StringBuilder();
         for (SanctionEntity sanction : sanctions) {
-            description.append("### ").append(sanction.sanctionType).append(" - #").append(sanction.getSanctionId());
+            description.append("### ").append(sanction.type).append(" - #").append(sanction.getSanctionId());
             if (sanction.isExpired) description.append(" (Expirée)");
             
             description.append("\n>    - Modérateur: ");
@@ -95,9 +93,9 @@ public class ModerationCommands {
             else description.append("<@").append(sanction.moderatorId).append("> (`").append(sanction.moderatorId).append("`)");
             
             description.append("\n>    - Raison: ").append(sanction.reason)
-                .append("\n>    - Date: <t:").append(sanction.timestamp.getEpochSecond()).append(":F>");
+                .append("\n>    - Date: <t:").append(sanction.createdAt.getEpochSecond()).append(":F>");
             
-            if (sanction.sanctionType != SanctionEntity.SanctionType.KICK && sanction.expiryTime != null && !sanction.permanent) description.append("\n>    - Expire: <t:").append(sanction.expiryTime.getEpochSecond()).append(":F>");
+            if (sanction.type != SanctionEntity.SanctionType.KICK && sanction.expiresAt != null && !sanction.isPermanent) description.append("\n>    - Expire: <t:").append(sanction.expiresAt.getEpochSecond()).append(":F>");
             description.append("\n");
         }
         
@@ -288,8 +286,8 @@ public class ModerationCommands {
                 event.reply("Le membre a bien été retiré du timeout.").setEphemeral(true).queue();
 
                 // A member can't have 2 timeout active at the same time.
-                SanctionEntity sanction = SanctionDatabase.getLatest(member.getIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.TIMEOUT);
-                Database.update(sanction.setExpired(true));
+                Database.useExtension(SanctionDao.class, dao ->
+                    dao.setLatestUserSanctionByTypeAsExpired(event.getGuild().getIdLong(), member.getIdLong(), SanctionEntity.SanctionType.TIMEOUT));
             },
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();

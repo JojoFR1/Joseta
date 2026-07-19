@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import dev.jojofr.joseta.annotations.EventProcessor;
 import dev.jojofr.joseta.annotations.InteractionProcessor;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.BotDao;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DotenvDebug;
 import dev.jojofr.joseta.utils.Log;
@@ -43,6 +44,20 @@ public class JosetaBot {
         }
         Dotenv dotenv = DotenvDebug.load(debug);
         
+        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"))) {
+            Log.err("Database initialization failed. Exiting...");
+            System.exit(1);
+        }
+        
+        botInstance = JDABuilder.createDefault(dotenv.get("TOKEN"))
+            .setMemberCachePolicy(MemberCachePolicy.ALL)
+            .enableIntents(GatewayIntent.GUILD_MESSAGES,
+                           GatewayIntent.GUILD_MEMBERS,
+                           GatewayIntent.MESSAGE_CONTENT)
+            .setStatus(OnlineStatus.DO_NOT_DISTURB)
+            .setActivity(Activity.watching("🇫🇷 Mindustry France."))
+            .build();
+        
         Index globalIndex = null;
         try (InputStream indexStream = JosetaBot.class.getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
             if (indexStream == null) {
@@ -55,20 +70,6 @@ public class JosetaBot {
             System.exit(1);
         }
         
-        if (!Database.initialize(dotenv.get("DATABASE_USER"), dotenv.get("DATABASE_PASSWORD"), dotenv.get("DATABASE_HOST"), dotenv.get("DATABASE_PORT"), dotenv.get("DATABASE_NAME"), globalIndex)) {
-            Log.err("Database initialization failed. Exiting...");
-            System.exit(1);
-        }
-
-        botInstance = JDABuilder.createDefault(dotenv.get("TOKEN"))
-            .setMemberCachePolicy(MemberCachePolicy.ALL)
-            .enableIntents(GatewayIntent.GUILD_MESSAGES,
-                           GatewayIntent.GUILD_MEMBERS,
-                           GatewayIntent.MESSAGE_CONTENT)
-            .setStatus(OnlineStatus.DO_NOT_DISTURB)
-            .setActivity(Activity.watching("🇫🇷 Mindustry France."))
-            .build();
-
         InteractionProcessor.initialize(botInstance, globalIndex);
         EventProcessor.initialize(botInstance, globalIndex);
         
@@ -85,14 +86,18 @@ public class JosetaBot {
     
     private static void registerShutdown(JDA bot) {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Log.info("Shutting down...");
+            
+            ScheduledEvents.shutdown();
+            
             bot.setAutoReconnect(false);
             bot.shutdown();
-
+            
             try {
                 if (!bot.awaitShutdown(10, TimeUnit.SECONDS)) {
                     Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");
                     bot.shutdownNow();
-
+                    
                     // TODO Not sure if that works
                     if (!bot.awaitShutdown(1, TimeUnit.MINUTES)) {
                         Log.err("The bot did not shutdown after the forced shutdown. Exiting...");
@@ -105,6 +110,8 @@ public class JosetaBot {
                 Log.err("An error occurred while waiting for the bot to shutdown. Force shutting down...", e);
                 bot.shutdownNow();
             }
+            
+            Database.useExtension(BotDao.class, dao -> dao.setLastOnline());
         }, "ShutdownThread"));
     }
 }

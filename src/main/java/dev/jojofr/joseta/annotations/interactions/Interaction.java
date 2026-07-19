@@ -1,11 +1,9 @@
 package dev.jojofr.joseta.annotations.interactions;
 
 import dev.jojofr.joseta.utils.Log;
-import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 
 /**

@@ -1,12 +1,12 @@
 package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.Option;
+import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
-import dev.jojofr.joseta.database.entities.ReminderEntity_;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ReminderListMessage;
 import dev.jojofr.joseta.events.ScheduledEvents;
@@ -38,9 +38,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @InteractionModule
 public class ReminderCommand {
@@ -85,7 +85,7 @@ public class ReminderCommand {
         }
         
         ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? TimeParser.parse(repeatTime) : -1, dm, repeat);
-        Database.create(reminder);
+        Database.useExtension(ReminderDao.class, dao -> dao.insert(reminder));
         event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
             + (repeat ? " Il sera répété tous les " + TimeParser.formatReadable(reminder.repeatAfter) + "." : "")
             + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
@@ -106,16 +106,11 @@ public class ReminderCommand {
     
     
     private static final int REMINDER_PER_PAGE = 5;
-    private static final Map<Long, ReminderListMessage> reminderListMessages = new HashMap<>();
+    public static final Map<Long, ReminderListMessage> reminderListMessages = new ConcurrentHashMap<>();
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
-        List<ReminderEntity> reminders = Database.querySelect(ReminderEntity.class,
-            (cb, rt) ->
-                cb.and(cb.equal(rt.get(ReminderEntity_.userId), event.getUser().getIdLong()),
-                    cb.equal(rt.get(ReminderEntity_.guildId), event.getGuild().getIdLong())),
-            (cb, rt) -> cb.asc(rt.get(ReminderEntity_.remindAt))
-        ).getResultList();
+        List<ReminderEntity> reminders = Database.withExtension(ReminderDao.class, dao -> dao.getByUserId(event.getGuild().getIdLong(), event.getUser().getIdLong()));
         
         if (reminders.isEmpty()) {
             event.reply("Vous n'avez aucun rappel actif.").setEphemeral(true).queue();
@@ -168,7 +163,7 @@ public class ReminderCommand {
                         .setPlaceholder("Le message de votre rappel...")
                         .setMinLength(1)
                         .setMaxLength(ScheduledEvents.REMINDER_MAX_MESSAGE_LENGTH - String.valueOf(event.getUser().getIdLong()).length())
-                        .setValue(reminder.message)
+                        .setValue(reminder.text)
                         .build()
                 ),
                 
@@ -223,7 +218,8 @@ public class ReminderCommand {
         boolean newRepeat = repeatTime > 0;
         boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
         
-        Database.update(reminder.setMessage(newMessage).setRemindAt(newRemindAt).setRepeatAfter(newRepeat ? repeatTime : -1).setDm(newDm).setRepeat(newRepeat));
+        reminder.setText(newMessage).setRemindAt(newRemindAt).setRepeatAfter(newRepeat ? repeatTime : -1).setDm(newDm).setRepeat(newRepeat);
+        Database.useExtension(ReminderDao.class, dao -> dao.update(reminder));
         
         if (newDm)
             event.getUser().openPrivateChannel().queue(
@@ -248,7 +244,7 @@ public class ReminderCommand {
         if (reminderMessage == null) return;
         
         int reminderId = Integer.parseInt(event.getComponentId().substring("reminders:delete:".length(), event.getComponentId().length() - 1));
-        Database.delete(reminderMessage.reminders.get(reminderId));
+        Database.useExtension(ReminderDao.class, dao -> dao.delete(reminderMessage.reminders.get(reminderId).id));
         reminderMessage.reminders.remove(reminderId);
         
         event.reply("Le rappel a bien été supprimé.").setEphemeral(true).queue();
@@ -272,7 +268,7 @@ public class ReminderCommand {
             
             if (reminder.repeat) sb.append(", répété");
             if (reminder.dm) sb.append(", en MP");
-            sb.append(")\n").append(">>> ```").append(reminder.message).append("```\n\n");
+            sb.append(")\n").append(">>> ```").append(reminder.text).append("```\n\n");
             
             components.add(TextDisplay.of(sb.toString()));
             components.add(ActionRow.of(

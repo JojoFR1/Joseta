@@ -1,52 +1,41 @@
 package dev.jojofr.joseta.database.entities;
 
-import jakarta.persistence.*;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 
 import java.time.Instant;
 
-@SuppressWarnings("unused")
-@Entity @Table(name = "users")
 public class UserEntity {
-    @Embeddable
-    public record UserId(long id, long guildId) {}
+    public long id;
+    public long guildId;
     
-    @EmbeddedId public UserId id;
+    public String name;
+    public String avatarUrl;
+    public Instant creationDate;
+    public int sanctionCount = 0;
     
-    @Column public String username;
-    @Column public String avatarUrl;
-    @Column public Instant creationTime;
-    @Column public int sanctionCount = 0;
-    
-    // A non-private and no-arg constructor is required by JPA
+    // A non-private and no-arg constructor is required by JDBI
     protected UserEntity() {}
-    
     public UserEntity(Member member) { this(member.getUser(), member.getGuild().getIdLong()); }
-    public UserEntity(User user, long guildId) {
-        this(user.getIdLong(),
-             guildId,
-             user.getName(),
-             user.getAvatarUrl(),
-             user.getTimeCreated().toInstant());
-    }
-    
-    public UserEntity(long id, long guildId, String username, String avatarUrl, Instant creationTime) {
-        this.id = new UserId(id, guildId);
+    public UserEntity(User user, long guildId) { this(user.getIdLong(), guildId, user.getName(), user.getAvatarUrl(), user.getTimeCreated().toInstant());}
+    public UserEntity(long id, long guildId, String name, String avatarUrl, Instant creationDate) {
+        this.id = id;
+        this.guildId = guildId;
         
-        this.username = username;
+        this.name = name;
         this.avatarUrl = avatarUrl;
-        this.creationTime = creationTime;
+        this.creationDate = creationDate;
     }
     
     
     public UserEntity setId(long id, long guildId) {
-        this.id = new UserId(id, guildId);
+        this.id = id;
+        this.guildId = guildId;
         return this;
     }
 
-    public UserEntity setUsername(String username) {
-        this.username = username;
+    public UserEntity setName(String name) {
+        this.name = name;
         return this;
     }
 
@@ -55,8 +44,8 @@ public class UserEntity {
         return this;
     }
 
-    public UserEntity setCreationTime(Instant creationTime) {
-        this.creationTime = creationTime;
+    public UserEntity setCreationDate(Instant creationDate) {
+        this.creationDate = creationDate;
         return this;
     }
     

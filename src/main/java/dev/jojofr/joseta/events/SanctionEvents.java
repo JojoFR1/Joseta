@@ -4,6 +4,7 @@ import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.commands.ModerationCommands;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
 import net.dv8tion.jda.api.audit.ActionType;
@@ -28,8 +29,8 @@ public class SanctionEvents {
         
         String timeOutEndDate = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT).getNewValue();
         if (timeOutEndDate == null) {
-            SanctionEntity sanction = SanctionDatabase.getLatest(entry.getTargetIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.TIMEOUT);
-            Database.update(sanction.setExpired(true));
+            Database.useExtension(SanctionDao.class, dao ->
+                dao.setLatestUserSanctionByTypeAsExpired(entry.getGuild().getIdLong(), entry.getTargetIdLong(), SanctionEntity.SanctionType.TIMEOUT));
             return;
         }
         
@@ -104,7 +105,7 @@ public class SanctionEvents {
     @EventHandler
     public void onGuildUnban(GuildUnbanEvent event) {
         // A user can't have 2 bans active at the same time.
-        SanctionEntity sanction = SanctionDatabase.getLatest(event.getUser().getIdLong(), event.getGuild().getIdLong(), SanctionEntity.SanctionType.BAN);
-        Database.update(sanction.setExpired(true));
+        Database.useExtension(SanctionDao.class, dao ->
+            dao.setLatestUserSanctionByTypeAsExpired(event.getGuild().getIdLong(), event.getUser().getIdLong(), SanctionEntity.SanctionType.BAN));
     }
 }

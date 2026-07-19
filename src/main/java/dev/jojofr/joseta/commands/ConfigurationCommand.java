@@ -1,9 +1,11 @@
 package dev.jojofr.joseta.commands;
 
-import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.annotations.InteractionModule;
-import dev.jojofr.joseta.annotations.types.interaction.*;
+import dev.jojofr.joseta.annotations.types.interaction.Interaction;
+import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.ConfigurationDao;
+import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
@@ -21,13 +23,9 @@ import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.IMentionable;
-import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -42,13 +40,16 @@ import java.awt.*;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @InteractionModule
 public class ConfigurationCommand {
-    private static final Map<Long, ConfigurationMessage> configurationMessages = new HashMap<>();
+    public static final Map<Long, ConfigurationMessage> configurationMessages = new ConcurrentHashMap<>();
     
     // TODO add a reset button?
     @SlashCommandInteraction(name = "config", description = "Configure les paramètres du bot.", permissions = Permission.MANAGE_SERVER)
@@ -93,12 +94,33 @@ public class ConfigurationCommand {
             return;
         };
         
-        Database.createOrUpdate(configurationMessage.configuration);
+        Database.useHandle(handle -> {
+            ConfigurationDao configurationDao = handle.attach(ConfigurationDao.class);
+            
+            if (configurationMessage.hasMarkovBlacklistChanged) {
+                MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
+                
+                long guildId = configurationMessage.configuration.guildId;
+                
+                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.USER);
+                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.USER, configurationMessage.pendingMarkovUserBlacklist);
+                
+                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.ROLE);
+                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.ROLE, configurationMessage.pendingMarkovRoleBlacklist);
+                
+                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.CHANNEL);
+                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.CHANNEL, configurationMessage.pendingMarkovChannelBlacklist);
+                
+                configurationMessage.configuration.markovBlacklistIds = markovBlacklistDao.getAllIds(guildId);
+            }
+            
+            configurationDao.upsert(configurationMessage.configuration);
+        });
+        
         BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
         
         if (configurationMessage.hasMarkovBlacklistChanged)
-            MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong(), configurationMessage.configuration.markovBlacklist);
-        
+            MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong());
         
         configurationMessage.hasChanged = false;
         configurationMessage.hasMarkovBlacklistChanged = false;
@@ -261,7 +283,7 @@ public class ConfigurationCommand {
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
-        if (config.verifiedRoleId == null || (verifiedRole = event.getGuild().getRoleById(config.verifiedRoleId)) == null) return;
+        if (config.roleVerifiedId == null || (verifiedRole = event.getGuild().getRoleById(config.roleVerifiedId)) == null) return;
         
         event.getGuild().removeRoleFromMember(event.getUser(), joinRole).queue();
         event.getGuild().addRoleToMember(event.getUser(), verifiedRole).queue();
@@ -352,41 +374,34 @@ public class ConfigurationCommand {
         switch (menuId) {
             case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
             case "config:cat_markov:mentionable_blacklist_select" -> {
-                Set<Long> newBlacklist = selectedValues.stream().map(IMentionable::getIdLong).collect(Collectors.toSet());
-                configurationMessage.configuration.markovBlacklist.removeIf(id -> {
-                    GuildChannel channel = event.getGuild().getGuildChannelById(id);
-                    if (channel != null) return false; // If the ID is a channel, we keep it in the blacklist
-                    
-                    boolean isSelected = newBlacklist.contains(id);
-                    if (isSelected) newBlacklist.remove(id);
-                    return !isSelected;
+                configurationMessage.pendingMarkovUserBlacklist.clear();
+                configurationMessage.pendingMarkovRoleBlacklist.clear();
+                
+                selectedValues.forEach(mentionable -> {
+                    if (mentionable instanceof User || mentionable instanceof Member) {
+                        configurationMessage.pendingMarkovUserBlacklist.add(mentionable.getIdLong());
+                    } else if (mentionable instanceof Role) {
+                        configurationMessage.pendingMarkovRoleBlacklist.add(mentionable.getIdLong());
+                    }
                 });
                 
-                configurationMessage.configuration.markovBlacklist.addAll(newBlacklist);
+                configurationMessage.hasMarkovBlacklistChanged = true;
             }
             case "config:cat_markov:channel_blacklist_select" -> {
-                Set<Long> newBlacklist = selectedValues.stream().map(IMentionable::getIdLong).collect(Collectors.toSet());
-                configurationMessage.configuration.markovBlacklist.removeIf(id -> {
-                    GuildChannel channel = event.getGuild().getGuildChannelById(id);
-                    if (channel == null) return false; // If the ID is not a channel, we keep it in the blacklist
-                    
-                    boolean isSelected = newBlacklist.contains(id);
-                    if (isSelected) newBlacklist.remove(id);
-                    return !isSelected;
-                });
-
-                configurationMessage.configuration.markovBlacklist.addAll(newBlacklist);
+                configurationMessage.pendingMarkovChannelBlacklist.clear();
+                configurationMessage.pendingMarkovChannelBlacklist.addAll(selectedValues.stream().map(ISnowflake::getIdLong).collect(Collectors.toSet()));
+                
+                configurationMessage.hasMarkovBlacklistChanged = true;
             }
             case "config:cat_moderation:honey_pot:channel_select" -> configurationMessage.configuration.setModerationHoneypotChannelId(selectedId);
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
-            case "config:cat_welcome:join_bot_role_select" -> configurationMessage.configuration.setJoinBotRoleId(selectedId);
-            case "config:cat_welcome:verified_role_select" -> configurationMessage.configuration.setVerifiedRoleId(selectedId);
+            case "config:cat_welcome:join_bot_role_select" -> configurationMessage.configuration.setJoinRoleBotId(selectedId);
+            case "config:cat_welcome:verified_role_select" -> configurationMessage.configuration.setRoleVerifiedId(selectedId);
         }
         
         configurationMessage.hasChanged = true;
-        configurationMessage.hasMarkovBlacklistChanged = true;
         event.editComponents(switch (menuId) {
             case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);
@@ -557,39 +572,19 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder mentionableBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:mentionable_blacklist_select", EntitySelectMenu.SelectTarget.ROLE, EntitySelectMenu.SelectTarget.USER)
             .setPlaceholder("Sélectionnez des membres ou rôles à ajouter ou retirer de la blacklist de Markov")
             .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT);
+        mentionableBlacklistSelectBuilder.setDefaultValues(Stream.concat(
+            configurationMessage.pendingMarkovUserBlacklist.stream().map(EntitySelectMenu.DefaultValue::user),
+            configurationMessage.pendingMarkovRoleBlacklist.stream().map(EntitySelectMenu.DefaultValue::role)
+        ).limit(EntitySelectMenu.OPTIONS_MAX_AMOUNT).toList());
         
-        if (configurationMessage.configuration.markovBlacklist != null && !configurationMessage.configuration.markovBlacklist.isEmpty()) {
-            List<EntitySelectMenu.DefaultValue> defaultValues = configurationMessage.configuration.markovBlacklist.stream()
-                .map(id -> {
-                    IMentionable mentionable = JosetaBot.get().getGuildChannelById(id);
-                    if (mentionable != null) return null;
-                    
-                    mentionable = JosetaBot.get().getRoleById(id);
-                    if (mentionable != null) return EntitySelectMenu.DefaultValue.role(id);
-                    return EntitySelectMenu.DefaultValue.user(id);
-                })
-                .filter(Objects::nonNull)
-                .toList();
-            
-            if (!defaultValues.isEmpty()) mentionableBlacklistSelectBuilder.setDefaultValues(defaultValues);
-        }
         EntitySelectMenu mentionableBlacklistSelect = mentionableBlacklistSelectBuilder.build();
         
         EntitySelectMenu.Builder channelBlacklistSelectBuilder = EntitySelectMenu.create("config:cat_markov:channel_blacklist_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setRequiredRange(0, EntitySelectMenu.OPTIONS_MAX_AMOUNT)
             .setPlaceholder("Sélectionnez des salons à ajouter ou retirer de la blacklist de Markov");
-        if (configurationMessage.configuration.markovBlacklist != null && !configurationMessage.configuration.markovBlacklist.isEmpty()) {
-            List<EntitySelectMenu.DefaultValue> defaultValues = configurationMessage.configuration.markovBlacklist.stream()
-                .map(id -> {
-                    IMentionable mentionable = JosetaBot.get().getGuildChannelById(id);
-                    if (mentionable != null) return EntitySelectMenu.DefaultValue.channel(id);
-                    return null;
-                })
-                .filter(Objects::nonNull)
-                .toList();
-            
-            if (!defaultValues.isEmpty()) channelBlacklistSelectBuilder.setDefaultValues(defaultValues);
-        }
+        channelBlacklistSelectBuilder.setDefaultValues(configurationMessage.pendingMarkovChannelBlacklist.stream()
+            .map(EntitySelectMenu.DefaultValue::channel).limit(EntitySelectMenu.OPTIONS_MAX_AMOUNT).toList());
+        
         EntitySelectMenu channelBlacklistSelect = channelBlacklistSelectBuilder.build();
         
         return Container.of(
@@ -679,15 +674,15 @@ public class ConfigurationCommand {
         
         EntitySelectMenu.Builder joinBotRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:join_bot_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux bots");
-        if (configurationMessage.configuration.joinBotRoleId != null)
-            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinBotRoleId));
+        if (configurationMessage.configuration.joinRoleBotId != null)
+            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinRoleBotId));
         
         EntitySelectMenu joinBotRoleSelectMenu = joinBotRoleSelectMenuBuilder.build();
         
         EntitySelectMenu.Builder verifiedRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:verified_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux membres vérifiés");
-        if (configurationMessage.configuration.verifiedRoleId != null)
-            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.verifiedRoleId));
+        if (configurationMessage.configuration.roleVerifiedId != null)
+            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.roleVerifiedId));
         
         EntitySelectMenu verifiedRoleSelectMenu = verifiedRoleSelectMenuBuilder.build();
         

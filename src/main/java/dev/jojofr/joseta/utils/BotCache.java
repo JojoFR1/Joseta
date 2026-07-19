@@ -2,6 +2,8 @@ package dev.jojofr.joseta.utils;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.ConfigurationDao;
+import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
@@ -22,11 +24,15 @@ public class BotCache {
     
     public static ConfigurationEntity getGuildConfiguration(long guildId) {
         return guildConfigurations.computeIfAbsent(guildId, id -> {
-            ConfigurationEntity config = Database.get(ConfigurationEntity.class, id);
+            ConfigurationEntity config = Database.withExtension(ConfigurationDao.class, dao -> dao.getByGuildId(id));
             if (config == null) {
                 config = new ConfigurationEntity(id);
-                Database.create(config);
+                
+                ConfigurationEntity finalConfig = config;
+                Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(finalConfig));
             }
+            
+            config.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
             return config;
         });
     }

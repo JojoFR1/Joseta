@@ -41,11 +41,13 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.12'
     implementation 'com.zaxxer:HikariCP:7.1.0'
 
-    // Maybe find a more lightweight ORM in the future, this is too much for a simple bot
-    implementation 'org.hibernate.orm:hibernate-core:7.3.4.Final'
+    implementation platform('org.jdbi:jdbi3-bom:3.54.0')
+    implementation 'org.jdbi:jdbi3-core'
+    implementation 'org.jdbi:jdbi3-sqlobject'
+    implementation 'org.jdbi:jdbi3-postgres'
 
-    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.3.4.Final'
-    implementation 'org.hibernate.orm:hibernate-hikaricp:7.3.4.Final'
+    implementation 'org.flywaydb:flyway-core:12.11.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:12.11.0'
 }
 jandex { version = '3.6.0' }
 
