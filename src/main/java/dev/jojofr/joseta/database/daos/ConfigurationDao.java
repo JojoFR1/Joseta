@@ -13,7 +13,7 @@ public interface ConfigurationDao {
             welcome_enabled, welcome_image_enabled, welcome_channel_id, welcome_join_message, welcome_leave_message,
             join_role_id, join_role_bot_id, role_verified_id,
             markov_enabled,
-            moderation_enabled, moderation_honeypot_enabled, moderation_honeypot_channel_id, rules,
+            moderation_enabled, moderation_log_enabled, moderation_log_channel_id, moderation_honeypot_enabled, moderation_honeypot_channel_id, rules,
             auto_response_enabled,
             counting_enabled, counting_comments_enabled, counting_penalty_enabled, counting_channel_id
         ) VALUES (
@@ -21,7 +21,7 @@ public interface ConfigurationDao {
             :welcomeEnabled, :welcomeImageEnabled, :welcomeChannelId, :welcomeJoinMessage, :welcomeLeaveMessage,
             :joinRoleId, :joinRoleBotId, :roleVerifiedId,
             :markovEnabled,
-            :moderationEnabled, :moderationHoneypotEnabled, :moderationHoneypotChannelId, :rules,
+            :moderationEnabled, :moderationLogEnabled, :moderationLogChannelId, :moderationHoneypotEnabled, :moderationHoneypotChannelId, :rules,
             :autoResponseEnabled,
             :countingEnabled, :countingCommentsEnabled, :countingPenaltyEnabled, :countingChannelId
         ) ON CONFLICT (guild_id) DO UPDATE SET
@@ -35,6 +35,8 @@ public interface ConfigurationDao {
             role_verified_id = EXCLUDED.role_verified_id,
             markov_enabled = EXCLUDED.markov_enabled,
             moderation_enabled = EXCLUDED.moderation_enabled,
+            moderation_log_enabled = EXCLUDED.moderation_log_enabled,
+            moderation_log_channel_id = EXCLUDED.moderation_log_channel_id,
             moderation_honeypot_enabled = EXCLUDED.moderation_honeypot_enabled,
             moderation_honeypot_channel_id = EXCLUDED.moderation_honeypot_channel_id,
             rules = EXCLUDED.rules,

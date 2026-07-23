@@ -128,6 +128,8 @@ class ConfigurationDaoTests {
         defaultConfig.roleVerifiedId = 101112L;
         defaultConfig.markovEnabled = true;
         defaultConfig.moderationEnabled = false;
+        defaultConfig.moderationLogEnabled = true;
+        defaultConfig.moderationLogChannelId = 131415L;
         defaultConfig.moderationHoneypotEnabled = true;
         defaultConfig.moderationHoneypotChannelId = 192021L;
         defaultConfig.rules = "Be nice!";
@@ -152,6 +154,8 @@ class ConfigurationDaoTests {
         updatedConfig.roleVerifiedId = 211101L;
         updatedConfig.markovEnabled = false;
         updatedConfig.moderationEnabled = true;
+        updatedConfig.moderationLogEnabled = false;
+        updatedConfig.moderationLogChannelId = 514131L;
         updatedConfig.moderationHoneypotEnabled = false;
         updatedConfig.moderationHoneypotChannelId = 120291L;
         updatedConfig.rules = "Soit cool !";
