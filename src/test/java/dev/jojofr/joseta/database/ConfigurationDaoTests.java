@@ -67,26 +67,6 @@ class ConfigurationDaoTests {
         assertEveryFieldChanged(original, updated);
         
         dao.upsert(original);
-        
-        ConfigurationEntity updated = new ConfigurationEntity(1L);
-        updated.welcomeEnabled = false;
-        updated.welcomeImageEnabled = false;
-        updated.welcomeChannelId = 321L;
-        updated.welcomeJoinMessage = "Bienvenue {{user}}!";
-        updated.welcomeLeaveMessage = "Au revoir {{userName}}!";
-        updated.joinRoleId = 654L;
-        updated.joinRoleBotId = 987L;
-        updated.roleVerifiedId = 211101L;
-        updated.markovEnabled = false;
-        updated.moderationEnabled = true;
-        updated.moderationHoneypotEnabled = false;
-        updated.moderationHoneypotChannelId = 120291L;
-        updated.rules = "Soit cool !";
-        updated.autoResponseEnabled = false;
-        updated.countingEnabled = false;
-        updated.countingCommentsEnabled = false;
-        updated.countingPenaltyEnabled = false;
-        updated.countingChannelId = 423222L;
         dao.upsert(updated);
         
         ConfigurationEntity fetched = dao.getByGuildId(1L);
