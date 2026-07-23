@@ -48,8 +48,29 @@ dependencies {
 
     implementation 'org.flywaydb:flyway-core:12.11.0'
     implementation 'org.flywaydb:flyway-database-postgresql:12.11.0'
+
+    testImplementation platform('org.junit:junit-bom:6.1.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    testImplementation platform('org.testcontainers:testcontainers-bom:2.0.5')
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+
+    testImplementation 'org.assertj:assertj-core:3.27.7'
 }
 jandex { version = '3.6.0' }
+
+test {
+    useJUnitPlatform()
+    maxHeapSize = '1g'
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = true
+        showExceptions = true
+        exceptionFormat = 'full'
+    }
+}
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
