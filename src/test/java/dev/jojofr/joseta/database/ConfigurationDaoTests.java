@@ -11,9 +11,9 @@ import org.jdbi.v3.postgres.PostgresPlugin;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.lang.reflect.Field;
 
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ConfigurationDaoTests {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18");
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
     
     static Jdbi jdbi;
     
