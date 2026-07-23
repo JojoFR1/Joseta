@@ -156,7 +156,7 @@ public class ConfigurationCommand {
             case "config:cat_markov:toggle" -> configurationMessage.configuration.setMarkovEnabled(!configurationMessage.configuration.markovEnabled);
             case "config:cat_moderation:toggle" -> configurationMessage.configuration.setModerationEnabled(!configurationMessage.configuration.moderationEnabled);
             case "config:cat_moderation:honey_pot:toggle" -> configurationMessage.configuration.setModerationHoneypotEnabled(!configurationMessage.configuration.moderationHoneypotEnabled);
-            case "config:cat_moderation:logs:toggle" -> configurationMessage.configuration.setModerationLogsEnabled(!configurationMessage.configuration.moderationLogsEnabled);
+            case "config:cat_moderation:logs:toggle" -> configurationMessage.configuration.setModerationLogEnabled(!configurationMessage.configuration.moderationLogEnabled);
             case "config:cat_autores:toggle" -> configurationMessage.configuration.setAutoResponseEnabled(!configurationMessage.configuration.autoResponseEnabled);
         }
         
@@ -399,7 +399,7 @@ public class ConfigurationCommand {
                 configurationMessage.hasMarkovBlacklistChanged = true;
             }
             case "config:cat_moderation:honey_pot:channel_select" -> configurationMessage.configuration.setModerationHoneypotChannelId(selectedId);
-            case "config:cat_moderation:logs:channel_select" -> configurationMessage.configuration.setModerationLogsChannelId(selectedId);
+            case "config:cat_moderation:logs:channel_select" -> configurationMessage.configuration.setModerationLogChannelId(selectedId);
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
             case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
             case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
@@ -670,23 +670,11 @@ public class ConfigurationCommand {
     }
     
     private Container createModerationLogsMenuContainer(ConfigurationMessage configurationMessage) {
-        return Container.of(
-            TextDisplay.of("# Configuration - Modération | Logs"),
-            
-            createToggleSection("Système de logs",
-                "Active ou désactive le système de logs.",
-                "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogsEnabled),
-            
-            createBottomRow(configurationMessage)
-        );
-    }
-    
-    private Container createModerationLogsMenuContainer(ConfigurationMessage configurationMessage) {
         EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:logs:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon pour les logs de modération")
             .setChannelTypes(ChannelType.TEXT);
-        if (configurationMessage.configuration.moderationLogsChannelId != null)
-            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.moderationLogsChannelId));
+        if (configurationMessage.configuration.moderationLogChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.moderationLogChannelId));
         EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
         return Container.of(
@@ -694,7 +682,7 @@ public class ConfigurationCommand {
             
             createToggleSection("Système de logs",
                 "Active ou désactive le système de logs.",
-                "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogsEnabled),
+                "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogEnabled),
             
             TextDisplay.of("### Salon de logs de modération"),
             TextDisplay.of("-# Le salon où les logs de modération sont envoyés."),

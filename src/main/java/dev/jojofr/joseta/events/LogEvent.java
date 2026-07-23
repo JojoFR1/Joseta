@@ -19,14 +19,13 @@ import java.time.Instant;
 @EventModule
 public class LogEvent {
     
-    //TODO Need some kind of priority system to make sure this runs before the MessageDatabase update
     @EventHandler(priority = EventPriority.HIGH)
     public void messageUpdateEvent(MessageUpdateEvent event) {
         ConfigurationEntity configuration = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (configuration == null || !configuration.moderationLogsEnabled) return;
+        if (configuration == null || !configuration.moderationLogEnabled) return;
         
         TextChannel channel;
-        if (configuration.moderationLogsChannelId == null || (channel = event.getGuild().getTextChannelById(configuration.moderationLogsChannelId)) == null) return;
+        if (configuration.moderationLogChannelId == null || (channel = event.getGuild().getTextChannelById(configuration.moderationLogChannelId)) == null) return;
         
         MessageEntity oldMessage = Database.withExtension(MessageDao.class, dao -> dao.getById(event.getMessageIdLong()));
         if (oldMessage == null) return; // Message not found in database, cannot log
