@@ -4,6 +4,7 @@ import dev.jojofr.joseta.database.daos.ConfigurationDao;
 import dev.jojofr.joseta.database.daos.GuildDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.GuildEntity;
+import org.assertj.core.api.SoftAssertions;
 import org.flywaydb.core.Flyway;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.postgres.PostgresPlugin;
@@ -45,24 +46,6 @@ class ConfigurationDaoTests {
         jdbi.useExtension(GuildDao.class, dao -> dao.upsert(new GuildEntity(1L, "Guild", "url", 999L)));
     }
     
-    static void assertBuiltConfigurationHasNoDefaultValues() throws IllegalAccessException {
-        ConfigurationEntity base = new ConfigurationEntity(1L);
-        ConfigurationEntity built = buildConfigurationEntity();
-        
-        for (Field field : ConfigurationEntity.class.getDeclaredFields()) {
-            field.setAccessible(true);
-            
-            if (field.getName().equals("guildId")) continue;
-            if (field.getName().equals("markovBlacklistIds")) continue;
-            
-            Object baseValue = field.get(base);
-            Object builtValue = field.get(built);
-            
-            assertThat(builtValue).as("Field '%s' still has its default value", field.getName())
-                .isNotEqualTo(baseValue);
-        }
-    }
-    
     @Test
     void upsertPersistsEveryFieldOnInsert() {
         ConfigurationDao dao = jdbi.onDemand(ConfigurationDao.class);
@@ -76,10 +59,13 @@ class ConfigurationDaoTests {
     }
     
     @Test
-    void upsertPersistsEveryFieldOnUpdate() {
+    void upsertPersistsEveryFieldOnUpdate() throws IllegalAccessException {
         ConfigurationDao dao = jdbi.onDemand(ConfigurationDao.class);
         
         ConfigurationEntity original = buildConfigurationEntity();
+        ConfigurationEntity updated = buildUpdatedConfigurationEntity();
+        assertEveryFieldChanged(original, updated);
+        
         dao.upsert(original);
         
         ConfigurationEntity updated = new ConfigurationEntity(1L);
@@ -108,6 +94,48 @@ class ConfigurationDaoTests {
         assertThat(fetched).usingRecursiveComparison().isEqualTo(updated);
     }
     
+    static void assertBuiltConfigurationHasNoDefaultValues() throws IllegalAccessException {
+        ConfigurationEntity base = new ConfigurationEntity(1L);
+        ConfigurationEntity built = buildConfigurationEntity();
+        
+        SoftAssertions softly = new SoftAssertions();
+        
+        for (Field field : ConfigurationEntity.class.getDeclaredFields()) {
+            field.setAccessible(true);
+            
+            if (field.getName().equals("guildId")) continue;
+            if (field.getName().equals("markovBlacklistIds")) continue;
+            
+            Object baseValue = field.get(base);
+            Object builtValue = field.get(built);
+            
+            softly.assertThat(builtValue).as("Field '%s' still has its default value", field.getName())
+                .isNotEqualTo(baseValue);
+        }
+        
+        softly.assertAll();
+    }
+    
+    static void assertEveryFieldChanged(Object original, Object updated) throws IllegalAccessException {
+        SoftAssertions softly = new SoftAssertions();
+        
+        for (Field field : original.getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            
+            switch (field.getName()) {
+                case "guildId", "markovBlacklistIds" -> {
+                    continue;
+                }
+            }
+            
+            softly.assertThat(field.get(updated))
+                .as("Field '%s' was not changed in the updated fixture", field.getName())
+                .isNotEqualTo(field.get(original)).isNotNull();
+        }
+        
+        softly.assertAll();
+    }
+    
     static ConfigurationEntity buildConfigurationEntity() {
         ConfigurationEntity defaultConfig = new ConfigurationEntity(1L);
         defaultConfig.welcomeEnabled = true;
@@ -130,5 +158,29 @@ class ConfigurationDaoTests {
         defaultConfig.countingChannelId = 222324L;
         
         return defaultConfig;
+    }
+    
+    static ConfigurationEntity buildUpdatedConfigurationEntity() {
+        ConfigurationEntity updatedConfig = new ConfigurationEntity(1L);
+        updatedConfig.welcomeEnabled = false;
+        updatedConfig.welcomeImageEnabled = false;
+        updatedConfig.welcomeChannelId = 321L;
+        updatedConfig.welcomeJoinMessage = "Bienvenue {{user}}!";
+        updatedConfig.welcomeLeaveMessage = "Au revoir {{userName}}!";
+        updatedConfig.joinRoleId = 654L;
+        updatedConfig.joinRoleBotId = 987L;
+        updatedConfig.roleVerifiedId = 211101L;
+        updatedConfig.markovEnabled = false;
+        updatedConfig.moderationEnabled = true;
+        updatedConfig.moderationHoneypotEnabled = false;
+        updatedConfig.moderationHoneypotChannelId = 120291L;
+        updatedConfig.rules = "Soit cool !";
+        updatedConfig.autoResponseEnabled = false;
+        updatedConfig.countingEnabled = false;
+        updatedConfig.countingCommentsEnabled = false;
+        updatedConfig.countingPenaltyEnabled = false;
+        updatedConfig.countingChannelId = 423222L;
+        
+        return updatedConfig;
     }
 }
