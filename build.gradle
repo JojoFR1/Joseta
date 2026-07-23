@@ -15,7 +15,7 @@ plugins {
 import io.github.cdimascio.dotenv.Dotenv
 
 group = 'dev.jojofr'
-version = '2.3.0'
+version = '2.4.0'
 
 def dotenv = Dotenv.configure()
         .directory(project.rootDir.absolutePath)
@@ -54,7 +54,7 @@ jandex { version = '3.6.0' }
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.incremental = true
-    options.compilerArgs << '-parameters' // Enable parameter name retention at runtime, required for the InteractionProcessor
+    options.compilerArgs << '-parameters' // Enable parameter name retention at runtime, required for the InteractionProcessor & for JDBI arguments
 }
 
 shadowJar {
