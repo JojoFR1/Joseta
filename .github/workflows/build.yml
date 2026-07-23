@@ -20,7 +20,10 @@ jobs:
         cache-read-only: ${{ github.ref != 'refs/heads/main' }}
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-    - name: Build Bot Jar
+    - name: Run Tests
+      run: ./gradlew test
+
+    - name: Build Project
       run: ./gradlew shadowJar --configuration-cache
         
     - name: Upload built jar file
