@@ -7,6 +7,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.BotDao;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DotenvDebug;
+import dev.jojofr.joseta.utils.JandexLoader;
 import dev.jojofr.joseta.utils.Log;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.JDA;
@@ -17,9 +18,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import okhttp3.OkHttpClient;
 import org.jboss.jandex.Index;
-import org.jboss.jandex.IndexReader;
 
-import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 public class JosetaBot {
@@ -58,17 +57,7 @@ public class JosetaBot {
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
         
-        Index globalIndex = null;
-        try (InputStream indexStream = JosetaBot.class.getClassLoader().getResourceAsStream("META-INF/jandex.idx")) {
-            if (indexStream == null) {
-                Log.err("Failed to load Jandex index. The file 'META-INF/jandex.idx' was not found in the classpath.");
-                System.exit(1);
-            }
-            globalIndex = new IndexReader(indexStream).read();
-        } catch (Exception e) {
-            Log.err("An error occurred while loading the Jandex index.", e);
-            System.exit(1);
-        }
+        Index globalIndex = JandexLoader.load();
         
         InteractionProcessor.initialize(botInstance, globalIndex);
         EventProcessor.initialize(botInstance, globalIndex);
