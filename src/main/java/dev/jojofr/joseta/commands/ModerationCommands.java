@@ -142,7 +142,7 @@ public class ModerationCommands {
     public void clear(SlashCommandInteractionEvent event,
                       @Option(description = "Le nombre de messages à supprimer.", minValue = 1, maxValue = 100, required = true) Integer amount)
     {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         
         if (!config.moderationEnabled) {
             event.reply("La modération est désactivée sur ce serveur.").setEphemeral(true).queue();
@@ -385,7 +385,7 @@ public class ModerationCommands {
     }
     
     private boolean check(SlashCommandInteractionEvent event, Member member) {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         Member executor = event.getMember();
         
         if (!config.moderationEnabled) {
