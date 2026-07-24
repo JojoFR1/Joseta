@@ -10,7 +10,6 @@ import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.utils.Log;
-import dev.jojofr.joseta.utils.function.Function;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -22,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ScheduledEvents {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -149,12 +149,12 @@ public class ScheduledEvents {
         removeExpiredMessages(ReminderCommand.reminderListMessages, message -> message.timestamp);
     }
     
-    private static <T> void removeExpiredMessages(Map<?, T> messages, Function<Instant, T> instantGetter) {
+    private static <T> void removeExpiredMessages(Map<?, T> messages, Function<T, Instant> instantGetter) {
         Instant expiration = Instant.now().minusSeconds(15 * 60);
         
         messages.entrySet().removeIf(entry ->
             entry.getValue() == null ||
-            instantGetter.get(entry.getValue()).isBefore(expiration)
+            instantGetter.apply(entry.getValue()).isBefore(expiration)
         );
     }
 }
