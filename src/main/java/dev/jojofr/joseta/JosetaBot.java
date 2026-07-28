@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import okhttp3.OkHttpClient;
 import org.jboss.jandex.Index;
 
@@ -50,9 +51,14 @@ public class JosetaBot {
         
         botInstance = JDABuilder.createDefault(dotenv.get("TOKEN"))
             .setMemberCachePolicy(MemberCachePolicy.ALL)
-            .enableIntents(GatewayIntent.GUILD_MESSAGES,
-                           GatewayIntent.GUILD_MEMBERS,
-                           GatewayIntent.MESSAGE_CONTENT)
+            .enableIntents(
+                GatewayIntent.GUILD_MESSAGES,
+                GatewayIntent.GUILD_MEMBERS,
+                GatewayIntent.MESSAGE_CONTENT,
+                GatewayIntent.GUILD_VOICE_STATES
+            ).enableCache(
+                CacheFlag.VOICE_STATE
+            )
             .setStatus(OnlineStatus.DO_NOT_DISTURB)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();

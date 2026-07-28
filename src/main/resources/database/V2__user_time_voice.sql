@@ -1,0 +1,2 @@
+ALTER TABLE users
+    ADD COLUMN time_voice BIGINT NOT NULL DEFAULT 0;

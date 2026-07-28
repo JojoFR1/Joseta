@@ -4,7 +4,9 @@ import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.events.misc.CountingChannel;
@@ -13,9 +15,11 @@ import dev.jojofr.joseta.utils.BotCache;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -23,6 +27,7 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 @EventModule
@@ -119,5 +124,27 @@ public class MiscEvents {
         if (channel == null) return;
         
         if (!guildConfig.configuration.welcomeLeaveMessage.isEmpty()) channel.sendMessage(guildConfig.configuration.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
+    }
+    
+    private static final ConcurrentHashMap<Long, Long> userVoiceJoinTime = new ConcurrentHashMap<>();
+    
+    @EventHandler
+    public void voiceChannelUpdate(GuildVoiceUpdateEvent event) {
+        AudioChannelUnion joinedChannel = event.getChannelJoined();
+        AudioChannelUnion leftChannel = event.getChannelLeft();
+        
+        // Left a voice channel
+        if (leftChannel != null) {
+            Long time = userVoiceJoinTime.remove(event.getMember().getIdLong());
+            if (time != null) {
+                long timeSpent = System.currentTimeMillis() - time;
+                Database.useExtension(UserDao.class, dao -> {
+                    if (dao.addTimeVoice(event.getMember().getIdLong(), event.getGuild().getIdLong(), timeSpent) == 0)
+                        dao.upsert(new UserEntity(event.getMember()).setTimeVoice(timeSpent));
+                });
+            }
+        }
+        // Joined a voice channel
+        if (joinedChannel != null) userVoiceJoinTime.put(event.getMember().getIdLong(), System.currentTimeMillis());
     }
 }

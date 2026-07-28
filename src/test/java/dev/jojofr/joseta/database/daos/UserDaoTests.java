@@ -24,6 +24,7 @@ class UserDaoTests extends AbstractDaoTest<UserEntity, UserDao> {
         user.avatarUrl = "full_url";
         user.creationDate = Instant.now().minusSeconds(3600).truncatedTo(ChronoUnit.MICROS);
         user.sanctionCount = 10;
+        user.timeVoice = 120;
         
         return user;
     }
@@ -35,6 +36,7 @@ class UserDaoTests extends AbstractDaoTest<UserEntity, UserDao> {
         updatedUser.avatarUrl = "updated_url";
         updatedUser.creationDate = Instant.now().minusSeconds(1800).truncatedTo(ChronoUnit.MICROS);
         updatedUser.sanctionCount = 20;
+        updatedUser.timeVoice = 240;
         
         return updatedUser;
     }
