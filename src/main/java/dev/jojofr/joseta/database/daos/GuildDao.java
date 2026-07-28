@@ -13,7 +13,8 @@ public interface GuildDao {
         ON CONFLICT (id) DO UPDATE SET
             name = EXCLUDED.name,
             icon_url = EXCLUDED.icon_url,
-            owner_id = EXCLUDED.owner_id
+            owner_id = EXCLUDED.owner_id,
+            last_sanction_number = :lastSanctionNumber
         """)
     void upsert(@BindFields GuildEntity guild);
     

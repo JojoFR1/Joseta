@@ -9,7 +9,7 @@ public class GuildEntity {
     public String iconUrl;
     public long ownerId;
     
-    public int lastSanctionId = 0;
+    public int lastSanctionNumber = 0;
 
     // A non-private and no-arg constructor is required by JDBI
     protected GuildEntity() {}
@@ -41,13 +41,13 @@ public class GuildEntity {
         return this;
     }
     
-    public GuildEntity setLastSanctionId(int lastSanctionId) {
-        this.lastSanctionId = lastSanctionId;
+    public GuildEntity setLastSanctionNumber(int lastSanctionNumber) {
+        this.lastSanctionNumber = lastSanctionNumber;
         return this;
     }
     
     public GuildEntity incrementLastSanctionId() {
-        this.lastSanctionId += 1;
+        this.lastSanctionNumber += 1;
         return this;
     }
 }
