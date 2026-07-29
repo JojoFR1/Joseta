@@ -33,6 +33,7 @@ class ConfigurationDaoTests extends AbstractDaoTest<ConfigurationEntity, Configu
         config.roleVerifiedId = 101112L;
         config.markovEnabled = true;
         config.moderationEnabled = false;
+        config.moderationLogEnabled = true;
         config.moderationHoneypotEnabled = true;
         config.moderationHoneypotChannelId = 192021L;
         config.rules = "Be nice!";
@@ -57,6 +58,7 @@ class ConfigurationDaoTests extends AbstractDaoTest<ConfigurationEntity, Configu
         updatedConfig.joinRoleBotId = 987L;
         updatedConfig.roleVerifiedId = 211101L;
         updatedConfig.markovEnabled = false;
+        updatedConfig.moderationLogEnabled = false;
         updatedConfig.moderationEnabled = true;
         updatedConfig.moderationHoneypotEnabled = false;
         updatedConfig.moderationHoneypotChannelId = 120291L;
