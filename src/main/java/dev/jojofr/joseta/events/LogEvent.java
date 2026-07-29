@@ -21,7 +21,7 @@ public class LogEvent {
     
     @EventHandler(priority = EventPriority.HIGH)
     public void messageUpdateEvent(MessageUpdateEvent event) {
-        ConfigurationEntity configuration = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        ConfigurationEntity configuration = BotCache.getConfiguration(event.getGuild().getIdLong());
         if (configuration == null || !configuration.moderationLogEnabled) return;
         
         TextChannel channel;
