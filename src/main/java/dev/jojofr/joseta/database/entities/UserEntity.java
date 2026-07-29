@@ -13,6 +13,7 @@ public class UserEntity {
     public String avatarUrl;
     public Instant creationDate;
     public int sanctionCount = 0;
+    public long timeVoice = 0;
     
     // A non-private and no-arg constructor is required by JDBI
     protected UserEntity() {}
@@ -56,6 +57,11 @@ public class UserEntity {
     
     public UserEntity incrementSanctionCount() {
         this.sanctionCount += 1;
+        return this;
+    }
+    
+    public UserEntity setTimeVoice(long timeVoice) {
+        this.timeVoice = timeVoice;
         return this;
     }
 }

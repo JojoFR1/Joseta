@@ -102,7 +102,7 @@ public class ConfigurationCommand {
             if (configurationMessage.hasMarkovBlacklistChanged) {
                 MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
                 
-                long guildId = configurationMessage.configuration.guildId;
+                long guildId = configurationMessage.guildConfiguration.configuration.guildId;
                 
                 markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.USER);
                 markovBlacklistDao.addAll(guildId, MessageDao.EntityType.USER, configurationMessage.pendingMarkovUserBlacklist);
@@ -113,13 +113,13 @@ public class ConfigurationCommand {
                 markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.CHANNEL);
                 markovBlacklistDao.addAll(guildId, MessageDao.EntityType.CHANNEL, configurationMessage.pendingMarkovChannelBlacklist);
                 
-                configurationMessage.configuration.markovBlacklistIds = markovBlacklistDao.getAllIds(guildId);
+                configurationMessage.guildConfiguration.markovBlacklistIds = markovBlacklistDao.getAllIds(guildId);
             }
             
-            configurationDao.upsert(configurationMessage.configuration);
+            configurationDao.upsert(configurationMessage.guildConfiguration.configuration);
         });
         
-        BotCache.putGuildConfiguration(configurationMessage.configuration.guildId, configurationMessage.configuration);
+        BotCache.putGuildConfiguration(configurationMessage.guildConfiguration.configuration.guildId, configurationMessage.guildConfiguration);
         
         if (configurationMessage.hasMarkovBlacklistChanged)
             MessageDatabase.updateMarkovEligibility(event.getGuild().getIdLong());
@@ -148,16 +148,16 @@ public class ConfigurationCommand {
         // Toggle the relevant setting based on the button ID
         String buttonId = event.getComponentId();
         switch (buttonId) {
-            case "config:cat_welcome:toggle" -> configurationMessage.configuration.setWelcomeEnabled(!configurationMessage.configuration.welcomeEnabled);
-            case "config:cat_welcome:image:toggle" -> configurationMessage.configuration.setWelcomeImageEnabled(!configurationMessage.configuration.welcomeImageEnabled);
-            case "config:cat_counting:toggle" -> configurationMessage.configuration.setCountingEnabled(!configurationMessage.configuration.countingEnabled);
-            case "config:cat_counting:comments:toggle" -> configurationMessage.configuration.setCountingCommentsEnabled(!configurationMessage.configuration.countingCommentsEnabled);
-            case "config:cat_counting:penalty:toggle" -> configurationMessage.configuration.setCountingPenaltyEnabled(!configurationMessage.configuration.countingPenaltyEnabled);
-            case "config:cat_markov:toggle" -> configurationMessage.configuration.setMarkovEnabled(!configurationMessage.configuration.markovEnabled);
-            case "config:cat_moderation:toggle" -> configurationMessage.configuration.setModerationEnabled(!configurationMessage.configuration.moderationEnabled);
-            case "config:cat_moderation:honey_pot:toggle" -> configurationMessage.configuration.setModerationHoneypotEnabled(!configurationMessage.configuration.moderationHoneypotEnabled);
-            case "config:cat_moderation:logs:toggle" -> configurationMessage.configuration.setModerationLogEnabled(!configurationMessage.configuration.moderationLogEnabled);
-            case "config:cat_autores:toggle" -> configurationMessage.configuration.setAutoResponseEnabled(!configurationMessage.configuration.autoResponseEnabled);
+            case "config:cat_welcome:toggle" -> configurationMessage.getConfigurationEntity().setWelcomeEnabled(!configurationMessage.getConfigurationEntity().welcomeEnabled);
+            case "config:cat_welcome:image:toggle" -> configurationMessage.getConfigurationEntity().setWelcomeImageEnabled(!configurationMessage.getConfigurationEntity().welcomeImageEnabled);
+            case "config:cat_counting:toggle" -> configurationMessage.getConfigurationEntity().setCountingEnabled(!configurationMessage.getConfigurationEntity().countingEnabled);
+            case "config:cat_counting:comments:toggle" -> configurationMessage.getConfigurationEntity().setCountingCommentsEnabled(!configurationMessage.getConfigurationEntity().countingCommentsEnabled);
+            case "config:cat_counting:penalty:toggle" -> configurationMessage.getConfigurationEntity().setCountingPenaltyEnabled(!configurationMessage.getConfigurationEntity().countingPenaltyEnabled);
+            case "config:cat_markov:toggle" -> configurationMessage.getConfigurationEntity().setMarkovEnabled(!configurationMessage.getConfigurationEntity().markovEnabled);
+            case "config:cat_moderation:toggle" -> configurationMessage.getConfigurationEntity().setModerationEnabled(!configurationMessage.getConfigurationEntity().moderationEnabled);
+            case "config:cat_moderation:honey_pot:toggle" -> configurationMessage.getConfigurationEntity().setModerationHoneypotEnabled(!configurationMessage.getConfigurationEntity().moderationHoneypotEnabled);
+            case "config:cat_moderation:logs:toggle" -> configurationMessage.getConfigurationEntity().setModerationLogEnabled(!configurationMessage.getConfigurationEntity().moderationLogEnabled);
+            case "config:cat_autores:toggle" -> configurationMessage.getConfigurationEntity().setAutoResponseEnabled(!configurationMessage.getConfigurationEntity().autoResponseEnabled);
         }
         
         configurationMessage.hasChanged = true;
@@ -228,7 +228,7 @@ public class ConfigurationCommand {
     private static final String RULES_EMBED_START = "---STARTEMBED---";
     private static final String RULES_EMBED_END = "---ENDEMBED---";
     private List<MessageEmbed> buildRulesEmbeds(Guild guild) {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(guild.getIdLong());
+        ConfigurationEntity config = BotCache.getConfiguration(guild.getIdLong());
         
         String rules = config.rules;
         if (rules == null || rules.isBlank()) {
@@ -283,7 +283,7 @@ public class ConfigurationCommand {
     
     @Interaction(id = "rules:accept")
     public void onRulesAcceptButton(ButtonInteractionEvent event) {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         
         Role joinRole, verifiedRole;
         if (config.joinRoleId == null || (joinRole = event.getGuild().getRoleById(config.joinRoleId)) == null) return;
@@ -341,19 +341,19 @@ public class ConfigurationCommand {
                 
                 event.replyModal(
                     createEditModal("config:cat_moderation:edit_rules:modal", "Modifier les règles du serveur", description,
-                        "Règles du serveur", "Entrez les règles du serveur.", configurationMessage.configuration.rules, 4000)
+                        "Règles du serveur", "Entrez les règles du serveur.", configurationMessage.getConfigurationEntity().rules, 4000)
                 ).queue();
             }
             case "config:cat_welcome:edit_join_message" -> {
                 event.replyModal(
                     createEditModal("config:cat_welcome:edit_join_message:modal", "Modifier le message de bienvenue", "Aucune description.",
-                        "Message de bienvenue", "Entrez le message de bienvenue à envoyer lorsqu'un membre rejoint le serveur.", configurationMessage.configuration.welcomeJoinMessage)
+                        "Message de bienvenue", "Entrez le message de bienvenue à envoyer lorsqu'un membre rejoint le serveur.", configurationMessage.getConfigurationEntity().welcomeJoinMessage)
                 ).queue();
             }
             case "config:cat_welcome:edit_leave_message" -> {
                 event.replyModal(
                     createEditModal("config:cat_welcome:edit_leave_message:modal", "Modifier le message de départ", "Aucune description.",
-                        "Message de départ", "Entrez le message de départ à envoyer lorsqu'un membre quitte le serveur.", configurationMessage.configuration.welcomeLeaveMessage)
+                        "Message de départ", "Entrez le message de départ à envoyer lorsqu'un membre quitte le serveur.", configurationMessage.getConfigurationEntity().welcomeLeaveMessage)
                 ).queue();
             }
         }
@@ -377,7 +377,7 @@ public class ConfigurationCommand {
         List<IMentionable> selectedValues = event.getValues();
         Long selectedId = selectedValues.isEmpty() ? null : selectedValues.getFirst().getIdLong();
         switch (menuId) {
-            case "config:cat_counting:channel_select" -> configurationMessage.configuration.setCountingChannelId(selectedId);
+            case "config:cat_counting:channel_select" -> configurationMessage.getConfigurationEntity().setCountingChannelId(selectedId);
             case "config:cat_markov:mentionable_blacklist_select" -> {
                 configurationMessage.pendingMarkovUserBlacklist.clear();
                 configurationMessage.pendingMarkovRoleBlacklist.clear();
@@ -398,13 +398,13 @@ public class ConfigurationCommand {
                 
                 configurationMessage.hasMarkovBlacklistChanged = true;
             }
-            case "config:cat_moderation:honey_pot:channel_select" -> configurationMessage.configuration.setModerationHoneypotChannelId(selectedId);
-            case "config:cat_moderation:logs:channel_select" -> configurationMessage.configuration.setModerationLogChannelId(selectedId);
+            case "config:cat_moderation:honey_pot:channel_select" -> configurationMessage.getConfigurationEntity().setModerationHoneypotChannelId(selectedId);
+            case "config:cat_moderation:logs:channel_select" -> configurationMessage.getConfigurationEntity().setModerationLogChannelId(selectedId);
             case "config:cat_moderation:rules:channel_select" -> configurationMessage.currentRulesChannelId = selectedId;
-            case "config:cat_welcome:channel_select" -> configurationMessage.configuration.setWelcomeChannelId(selectedId);
-            case "config:cat_welcome:join_role_select" -> configurationMessage.configuration.setJoinRoleId(selectedId);
-            case "config:cat_welcome:join_bot_role_select" -> configurationMessage.configuration.setJoinRoleBotId(selectedId);
-            case "config:cat_welcome:verified_role_select" -> configurationMessage.configuration.setRoleVerifiedId(selectedId);
+            case "config:cat_welcome:channel_select" -> configurationMessage.getConfigurationEntity().setWelcomeChannelId(selectedId);
+            case "config:cat_welcome:join_role_select" -> configurationMessage.getConfigurationEntity().setJoinRoleId(selectedId);
+            case "config:cat_welcome:join_bot_role_select" -> configurationMessage.getConfigurationEntity().setJoinRoleBotId(selectedId);
+            case "config:cat_welcome:verified_role_select" -> configurationMessage.getConfigurationEntity().setRoleVerifiedId(selectedId);
         }
         
         configurationMessage.hasChanged = true;
@@ -449,9 +449,9 @@ public class ConfigurationCommand {
                     return;
                 }
             }
-            case "config:cat_moderation:edit_rules:modal" -> configurationMessage.configuration.setRules(newValue);
-            case "config:cat_welcome:edit_join_message:modal" -> configurationMessage.configuration.setWelcomeJoinMessage(newValue);
-            case "config:cat_welcome:edit_leave_message:modal" -> configurationMessage.configuration.setWelcomeLeaveMessage(newValue);
+            case "config:cat_moderation:edit_rules:modal" -> configurationMessage.getConfigurationEntity().setRules(newValue);
+            case "config:cat_welcome:edit_join_message:modal" -> configurationMessage.getConfigurationEntity().setWelcomeJoinMessage(newValue);
+            case "config:cat_welcome:edit_leave_message:modal" -> configurationMessage.getConfigurationEntity().setWelcomeLeaveMessage(newValue);
         }
         
         configurationMessage.hasChanged = true;
@@ -518,7 +518,7 @@ public class ConfigurationCommand {
             
             createToggleSection("Système de réponses automatique",
                 "Active ou désactive le système de réponses automatiques.",
-                "config:cat_autores:toggle", configurationMessage.configuration.autoResponseEnabled),
+                "config:cat_autores:toggle", configurationMessage.getConfigurationEntity().autoResponseEnabled),
             
             createBottomRow(configurationMessage)
         );
@@ -528,8 +528,8 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon de comptage")
             .setChannelTypes(ChannelType.TEXT);
-        if (configurationMessage.configuration.countingChannelId != null)
-            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.countingChannelId));
+        if (configurationMessage.getConfigurationEntity().countingChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().countingChannelId));
         
         EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
@@ -538,15 +538,15 @@ public class ConfigurationCommand {
             
             createToggleSection("Système de comptage",
                 "Active ou désactive le système de comptage.",
-                "config:cat_counting:toggle", configurationMessage.configuration.countingEnabled),
+                "config:cat_counting:toggle", configurationMessage.getConfigurationEntity().countingEnabled),
             
             createToggleSection("Commentaires de comptage",
                 "Autorise ou non les commentaires sur les messages de comptage (après le nombre).",
-                "config:cat_counting:comments:toggle", configurationMessage.configuration.countingCommentsEnabled, !configurationMessage.configuration.countingEnabled),
+                "config:cat_counting:comments:toggle", configurationMessage.getConfigurationEntity().countingCommentsEnabled, !configurationMessage.getConfigurationEntity().countingEnabled),
             
             createToggleSection("Pénalité en cas d'erreur de comptage",
                 "Active ou désactive la pénalité en cas d'erreur de comptage (le compteur est réinitialisé à 0).",
-                "config:cat_counting:penalty:toggle", configurationMessage.configuration.countingPenaltyEnabled, !configurationMessage.configuration.countingEnabled),
+                "config:cat_counting:penalty:toggle", configurationMessage.getConfigurationEntity().countingPenaltyEnabled, !configurationMessage.getConfigurationEntity().countingEnabled),
             
             TextDisplay.of("### Salon de comptage"),
             TextDisplay.of("-# Le salon où le comptage est actif."),
@@ -554,19 +554,19 @@ public class ConfigurationCommand {
             
             Section.of(
                 Button.of(ButtonStyle.PRIMARY, "config:cat_counting:set_number", "Définir le nombre", Emoji.fromUnicode("\uD83D\uDD22"))
-                    .withDisabled(!configurationMessage.configuration.countingEnabled),
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
                 TextDisplay.of("### Définir le nombre de comptage"),
                 TextDisplay.of("-# Définit le nombre actuel du salon de comptage à un nombre spécifique.")
             ),
             Section.of(
                 Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number", "Réinitialiser le nombre", Emoji.fromUnicode("\uD83D\uDDD1️"))
-                    .withDisabled(!configurationMessage.configuration.countingEnabled),
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
                 TextDisplay.of("### Réinitialiser le nombre de comptage"),
                 TextDisplay.of("-# Réinitialise le nombre actuel à 0.")
             ),
             Section.of(
                 Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author", "Réinitialiser l'auteur du dernier nombre", Emoji.fromUnicode("\uD83D\uDC64"))
-                    .withDisabled(!configurationMessage.configuration.countingEnabled),
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
                 TextDisplay.of("### Réinitialiser l'auteur du dernier nombre"),
                 TextDisplay.of("-# Réinitialise l'auteur du dernier nombre.")
             ),
@@ -599,7 +599,7 @@ public class ConfigurationCommand {
             
             createToggleSection("Génération de messages de Markov",
                 "Active ou désactive le système de génération de messages de Markov.",
-                "config:cat_markov:toggle", configurationMessage.configuration.markovEnabled),
+                "config:cat_markov:toggle", configurationMessage.getConfigurationEntity().markovEnabled),
             
             
             TextDisplay.of("### Blacklist de Markov"),
@@ -625,8 +625,8 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder honeyPotChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:honey_pot:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon pour le \"pot de miel\"")
             .setChannelTypes(ChannelType.TEXT);
-        if (configurationMessage.configuration.moderationHoneypotChannelId != null)
-            honeyPotChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.moderationHoneypotChannelId));
+        if (configurationMessage.getConfigurationEntity().moderationHoneypotChannelId != null)
+            honeyPotChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().moderationHoneypotChannelId));
         
         EntitySelectMenu honeyPoChannelSelectMenu = honeyPotChannelSelectMenuBuilder.build();
         
@@ -641,11 +641,11 @@ public class ConfigurationCommand {
             
             createToggleSection("Système de modération",
                 "Active ou désactive les commande de modération.",
-                "config:cat_moderation:toggle", configurationMessage.configuration.moderationEnabled),
+                "config:cat_moderation:toggle", configurationMessage.getConfigurationEntity().moderationEnabled),
             
             createToggleSection("Salon \"pot de miel\"",
                 "Active ou désactive le salon \"pot de miel\".",
-                "config:cat_moderation:honey_pot:toggle", configurationMessage.configuration.moderationHoneypotEnabled),
+                "config:cat_moderation:honey_pot:toggle", configurationMessage.getConfigurationEntity().moderationHoneypotEnabled),
             
             TextDisplay.of("### Salon \"pot de miel\""),
             TextDisplay.of("-# Le salon \"pot de miel\""),
@@ -659,7 +659,7 @@ public class ConfigurationCommand {
             
             Section.of(
                 Button.success("config:cat_moderation:rules:send", "Envoyer les règles")
-                    .withDisabled(configurationMessage.configuration.rules == null || configurationMessage.configuration.rules.isEmpty() || configurationMessage.currentRulesChannelId == null),
+                    .withDisabled(configurationMessage.getConfigurationEntity().rules == null || configurationMessage.getConfigurationEntity().rules.isEmpty() || configurationMessage.currentRulesChannelId == null),
                 TextDisplay.of("### Envoyer les règles du serveur"),
                 TextDisplay.of("-# Envoie les règles du serveur dans un salon spécifique, avec un bouton de vérification à la fin. Le salon est choisi lors de l'envoi des règles.")
             ),
@@ -673,8 +673,8 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_moderation:logs:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon pour les logs de modération")
             .setChannelTypes(ChannelType.TEXT);
-        if (configurationMessage.configuration.moderationLogChannelId != null)
-            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.moderationLogChannelId));
+        if (configurationMessage.getConfigurationEntity().moderationLogChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().moderationLogChannelId));
         EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
         return Container.of(
@@ -682,7 +682,7 @@ public class ConfigurationCommand {
             
             createToggleSection("Système de logs",
                 "Active ou désactive le système de logs.",
-                "config:cat_moderation:logs:toggle", configurationMessage.configuration.moderationLogEnabled),
+                "config:cat_moderation:logs:toggle", configurationMessage.getConfigurationEntity().moderationLogEnabled),
             
             TextDisplay.of("### Salon de logs de modération"),
             TextDisplay.of("-# Le salon où les logs de modération sont envoyés."),
@@ -696,29 +696,29 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon de bienvenue")
             .setChannelTypes(ChannelType.TEXT);
-        if (configurationMessage.configuration.welcomeChannelId != null)
-            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.configuration.welcomeChannelId));
+        if (configurationMessage.getConfigurationEntity().welcomeChannelId != null)
+            channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().welcomeChannelId));
         
         EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
         EntitySelectMenu.Builder joinRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:join_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux membres");
-        if (configurationMessage.configuration.joinRoleId != null)
-            joinRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinRoleId));
+        if (configurationMessage.getConfigurationEntity().joinRoleId != null)
+            joinRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.getConfigurationEntity().joinRoleId));
         
         EntitySelectMenu joinRoleSelectMenu = joinRoleSelectMenuBuilder.build();
         
         EntitySelectMenu.Builder joinBotRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:join_bot_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux nouveaux bots");
-        if (configurationMessage.configuration.joinRoleBotId != null)
-            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.joinRoleBotId));
+        if (configurationMessage.getConfigurationEntity().joinRoleBotId != null)
+            joinBotRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.getConfigurationEntity().joinRoleBotId));
         
         EntitySelectMenu joinBotRoleSelectMenu = joinBotRoleSelectMenuBuilder.build();
         
         EntitySelectMenu.Builder verifiedRoleSelectMenuBuilder = EntitySelectMenu.create("config:cat_welcome:verified_role_select", EntitySelectMenu.SelectTarget.ROLE)
             .setPlaceholder("Sélectionnez un rôle à attribuer aux membres vérifiés");
-        if (configurationMessage.configuration.roleVerifiedId != null)
-            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.configuration.roleVerifiedId));
+        if (configurationMessage.getConfigurationEntity().roleVerifiedId != null)
+            verifiedRoleSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.role(configurationMessage.getConfigurationEntity().roleVerifiedId));
         
         EntitySelectMenu verifiedRoleSelectMenu = verifiedRoleSelectMenuBuilder.build();
         
@@ -727,7 +727,7 @@ public class ConfigurationCommand {
             
             createToggleSection("Système de bienvenue",
                 "Active ou désactive le système de bienvenue.",
-                "config:cat_welcome:toggle", configurationMessage.configuration.welcomeEnabled),
+                "config:cat_welcome:toggle", configurationMessage.getConfigurationEntity().welcomeEnabled),
             
             TextDisplay.of("### Salon de bienvenue"),
             TextDisplay.of("-# Le salon où les messages de bienvenue et de départ sont envoyés."),
@@ -735,11 +735,11 @@ public class ConfigurationCommand {
             
             createToggleSection("Image de bienvenue",
                 "Active ou désactive l'image de bienvenue (une image avec le nom du membre qui rejoint et le nombre de membres du serveur).",
-                "config:cat_welcome:image:toggle", configurationMessage.configuration.welcomeImageEnabled, !configurationMessage.configuration.welcomeEnabled),
+                "config:cat_welcome:image:toggle", configurationMessage.getConfigurationEntity().welcomeImageEnabled, !configurationMessage.getConfigurationEntity().welcomeEnabled),
             
             TextDisplay.of("### Message de bienvenue"),
             Section.of(
-                Button.primary("config:cat_welcome:edit_join_message", "Modifier le message de bienvenue").withDisabled(configurationMessage.configuration.welcomeImageEnabled),
+                Button.primary("config:cat_welcome:edit_join_message", "Modifier le message de bienvenue").withDisabled(configurationMessage.getConfigurationEntity().welcomeImageEnabled),
                 TextDisplay.of("-# Le message envoyé lorsqu'un membre rejoint le serveur. Incompatible avec l'image de bienvenue, qui désactive ce message pour les membres qui rejoignent.")
             ),
             Section.of(

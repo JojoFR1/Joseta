@@ -48,12 +48,13 @@ public class ReminderCommand {
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
     public void reminderAdd(SlashCommandInteractionEvent event,
                             @Option(description = "Le message du rappel.", required = true) String message,
-                            @Option(description = "L'année où le rappel doit être envoyé. Par défaut: cette année.") Integer year,
-                            @Option(description = "Le mois où le rappel doit être envoyé (1-12). Par défaut: ce mois-ci.", minValue = 1, maxValue = 12) Integer month,
-                            @Option(description = "Le jour où le rappel doit être envoyé (1-31). Par défaut: aujourd'hui.",minValue = 1, maxValue = 31) Integer day,
-                            @Option(description = "L'heure où le rappel doit être envoyé (0-23). Par défaut: l'heure actuelle.", minValue = 0, maxValue = 23) Integer hour,
-                            @Option(description = "La minute où le rappel doit être envoyé (0-59). Par défaut: la minute actuelle.", minValue = 0, maxValue = 59) Integer minute,
-                            @Option(description = "Le temps avant de répéter le rappel (A/Y, M, S/w, j/d, H/h, m, s). Si vide, aucune répétition.") String repeatTime,
+                            @Option(description = "Le temps avant d'envoyer le rappel (A/Y, M, S/w, j/d, H/h, m). Incompatible avec les options date.") String remindAfter,
+                            @Option(description = "L'année d'envoi du rappel. Par défaut: cette année. Incompatible avec 'remindAfter'.") Integer year,
+                            @Option(description = "Le mois d'envoi du rappel (1-12). Par défaut: ce mois-ci. Incompatible avec 'remindAfter'.", minValue = 1, maxValue = 12) Integer month,
+                            @Option(description = "Le jour d'envoi du rappel (1-31). Par défaut: aujourd'hui. Incompatible avec 'remindAfter'.",minValue = 1, maxValue = 31) Integer day,
+                            @Option(description = "L'heure d'envoi du rappel (0-23). Par défaut: l'heure actuelle. Incompatible avec 'remindAfter'.", minValue = 0, maxValue = 23) Integer hour,
+                            @Option(description = "La minute d'envoi du rappel (0-59). Par défaut: la minute actuelle. Incompatible avec 'remindAfter'.", minValue = 0, maxValue = 59) Integer minute,
+                            @Option(description = "Le temps avant de répéter le rappel (A/Y, M, S/w, j/d, H/h, m). Si vide, aucune répétition.") String repeatTime,
                             @Option(description = "Si le rappel doit être envoyé en MP (par défaut dans le canal).") Boolean dm)
     {
         if (dm == null) dm = false;
@@ -61,13 +62,16 @@ public class ReminderCommand {
         
         ZoneId parisZone = ZoneId.of("Europe/Paris");
         LocalDateTime now = LocalDateTime.now(parisZone);
-        LocalDateTime remindAt = LocalDateTime.of(
-            year   != null ? year   : now.getYear(),
-            month  != null ? month  : now.getMonthValue(),
-            day    != null ? day    : now.getDayOfMonth(),
-            hour   != null ? hour   : now.getHour(),
-            minute != null ? minute : now.getMinute()
-        );
+        LocalDateTime remindAt;
+        if (remindAfter != null && !remindAfter.isEmpty()) remindAt = now.plusSeconds(TimeParser.parse(remindAfter));
+        else
+            remindAt = LocalDateTime.of(
+                year   != null ? year   : now.getYear(),
+                month  != null ? month  : now.getMonthValue(),
+                day    != null ? day    : now.getDayOfMonth(),
+                hour   != null ? hour   : now.getHour(),
+                minute != null ? minute : now.getMinute()
+            );
         
         if (remindAt.isBefore(now.plusMinutes(5))) {
             event.reply("Le rappel doit être défini pour une date future d'au moins 5 minutes.").setEphemeral(true).queue();

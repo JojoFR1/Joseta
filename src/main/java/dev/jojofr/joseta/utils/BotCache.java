@@ -5,12 +5,13 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ConfigurationDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.entities.GuildConfiguration;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BotCache {
-    private static final ConcurrentHashMap<Long, ConfigurationEntity> guildConfigurations = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, GuildConfiguration> guildConfigurations = new ConcurrentHashMap<>();
     
     public static final Emoji CHECK_EMOJI, CROSS_EMOJI;
     
@@ -22,7 +23,7 @@ public class BotCache {
         CROSS_EMOJI = Emoji.fromCustom("no", debug ? 1459377027747680266L : 1451286184817987719L, false);
     }
     
-    public static ConfigurationEntity getGuildConfiguration(long guildId) {
+    public static GuildConfiguration getGuildConfiguration(long guildId) {
         return guildConfigurations.computeIfAbsent(guildId, id -> {
             ConfigurationEntity config = Database.withExtension(ConfigurationDao.class, dao -> dao.getByGuildId(id));
             if (config == null) {
@@ -32,13 +33,15 @@ public class BotCache {
                 Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(finalConfig));
             }
             
-            config.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
-            return config;
+            GuildConfiguration guildConfig = new GuildConfiguration(config);
+            guildConfig.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
+            
+            return guildConfig;
         });
     }
     
-    public static void putGuildConfiguration(long guildId, ConfigurationEntity config) { guildConfigurations.put(guildId, config); }
-    public static void removeGuildConfiguration(long guildId) {
-        guildConfigurations.remove(guildId);
-    }
+    public static ConfigurationEntity getConfiguration(long guildId) { return getGuildConfiguration(guildId).configuration; }
+    
+    public static void putGuildConfiguration(long guildId, GuildConfiguration guildConfig) { guildConfigurations.put(guildId, guildConfig); }
+    public static void removeGuildConfiguration(long guildId) { guildConfigurations.remove(guildId); }
 }

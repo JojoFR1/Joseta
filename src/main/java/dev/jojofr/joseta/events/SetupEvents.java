@@ -25,24 +25,16 @@ public class SetupEvents {
         Log.info("Connected to guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
         
         GuildEntity guildEntity = Database.withExtension(GuildDao.class, dao -> dao.getById(event.getGuild().getIdLong()));
-        ConfigurationEntity config;
         if (guildEntity == null) {
             Log.info("New guild detected. Creating database entries for guild: {} (ID: {})", event.getGuild().getName(), event.getGuild().getIdLong());
             
             Database.useExtension(GuildDao.class, dao -> dao.upsert(new GuildEntity(event.getGuild())));
-            
-            config = new ConfigurationEntity(event.getGuild().getIdLong());
-            Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(config));
-            
+            Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(new ConfigurationEntity(event.getGuild().getIdLong())));
             MessageDatabase.populateNewGuild(event.getGuild()).exceptionally(throwable -> {
                 Log.err("Failed to populate new guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
                 return null;
             });
-        } else config = Database.withExtension(ConfigurationDao.class, dao -> dao.getByGuildId(event.getGuild().getIdLong()));
-        
-        config.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(event.getGuild().getIdLong()));
-        
-        BotCache.putGuildConfiguration(event.getGuild().getIdLong(), config);
+        }
     }
     
     @EventHandler(priority = EventPriority.HIGH)

@@ -4,18 +4,22 @@ import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
+import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
 import dev.jojofr.joseta.utils.BotCache;
-import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -23,6 +27,7 @@ import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 @EventModule
@@ -70,7 +75,7 @@ public class MiscEvents {
     
     @EventHandler
     public void autoResponse(MessageReceivedEvent event) {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         if (!config.autoResponseEnabled) return;
         
         String text = event.getMessage().getContentRaw();
@@ -81,7 +86,7 @@ public class MiscEvents {
     
     @EventHandler
     public void countingCheck(MessageReceivedEvent event) {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         if (!config.countingEnabled) return;
         
         if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
@@ -91,47 +96,55 @@ public class MiscEvents {
     
     @EventHandler
     public void memberJoin(GuildMemberJoinEvent event) throws IOException {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (!config.welcomeEnabled) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        if (!guildConfig.configuration.welcomeEnabled) return;
         
         User user = event.getUser();
-        TextChannel channel;
-        Role botRole = null, memberRole = null;
-        if (config.welcomeChannelId == null || (channel = event.getGuild().getTextChannelById(config.welcomeChannelId)) == null) {
-            Log.warn("Welcome channel not found for guild " + event.getGuild().getIdLong());
-            return;
-        }
-        if (!user.isBot() && (config.joinRoleId == null || (memberRole = event.getGuild().getRoleById(config.joinRoleId)) == null)) {
-            Log.warn("Join role not found for guild " + event.getGuild().getIdLong());
-            return;
-        }
-        if (user.isBot() && (config.joinRoleBotId == null || (botRole = event.getGuild().getRoleById(config.joinRoleBotId)) == null)) {
-            Log.warn("Bot role not found for guild " + event.getGuild().getIdLong());
-            return;
-        }
         
-        if (config.welcomeImageEnabled && WelcomeChannel.imageLoaded) {
+        TextChannel channel = guildConfig.getWelcomeChannel(event.getGuild());
+        if (channel == null) return;
+        
+        Role role = user.isBot() ? guildConfig.getJoinBotRole(event.getGuild()) : guildConfig.getJoinRole(event.getGuild());
+        if (role != null) event.getGuild().addRoleToMember(user, role).reason("Rôle d'arrivée automatique").queue();
+        
+        if (guildConfig.configuration.welcomeImageEnabled && WelcomeChannel.imageLoaded) {
             byte[] image = WelcomeChannel.getWelcomeImage(event.getUser(), event.getGuild().getMemberCount());
             
             channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
         }
-        else if (!config.welcomeJoinMessage.isEmpty()) channel.sendMessage(config.welcomeJoinMessage.replace("{{user}}", user.getAsMention())).queue();
-        
-        if (user.isBot()) event.getGuild().addRoleToMember(user, botRole).queue();
-        else event.getGuild().addRoleToMember(user, memberRole).reason("Rôle d'arrivée automatique").queue();
+        else if (!guildConfig.configuration.welcomeJoinMessage.isEmpty()) channel.sendMessage(guildConfig.configuration.welcomeJoinMessage.replace("{{user}}", user.getAsMention())).queue();
     }
     
     @EventHandler
     public void memberRemove(GuildMemberRemoveEvent event) {
-        ConfigurationEntity config = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
-        if (!config.welcomeEnabled) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        if (!guildConfig.configuration.welcomeEnabled) return;
         
-        TextChannel channel;
-        if (config.welcomeChannelId == null || (channel = event.getGuild().getTextChannelById(config.welcomeChannelId)) == null) {
-            Log.warn("Welcome channel not found for guild " + event.getGuild().getIdLong());
-            return;
+        TextChannel channel = guildConfig.getWelcomeChannel(event.getGuild());
+        if (channel == null) return;
+        
+        if (!guildConfig.configuration.welcomeLeaveMessage.isEmpty()) channel.sendMessage(guildConfig.configuration.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
+    }
+    
+    private static final ConcurrentHashMap<Long, Long> userVoiceJoinTime = new ConcurrentHashMap<>();
+    
+    @EventHandler
+    public void voiceChannelUpdate(GuildVoiceUpdateEvent event) {
+        AudioChannelUnion joinedChannel = event.getChannelJoined();
+        AudioChannelUnion leftChannel = event.getChannelLeft();
+        
+        // Left a voice channel
+        if (leftChannel != null) {
+            Long time = userVoiceJoinTime.remove(event.getMember().getIdLong());
+            if (time != null) {
+                long timeSpent = System.currentTimeMillis() - time;
+                Database.useExtension(UserDao.class, dao -> {
+                    if (dao.addTimeVoice(event.getMember().getIdLong(), event.getGuild().getIdLong(), timeSpent) == 0)
+                        dao.upsert(new UserEntity(event.getMember()).setTimeVoice(timeSpent));
+                });
+            }
         }
-        
-        if (!config.welcomeLeaveMessage.isEmpty()) channel.sendMessage(config.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
+        // Joined a voice channel
+        if (joinedChannel != null) userVoiceJoinTime.put(event.getMember().getIdLong(), System.currentTimeMillis());
     }
 }

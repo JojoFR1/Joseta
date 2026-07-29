@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ConfigurationMessage {
-    public ConfigurationEntity configuration;
+    public GuildConfiguration guildConfiguration;
     public Set<Long> pendingMarkovUserBlacklist;
     public Set<Long> pendingMarkovRoleBlacklist;
     public Set<Long> pendingMarkovChannelBlacklist;
@@ -23,7 +23,7 @@ public class ConfigurationMessage {
     public final Instant timestamp;
     
     public ConfigurationMessage(long guildId, Instant timestamp) {
-        this.configuration = new ConfigurationEntity(BotCache.getGuildConfiguration(guildId));
+        this.guildConfiguration = new GuildConfiguration(BotCache.getGuildConfiguration(guildId));
         
         this.pendingMarkovUserBlacklist = new HashSet<>();
         this.pendingMarkovRoleBlacklist = new HashSet<>();
@@ -36,5 +36,9 @@ public class ConfigurationMessage {
         });
         
         this.timestamp = timestamp;
+    }
+    
+    public ConfigurationEntity getConfigurationEntity() {
+        return guildConfiguration.configuration;
     }
 }

@@ -20,7 +20,6 @@ public class ConfigurationEntity {
     public Long roleVerifiedId;
     
     public boolean markovEnabled = false;
-    public Set<Long> markovBlacklistIds = new HashSet<>();
     
     public boolean moderationEnabled = true;
     public boolean moderationLogEnabled = false;
@@ -50,7 +49,6 @@ public class ConfigurationEntity {
         this.joinRoleBotId = other.joinRoleBotId;
         this.roleVerifiedId = other.roleVerifiedId;
         this.markovEnabled = other.markovEnabled;
-        this.markovBlacklistIds = new HashSet<>(other.markovBlacklistIds);
         this.moderationEnabled = other.moderationEnabled;
         this.moderationLogEnabled = other.moderationLogEnabled;
         this.moderationLogChannelId = other.moderationLogChannelId;
