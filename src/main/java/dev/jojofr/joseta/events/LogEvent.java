@@ -63,6 +63,41 @@ public class LogEvent {
             )).queue();
     }
     
+    // TODO check if moderator moved
+    @EventHandler(priority = EventPriority.HIGH)
+    public void voiceUpdateEvent(GuildVoiceUpdateEvent event) {
+        if (!checkLogEnabled(event.getGuild())) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        
+        AudioChannelUnion joinedChannel = event.getChannelJoined();
+        AudioChannelUnion leftChannel = event.getChannelLeft();
+        MessageEmbed embed = null;
+        
+        // Moved between voice channels
+        if (joinedChannel != null && leftChannel != null) {
+            embed = buildEmbed(event.getGuild(), event.getMember().getUser(),
+                Color.decode("#4A91E2"),
+                "**<@" + event.getMember().getId() + "> a changé de salon vocal de <#" + leftChannel.getId() + "> vers <#" + joinedChannel.getId() + ">**"
+            );
+        }
+        // Joined a voice channel
+        else if (joinedChannel != null) {
+            embed = buildEmbed(event.getGuild(), event.getMember().getUser(),
+                Color.decode("#4A91E2"),
+                "**<@" + event.getMember().getId() + "> a rejoint le salon vocal <#" + joinedChannel.getId() + ">**"
+            );
+        }
+        // Left a voice channel
+        else if (leftChannel != null) {
+            embed = buildEmbed(event.getGuild(), event.getMember().getUser(),
+                Color.decode("#4A91E2"),
+                "**<@" + event.getMember().getId() + "> a quitté le salon vocal <#" + leftChannel.getId() + ">**"
+            );
+        }
+        
+        guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(embed).queue();
+    }
+    
     private MessageEmbed buildEmbed(Guild guild, User user, Color color, String description) {
         return new EmbedBuilder()
             .setColor(color)
