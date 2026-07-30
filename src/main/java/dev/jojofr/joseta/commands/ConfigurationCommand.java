@@ -5,7 +5,7 @@ import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ConfigurationDao;
-import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.messages.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ConfigurationMessage;
@@ -100,18 +100,18 @@ public class ConfigurationCommand {
             ConfigurationDao configurationDao = handle.attach(ConfigurationDao.class);
             
             if (configurationMessage.hasMarkovBlacklistChanged) {
-                MessageDao.MarkovBlacklistDao markovBlacklistDao = handle.attach(MessageDao.MarkovBlacklistDao.class);
+                MarkovBlacklistDao markovBlacklistDao = handle.attach(MarkovBlacklistDao.class);
                 
                 long guildId = configurationMessage.guildConfiguration.configuration.guildId;
                 
-                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.USER);
-                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.USER, configurationMessage.pendingMarkovUserBlacklist);
+                markovBlacklistDao.clearByType(guildId, MarkovBlacklistDao.EntityType.USER);
+                markovBlacklistDao.addAll(guildId, MarkovBlacklistDao.EntityType.USER, configurationMessage.pendingMarkovUserBlacklist);
                 
-                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.ROLE);
-                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.ROLE, configurationMessage.pendingMarkovRoleBlacklist);
+                markovBlacklistDao.clearByType(guildId, MarkovBlacklistDao.EntityType.ROLE);
+                markovBlacklistDao.addAll(guildId, MarkovBlacklistDao.EntityType.ROLE, configurationMessage.pendingMarkovRoleBlacklist);
                 
-                markovBlacklistDao.clearByType(guildId, MessageDao.EntityType.CHANNEL);
-                markovBlacklistDao.addAll(guildId, MessageDao.EntityType.CHANNEL, configurationMessage.pendingMarkovChannelBlacklist);
+                markovBlacklistDao.clearByType(guildId, MarkovBlacklistDao.EntityType.CHANNEL);
+                markovBlacklistDao.addAll(guildId, MarkovBlacklistDao.EntityType.CHANNEL, configurationMessage.pendingMarkovChannelBlacklist);
                 
                 configurationMessage.guildConfiguration.markovBlacklistIds = markovBlacklistDao.getAllIds(guildId);
             }
