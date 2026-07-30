@@ -267,9 +267,13 @@ public class MessageDatabase {
     private static String cleanContent(String content) {
         if (content.isBlank()) return "";
         
-        String noMentions = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
-        String noUrl = NO_URL_PATTERN.matcher(noMentions).replaceAll("");
+        if (content.indexOf('<') >= 0)
+            content = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
+        if (content.contains("http") || content.contains("www."))
+            content = NO_URL_PATTERN.matcher(content).replaceAll("");
+        if (content.indexOf(' ') >= 0 || content.indexOf('\n') >= 0 || content.indexOf('\t') >= 0)
+            content = NO_SPACE_PATTERN.matcher(content).replaceAll(" ").trim();
         
-        return NO_SPACE_PATTERN.matcher(noUrl).replaceAll(" ").trim();
+        return content;
     }
 }
