@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS message_attachments (
     filename      VARCHAR(255) NOT NULL,
     extension     VARCHAR(10),
     description   TEXT,
-    content_type  VARCHAR(30),
+    content_type  VARCHAR(50),
     url           TEXT NOT NULL,
     proxy_url     TEXT NOT NULL,
     size          INT NOT NULL,
