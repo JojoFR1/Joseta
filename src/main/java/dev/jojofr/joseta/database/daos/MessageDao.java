@@ -48,6 +48,9 @@ public interface MessageDao {
     @RegisterFieldMapper(value = MessageEntity.class)
     Stream<MessageEntity> getByGuildId(long guildId);
     
+    @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId")
+    int getMemberMessageCount(long authorId, long guildId);
+    
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
     void clearMarkovContent(long authorId, long guildId);
     
