@@ -8,18 +8,30 @@ import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.MessageEntity;
 import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.utils.BotCache;
+import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.audit.ActionType;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.channel.update.*;
+import net.dv8tion.jda.api.events.emoji.EmojiAddedEvent;
+import net.dv8tion.jda.api.events.emoji.EmojiRemovedEvent;
+import net.dv8tion.jda.api.events.emoji.update.EmojiUpdateNameEvent;
+import net.dv8tion.jda.api.events.guild.GuildAuditLogEntryCreateEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
+import net.dv8tion.jda.internal.entities.GuildImpl;
 
 import java.awt.*;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 
 @EventModule
 public class LogEvent {
@@ -76,7 +88,7 @@ public class LogEvent {
         if (joinedChannel != null && leftChannel != null) {
             embed = buildEmbed(event.getGuild(), event.getMember().getUser(),
                 Color.decode("#4A91E2"),
-                "**<@" + event.getMember().getId() + "> a changé de salon vocal de <#" + leftChannel.getId() + "> vers <#" + joinedChannel.getId() + ">**"
+                "**<@" + event.getMember().getId() + "> a été déplacé par <@" + event.getMember().getId() + "> de <#" + leftChannel.getId() + "> vers <#" + joinedChannel.getId() + ">**"
             );
         }
         // Joined a voice channel
@@ -96,6 +108,97 @@ public class LogEvent {
         
         guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(embed).queue();
     }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void channelCreateEvent(ChannelCreateEvent event) {
+        if (!checkLogEnabled(event.getGuild())) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        
+        event.getGuild().retrieveAuditLogs().type(ActionType.CHANNEL_CREATE).queue(logs -> {
+            AuditLogEntry log = logs.getFirst();
+            User user = log != null ? log.getUser() : null;
+            
+            guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(
+                buildEmbed(event.getGuild(), user,
+                    Color.decode("#71C11F"),
+                    "**Salon <#" + event.getChannel().getId() + "> (`" + event.getChannel().getName() + "`) créé**"
+                )).queue();
+        });
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void channelUpdateEvent(GenericChannelUpdateEvent<?> event) {
+    
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void channelDeleteEvent(ChannelDeleteEvent event) {
+        if (!checkLogEnabled(event.getGuild())) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        
+        event.getGuild().retrieveAuditLogs().type(ActionType.CHANNEL_DELETE).queue(logs -> {
+            AuditLogEntry log = logs.getFirst();
+            User user = log != null ? log.getUser() : null;
+            
+            guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(
+                buildEmbed(event.getGuild(), user,
+                    Color.decode("#C11F1F"),
+                    "**Salon <#" + event.getChannel().getId() + "> (`" + event.getChannel().getName() + "`) supprimé**"
+                )).queue();
+        });
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void emojiAddedEvent(EmojiAddedEvent event) {
+        if (!checkLogEnabled(event.getGuild())) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        
+        event.getGuild().retrieveAuditLogs().type(ActionType.EMOJI_CREATE).queue(logs -> {
+            AuditLogEntry log = logs.getFirst();
+            User user = log != null ? log.getUser() : null;
+            
+            guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(
+                buildEmbed(event.getGuild(), user,
+                    Color.decode("#71C11F"),
+                    "**Emoji " + event.getEmoji().getAsMention() + " (`" + event.getEmoji().getName() + "`) ajouté**"
+                )).queue();
+        });
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void emojiRemovedEvent(EmojiRemovedEvent event) {
+        if (!checkLogEnabled(event.getGuild())) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        
+        event.getGuild().retrieveAuditLogs().type(ActionType.EMOJI_DELETE).queue(logs -> {
+            AuditLogEntry log = logs.getFirst();
+            User user = log != null ? log.getUser() : null;
+            
+            guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(
+                buildEmbed(event.getGuild(), user,
+                    Color.decode("#C11F1F"),
+                    "**Emoji " + event.getEmoji().getAsMention() + " (`" + event.getEmoji().getName() + "`) supprimé**"
+                )).queue();
+        });
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void emojiUpdateNameEvent(EmojiUpdateNameEvent event) {
+        if (!checkLogEnabled(event.getGuild())) return;
+        GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
+        
+        event.getGuild().retrieveAuditLogs().type(ActionType.EMOJI_UPDATE).queue(logs -> {
+            AuditLogEntry log = logs.getFirst();
+            User user = log != null ? log.getUser() : null;
+            
+            guildConfig.getModerationLogChannel(event.getGuild()).sendMessageEmbeds(
+                buildEmbed(event.getGuild(), user,
+                    Color.decode("#F8E61C"),
+                    "**Emoji " + event.getEmoji().getAsMention() + " renommé de `" + event.getOldName() + "` à `" + event.getNewName() + "`**"
+                )).queue();
+        });
+    }
+    
     
     private MessageEmbed buildEmbed(Guild guild, User user, Color color, String description) {
         return new EmbedBuilder()
