@@ -13,7 +13,6 @@ import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
 import dev.jojofr.joseta.utils.BotCache;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
@@ -95,24 +94,28 @@ public class MiscEvents {
     
     
     @EventHandler
-    public void memberJoin(GuildMemberJoinEvent event) throws IOException {
+    public void memberJoin(GuildMemberJoinEvent event) {
         GuildConfiguration guildConfig = BotCache.getGuildConfiguration(event.getGuild().getIdLong());
         if (!guildConfig.configuration.welcomeEnabled) return;
-        
-        User user = event.getUser();
         
         TextChannel channel = guildConfig.getWelcomeChannel(event.getGuild());
         if (channel == null) return;
         
-        Role role = user.isBot() ? guildConfig.getJoinBotRole(event.getGuild()) : guildConfig.getJoinRole(event.getGuild());
-        if (role != null) event.getGuild().addRoleToMember(user, role).reason("Rôle d'arrivée automatique").queue();
+        Role role = event.getUser().isBot() ? guildConfig.getJoinBotRole(event.getGuild()) : guildConfig.getJoinRole(event.getGuild());
+        if (role != null) event.getGuild().addRoleToMember(event.getUser(), role).reason("Rôle d'arrivée automatique").queue();
         
-        if (guildConfig.configuration.welcomeImageEnabled && WelcomeChannel.imageLoaded) {
-            byte[] image = WelcomeChannel.getWelcomeImage(event.getUser(), event.getGuild().getMemberCount());
-            
-            channel.sendMessage(user.getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
+        if (!guildConfig.configuration.welcomeImageEnabled) {
+            WelcomeChannel.sendWelcomeMessage(guildConfig.configuration.welcomeJoinMessage, channel, event.getUser());
+            return;
         }
-        else if (!guildConfig.configuration.welcomeJoinMessage.isEmpty()) channel.sendMessage(guildConfig.configuration.welcomeJoinMessage.replace("{{user}}", user.getAsMention())).queue();
+        
+        WelcomeChannel.renderWelcomeImage(event.getUser(), event.getGuild().getMemberCount()).thenAccept(image -> {
+            if (image == null) {
+                WelcomeChannel.sendWelcomeMessage(guildConfig.configuration.welcomeJoinMessage, channel, event.getUser());
+                return;
+            }
+            channel.sendMessage(event.getUser().getAsMention()).addFiles(FileUpload.fromData(image, "welcome.png")).queue();
+        });
     }
     
     @EventHandler
@@ -123,8 +126,11 @@ public class MiscEvents {
         TextChannel channel = guildConfig.getWelcomeChannel(event.getGuild());
         if (channel == null) return;
         
-        if (!guildConfig.configuration.welcomeLeaveMessage.isEmpty()) channel.sendMessage(guildConfig.configuration.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
+        if (guildConfig.configuration.welcomeLeaveMessage.isEmpty()) return;
+        
+        channel.sendMessage(guildConfig.configuration.welcomeLeaveMessage.replace("{{userName}}", event.getUser().getName())).queue();
     }
+    
     
     private static final ConcurrentHashMap<Long, Long> userVoiceJoinTime = new ConcurrentHashMap<>();
     
