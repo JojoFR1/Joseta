@@ -25,7 +25,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
-import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -61,16 +60,17 @@ public class MiscEvents {
     
     
     // TODO improve, too many false positives
-    private static final Pattern patternQuestion = Pattern.compile(
-        "(?:\\b|[.,?!;:])(?:com*[ea]nt?|pos*ible|m(?:oyen|ani[èeé]re)|fa[cç]on)(?:\\b|[.,?!;:])",
-        Pattern.CASE_INSENSITIVE | Pattern.CANON_EQ
+    private static final Pattern sentenceSplitter = Pattern.compile("[.?!,;:\\n]+");
+    private static final Pattern questionPattern = Pattern.compile(
+        "\\b(?:com*[ea]nt?|pos*ible*|m(?:oyen|ani[èeé]re)|fa[cç]on)\\b", Pattern.CASE_INSENSITIVE
     );
-    private static final Pattern patternMulti = Pattern.compile(
-        "(?:\\b|[.,?!;:])(?:multi[ -]?(?:joueu?r|playeu?r)?|co*p(?:eration|[ea]?ins?)?|amis?|pot[oe]s?|(?:[aà] (?:deux|[2-9]|[1-9]+|plu?si?e?u?rs?)))(?:\\b|[.,?!;:])",
-        Pattern.CASE_INSENSITIVE | Pattern.CANON_EQ
+    private static final Pattern multiplayerPattern = Pattern.compile(
+        "\\b(?:multi[ -]?(?:joeu?r|playeu?r*)?|co+p(?:eration|[ea]?ins?)?|amis?|po[eo]s?|[aà] (?:deux|[2-9]|[1-9][1-9]+|plu?si?e?u?rs?))\\b", Pattern.CASE_INSENSITIVE
     );
-    //TODO unhardcode message & emoji
-    public static final String autoResponseMessage = "<:doyouknowtheway:1338158294702755900> Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
+    
+    //TODO unhardcode message
+    public static final String autoResponseMessage =
+        BotCache.AUTO_RESPONSE_EMOJI.getFormatted() + " Vous voulez héberger votre partie pour jouer avec des amis ?\nVous trouverez plus d'informations ici : <https://zetamap.fr/mindustry_hosting/>";
     
     @EventHandler
     public void autoResponse(MessageReceivedEvent event) {
@@ -78,8 +78,11 @@ public class MiscEvents {
         if (!config.autoResponseEnabled) return;
         
         String text = event.getMessage().getContentRaw();
-        if (patternQuestion.matcher(text).find() && patternMulti.matcher(text).find())
-            event.getMessage().reply(autoResponseMessage + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
+        for (String sentence : sentenceSplitter.split(text))
+            if (questionPattern.matcher(sentence).find() && multiplayerPattern.matcher(sentence).find()) {
+                event.getMessage().reply(autoResponseMessage + "\n*Ceci est une réponse automatique possiblement hors-sujet.*").queue();
+                return;
+            }
     }
     
     
