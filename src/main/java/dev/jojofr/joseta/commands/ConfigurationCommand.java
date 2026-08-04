@@ -565,7 +565,7 @@ public class ConfigurationCommand {
         EntitySelectMenu.Builder secondChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:second_channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un fil de comptage")
             .setChannelTypes(ChannelType.GUILD_PUBLIC_THREAD);
-        if (configurationMessage.getConfigurationEntity().countingChannelId != null)
+        if (configurationMessage.getConfigurationEntity().countingSpecialChannelId != null)
             secondChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().countingSpecialChannelId));
         
         EntitySelectMenu secondCannelSelectMenu = secondChannelSelectMenuBuilder.build();
