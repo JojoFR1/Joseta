@@ -27,6 +27,8 @@ public class SanctionEvents {
         AuditLogEntry entry = event.getEntry();
         if (entry.getType() != ActionType.MEMBER_UPDATE || entry.getTargetType() != TargetType.MEMBER || entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT) == null) return;
         
+        if (entry.getReason() != null && entry.getReason().startsWith("JstaDNR") && entry.getReason().endsWith("JstaDNR")) return;
+        
         String timeOutEndDate = entry.getChangeByKey(AuditLogKey.MEMBER_TIME_OUT).getNewValue();
         if (timeOutEndDate == null) {
             Database.useExtension(SanctionDao.class, dao ->
@@ -82,6 +84,8 @@ public class SanctionEvents {
             entries -> {
                 if (entries.isEmpty()) return;
                 AuditLogEntry entry = entries.getFirst();
+                
+                if (entry.getReason() != null && entry.getReason().startsWith("JstaDNR") && entry.getReason().endsWith("JstaDNR")) return;
                 
                 if (entry.getTargetIdLong() != event.getUser().getIdLong()) return;
                 

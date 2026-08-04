@@ -4,8 +4,6 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ConfigurationEntity {
     public long guildId;
@@ -32,6 +30,7 @@ public class ConfigurationEntity {
      public boolean countingCommentsEnabled = false;
      public boolean countingPenaltyEnabled = false;
      public Long countingChannelId;
+     public Long countingSpecialChannelId;
     
     // A non-private and no-arg constructor is required by JDBI
     protected ConfigurationEntity() {}
@@ -56,6 +55,7 @@ public class ConfigurationEntity {
         this.countingCommentsEnabled = other.countingCommentsEnabled;
         this.countingPenaltyEnabled = other.countingPenaltyEnabled;
         this.countingChannelId = other.countingChannelId;
+        this.countingSpecialChannelId = other.countingSpecialChannelId;
     }
     
     public ConfigurationEntity setGuildId(Long guildId) {
@@ -180,6 +180,16 @@ public class ConfigurationEntity {
     
     public ConfigurationEntity setCountingChannelId(Long countingChannelId) {
         if (countingChannelId != null) this.countingChannelId = countingChannelId;
+        return this;
+    }
+    
+    public ConfigurationEntity setCountingSecondChannel(GuildMessageChannel messageChannel) {
+        if (messageChannel != null) this.countingSpecialChannelId = messageChannel.getIdLong();
+        return this;
+    }
+    
+    public ConfigurationEntity setCountingSpecialChannelId(Long countingSecondChannelId) {
+        if (countingSecondChannelId != null) this.countingSpecialChannelId = countingSecondChannelId;
         return this;
     }
     

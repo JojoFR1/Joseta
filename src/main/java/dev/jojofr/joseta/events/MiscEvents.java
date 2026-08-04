@@ -91,8 +91,10 @@ public class MiscEvents {
         ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         if (!config.countingEnabled) return;
         
-        if (event.getAuthor().isBot() || event.getChannel().getIdLong() != config.countingChannelId) return;
-        CountingChannel.check(event.getChannel(), event.getMessage());
+        if (event.getAuthor().isBot()) return;
+        
+        if (event.getChannel().getIdLong() == config.countingChannelId) CountingChannel.check(event.getChannel(), event.getMessage());
+        else if (event.getChannel().getIdLong() == config.countingSpecialChannelId) CountingChannel.specialCheck(event.getChannel(), event.getMessage());
     }
     
     

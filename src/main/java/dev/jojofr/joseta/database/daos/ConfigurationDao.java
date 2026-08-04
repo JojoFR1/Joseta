@@ -15,7 +15,7 @@ public interface ConfigurationDao {
             markov_enabled,
             moderation_enabled, moderation_honeypot_enabled, moderation_honeypot_channel_id, rules,
             auto_response_enabled,
-            counting_enabled, counting_comments_enabled, counting_penalty_enabled, counting_channel_id
+            counting_enabled, counting_comments_enabled, counting_penalty_enabled, counting_channel_id, counting_special_channel_id
         ) VALUES (
             :guildId,
             :welcomeEnabled, :welcomeImageEnabled, :welcomeChannelId, :welcomeJoinMessage, :welcomeLeaveMessage,
@@ -23,7 +23,7 @@ public interface ConfigurationDao {
             :markovEnabled,
             :moderationEnabled, :moderationHoneypotEnabled, :moderationHoneypotChannelId, :rules,
             :autoResponseEnabled,
-            :countingEnabled, :countingCommentsEnabled, :countingPenaltyEnabled, :countingChannelId
+            :countingEnabled, :countingCommentsEnabled, :countingPenaltyEnabled, :countingChannelId, :countingSpecialChannelId
         ) ON CONFLICT (guild_id) DO UPDATE SET
             welcome_enabled = EXCLUDED.welcome_enabled,
             welcome_image_enabled = EXCLUDED.welcome_image_enabled,
@@ -42,7 +42,8 @@ public interface ConfigurationDao {
             counting_enabled = EXCLUDED.counting_enabled,
             counting_comments_enabled = EXCLUDED.counting_comments_enabled,
             counting_penalty_enabled = EXCLUDED.counting_penalty_enabled,
-            counting_channel_id = EXCLUDED.counting_channel_id
+            counting_channel_id = EXCLUDED.counting_channel_id,
+            counting_special_channel_id = EXCLUDED.counting_special_channel_id
     """)
     void upsert(@BindFields ConfigurationEntity configurationEntity);
     

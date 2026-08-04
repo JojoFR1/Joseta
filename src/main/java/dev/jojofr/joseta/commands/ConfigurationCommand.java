@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
@@ -33,6 +34,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.modals.Modal;
 
@@ -169,7 +171,9 @@ public class ConfigurationCommand {
     }
     
     @Interaction(id = "config:cat_counting:reset_number") public void onConfigCountingResetNumberButton(ButtonInteractionEvent event) { onResetButton(event); }
+    @Interaction(id = "config:cat_counting:reset_number_special") public void onConfigCountingResetNumberSpecialButton(ButtonInteractionEvent event) { onResetButton(event); }
     @Interaction(id = "config:cat_counting:reset_author") public void onConfigCountingResetAuthorButton(ButtonInteractionEvent event) { onResetButton(event); }
+    @Interaction(id = "config:cat_counting:reset_author_special") public void onConfigCountingResetAuthorSpecialButton(ButtonInteractionEvent event) { onResetButton(event); }
     private void onResetButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -180,9 +184,17 @@ public class ConfigurationCommand {
                 CountingChannel.lastNumber = 0;
                 event.reply("Le dernier nombre du salon de comptage a été réinitialisé à 0.").setEphemeral(true).queue();
             }
+            case "config:cat_counting:reset_number_special" -> {
+                CountingChannel.specialLastNumber = 0;
+                event.reply("Le dernier nombre du salon de comptage spécial a été réinitialisé à 0.").setEphemeral(true).queue();
+            }
             case "config:cat_counting:reset_author" -> {
                 CountingChannel.lastAuthorId = -1L;
                 event.reply("Le dernier auteur dans comptage a été réinitialiser.").setEphemeral(true).queue();
+            }
+            case "config:cat_counting:reset_author_special" -> {
+                CountingChannel.specialLastAuthorId = -1L;
+                event.reply("Le dernier auteur dans comptage spécial a été réinitialiser.").setEphemeral(true).queue();
             }
         }
     }
@@ -302,6 +314,7 @@ public class ConfigurationCommand {
         switch (buttonId) {
             case "config:cat_counting:set_number" -> {
                 String inputValue = String.valueOf(CountingChannel.lastNumber);
+                String specialInputValue = String.valueOf(CountingChannel.specialLastNumber);
                 Modal modal = Modal.create("config:cat_counting:set_number:modal", "Définir le nombre de comptage")
                     .addComponents(
                         Label.of(
@@ -311,6 +324,15 @@ public class ConfigurationCommand {
                                 .setMinLength(1)
                                 .setMaxLength(20)
                                 .setValue(inputValue)
+                                .build()
+                        ),
+                        Label.of(
+                            "Nombre de comptage spécial",
+                            TextInput.create("config:cat_counting:set_number:modal:input_special", TextInputStyle.SHORT)
+                                .setPlaceholder("Entrez un nombre entier.")
+                                .setMinLength(1)
+                                .setMaxLength(20)
+                                .setValue(specialInputValue)
                                 .build()
                         )
                     ).build();
@@ -356,6 +378,7 @@ public class ConfigurationCommand {
     }
     
     @Interaction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
+    @Interaction(id = "config:cat_counting:second_channel_select") public void onConfigCountingSecondChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @Interaction(id = "config:cat_markov:mentionable_blacklist_select") public void onConfigMarkovBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @Interaction(id = "config:cat_markov:channel_blacklist_select") public void onConfigMarkovChannelBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
     @Interaction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
@@ -373,6 +396,7 @@ public class ConfigurationCommand {
         Long selectedId = selectedValues.isEmpty() ? null : selectedValues.getFirst().getIdLong();
         switch (menuId) {
             case "config:cat_counting:channel_select" -> configurationMessage.getConfigurationEntity().setCountingChannelId(selectedId);
+            case "config:cat_counting:second_channel_select" -> configurationMessage.getConfigurationEntity().setCountingSpecialChannelId(selectedId);
             case "config:cat_markov:mentionable_blacklist_select" -> {
                 configurationMessage.pendingMarkovUserBlacklist.clear();
                 configurationMessage.pendingMarkovRoleBlacklist.clear();
@@ -403,12 +427,23 @@ public class ConfigurationCommand {
         
         configurationMessage.hasChanged = true;
         event.editComponents(switch (menuId) {
-            case "config:cat_counting:channel_select" -> createCountingMenuContainer(configurationMessage);
+            case "config:cat_counting:channel_select", "config:cat_counting:second_channel_select" -> createCountingMenuContainer(configurationMessage);
             case "config:cat_markov:mentionable_blacklist_select", "config:cat_markov:channel_blacklist_select" -> createMarkovMenuContainer(configurationMessage);
             case "config:cat_moderation:rules:channel_select", "config:cat_moderation:honey_pot:channel_select" -> createModerationMenuContainer(configurationMessage);
             case "config:cat_welcome:channel_select", "config:cat_welcome:join_role_select", "config:cat_welcome:join_bot_role_select", "config:cat_welcome:verified_role_select" -> createWelcomeMenuContainer(configurationMessage);
             default -> null;
         }).useComponentsV2().queue();
+    }
+    
+    @Interaction(id = "config:cat_counting:mode_select")
+    public void onStringSelectMenu(StringSelectInteractionEvent event) {
+        ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
+        if (configurationMessage == null) return;
+        
+        CountingChannel.changeSpecialMode(event.getValues().getFirst());
+        
+        configurationMessage.hasChanged = true;
+        event.editComponents(createCountingMenuContainer(configurationMessage)).useComponentsV2().queue();
     }
     
     @Interaction(id = "config:cat_counting:set_number:modal") public void onConfigCountingSetNumber(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
@@ -434,6 +469,7 @@ public class ConfigurationCommand {
             case "config:cat_counting:set_number:modal" -> {
                 try {
                     CountingChannel.lastNumber = Long.parseLong(newValue);
+                    CountingChannel.specialLastNumber = Long.parseLong(event.getValue(inputId + "_special").getAsString());
                     event.reply("Le nombre actuel du salon de comptage a été mis à jour à " + newValue + ".").setEphemeral(true).queue();
                     return;
                 }
@@ -526,6 +562,26 @@ public class ConfigurationCommand {
         
         EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
+        EntitySelectMenu.Builder secondChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:second_channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
+            .setPlaceholder("Sélectionnez un fil de comptage")
+            .setChannelTypes(ChannelType.GUILD_PUBLIC_THREAD);
+        if (configurationMessage.getConfigurationEntity().countingChannelId != null)
+            secondChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().countingSpecialChannelId));
+        
+        EntitySelectMenu secondCannelSelectMenu = secondChannelSelectMenuBuilder.build();
+        
+        StringSelectMenu countingModeSelectMenu = StringSelectMenu.create("config:cat_counting:mode_select")
+            .setPlaceholder("Sélectionnez un mode de comptage pour le fil")
+            .addOption("Comptage binaire", "binary", "Le fil de comptage compte uniquement en binaire (0 et 1).")
+            .addOption("Comptage octal", "octal", "Le fil de comptage compte uniquement en octal (0-7).")
+            .addOption("Comptage décimal", "decimal", "Le fil de comptage compte uniquement en décimal (0-9).")
+            .addOption("Comptage hexadécimal", "hexadecimal", "Le fil de comptage compte uniquement en hexadécimal (0-9 et A-F).")
+            .addOption("Comptage romain", "roman", "Le fil de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).")
+            .addOption("Comptage double", "double", "Le fil de comptage compte uniquement en double (0, 2, 4, 6, 8, ...).")
+            .addOption("Comptage en puissance de 2", "power_of_2", "Le fil de comptage compte uniquement en puissance de 2 (1, 2, 4, 8, 16, ...).")
+            .setDefaultValues(CountingChannel.specialCountingMode.toString())
+            .build();
+        
         return Container.of(
             TextDisplay.of("# Configuration - Comptage"),
             
@@ -541,27 +597,39 @@ public class ConfigurationCommand {
                 "Active ou désactive la pénalité en cas d'erreur de comptage (le compteur est réinitialisé à 0).",
                 "config:cat_counting:penalty:toggle", configurationMessage.getConfigurationEntity().countingPenaltyEnabled, !configurationMessage.getConfigurationEntity().countingEnabled),
             
-            TextDisplay.of("### Salon de comptage"),
-            TextDisplay.of("-# Le salon où le comptage est actif."),
+            TextDisplay.of("### Salon de comptage\n-# Le salon où le comptage est actif."),
             ActionRow.of(channelSelectMenu),
+            
+            TextDisplay.of("### Fil de comptage\n-# Le fil où le comptage spécial est actif."),
+            ActionRow.of(secondCannelSelectMenu),
+            
+            ActionRow.of(countingModeSelectMenu),
             
             Section.of(
                 Button.of(ButtonStyle.PRIMARY, "config:cat_counting:set_number", "Définir le nombre", Emoji.fromUnicode("\uD83D\uDD22"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Définir le nombre de comptage"),
-                TextDisplay.of("-# Définit le nombre actuel du salon de comptage à un nombre spécifique.")
+                TextDisplay.of("### Définir le nombre de comptage\n-# Définit le nombre actuel du salon de comptage à un nombre spécifique.")
             ),
             Section.of(
                 Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number", "Réinitialiser le nombre", Emoji.fromUnicode("\uD83D\uDDD1️"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser le nombre de comptage"),
-                TextDisplay.of("-# Réinitialise le nombre actuel à 0.")
+                TextDisplay.of("### Réinitialiser le nombre de comptage\n-# Réinitialise le nombre actuel à 0.")
             ),
             Section.of(
                 Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author", "Réinitialiser l'auteur du dernier nombre", Emoji.fromUnicode("\uD83D\uDC64"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser l'auteur du dernier nombre"),
-                TextDisplay.of("-# Réinitialise l'auteur du dernier nombre.")
+                TextDisplay.of("### Réinitialiser l'auteur du dernier nombre\n-# Réinitialise l'auteur du dernier nombre.")
+            ),
+            
+            Section.of(
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number_special", "Réinitialiser le nombre du fil de comptage spécial", Emoji.fromUnicode("\uD83D\uDDD1️"))
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
+                TextDisplay.of("### Réinitialiser le nombre spécial de comptage \n-# Réinitialise le nombre actuel du fil de comptage spécial à 0.")
+            ),
+            Section.of(
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author_special", "Réinitialiser l'auteur du dernier nombre du fil de comptage spécial", Emoji.fromUnicode("\uD83D\uDC64"))
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
+                TextDisplay.of("### Réinitialiser l'auteur spécial du dernier nombre\n-# Réinitialise l'auteur du dernier nombre du fil de comptage spécial.")
             ),
             
             createBottomRow(configurationMessage)
