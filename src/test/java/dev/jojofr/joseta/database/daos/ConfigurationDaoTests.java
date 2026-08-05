@@ -41,6 +41,7 @@ class ConfigurationDaoTests extends AbstractDaoTest<ConfigurationEntity, Configu
         config.countingCommentsEnabled = true;
         config.countingPenaltyEnabled = true;
         config.countingChannelId = 222324L;
+        config.countingSpecialChannelId = 252627L;
         
         return config;
     }
@@ -66,6 +67,7 @@ class ConfigurationDaoTests extends AbstractDaoTest<ConfigurationEntity, Configu
         updatedConfig.countingCommentsEnabled = false;
         updatedConfig.countingPenaltyEnabled = false;
         updatedConfig.countingChannelId = 423222L;
+        updatedConfig.countingSpecialChannelId = 726252L;
         
         return updatedConfig;
     }
