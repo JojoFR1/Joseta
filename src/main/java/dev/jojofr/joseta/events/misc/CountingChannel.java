@@ -25,9 +25,9 @@ public class CountingChannel {
     public static long specialLastAuthorId = -1;
     private static long specialLastTimestamp = -1;
     private static long lastSpecialModeChangeTimestamp = -1;
-    public static CountingMode specialCountingMode = CountingMode.DECIMAL;
+    public static CountingMode specialCountingMode = null;
     
-    public enum CountingMode { BINARY, OCTAL, DECIMAL, HEXADECIMAL, ROMAN }
+    public enum CountingMode { BINARY, OCTAL, HEXADECIMAL, BASE36, ROMAN }
     
     
     public static boolean preCheck(MessageChannelUnion channel, Message message, boolean special) {
@@ -59,7 +59,7 @@ public class CountingChannel {
             long previousAuthordId = previousMessage.getAuthor().getIdLong();
             long previousNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
             if (special)
-                channel.sendMessage("Le comptage spécial ne peut pas être initialisé après un redémarrage du bot. Contacter un administrateur pour définir les valeurs de départ.").queue();
+                channel.sendMessage("Le comptage spécial ne peut pas être initialisé après un redémarrage du bot. Contacter un administrateur pour définir la valeur correct.").queue();
             if (previousNumber == -1) previousNumber = 0;
             long previousTimestamp = previousMessage.getTimeCreated().toInstant().toEpochMilli();
             
@@ -153,6 +153,19 @@ public class CountingChannel {
         
         if (!preCheck(channel, message, true)) return;
         
+        if (specialCountingMode == null) {
+            changeSpecialMode();
+            String mode = switch (specialCountingMode) {
+                case BINARY -> "Binaire";
+                case OCTAL -> "Octal";
+                case HEXADECIMAL -> "Hexadécimal";
+                case BASE36 -> "Base 36";
+                case ROMAN -> "Romain";
+            };
+            message.reply("Le mode de comptage spécial a été initialisé ! Le mode actuel est **"+ mode +"**. Le chiffre précedent ne peut pas être vérifié.").queue();
+            return;
+        }
+        
         ConfigurationEntity config = BotCache.getConfiguration(message.getGuild().getIdLong());
         long number = parseSpecial(message.getContentStripped().replace(" ", ""), config.countingCommentsEnabled);
         
@@ -167,10 +180,10 @@ public class CountingChannel {
                 message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
-                specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
-                message.getMember().timeoutFor(lastNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
+                message.getMember().timeoutFor(specialLastNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
+                specialLastNumber = 0;
             }
             return;
         }
@@ -183,8 +196,8 @@ public class CountingChannel {
             String type = switch (specialCountingMode) {
                 case BINARY -> "binaire";
                 case OCTAL -> "octal";
-                case DECIMAL -> "décimal";
                 case HEXADECIMAL -> "hexadécimal";
+                case BASE36 -> "en base 36";
                 case ROMAN -> "romain";
             };
             if (!config.countingPenaltyEnabled) {
@@ -193,10 +206,10 @@ public class CountingChannel {
                 );
                 message.delete().queue();
             } else {
-                lastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres "+ type +".\n\n-# Le comptage repart de 0.").queue();
-                message.getMember().timeoutFor(lastNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
+                message.getMember().timeoutFor(specialLastNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
+                specialLastNumber = 0;
             }
             return;
         }
@@ -225,7 +238,14 @@ public class CountingChannel {
         if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(6)) {
             CountingMode oldMode = specialCountingMode;
             changeSpecialMode();
-            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ specialCountingMode.name().toLowerCase() +"** (anciennement **"+ oldMode.name().toLowerCase() +"**).").queue();
+            String mode = switch (specialCountingMode) {
+                case BINARY -> "Binaire";
+                case OCTAL -> "Octal";
+                case HEXADECIMAL -> "Hexadécimal";
+                case BASE36 -> "Base 36";
+                case ROMAN -> "Romain";
+            };
+            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode.name().toLowerCase() +"**).").queue();
         }
     }
     
@@ -250,7 +270,9 @@ public class CountingChannel {
     private static final Pattern BINARY_REGEX = Pattern.compile("^[01]+");
     private static final Pattern OCTAL_REGEX = Pattern.compile("^[0-7]+");
     private static final Pattern HEXADECIMAL_REGEX = Pattern.compile("^[0-9a-fA-F]+");
+    private static final Pattern BASE36_REGEX = Pattern.compile("^[0-9a-zA-Z]+");
     private static final Pattern ROMAN_REGEX = Pattern.compile("^[ivxlcdm]+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WORDS_REGEX = Pattern.compile("^[a-zA-Z]+");
     private static final Map<Character, Integer> ROMAN_VALUES = Map.of(
         'I', 1, 'V', 5, 'X', 10, 'L', 50, 'C', 100, 'D', 500, 'M', 1000
     );
@@ -259,11 +281,13 @@ public class CountingChannel {
         if (message.indexOf('\u200B') != -1 || message.indexOf('\u200C') != -1 || message.indexOf('\u200D') != -1 || message.indexOf('\uFEFF') != -1)
             message = ZERO_WIDTH_SPACE_REGEX.matcher(message).replaceAll("");
         
+        if (specialCountingMode == null) return -1L;
+        
         return switch (specialCountingMode) {
             case BINARY -> parseWithRadix(message, commentsEnabled, BINARY_REGEX, 2);
             case OCTAL -> parseWithRadix(message, commentsEnabled, OCTAL_REGEX, 8);
-            case DECIMAL -> parseNumber(message, commentsEnabled);
             case HEXADECIMAL ->  parseWithRadix(message, commentsEnabled, HEXADECIMAL_REGEX, 16);
+            case BASE36 -> parseWithRadix(message, commentsEnabled, BASE36_REGEX, 36);
             case ROMAN -> parseRoman(message, commentsEnabled);
         };
     }
