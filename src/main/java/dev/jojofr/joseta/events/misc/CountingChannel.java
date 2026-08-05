@@ -27,7 +27,7 @@ public class CountingChannel {
     private static long lastSpecialModeChangeTimestamp = -1;
     public static CountingMode specialCountingMode = CountingMode.DECIMAL;
     
-    public enum CountingMode { BINARY, OCTAL, DECIMAL, HEXADECIMAL, ROMAN, DOUBLE, POWER_OF_TWO }
+    public enum CountingMode { BINARY, OCTAL, DECIMAL, HEXADECIMAL, ROMAN }
     
     
     public static boolean preCheck(MessageChannelUnion channel, Message message, boolean special) {
@@ -60,6 +60,7 @@ public class CountingChannel {
             long previousNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
             if (special)
                 channel.sendMessage("Le comptage spécial ne peut pas être initialisé après un redémarrage du bot. Contacter un administrateur pour définir les valeurs de départ.").queue();
+            if (previousNumber == -1) previousNumber = 0;
             long previousTimestamp = previousMessage.getTimeCreated().toInstant().toEpochMilli();
             
             if (special) {
@@ -185,8 +186,6 @@ public class CountingChannel {
                 case DECIMAL -> "décimal";
                 case HEXADECIMAL -> "hexadécimal";
                 case ROMAN -> "romain";
-                case DOUBLE -> "double";
-                case POWER_OF_TWO -> "puissance de 2";
             };
             if (!config.countingPenaltyEnabled) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon "+ type + "!").queue(
@@ -204,22 +203,14 @@ public class CountingChannel {
         
         // Rule - Must increment the last number by 1
         long supposedNumber = specialLastNumber + 1;
-        if (specialCountingMode == CountingMode.DOUBLE) supposedNumber = specialLastNumber * 2;
-        else if (specialCountingMode == CountingMode.POWER_OF_TWO) supposedNumber = (long) Math.pow(2, specialLastNumber);
-        
         if (number != supposedNumber) {
-            String by = switch (specialCountingMode) {
-                case BINARY, OCTAL, DECIMAL, HEXADECIMAL, ROMAN -> "1";
-                case DOUBLE -> "le double du nombre précédent";
-                case POWER_OF_TWO -> "la puissance de 2 suivante";
-            };
             if (!config.countingPenaltyEnabled) {
-                message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par "+ by +".").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
                 specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par "+ by +".\n\n-# Le comptage repart de 0.").queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
                 message.getMember().timeoutFor(supposedNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
             }
             return;
@@ -271,7 +262,7 @@ public class CountingChannel {
         return switch (specialCountingMode) {
             case BINARY -> parseWithRadix(message, commentsEnabled, BINARY_REGEX, 2);
             case OCTAL -> parseWithRadix(message, commentsEnabled, OCTAL_REGEX, 8);
-            case DECIMAL, DOUBLE, POWER_OF_TWO -> parseNumber(message, commentsEnabled);
+            case DECIMAL -> parseNumber(message, commentsEnabled);
             case HEXADECIMAL ->  parseWithRadix(message, commentsEnabled, HEXADECIMAL_REGEX, 16);
             case ROMAN -> parseRoman(message, commentsEnabled);
         };
