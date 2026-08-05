@@ -574,11 +574,9 @@ public class ConfigurationCommand {
             .setPlaceholder("Sélectionnez un mode de comptage pour le fil")
             .addOption("Comptage binaire", "binary", "Le fil de comptage compte uniquement en binaire (0 et 1).")
             .addOption("Comptage octal", "octal", "Le fil de comptage compte uniquement en octal (0-7).")
-            .addOption("Comptage décimal", "decimal", "Le fil de comptage compte uniquement en décimal (0-9).")
             .addOption("Comptage hexadécimal", "hexadecimal", "Le fil de comptage compte uniquement en hexadécimal (0-9 et A-F).")
+            .addOption("Comptage en base 36", "base36", "Le fil de comptage compte uniquement en base 36 (0-9 et A-Z).")
             .addOption("Comptage romain", "roman", "Le fil de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).")
-            .addOption("Comptage double", "double", "Le fil de comptage compte uniquement en double (0, 2, 4, 6, 8, ...).")
-            .addOption("Comptage en puissance de 2", "power_of_2", "Le fil de comptage compte uniquement en puissance de 2 (1, 2, 4, 8, 16, ...).")
             .setDefaultValues(CountingChannel.specialCountingMode.toString())
             .build();
         
