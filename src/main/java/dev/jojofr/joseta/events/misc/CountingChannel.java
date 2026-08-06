@@ -180,10 +180,9 @@ public class CountingChannel {
                 message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
+                specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
-                message.getMember().timeoutFor(specialLastNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
-                specialLastNumber = 0;
             }
             return;
         }
@@ -206,10 +205,9 @@ public class CountingChannel {
                 );
                 message.delete().queue();
             } else {
+                specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres "+ type +".\n\n-# Le comptage repart de 0.").queue();
-                message.getMember().timeoutFor(specialLastNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
-                specialLastNumber = 0;
             }
             return;
         }
@@ -224,7 +222,6 @@ public class CountingChannel {
                 specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
-                message.getMember().timeoutFor(supposedNumber / 4, TimeUnit.MINUTES).reason("JstaDNR Comptage spécial cassé (Insignifiant) JstaDNR").queue();
             }
             return;
         }
@@ -235,8 +232,14 @@ public class CountingChannel {
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
         );
         
-        if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(6)) {
-            CountingMode oldMode = specialCountingMode;
+        if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(3)) {
+            String oldMode = switch (specialCountingMode) {
+                case BINARY -> "Binaire";
+                case OCTAL -> "Octal";
+                case HEXADECIMAL -> "Hexadécimal";
+                case BASE36 -> "Base 36";
+                case ROMAN -> "Romain";
+            };
             changeSpecialMode();
             String mode = switch (specialCountingMode) {
                 case BINARY -> "Binaire";
@@ -245,7 +248,7 @@ public class CountingChannel {
                 case BASE36 -> "Base 36";
                 case ROMAN -> "Romain";
             };
-            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode.name().toLowerCase() +"**).").queue();
+            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
         }
     }
     
@@ -272,7 +275,6 @@ public class CountingChannel {
     private static final Pattern HEXADECIMAL_REGEX = Pattern.compile("^[0-9a-fA-F]+");
     private static final Pattern BASE36_REGEX = Pattern.compile("^[0-9a-zA-Z]+");
     private static final Pattern ROMAN_REGEX = Pattern.compile("^[ivxlcdm]+", Pattern.CASE_INSENSITIVE);
-    private static final Pattern WORDS_REGEX = Pattern.compile("^[a-zA-Z]+");
     private static final Map<Character, Integer> ROMAN_VALUES = Map.of(
         'I', 1, 'V', 5, 'X', 10, 'L', 50, 'C', 100, 'D', 500, 'M', 1000
     );
@@ -309,7 +311,7 @@ public class CountingChannel {
         boolean matched = commentsEnabled ? matcher.find() : matcher.matches();
         if (!matched) return -1;
         
-        String upper = message.toUpperCase(Locale.ROOT);
+        String upper = matcher.group().toUpperCase(Locale.ROOT);
         long number = 0;
         
         for (int i = 0; i < upper.length(); i++) {
