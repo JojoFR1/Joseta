@@ -20,6 +20,8 @@ public class ConfigurationEntity {
     public boolean markovEnabled = false;
     
     public boolean moderationEnabled = true;
+    public boolean moderationLogEnabled = false;
+    public Long moderationLogChannelId;
     public boolean moderationHoneypotEnabled = false;
     public Long moderationHoneypotChannelId;
     public String rules = "";
@@ -47,6 +49,8 @@ public class ConfigurationEntity {
         this.roleVerifiedId = other.roleVerifiedId;
         this.markovEnabled = other.markovEnabled;
         this.moderationEnabled = other.moderationEnabled;
+        this.moderationLogEnabled = other.moderationLogEnabled;
+        this.moderationLogChannelId = other.moderationLogChannelId;
         this.moderationHoneypotEnabled = other.moderationHoneypotEnabled;
         this.moderationHoneypotChannelId = other.moderationHoneypotChannelId;
         this.rules = other.rules;
@@ -130,6 +134,21 @@ public class ConfigurationEntity {
     
     public ConfigurationEntity setModerationEnabled(boolean moderationEnabled) {
         this.moderationEnabled = moderationEnabled;
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationLogEnabled(boolean moderationLogsEnabled) {
+        this.moderationLogEnabled = moderationLogsEnabled;
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationLogChannel(GuildMessageChannel moderationLogsChannel) {
+        if (moderationLogsChannel != null) this.moderationLogChannelId = moderationLogsChannel.getIdLong();
+        return this;
+    }
+    
+    public ConfigurationEntity setModerationLogChannelId(Long moderationLogsChannelId) {
+        if (moderationLogsChannelId != null) this.moderationLogChannelId = moderationLogsChannelId;
         return this;
     }
     

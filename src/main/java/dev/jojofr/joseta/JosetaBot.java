@@ -55,9 +55,11 @@ public class JosetaBot {
                 GatewayIntent.GUILD_MESSAGES,
                 GatewayIntent.GUILD_MEMBERS,
                 GatewayIntent.MESSAGE_CONTENT,
-                GatewayIntent.GUILD_VOICE_STATES
+                GatewayIntent.GUILD_VOICE_STATES,
+                GatewayIntent.GUILD_EXPRESSIONS
             ).enableCache(
-                CacheFlag.VOICE_STATE
+                CacheFlag.VOICE_STATE,
+                CacheFlag.EMOJI
             )
             .setStatus(OnlineStatus.DO_NOT_DISTURB)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))

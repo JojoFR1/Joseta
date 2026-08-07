@@ -35,4 +35,9 @@ public class GuildConfiguration {
         Long id = configuration.joinRoleBotId;
         return id == null ? null : guild.getRoleById(id);
     }
+    
+    public TextChannel getModerationLogChannel(Guild guild) {
+        Long id = configuration.moderationLogChannelId;
+        return id == null ? null : guild.getTextChannelById(id);
+    }
 }

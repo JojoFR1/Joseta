@@ -1,7 +1,7 @@
 package dev.jojofr.joseta.entities;
 
 import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.messages.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.utils.BotCache;
 
@@ -29,10 +29,10 @@ public class ConfigurationMessage {
         this.pendingMarkovRoleBlacklist = new HashSet<>();
         this.pendingMarkovChannelBlacklist = new HashSet<>();
         
-        Database.useExtension(MessageDao.MarkovBlacklistDao.class, dao -> {
-            this.pendingMarkovUserBlacklist.addAll(dao.getIds(guildId, MessageDao.EntityType.USER));
-            this.pendingMarkovRoleBlacklist.addAll(dao.getIds(guildId, MessageDao.EntityType.ROLE));
-            this.pendingMarkovChannelBlacklist.addAll(dao.getIds(guildId, MessageDao.EntityType.CHANNEL));
+        Database.useExtension(MarkovBlacklistDao.class, dao -> {
+            this.pendingMarkovUserBlacklist.addAll(dao.getIds(guildId, MarkovBlacklistDao.EntityType.USER));
+            this.pendingMarkovRoleBlacklist.addAll(dao.getIds(guildId, MarkovBlacklistDao.EntityType.ROLE));
+            this.pendingMarkovChannelBlacklist.addAll(dao.getIds(guildId, MarkovBlacklistDao.EntityType.CHANNEL));
         });
         
         this.timestamp = timestamp;

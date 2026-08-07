@@ -3,6 +3,8 @@ package dev.jojofr.joseta.database.helper;
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.messages.MessageAttachmentDao;
+import dev.jojofr.joseta.database.entities.MessageAttachmentEntity;
 import dev.jojofr.joseta.database.entities.MessageEntity;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
@@ -52,23 +54,28 @@ public class MessageDatabase {
     
     public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, Guild guild, JdbiExecutor executor) {
         List<MessageEntity> buffer = new ArrayList<>(500);
+        List<MessageAttachmentEntity> attachmentBuffer = new ArrayList<>(500);
         List<CompletableFuture<Void>> pendingFlushes = new ArrayList<>();
         int[] count = {0};
         
         return channel.getIterableHistory().forEachAsync(message -> {
             MessageEntity entity = buildMessageEntity(message, false);
-            if (entity == null) return true;
             
             if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
+            
+            for (Message.Attachment attachment : message.getAttachments()) {
+                MessageAttachmentEntity attachmentEntity = new MessageAttachmentEntity(message.getIdLong(), attachment);
+                attachmentBuffer.add(attachmentEntity);
+            }
             
             buffer.add(entity);
             count[0]++;
             
-            if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, executor));
+            if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, attachmentBuffer, executor));
             
             return true;
         }).thenCompose(v -> {
-            pendingFlushes.add(flushBufferAsync(buffer, executor));
+            pendingFlushes.add(flushBufferAsync(buffer, attachmentBuffer, executor));
             return CompletableFuture.allOf(pendingFlushes.toArray(CompletableFuture[]::new));
         }).thenApply(v -> count[0]).exceptionally(throwable -> {
             Log.err("Could not populate the messages table for channel ID: {} in guild: {} (ID: {}).", throwable, channel.getIdLong(), guild.getName(), guild.getIdLong());
@@ -76,13 +83,18 @@ public class MessageDatabase {
         });
     }
     
-    private static CompletableFuture<Void> flushBufferAsync(List<MessageEntity> buffer, JdbiExecutor executor) {
+    private static CompletableFuture<Void> flushBufferAsync(List<MessageEntity> buffer, List<MessageAttachmentEntity> attachmentBuffer, JdbiExecutor executor) {
         if (buffer.isEmpty()) return CompletableFuture.completedFuture(null);
         
         List<MessageEntity> toFlush = new ArrayList<>(buffer);
+        List<MessageAttachmentEntity> attachmentsToFlush = new ArrayList<>(attachmentBuffer);
         buffer.clear();
+        attachmentBuffer.clear();
         
-        return executor.useExtension(MessageDao.class, dao -> dao.upsertBatch(toFlush)).exceptionally(throwable -> {
+        return executor.useTransaction(handle -> {
+            handle.attach(MessageDao.class).upsertBatch(toFlush);
+            if (!attachmentsToFlush.isEmpty()) handle.attach(MessageAttachmentDao.class).upsertAll(attachmentsToFlush);
+        }).exceptionally(throwable -> {
             Log.err("Failed to flush message buffer to database.", throwable);
             return null;
         }).toCompletableFuture();
@@ -90,34 +102,47 @@ public class MessageDatabase {
     
     public static void addNewMessage(Message message) {
         MessageEntity messageEntity = buildMessageEntity(message);
-        if (messageEntity == null) return;
         
-        Database.useExtension(MessageDao.class, dao -> dao.upsert(messageEntity));
+        if (message.getAttachments().isEmpty()) {
+            Database.useExtension(MessageDao.class, dao -> dao.upsert(messageEntity));
+            return;
+        }
+        
+        List<MessageAttachmentEntity> attachmentEntities = new ArrayList<>(message.getAttachments().size());
+        for (Message.Attachment attachment : message.getAttachments()) {
+            MessageAttachmentEntity attachmentEntity = new MessageAttachmentEntity(message.getIdLong(), attachment);
+            
+            attachmentEntities.add(attachmentEntity);
+        }
+        
+        Database.useHandle(handle -> {
+            handle.attach(MessageDao.class).upsert(messageEntity);
+            handle.attach(MessageAttachmentDao.class).upsertAll(attachmentEntities);
+        });
     }
     
     public static void updateMessage(Message message) {
-        Database.useHandle(handle -> {
-            MessageDao messageDao = handle.attach(MessageDao.class);
+        // Attachment can be updated/removed individually on a message
+        List<MessageAttachmentEntity> attachmentEntities = new ArrayList<>(message.getAttachments().size());
+        for (Message.Attachment attachment : message.getAttachments()) {
+            MessageAttachmentEntity attachmentEntity = new MessageAttachmentEntity(message.getIdLong(), attachment);
             
-            MessageEntity dbMessage = messageDao.getById(message.getIdLong());
-            if (dbMessage == null) return;
+            attachmentEntities.add(attachmentEntity);
+        }
+        
+        Database.useTransaction(handle -> {
+            handle.attach(MessageDao.class).setContents(message.getIdLong(), message.getContentRaw(), cleanContent(message.getContentRaw()));
             
-            // If not null, then it is already eligible
-            if (dbMessage.markovContent != null)
-                dbMessage.setMarkovContent(cleanContent(message.getContentRaw()));
-            
-            messageDao.upsert(dbMessage.setContent(message.getContentRaw()));
+            MessageAttachmentDao attachmentDao = handle.attach(MessageAttachmentDao.class);
+            attachmentDao.deleteByMessageId(message.getIdLong());
+            attachmentDao.upsertAll(attachmentEntities);
         });
     }
     
     public static void deleteMessage(long messageId) {
         Database.useHandle(handle -> {
-            MessageDao messageDao = handle.attach(MessageDao.class);
-            
-            MessageEntity dbMessage = messageDao.getById(messageId);
-            if (dbMessage == null) return;
-            
-            messageDao.delete(messageId);
+            handle.attach(MessageDao.class).delete(messageId);
+            handle.attach(MessageAttachmentDao.class).deleteByMessageId(messageId);
         });
     }
     
@@ -182,7 +207,6 @@ public class MessageDatabase {
     private static MessageEntity buildMessageEntity(Message message) { return buildMessageEntity(message, true); }
     private static MessageEntity buildMessageEntity(Message message, boolean checkMarkov) {
         String content = message.getContentRaw();
-        if (content.isEmpty()) return null;
         
         String markovContent = null;
         if (checkMarkov && isMarkovEligible(message, BotCache.getGuildConfiguration(message.getGuild().getIdLong()).markovBlacklistIds))
@@ -241,9 +265,15 @@ public class MessageDatabase {
     public static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
     
     private static String cleanContent(String content) {
-        String noMentions = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
-        String noUrl = NO_URL_PATTERN.matcher(noMentions).replaceAll("");
+        if (content.isBlank()) return "";
         
-        return NO_SPACE_PATTERN.matcher(noUrl.trim()).replaceAll(" ");
+        if (content.indexOf('<') >= 0)
+            content = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
+        if (content.contains("http") || content.contains("www."))
+            content = NO_URL_PATTERN.matcher(content).replaceAll("");
+        if (content.indexOf(' ') >= 0 || content.indexOf('\n') >= 0 || content.indexOf('\t') >= 0)
+            content = NO_SPACE_PATTERN.matcher(content).replaceAll(" ").trim();
+        
+        return content;
     }
 }
