@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
  */
 public class InteractionProcessor {
     private static final Map<String, Interaction> interactionMethods = new HashMap<>();
-    private static final Pattern NAME_REGEX = Pattern.compile("([a-z])([A-Z]+)");
+    private static final List<Interaction.Wildcard> wildcardInteractions = new ArrayList<>();
     
     /**
      * Initializes the interaction processor by scanning the specified package for classes annotated with {@link InteractionModule},
@@ -62,11 +62,12 @@ public class InteractionProcessor {
         }
         
         Map<String, CommandData> commands = new HashMap<>();
+        final Pattern UPPERCASE_SPLIT_PATTERN = Pattern.compile("(?=\\p{Upper})");
         for (Class<?> commandClass : classes) {
             for (Method method : commandClass.getDeclaredMethods()) { try {
                 SlashCommandInteraction commandInteraction = method.getAnnotation(SlashCommandInteraction.class);
                 if (commandInteraction != null) {
-                    processCommand(commandInteraction, commandClass, method, commands);
+                    processCommand(commandInteraction, commandClass, method, commands, UPPERCASE_SPLIT_PATTERN);
                     continue;
                 }
 
@@ -100,8 +101,17 @@ public class InteractionProcessor {
                 if (genericInteraction != null) {
                     String id = genericInteraction.id();
                     if (id.isEmpty()) id = method.getName().toLowerCase();
+                    
                     method.setAccessible(true);
-                    interactionMethods.put(id, new Interaction(commandClass, method, id, genericInteraction.guildOnly()));
+                    Interaction interaction = new Interaction(commandClass, method, id, genericInteraction.guildOnly());
+                    
+                    if (id.contains("*")) {
+                        String[] parts = id.split("\\*", 2);
+                        String prefix = parts[0];
+                        String suffix = parts.length > 1 ? parts[1] : "";
+                        wildcardInteractions.add(new Interaction.Wildcard(interaction, prefix, suffix));
+                        wildcardInteractions.sort(Comparator.comparingInt((Interaction.Wildcard w) -> w.prefix.length() + w.suffix.length()).reversed());
+                    } else interactionMethods.put(id, interaction);
                 }
             } catch (Exception e) { Log.warn("An error occurred while registering an interaction.", e); }}
         }
@@ -110,10 +120,10 @@ public class InteractionProcessor {
         bot.addEventListener(new InteractionListener());
     }
 
-    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, Map<String, CommandData> commands) {
+    private static void processCommand(SlashCommandInteraction commandAnnotation, Class<?> commandClass, Method method, Map<String, CommandData> commands, Pattern UPPERCASE_SPLIT_PATTERN) {
         String[] baseCommandName = commandAnnotation.name().isEmpty() ? null : commandAnnotation.name().split(" ");
         if (baseCommandName == null) {
-            baseCommandName = method.getName().split("(?=\\p{Upper})");
+            baseCommandName = UPPERCASE_SPLIT_PATTERN.split(method.getName());
             for (int i = 0; i < baseCommandName.length; i++) baseCommandName[i] = baseCommandName[i].toLowerCase();
         }
         
@@ -193,6 +203,7 @@ public class InteractionProcessor {
         }
         
         List<OptionData> optionsData = new ArrayList<>();
+        final Pattern NAME_REGEX = Pattern.compile("([a-z])([A-Z]+)");
         for (Parameter parameter : parameters) {
             if (GenericEvent.class.isAssignableFrom(parameter.getType())) continue; // Skip the event parameter
             
@@ -379,30 +390,11 @@ public class InteractionProcessor {
             }
             
             Interaction interaction = interactionMethods.get(interactionId);
-            if (interaction == null) {
-                String globalInteractionId = "";
-                for (String key : interactionMethods.keySet()) {
-                    if (key.startsWith("*")) {
-                        if (interactionId.endsWith(key.substring(1))) {
-                            globalInteractionId = key;
-                            break;
-                        }
-                    } else if (key.endsWith("*")) {
-                        if (interactionId.startsWith(key.substring(0, key.length() - 1))) {
-                            globalInteractionId = key;
-                            break;
-                        }
-                    } else if (key.contains("*")) {
-                        String[] parts = key.split("\\*", 2);
-                        if (interactionId.startsWith(parts[0]) && interactionId.endsWith(parts[1])) {
-                            globalInteractionId = key;
-                            break;
-                        }
-                    }
+            if (interaction == null) for (Interaction.Wildcard wildcard : wildcardInteractions)
+                if (wildcard.matches(interactionId)) {
+                    interaction = wildcard.interaction;
+                    break;
                 }
-                
-                interaction = interactionMethods.get(globalInteractionId);
-            }
             
             // The interaction 100% doesn't exist
             if (interaction == null) {

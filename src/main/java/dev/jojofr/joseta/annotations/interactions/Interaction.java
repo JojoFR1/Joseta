@@ -30,4 +30,20 @@ public class Interaction {
     public MethodHandle getHandle() { return handle; }
     public String getName() { return name; }
     public boolean isGuildOnly() { return guildOnly; }
+    
+    public static class Wildcard {
+        public final Interaction interaction;
+        public final String prefix;
+        public final String suffix;
+        
+        public Wildcard(Interaction interaction, String prefix, String suffix) {
+            this.interaction = interaction;
+            this.prefix = prefix;
+            this.suffix = suffix;
+        }
+        
+        public boolean matches(String id) {
+            return id.startsWith(prefix) && id.endsWith(suffix);
+        }
+    }
 }

@@ -60,27 +60,25 @@ public class ConfigurationCommand {
             hook -> configurationMessages.put(hook.getCallbackResponse().getMessage().getIdLong(), new ConfigurationMessage(event.getGuild().getIdLong(), Instant.now()))
         );
     }
-    
-    @Interaction(id = "config:cat_autores") public void onConfigAutoResponseButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @Interaction(id = "config:cat_counting") public void onConfigCountingButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @Interaction(id = "config:cat_markov") public void onConfigMarkovButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @Interaction(id = "config:cat_moderation") public void onConfigModerationButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @Interaction(id = "config:cat_welcome") public void onConfigWelcomeButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    @Interaction(id = "config:menu_back") public void onConfigBackButton(ButtonInteractionEvent event) { onCategoryButton(event); }
-    private void onCategoryButton(ButtonInteractionEvent event) {
+
+    @Interaction(id = "config:cat_*")
+    public void onCategoryButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
         
         Container container;
         String buttonId = event.getComponentId();
-        configurationMessage.isMainMenu = buttonId.equals("config:menu_back");
+        configurationMessage.isMainMenu = false;
         switch (buttonId) {
             case "config:cat_autores" -> container = createAutoResponseMenuContainer(configurationMessage);
             case "config:cat_counting" -> container = createCountingMenuContainer(configurationMessage);
             case "config:cat_markov" -> container = createMarkovMenuContainer(configurationMessage);
             case "config:cat_moderation" -> container = createModerationMenuContainer(configurationMessage);
             case "config:cat_welcome" -> container = createWelcomeMenuContainer(configurationMessage);
-            case "config:menu_back" -> container = createMainMenuContainer(configurationMessage);
+            case "config:cat_main" -> {
+                configurationMessage.isMainMenu = true;
+                container = createMainMenuContainer(configurationMessage);
+            }
             default -> container = null;
         }
         
@@ -132,14 +130,6 @@ public class ConfigurationCommand {
         event.getMessage().editMessageComponents(createMainMenuContainer(configurationMessage)).useComponentsV2().queue();
     }
     
-    // @Interaction(id = "config:cat_welcome:toggle") public void onConfigWelcomeToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_welcome:image:toggle") public void onConfigWelcomeToggleImageButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_counting:toggle") public void onConfigCountingToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_counting:comments:toggle") public void onConfigCountingToggleCommentsButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_counting:penalty:toggle") public void onConfigCountingTogglePenaltyButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_markov:toggle") public void onConfigMarkovToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_moderation:toggle") public void onConfigModerationToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
-    // @Interaction(id = "config:cat_autores:toggle") public void onConfigAutoResponseToggleButton(ButtonInteractionEvent event) { onToggleButton(event); }
     @Interaction(id = "config:cat_*:toggle")
     public void onToggleButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
@@ -170,11 +160,8 @@ public class ConfigurationCommand {
         }).useComponentsV2().queue();
     }
     
-    @Interaction(id = "config:cat_counting:reset_number") public void onConfigCountingResetNumberButton(ButtonInteractionEvent event) { onResetButton(event); }
-    @Interaction(id = "config:cat_counting:reset_number_special") public void onConfigCountingResetNumberSpecialButton(ButtonInteractionEvent event) { onResetButton(event); }
-    @Interaction(id = "config:cat_counting:reset_author") public void onConfigCountingResetAuthorButton(ButtonInteractionEvent event) { onResetButton(event); }
-    @Interaction(id = "config:cat_counting:reset_author_special") public void onConfigCountingResetAuthorSpecialButton(ButtonInteractionEvent event) { onResetButton(event); }
-    private void onResetButton(ButtonInteractionEvent event) {
+    @Interaction(id = "config:cat_counting:reset_*")
+    public void onResetButton(ButtonInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
         
@@ -302,7 +289,7 @@ public class ConfigurationCommand {
         event.deferEdit().queue();
     }
     
-    @Interaction(id = "config:cat_counting:set_number") public void onConfigCountingSetNumberButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
+    @Interaction(id = "config:cat_counting:edit_number") public void onConfigCountingSetNumberButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @Interaction(id = "config:cat_moderation:edit_rules") public void onConfigModerationEditRulesButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @Interaction(id = "config:cat_welcome:edit_join_message") public void onConfigWelcomeEditJoinMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
     @Interaction(id = "config:cat_welcome:edit_leave_message") public void onConfigWelcomeEditLeaveMessageButton(ButtonInteractionEvent event) { onEditMessageButton(event); }
@@ -312,14 +299,14 @@ public class ConfigurationCommand {
         
         String buttonId = event.getComponentId();
         switch (buttonId) {
-            case "config:cat_counting:set_number" -> {
+            case "config:cat_counting:edit_number" -> {
                 String inputValue = String.valueOf(CountingChannel.lastNumber);
                 String specialInputValue = String.valueOf(CountingChannel.specialLastNumber);
-                Modal modal = Modal.create("config:cat_counting:set_number:modal", "Définir le nombre de comptage")
+                Modal modal = Modal.create("config:cat_counting:edit_number:modal", "Définir le nombre de comptage")
                     .addComponents(
                         Label.of(
                             "Nombre de comptage",
-                            TextInput.create("config:cat_counting:set_number:modal:input", TextInputStyle.SHORT)
+                            TextInput.create("config:cat_counting:edit_number:modal:input", TextInputStyle.SHORT)
                                 .setPlaceholder("Entrez un nombre entier.")
                                 .setMinLength(1)
                                 .setMaxLength(20)
@@ -328,7 +315,7 @@ public class ConfigurationCommand {
                         ),
                         Label.of(
                             "Nombre de comptage spécial",
-                            TextInput.create("config:cat_counting:set_number:modal:input_special", TextInputStyle.SHORT)
+                            TextInput.create("config:cat_counting:edit_number:modal:input_special", TextInputStyle.SHORT)
                                 .setPlaceholder("Entrez un nombre entier.")
                                 .setMinLength(1)
                                 .setMaxLength(20)
@@ -377,16 +364,7 @@ public class ConfigurationCommand {
         }
     }
     
-    @Interaction(id = "config:cat_counting:channel_select") public void onConfigCountingChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_counting:second_channel_select") public void onConfigCountingSecondChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_markov:mentionable_blacklist_select") public void onConfigMarkovBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_markov:channel_blacklist_select") public void onConfigMarkovChannelBlacklistSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_moderation:rules:channel_select") public void onConfigModerationRulesChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_welcome:channel_select") public void onConfigWelcomeChannelSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_welcome:join_role_select") public void onConfigWelcomeJoinRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_welcome:join_bot_role_select") public void onConfigWelcomeJoinBotRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    @Interaction(id = "config:cat_welcome:verified_role_select") public void onConfigWelcomeVerifiedRoleSelect(EntitySelectInteractionEvent event) { onSelectMenu(event); }
-    // @Interaction(id = "config:cat_*_select")
+    @Interaction(id = "config:cat_*_select")
     public void onSelectMenu(EntitySelectInteractionEvent event) {
         ConfigurationMessage configurationMessage = checkConfigurationMessage(event, event.getMessageIdLong());
         if (configurationMessage == null) return;
@@ -446,7 +424,7 @@ public class ConfigurationCommand {
         event.editComponents(createCountingMenuContainer(configurationMessage)).useComponentsV2().queue();
     }
     
-    @Interaction(id = "config:cat_counting:set_number:modal") public void onConfigCountingSetNumber(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
+    @Interaction(id = "config:cat_counting:edit_number:modal") public void onConfigCountingSetNumber(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @Interaction(id = "config:cat_moderation:edit_rules:modal") public void onConfigModerationEditRulesModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @Interaction(id = "config:cat_welcome:edit_join_message:modal") public void onConfigWelcomeEditJoinMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
     @Interaction(id = "config:cat_welcome:edit_leave_message:modal") public void onConfigWelcomeEditLeaveMessageModalSubmit(ModalInteractionEvent event) { onEditMessageModalSubmit(event); }
@@ -456,7 +434,7 @@ public class ConfigurationCommand {
         
         String modalId = event.getModalId();
         String inputId = switch (modalId) {
-            case "config:cat_counting:set_number:modal" -> "config:cat_counting:set_number:modal:input";
+            case "config:cat_counting:edit_number:modal" -> "config:cat_counting:edit_number:modal:input";
             case "config:cat_moderation:edit_rules:modal" -> "config:cat_moderation:edit_rules:modal:input";
             case "config:cat_welcome:edit_join_message:modal" -> "config:cat_welcome:edit_join_message:modal:input";
             case "config:cat_welcome:edit_leave_message:modal" -> "config:cat_welcome:edit_leave_message:modal:input";
@@ -466,7 +444,7 @@ public class ConfigurationCommand {
         
         String newValue = event.getValue(inputId).getAsString();
         switch (modalId) {
-            case "config:cat_counting:set_number:modal" -> {
+            case "config:cat_counting:edit_number:modal" -> {
                 try {
                     CountingChannel.lastNumber = Long.parseLong(newValue);
                     CountingChannel.specialLastNumber = Long.parseLong(event.getValue(inputId + "_special").getAsString());
@@ -607,7 +585,7 @@ public class ConfigurationCommand {
             ActionRow.of(countingModeSelectMenu),
             
             Section.of(
-                Button.of(ButtonStyle.PRIMARY, "config:cat_counting:set_number", "Définir le nombre", Emoji.fromUnicode("\uD83D\uDD22"))
+                Button.of(ButtonStyle.PRIMARY, "config:cat_counting:edit_number", "Définir le nombre", Emoji.fromUnicode("\uD83D\uDD22"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
                 TextDisplay.of("### Définir le nombre de comptage\n-# Définit le nombre actuel du salon de comptage à un nombre spécifique.")
             ),
@@ -795,7 +773,7 @@ public class ConfigurationCommand {
     
     private ActionRow createBottomRow(ConfigurationMessage configurationMessage) {
         return ActionRow.of(
-            Button.primary("config:menu_back", "Retour au menu principal").withDisabled(configurationMessage == null || configurationMessage.isMainMenu),
+            Button.primary("config:cat_main", "Retour au menu principal").withDisabled(configurationMessage == null || configurationMessage.isMainMenu),
             Button.success("config:save", "Enregistrer les modifications").withDisabled(configurationMessage == null || !configurationMessage.hasChanged)
         );
     }
