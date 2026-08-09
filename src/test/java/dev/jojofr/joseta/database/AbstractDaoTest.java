@@ -1,6 +1,7 @@
 package dev.jojofr.joseta.database;
 
 import dev.jojofr.joseta.database.daos.GuildDao;
+import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.GuildEntity;
@@ -79,11 +80,11 @@ public abstract class AbstractDaoTest<E, D> {
                 default -> throw new IllegalArgumentException("Unknown SanctionType code: " + value);
             };
         });
-        jdbi.registerColumnMapper(MessageDao.EntityType.class, (rs, col, ctx) -> {
+        jdbi.registerColumnMapper(MarkovBlacklistDao.EntityType.class, (rs, col, ctx) -> {
             String value = rs.getString(col);
             if (value == null) return null;
             
-            return MessageDao.EntityType.valueOf(value);
+            return MarkovBlacklistDao.EntityType.valueOf(value);
         });
         jdbi.registerArgument(new AbstractArgumentFactory<SanctionEntity.SanctionType>(Types.CHAR) {
             @Override
@@ -91,9 +92,9 @@ public abstract class AbstractDaoTest<E, D> {
                 return (position, statement, ctx) -> statement.setString(position, String.valueOf(value.code));
             }
         });
-        jdbi.registerArgument(new AbstractArgumentFactory<MessageDao.EntityType>(Types.VARCHAR) {
+        jdbi.registerArgument(new AbstractArgumentFactory<MarkovBlacklistDao.EntityType>(Types.VARCHAR) {
             @Override
-            protected Argument build(MessageDao.EntityType value, ConfigRegistry config) {
+            protected Argument build(MarkovBlacklistDao.EntityType value, ConfigRegistry config) {
                 return (position, statement, ctx) -> statement.setString(position, value.name());
             }
         });
