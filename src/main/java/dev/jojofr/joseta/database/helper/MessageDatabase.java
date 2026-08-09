@@ -263,15 +263,21 @@ public class MessageDatabase {
         return true;
     }
     
-    // You may be like: "Oh, but why compile such simple regex?". Well, caching them is way more efficient than a replaceAll because said method recompiles it every time.
-    private static final Pattern NO_SPACE_PATTERN = Pattern.compile("\\s+");
     public static final Pattern NO_MENTIONS_PATTERN = Pattern.compile("<@[!&]?\\d+>");
     public static final Pattern NO_URL_PATTERN = Pattern.compile("(https?://\\S+|www\\.\\S+[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\\S*)");
+    // You may be like: "Oh, but why compile such simple regex?". Well, caching them is way more efficient than a replaceAll because said method recompiles it every time.
+    private static final Pattern NO_SPACE_PATTERN = Pattern.compile("\\s+");
     
     private static String cleanContent(String content) {
-        String noMentions = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
-        String noUrl = NO_URL_PATTERN.matcher(noMentions).replaceAll("");
+        if (content == null || content.isEmpty()) return "";
         
-        return NO_SPACE_PATTERN.matcher(noUrl.trim()).replaceAll(" ");
+        if (content.indexOf('<') >= 0)
+            content = NO_MENTIONS_PATTERN.matcher(content).replaceAll("");
+        if (content.contains("http") || content.contains("www."))
+            content = NO_URL_PATTERN.matcher(content).replaceAll("");
+        if (content.indexOf(' ') >= 0 || content.indexOf('\n') >= 0 || content.indexOf('\t') >= 0)
+            content = NO_SPACE_PATTERN.matcher(content).replaceAll(" ");
+        
+        return content;
     }
 }
