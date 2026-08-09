@@ -34,6 +34,11 @@ public class SetupEvents {
                 Log.err("Failed to populate new guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
                 return null;
             });
+        } else {
+            MessageDatabase.populateMissedMessages(event.getGuild()).exceptionally(throwable -> {
+                Log.err("Failed to populate missed messages for guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
+                return null;
+            });
         }
     }
     

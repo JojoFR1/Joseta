@@ -2,6 +2,7 @@ package dev.jojofr.joseta.database.helper;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.BotDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.MessageEntity;
 import dev.jojofr.joseta.utils.BotCache;
@@ -18,6 +19,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.StandardGuildMessageChanne
 import org.jdbi.v3.core.async.JdbiExecutor;
 import org.jdbi.v3.core.statement.PreparedBatch;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +38,7 @@ public class MessageDatabase {
         
         return getGuildMessageChannels(guild).thenCompose(channels -> {
             List<CompletableFuture<Integer>> futures = channels.stream()
-                .map(channel -> addChannelMessageHistory(channel, guild, executor))
+                .map(channel -> addChannelMessageHistory(channel, executor))
                 .toList();
             
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
@@ -50,31 +52,57 @@ public class MessageDatabase {
         }).thenAccept(ignore -> {});
     }
     
-    public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, Guild guild, JdbiExecutor executor) {
-        List<MessageEntity> buffer = new ArrayList<>(500);
-        List<CompletableFuture<Void>> pendingFlushes = new ArrayList<>();
-        int[] count = {0};
+        // Gather all missed messages since the last time the bot was connected to this guild
+        public static CompletableFuture<Void> populateMissedMessages(Guild guild) {
+            long start = System.nanoTime();
+            Log.debug("Populating missed messages for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
+            
+            ExecutorService writeExecutor = Executors.newVirtualThreadPerTaskExecutor();
+            JdbiExecutor executor = JdbiExecutor.create(Database.get(), writeExecutor);
+            
+            Instant lastOnline = Database.withExtension(BotDao.class, BotDao::getLastOnline);
+            return getGuildMessageChannels(guild).thenCompose(channels -> {
+                List<CompletableFuture<Integer>> futures = channels.stream()
+                    .map(channel -> addChannelMessageHistory(channel, executor, lastOnline))
+                    .toList();
+                
+                return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                    .thenApply(v -> futures.stream().mapToInt(CompletableFuture::join).sum());
+            }).whenComplete((totalCount, throwable) -> {
+                writeExecutor.shutdown();
+                if (throwable != null) Log.err("Failed to populate missed messages for guild: {} (ID: {})", throwable, guild.getName(), guild.getIdLong());
+                else {
+                    Log.debug("Populated missed messages with {} messages for guild: {} (ID: {})", totalCount, guild.getName(), guild.getIdLong());
+                    Log.debug("Finished populating missed messages for guild: {} (ID: {}) in {} ms", guild.getName(), guild.getIdLong(), (System.nanoTime() - start) / 1_000_000.0);
+                }
+            }).thenAccept(ignore -> {});
+        }
         
-        return channel.getIterableHistory().forEachAsync(message -> {
-            MessageEntity entity = buildMessageEntity(message, false);
-            if (entity == null) return true;
+        public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, JdbiExecutor executor) { return addChannelMessageHistory(channel, executor, null); }
+        public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, JdbiExecutor executor, Instant botLastOnline) {
+            List<MessageEntity> buffer = new ArrayList<>(500);
+            List<CompletableFuture<Void>> pendingFlushes = new ArrayList<>();
+            int[] count = {0};
             
-            if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
-            
-            buffer.add(entity);
-            count[0]++;
-            
-            if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, executor));
-            
-            return true;
-        }).thenCompose(v -> {
-            pendingFlushes.add(flushBufferAsync(buffer, executor));
-            return CompletableFuture.allOf(pendingFlushes.toArray(CompletableFuture[]::new));
-        }).thenApply(v -> count[0]).exceptionally(throwable -> {
-            Log.err("Could not populate the messages table for channel ID: {} in guild: {} (ID: {}).", throwable, channel.getIdLong(), guild.getName(), guild.getIdLong());
-            return count[0];
-        });
-    }
+            return channel.getIterableHistory().forEachAsync(message -> {
+                if (botLastOnline != null && message.getTimeCreated().toInstant().isBefore(botLastOnline)) return false;
+                
+                MessageEntity entity = buildMessageEntity(message, false);
+                if (entity == null) return true;
+                
+                if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
+                
+                buffer.add(entity);
+                count[0]++;
+                
+                if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, executor));
+                
+                return true;
+            }).thenCompose(v -> {
+                pendingFlushes.add(flushBufferAsync(buffer, executor));
+                return CompletableFuture.allOf(pendingFlushes.toArray(CompletableFuture[]::new));
+            }).thenApply(v -> count[0]);
+        }
     
     private static CompletableFuture<Void> flushBufferAsync(List<MessageEntity> buffer, JdbiExecutor executor) {
         if (buffer.isEmpty()) return CompletableFuture.completedFuture(null);
