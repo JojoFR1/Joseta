@@ -3,6 +3,7 @@ package dev.jojofr.joseta.utils;
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ConfigurationDao;
+import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.entities.GuildConfiguration;
@@ -35,7 +36,7 @@ public class BotCache {
             }
             
             GuildConfiguration guildConfig = new GuildConfiguration(config);
-            guildConfig.markovBlacklistIds = Database.withExtension(MessageDao.MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
+            guildConfig.markovBlacklistIds = Database.withExtension(MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
             
             return guildConfig;
         });
