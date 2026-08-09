@@ -88,7 +88,6 @@ public class MessageDatabase {
                 if (botLastOnline != null && message.getTimeCreated().toInstant().isBefore(botLastOnline)) return false;
                 
                 MessageEntity entity = buildMessageEntity(message, false);
-                if (entity == null) return true;
                 
                 if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
                 
@@ -118,7 +117,6 @@ public class MessageDatabase {
     
     public static void addNewMessage(Message message) {
         MessageEntity messageEntity = buildMessageEntity(message);
-        if (messageEntity == null) return;
         
         Database.useExtension(MessageDao.class, dao -> dao.upsert(messageEntity));
     }
@@ -210,7 +208,6 @@ public class MessageDatabase {
     private static MessageEntity buildMessageEntity(Message message) { return buildMessageEntity(message, true); }
     private static MessageEntity buildMessageEntity(Message message, boolean checkMarkov) {
         String content = message.getContentRaw();
-        if (content.isEmpty()) return null;
         
         String markovContent = null;
         if (checkMarkov && isMarkovEligible(message, BotCache.getGuildConfiguration(message.getGuild().getIdLong()).markovBlacklistIds))
@@ -278,6 +275,6 @@ public class MessageDatabase {
         if (content.indexOf(' ') >= 0 || content.indexOf('\n') >= 0 || content.indexOf('\t') >= 0)
             content = NO_SPACE_PATTERN.matcher(content).replaceAll(" ");
         
-        return content;
+        return content.trim();
     }
 }
