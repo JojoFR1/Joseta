@@ -30,12 +30,12 @@ public class SetupEvents {
             
             Database.useExtension(GuildDao.class, dao -> dao.upsert(new GuildEntity(event.getGuild())));
             Database.useExtension(ConfigurationDao.class, dao -> dao.upsert(new ConfigurationEntity(event.getGuild().getIdLong())));
-            MessageDatabase.populateNewGuild(event.getGuild()).exceptionally(throwable -> {
+            MessageDatabase.populateGuildMessages(event.getGuild()).exceptionally(throwable -> {
                 Log.err("Failed to populate new guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
                 return null;
             });
         } else {
-            MessageDatabase.populateMissedMessages(event.getGuild()).exceptionally(throwable -> {
+            MessageDatabase.populateGuildMessages(event.getGuild(), true).exceptionally(throwable -> {
                 Log.err("Failed to populate missed messages for guild: {} (ID: {})", throwable, event.getGuild().getName(), event.getGuild().getIdLong());
                 return null;
             });

@@ -3,7 +3,9 @@ package dev.jojofr.joseta.database.helper;
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.BotDao;
+import dev.jojofr.joseta.database.daos.MessageAttachmentDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.entities.MessageAttachmentEntity;
 import dev.jojofr.joseta.database.entities.MessageEntity;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
@@ -21,129 +23,154 @@ import org.jdbi.v3.core.statement.PreparedBatch;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class MessageDatabase {
-    
-    public static CompletableFuture<Void> populateNewGuild(Guild guild) {
+    private static final int DB_WRITE_THREADS = 8;
+    private static final int CONCURRENT_CHANNELS = 4;
+    private static final int BATCH_SIZE = 500;
+
+    public static CompletableFuture<Void> populateGuildMessages(Guild guild) { return populateGuildMessages(guild, false); }
+    public static CompletableFuture<Void> populateGuildMessages(Guild guild, boolean missedOnly) {
         long start = System.nanoTime();
-        Log.debug("Populating messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
+        String missed = missedOnly ? "missed " : "";
+        Log.debug("Populating "+ missed +" messages table for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
         
-        ExecutorService writeExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        ExecutorService writeExecutor = Executors.newFixedThreadPool(DB_WRITE_THREADS);
         JdbiExecutor executor = JdbiExecutor.create(Database.get(), writeExecutor);
         
-        return getGuildMessageChannels(guild).thenCompose(channels -> {
-            List<CompletableFuture<Integer>> futures = channels.stream()
-                .map(channel -> addChannelMessageHistory(channel, executor))
-                .toList();
-            
-            return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                .thenApply(v -> futures.stream().mapToInt(CompletableFuture::join).sum());
-        }).whenComplete((totalCount, throwable) -> {
-            writeExecutor.shutdown();
-            if (throwable != null) Log.err("Failed to populate messages table for guild: {} (ID: {})", throwable, guild.getName(), guild.getIdLong());
-            else {
-                Log.debug("Populated messages table with {} messages for guild: {} (ID: {})", totalCount, guild.getName(), guild.getIdLong());
-                Log.debug("Finished populating messages table for guild: {} (ID: {}) in {} ms", guild.getName(), guild.getIdLong(), (System.nanoTime() - start) / 1_000_000.0);            }
-        }).thenAccept(ignore -> {});
-    }
-    
-        // Gather all missed messages since the last time the bot was connected to this guild
-        public static CompletableFuture<Void> populateMissedMessages(Guild guild) {
-            long start = System.nanoTime();
-            Log.debug("Populating missed messages for guild: {} (ID: {})", guild.getName(), guild.getIdLong());
-            
-            ExecutorService writeExecutor = Executors.newVirtualThreadPerTaskExecutor();
-            JdbiExecutor executor = JdbiExecutor.create(Database.get(), writeExecutor);
-            
-            Instant lastOnline = Database.withExtension(BotDao.class, BotDao::getLastOnline);
-            return getGuildMessageChannels(guild).thenCompose(channels -> {
-                List<CompletableFuture<Integer>> futures = channels.stream()
-                    .map(channel -> addChannelMessageHistory(channel, executor, lastOnline))
-                    .toList();
-                
-                return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                    .thenApply(v -> futures.stream().mapToInt(CompletableFuture::join).sum());
-            }).whenComplete((totalCount, throwable) -> {
+        Instant lastOnline = missedOnly ? Database.withExtension(BotDao.class, BotDao::getLastOnline) : null;
+        return getGuildMessageChannels(guild).thenCompose(channels -> populateChannels(channels, executor, lastOnline))
+            .whenComplete((totalCount, throwable) -> {
                 writeExecutor.shutdown();
-                if (throwable != null) Log.err("Failed to populate missed messages for guild: {} (ID: {})", throwable, guild.getName(), guild.getIdLong());
+                if (throwable != null) Log.err("Failed to populate "+ missed + "messages table for guild: {} (ID: {})", throwable, guild.getName(), guild.getIdLong());
                 else {
-                    Log.debug("Populated missed messages with {} messages for guild: {} (ID: {})", totalCount, guild.getName(), guild.getIdLong());
-                    Log.debug("Finished populating missed messages for guild: {} (ID: {}) in {} ms", guild.getName(), guild.getIdLong(), (System.nanoTime() - start) / 1_000_000.0);
+                    Log.debug("Populated "+ missed +"messages table with {} messages for guild: {} (ID: {})", totalCount, guild.getName(), guild.getIdLong());
+                    Log.debug("Finished populating "+ missed +"messages table for guild: {} (ID: {}) in {} ms", guild.getName(), guild.getIdLong(), (System.nanoTime() - start) / 1_000_000.0);
                 }
             }).thenAccept(ignore -> {});
-        }
-        
-        public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, JdbiExecutor executor) { return addChannelMessageHistory(channel, executor, null); }
-        public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, JdbiExecutor executor, Instant botLastOnline) {
-            List<MessageEntity> buffer = new ArrayList<>(500);
-            List<CompletableFuture<Void>> pendingFlushes = new ArrayList<>();
-            int[] count = {0};
-            
-            return channel.getIterableHistory().forEachAsync(message -> {
-                if (botLastOnline != null && message.getTimeCreated().toInstant().isBefore(botLastOnline)) return false;
-                
-                MessageEntity entity = buildMessageEntity(message, false);
-                
-                if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
-                
-                buffer.add(entity);
-                count[0]++;
-                
-                if (buffer.size() >= 500) pendingFlushes.add(flushBufferAsync(buffer, executor));
-                
-                return true;
-            }).thenCompose(v -> {
-                pendingFlushes.add(flushBufferAsync(buffer, executor));
-                return CompletableFuture.allOf(pendingFlushes.toArray(CompletableFuture[]::new));
-            }).thenApply(v -> count[0]);
-        }
+    }
     
-    private static CompletableFuture<Void> flushBufferAsync(List<MessageEntity> buffer, JdbiExecutor executor) {
-        if (buffer.isEmpty()) return CompletableFuture.completedFuture(null);
+    public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, JdbiExecutor executor) { return addChannelMessageHistory(channel, executor, null); }
+    public static CompletableFuture<Integer> addChannelMessageHistory(GuildMessageChannel channel, JdbiExecutor executor, Instant botLastOnline) {
+        List<MessageEntity> buffer = new ArrayList<>(BATCH_SIZE);
+        List<MessageAttachmentEntity> attachmentBuffer = new ArrayList<>(BATCH_SIZE);
+        AtomicInteger count = new AtomicInteger(0);
         
-        List<MessageEntity> toFlush = new ArrayList<>(buffer);
-        buffer.clear();
+        CompletableFuture<Void>[] writeChain = new CompletableFuture[]{CompletableFuture.completedFuture(null)};
         
-        return executor.useExtension(MessageDao.class, dao -> dao.upsertBatch(toFlush)).exceptionally(throwable -> {
-            Log.err("Failed to flush message buffer to database.", throwable);
-            return null;
+        return channel.getIterableHistory().forEachAsync(message -> {
+            if (botLastOnline != null && message.getTimeCreated().toInstant().isBefore(botLastOnline)) return false;
+            
+            MessageEntity entity = buildMessageEntity(message, false);
+            
+            if (!message.getAuthor().isBot() && !message.getAuthor().isSystem()) entity.markovContent = cleanContent(message.getContentRaw());
+            
+            buffer.add(entity);
+            for (Message.Attachment attachment : message.getAttachments()) {
+                MessageAttachmentEntity attachmentEntity = new MessageAttachmentEntity(message.getIdLong(), attachment);
+                attachmentBuffer.add(attachmentEntity);
+            }
+            
+            count.incrementAndGet();
+            
+            if (buffer.size() >= BATCH_SIZE) {
+                List<MessageEntity> batch = new ArrayList<>(buffer);
+                List<MessageAttachmentEntity> attachmentBatch = new ArrayList<>(attachmentBuffer);
+                buffer.clear();
+                attachmentBuffer.clear();
+                
+                writeChain[0] = writeChain[0].thenCompose(ign -> flushMessageBatchAsync(batch, attachmentBatch, executor));
+            }
+            
+            return true;
+        }).thenCompose(v -> {
+            if (!buffer.isEmpty()){
+                List<MessageEntity> batch = new ArrayList<>(buffer);
+                List<MessageAttachmentEntity> attachmentBatch = new ArrayList<>(attachmentBuffer);
+                buffer.clear();
+                attachmentBuffer.clear();
+                
+                writeChain[0] = writeChain[0].thenCompose(ign -> flushMessageBatchAsync(batch, attachmentBatch, executor));
+            }
+            
+            return writeChain[0];
+        }).thenApply(v -> count.get());
+    }
+    
+    private static CompletableFuture<Void> flushMessageBatchAsync(List<MessageEntity> batch, List<MessageAttachmentEntity> attachmentBatch, JdbiExecutor executor) {
+        return executor.useTransaction(handle ->{
+            handle.attach(MessageDao.class).upsertBatch(batch);
+            
+            if (!attachmentBatch.isEmpty()) handle.attach(MessageAttachmentDao.class).upsertAll(attachmentBatch);
         }).toCompletableFuture();
     }
+    
+    private static CompletableFuture<Integer> populateChannels(List<GuildMessageChannel> channels, JdbiExecutor executor, Instant lastOnline) {
+        AtomicInteger next = new AtomicInteger();
+        AtomicInteger total = new AtomicInteger();
+        
+        List<CompletableFuture<Void>> futures = new ArrayList<>(Math.min(CONCURRENT_CHANNELS, channels.size()));
+        for (int i = 0; i < Math.min(CONCURRENT_CHANNELS, channels.size()); i++)
+            futures.add(populateNextChannel(channels, next, total, executor, lastOnline));
+        
+        return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).thenApply(v -> total.get());
+    }
+    
+    private static CompletableFuture<Void> populateNextChannel(List<GuildMessageChannel> channels, AtomicInteger next, AtomicInteger total, JdbiExecutor executor, Instant lastOnline) {
+        int i = next.getAndIncrement();
+        if (i >= channels.size()) return CompletableFuture.completedFuture(null);
+        
+        return addChannelMessageHistory(channels.get(i), executor, lastOnline)
+            .thenAccept(total::addAndGet)
+            .thenCompose(v -> populateNextChannel(channels, next, total, executor, lastOnline));
+    }
+    
     
     public static void addNewMessage(Message message) {
         MessageEntity messageEntity = buildMessageEntity(message);
         
-        Database.useExtension(MessageDao.class, dao -> dao.upsert(messageEntity));
+        if (message.getAttachments().isEmpty()) {
+            Database.useExtension(MessageDao.class, dao -> dao.upsert(messageEntity));
+            return;
+        }
+        
+        List<MessageAttachmentEntity> attachmentEntities = new ArrayList<>(message.getAttachments().size());
+        for (Message.Attachment attachment : message.getAttachments()) {
+            MessageAttachmentEntity attachmentEntity = new MessageAttachmentEntity(message.getIdLong(), attachment);
+            attachmentEntities.add(attachmentEntity);
+        }
+        
+        Database.useTransaction(handle -> {
+            handle.attach(MessageDao.class).upsert(messageEntity);
+            handle.attach(MessageAttachmentDao.class).upsertAll(attachmentEntities);
+        });
     }
     
     public static void updateMessage(Message message) {
-        Database.useHandle(handle -> {
-            MessageDao messageDao = handle.attach(MessageDao.class);
+        // Attachment can be updated/removed individually on a message
+        List<MessageAttachmentEntity> attachmentEntities = new ArrayList<>(message.getAttachments().size());
+        for (Message.Attachment attachment : message.getAttachments()) {
+            MessageAttachmentEntity attachmentEntity = new MessageAttachmentEntity(message.getIdLong(), attachment);
+            attachmentEntities.add(attachmentEntity);
+        }
+        
+        Database.useTransaction(handle -> {
+            handle.attach(MessageDao.class).setContents(message.getIdLong(), message.getContentRaw(), cleanContent(message.getContentRaw()));
             
-            MessageEntity dbMessage = messageDao.getById(message.getIdLong());
-            if (dbMessage == null) return;
-            
-            // If not null, then it is already eligible
-            if (dbMessage.markovContent != null)
-                dbMessage.setMarkovContent(cleanContent(message.getContentRaw()));
-            
-            messageDao.upsert(dbMessage.setContent(message.getContentRaw()));
+            MessageAttachmentDao attachmentDao = handle.attach(MessageAttachmentDao.class);
+            attachmentDao.deleteByMessageId(message.getIdLong());
+            attachmentDao.upsertAll(attachmentEntities);
         });
     }
     
     public static void deleteMessage(long messageId) {
         Database.useHandle(handle -> {
-            MessageDao messageDao = handle.attach(MessageDao.class);
-            
-            MessageEntity dbMessage = messageDao.getById(messageId);
-            if (dbMessage == null) return;
-            
-            messageDao.delete(messageId);
+            handle.attach(MessageDao.class).delete(messageId);
+            handle.attach(MessageAttachmentDao.class).deleteByMessageId(messageId);
         });
     }
     
@@ -189,8 +216,8 @@ public class MessageDatabase {
         });
     }
     
-    public static CompletableFuture<Set<GuildMessageChannel>> getGuildMessageChannels(Guild guild) {
-        Set<GuildMessageChannel> channels = new HashSet<>();
+    public static CompletableFuture<List<GuildMessageChannel>> getGuildMessageChannels(Guild guild) {
+        List<GuildMessageChannel> channels = new ArrayList<>();
         List<CompletableFuture<?>> pending = new ArrayList<>();
         
         for (GuildChannel channel : guild.getChannels()) {

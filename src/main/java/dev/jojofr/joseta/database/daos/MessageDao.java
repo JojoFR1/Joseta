@@ -54,6 +54,18 @@ public interface MessageDao {
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
     void clearMarkovContent(long authorId, long guildId);
     
+    // Set the content, and markov content if not null
+    @SqlUpdate("""
+        UPDATE messages SET
+            content = :content,
+            markov_content = CASE
+                WHEN :markovContent IS NOT NULL THEN :markovContent
+                ELSE NULL
+            END
+        WHERE id = :id
+    """)
+    void setContents(long id, String content, String markovContent);
+    
     @SqlUpdate("DELETE FROM messages WHERE id = :id")
     void delete(long id);
     @SqlUpdate("DELETE FROM messages WHERE guild_id = :guildId AND author_id = :authordId")
