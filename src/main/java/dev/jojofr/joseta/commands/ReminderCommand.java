@@ -10,7 +10,7 @@ import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ReminderListMessage;
 import dev.jojofr.joseta.events.ScheduledEvents;
-import dev.jojofr.joseta.utils.TimeParser;
+import dev.jojofr.joseta.utils.Parser;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.checkbox.Checkbox;
@@ -63,7 +63,7 @@ public class ReminderCommand {
         ZoneId parisZone = ZoneId.of("Europe/Paris");
         LocalDateTime now = LocalDateTime.now(parisZone);
         LocalDateTime remindAt;
-        if (remindAfter != null && !remindAfter.isEmpty()) remindAt = now.plusSeconds(TimeParser.parse(remindAfter));
+        if (remindAfter != null && !remindAfter.isEmpty()) remindAt = now.plusSeconds(Parser.parseTime(remindAfter));
         else
             remindAt = LocalDateTime.of(
                 year   != null ? year   : now.getYear(),
@@ -88,10 +88,10 @@ public class ReminderCommand {
             return;
         }
         
-        ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? TimeParser.parse(repeatTime) : -1, dm, repeat);
+        ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? Parser.parseTime(repeatTime) : -1, dm, repeat);
         Database.useExtension(ReminderDao.class, dao -> dao.insert(reminder));
         event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
-            + (repeat ? " Il sera répété tous les " + TimeParser.formatReadable(reminder.repeatAfter) + "." : "")
+            + (repeat ? " Il sera répété tous les " + Parser.formatTimeReadable(reminder.repeatAfter) + "." : "")
             + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
         
         if (dm)
@@ -157,7 +157,7 @@ public class ReminderCommand {
         LocalDateTime time = LocalDateTime.ofInstant(reminder.remindAt, ZoneId.of("Europe/Paris"));
         
         TextInput.Builder repeatInput = TextInput.create(id + ":repeat", TextInputStyle.SHORT);
-        if (reminder.repeatAfter > 0) repeatInput.setValue(TimeParser.format(reminder.repeatAfter));
+        if (reminder.repeatAfter > 0) repeatInput.setValue(Parser.formatTime(reminder.repeatAfter));
         
         Modal modal = Modal.create(id, "Modifier le rappel")
             .addComponents(
@@ -218,7 +218,7 @@ public class ReminderCommand {
             newRemindAt = LocalDateTime.ofInstant(reminder.remindAt, ZoneId.of("Europe/Paris"));
         }
         
-        long repeatTime = TimeParser.parse(event.getValue(event.getCustomId() + ":repeat").getAsString());
+        long repeatTime = Parser.parseTime(event.getValue(event.getCustomId() + ":repeat").getAsString());
         boolean newRepeat = repeatTime > 0;
         boolean newDm = event.getValue(event.getCustomId() + ":dm").getAsBoolean();
         

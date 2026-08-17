@@ -1,9 +1,17 @@
 package dev.jojofr.joseta.utils;
 
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TimeParser {
+public class Parser {
+    
+    // Format number to a more readable format
+    public static String formatNumber(long number) {
+        return NumberFormat.getNumberInstance(Locale.FRANCE).format(number).replace('\u202F', ' ');
+    }
+    
     private static final long SECONDS_IN_MINUTE = 60L;
     private static final long SECONDS_IN_HOUR = 60L * SECONDS_IN_MINUTE;
     private static final long SECONDS_IN_DAY = 24L * SECONDS_IN_HOUR;
@@ -20,7 +28,7 @@ public class TimeParser {
      * @return A formatted string representing the time in months, weeks, days, hours, minutes and seconds.
      * @throws IllegalArgumentException if the input seconds is negative.
      */
-    public static String format(long seconds) {
+    public static String formatTime(long seconds) {
         if (seconds < 0) return "inf";
         if (seconds == 0) return "0s";
         
@@ -66,7 +74,7 @@ public class TimeParser {
         return timeBuilder.toString();
     }
     
-    public static String formatReadable(long seconds) {
+    public static String formatTimeReadable(long seconds) {
         if (seconds < 0) return "infini";
         if (seconds == 0) return "0 seconde";
         
@@ -119,7 +127,7 @@ public class TimeParser {
      * @param time The time string to be parsed, e.g., "1M2w3d4h5m6s" or "inf".
      * @return The total time in seconds represented by the input string.
      */
-    public static long parse(String time) {
+    public static long parseTime(String time) {
         if (time == null || time.isEmpty()) return 0;
         if (time.equalsIgnoreCase("inf")) return -1;
         

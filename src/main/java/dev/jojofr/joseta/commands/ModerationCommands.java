@@ -14,7 +14,7 @@ import dev.jojofr.joseta.database.helper.SanctionDatabase;
 import dev.jojofr.joseta.entities.ModlogMessage;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
-import dev.jojofr.joseta.utils.TimeParser;
+import dev.jojofr.joseta.utils.Parser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
@@ -219,7 +219,7 @@ public class ModerationCommands {
         else reasonFinal = reason;
         
         long timeSeconds;
-        if (time != null && !time.isEmpty()) timeSeconds = TimeParser.parse(time);
+        if (time != null && !time.isEmpty()) timeSeconds = Parser.parseTime(time);
         else timeSeconds = 300; // Default 5 minutes
         event.reply("Le membre a bien été averti.").setEphemeral(true).queue();
         
@@ -250,7 +250,7 @@ public class ModerationCommands {
         if (!check(event, member)) return;
         
         long timeSeconds;
-        if (time != null && !time.isBlank()) timeSeconds = TimeParser.parse(time);
+        if (time != null && !time.isBlank()) timeSeconds = Parser.parseTime(time);
         else timeSeconds = 300; // Default 5 minutes
         
         if (timeSeconds <= 0 || timeSeconds > TimeUnit.DAYS.toSeconds(Member.MAX_TIME_OUT_LENGTH)) {
@@ -262,7 +262,7 @@ public class ModerationCommands {
         if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
         else reasonFinal = reason;
         
-        member.timeoutFor(TimeParser.parse(time), TimeUnit.SECONDS).reason(reasonFinal).queue(
+        member.timeoutFor(Parser.parseTime(time), TimeUnit.SECONDS).reason(reasonFinal).queue(
             s -> {
                 event.reply("Le membre a bien été mis en timeout.").setEphemeral(true).queue();
                 
@@ -338,7 +338,7 @@ public class ModerationCommands {
         if (!check(event, member)) return;
         
         int clearTimeSeconds = 3600; // Default 1 hour
-        if (clearTime != null && !clearTime.isEmpty()) clearTimeSeconds = (int) TimeParser.parse(clearTime);
+        if (clearTime != null && !clearTime.isEmpty()) clearTimeSeconds = (int) Parser.parseTime(clearTime);
         
         String reasonFinal;
         if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";

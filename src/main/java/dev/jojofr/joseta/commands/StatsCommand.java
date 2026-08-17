@@ -6,7 +6,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.UserEntity;
-import dev.jojofr.joseta.utils.TimeParser;
+import dev.jojofr.joseta.utils.Parser;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -21,8 +21,8 @@ public class StatsCommand {
             
             Member member = event.getMember();
             
-            event.reply("Nombre de messages envoyés : " + messageCount
-                + "\nTemps passé en vocal : " + (dbUser == null ? "0s" : TimeParser.format(dbUser.timeVoice / 1000))
+            event.reply("Nombre de messages envoyés : " + Parser.formatNumber(messageCount)
+                + "\nTemps passé en vocal : " + (dbUser == null ? "0s" : Parser.formatTime(dbUser.timeVoice / 1000))
                 + "\nNombre de sanctions : " + (dbUser == null ? 0 : dbUser.sanctionCount)
                 + "\nA rejoint le serveur le : <t:" + (member == null ? 0 : member.getTimeJoined().toEpochSecond()) + ":F> (<t:" + (member == null ? 0 : member.getTimeJoined().toEpochSecond()) + ":R>)"
                 + "\nA créé son compte Discord le : <t:" + (member == null ? 0 : member.getTimeCreated().toEpochSecond()) + ":F> (<t:" + (member == null ? 0 : member.getTimeCreated().toEpochSecond()) + ":R>)"
