@@ -144,7 +144,7 @@ public class MessageDatabase {
             attachmentEntities.add(attachmentEntity);
         }
         
-        Database.useTransaction(handle -> {
+        Database.useHandle(handle -> {
             handle.attach(MessageDao.class).upsert(messageEntity);
             handle.attach(MessageAttachmentDao.class).upsertAll(attachmentEntities);
         });
@@ -158,7 +158,7 @@ public class MessageDatabase {
             attachmentEntities.add(attachmentEntity);
         }
         
-        Database.useTransaction(handle -> {
+        Database.useHandle(handle -> {
             handle.attach(MessageDao.class).setContents(message.getIdLong(), message.getContentRaw(), cleanContent(message.getContentRaw()));
             
             MessageAttachmentDao attachmentDao = handle.attach(MessageAttachmentDao.class);
