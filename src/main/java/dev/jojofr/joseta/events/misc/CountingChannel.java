@@ -25,7 +25,7 @@ public class CountingChannel {
     public static long specialLastAuthorId = -1;
     private static long specialLastTimestamp = -1;
     private static long lastSpecialModeChangeTimestamp = -1;
-    public static CountingMode specialCountingMode = null;
+    public static CountingMode specialCountingMode = null, lastSpecialCountingMode = null;
     
     public enum CountingMode { BINARY, OCTAL, HEXADECIMAL, BASE36, ROMAN;
         
@@ -340,13 +340,15 @@ public class CountingChannel {
         // Select a random mode from the enum, different from the current one
         CountingMode[] modes = CountingMode.values();
         CountingMode newMode;
-        do { newMode = modes[(int) (Math.random() * modes.length)]; } while (newMode == specialCountingMode);
+        do { newMode = modes[(int) (Math.random() * modes.length)]; } while (newMode == specialCountingMode || newMode == lastSpecialCountingMode);
         
+        lastSpecialCountingMode = specialCountingMode;
         specialCountingMode = newMode;
         lastSpecialModeChangeTimestamp = System.currentTimeMillis();
     }
     
     public static void changeSpecialMode(String mode) {
+        lastSpecialCountingMode = specialCountingMode;
         specialCountingMode = CountingMode.valueOf(mode.toUpperCase());
         lastSpecialModeChangeTimestamp = System.currentTimeMillis();
     }
