@@ -27,7 +27,19 @@ public class CountingChannel {
     private static long lastSpecialModeChangeTimestamp = -1;
     public static CountingMode specialCountingMode = null;
     
-    public enum CountingMode { BINARY, OCTAL, HEXADECIMAL, BASE36, ROMAN }
+    public enum CountingMode { BINARY, OCTAL, HEXADECIMAL, BASE36, ROMAN;
+        
+        @Override
+        public String toString() {
+            return switch (this) {
+                case BINARY -> "Binaire";
+                case OCTAL -> "Octal";
+                case HEXADECIMAL -> "Hexadécimal";
+                case BASE36 -> "Base 36";
+                case ROMAN -> "Romain";
+            };
+        }
+    }
     
     
     public static boolean preCheck(MessageChannelUnion channel, Message message, boolean special) {
@@ -155,13 +167,7 @@ public class CountingChannel {
         
         if (specialCountingMode == null) {
             changeSpecialMode();
-            String mode = switch (specialCountingMode) {
-                case BINARY -> "Binaire";
-                case OCTAL -> "Octal";
-                case HEXADECIMAL -> "Hexadécimal";
-                case BASE36 -> "Base 36";
-                case ROMAN -> "Romain";
-            };
+            String mode = specialCountingMode.toString();
             message.reply("Le mode de comptage spécial a été initialisé ! Le mode actuel est **"+ mode +"**. Le chiffre précedent ne peut pas être vérifié.").queue();
             return;
         }
@@ -232,22 +238,10 @@ public class CountingChannel {
             v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
         );
         
-        if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(3)) {
-            String oldMode = switch (specialCountingMode) {
-                case BINARY -> "Binaire";
-                case OCTAL -> "Octal";
-                case HEXADECIMAL -> "Hexadécimal";
-                case BASE36 -> "Base 36";
-                case ROMAN -> "Romain";
-            };
+        if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(4)) {
+            String oldMode = specialCountingMode.toString();
             changeSpecialMode();
-            String mode = switch (specialCountingMode) {
-                case BINARY -> "Binaire";
-                case OCTAL -> "Octal";
-                case HEXADECIMAL -> "Hexadécimal";
-                case BASE36 -> "Base 36";
-                case ROMAN -> "Romain";
-            };
+            String mode = specialCountingMode.toString();
             message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
         }
     }
@@ -313,12 +307,31 @@ public class CountingChannel {
         
         String upper = matcher.group().toUpperCase(Locale.ROOT);
         long number = 0;
-        
         for (int i = 0; i < upper.length(); i++) {
             int current = ROMAN_VALUES.get(upper.charAt(i));
-            int next = (i + 1 < upper.length()) ? ROMAN_VALUES.get(upper.charAt(i + 1)) : 0;
-            number += (current < next) ? -current : current;
+            number += (i + 1 < upper.length() && current < ROMAN_VALUES.get(upper.charAt(i + 1))) ? -current : current;
         }
+        
+        // Parse the number to roman and check if it matches the original input to ensure it's a valid roman numeral
+        StringBuilder romanBuilder = new StringBuilder();
+        long tempNumber = number;
+        while (tempNumber > 0) {
+            if (tempNumber >= 1000) { romanBuilder.append('M'); tempNumber -= 1000; }
+            else if (tempNumber >= 900) { romanBuilder.append("CM"); tempNumber -= 900; }
+            else if (tempNumber >= 500) { romanBuilder.append('D'); tempNumber -= 500; }
+            else if (tempNumber >= 400) { romanBuilder.append("CD"); tempNumber -= 400; }
+            else if (tempNumber >= 100) { romanBuilder.append('C'); tempNumber -= 100; }
+            else if (tempNumber >= 90) { romanBuilder.append("XC"); tempNumber -= 90; }
+            else if (tempNumber >= 50) { romanBuilder.append('L'); tempNumber -= 50; }
+            else if (tempNumber >= 40) { romanBuilder.append("XL"); tempNumber -= 40; }
+            else if (tempNumber >= 10) { romanBuilder.append('X'); tempNumber -= 10; }
+            else if (tempNumber >= 9) { romanBuilder.append("IX"); tempNumber -= 9; }
+            else if (tempNumber >= 5) { romanBuilder.append('V'); tempNumber -= 5; }
+            else if (tempNumber >= 4) { romanBuilder.append("IV"); tempNumber -= 4; }
+            else { romanBuilder.append('I'); tempNumber -= 1; }
+        }
+        
+        if (!romanBuilder.toString().equals(upper)) return -1;
         
         return number > 0 ? number : -1;
     }
