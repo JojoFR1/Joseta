@@ -91,13 +91,13 @@ public class MiscEvents {
     
     @EventHandler
     public void countingCheck(MessageReceivedEvent event) {
-        Message message = event.getMessage();
-        if (event.getMessage().getType() != MessageType.DEFAULT || message.getPoll() != null) return;
-        
         ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         if (!config.countingEnabled) return;
         
         if (event.getAuthor().isBot()) return;
+        
+        Message message = event.getMessage();
+        if ((message.getType() != MessageType.DEFAULT && message.getType() != MessageType.INLINE_REPLY) || message.getPoll() != null) return;
         
         MessageChannelUnion channel = event.getChannel();
         if (channel.getIdLong() == config.countingChannelId) CountingChannel.check(channel, message);
