@@ -209,7 +209,7 @@ public class CountingChannel {
             } else {
                 specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0, en mode **"+ specialCountingMode +"**.").queue();
             }
             return;
         }
@@ -234,7 +234,7 @@ public class CountingChannel {
             } else {
                 specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres "+ type +".\n\n-# Le comptage repart de 0.").queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres "+ type +".\n\n-# Le comptage repart de 0, en mode **"+ specialCountingMode +"**.").queue();
             }
             return;
         }
@@ -248,7 +248,7 @@ public class CountingChannel {
             } else {
                 specialLastNumber = 0;
                 message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0, en mode **"+ specialCountingMode +"**.").queue();
             }
             return;
         }
