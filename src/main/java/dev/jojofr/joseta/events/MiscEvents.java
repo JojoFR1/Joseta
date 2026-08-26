@@ -12,9 +12,12 @@ import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.events.misc.CountingChannel;
 import dev.jojofr.joseta.events.misc.WelcomeChannel;
 import dev.jojofr.joseta.utils.BotCache;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
@@ -88,13 +91,17 @@ public class MiscEvents {
     
     @EventHandler
     public void countingCheck(MessageReceivedEvent event) {
+        Message message = event.getMessage();
+        if (event.getMessage().getType() != MessageType.DEFAULT || message.getPoll() != null) return;
+        
         ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
         if (!config.countingEnabled) return;
         
         if (event.getAuthor().isBot()) return;
         
-        if (event.getChannel().getIdLong() == config.countingChannelId) CountingChannel.check(event.getChannel(), event.getMessage());
-        else if (event.getChannel().getIdLong() == config.countingSpecialChannelId) CountingChannel.specialCheck(event.getChannel(), event.getMessage());
+        MessageChannelUnion channel = event.getChannel();
+        if (channel.getIdLong() == config.countingChannelId) CountingChannel.check(channel, message);
+        else if (channel.getIdLong() == config.countingSpecialChannelId) CountingChannel.specialCheck(channel, message);
     }
     
     

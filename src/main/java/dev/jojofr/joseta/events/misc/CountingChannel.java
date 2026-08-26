@@ -1,6 +1,10 @@
 package dev.jojofr.joseta.events.misc;
 
+import dev.jojofr.joseta.JosetaBot;
+import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.MessageEntity;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Message;
@@ -39,6 +43,17 @@ public class CountingChannel {
                 case ROMAN -> "Romain";
             };
         }
+        
+        public static CountingMode fromString(String mode) {
+            return switch (mode.toLowerCase(Locale.ROOT)) {
+                case "binaire", "binary" -> BINARY;
+                case "octal" -> OCTAL;
+                case "hexadécimal", "hexadecimal" -> HEXADECIMAL;
+                case "base 36", "base36" -> BASE36;
+                case "romain", "roman" -> ROMAN;
+                default -> null;
+            };
+        }
     }
     
     
@@ -46,49 +61,62 @@ public class CountingChannel {
         long curentNumber = special ? specialLastNumber : lastNumber;
         
         if (curentNumber == -1) { // Initialize the needed values on bot launch
-            Message previousMessage = null;
-            try {
-                // Get the second last message that is not from a bot (from warning message) and isn't the user's own message
-                List<Message> messages = channel.getIterableHistory().takeUntilAsync(10, m -> m.getAuthor().isBot() && m.getIdLong() != message.getIdLong()).get();
-                //                      Size 1 is equivalent to empty (it's the first message sent)
-                if (messages != null && messages.size() > 1) previousMessage = messages.get(1);
-                else {
-                    if (special) specialLastNumber = 0; else lastNumber = 0;
-                    return true;
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                Log.err("The counting channel could not be initialized.", e);
-                // Error should be handled below
+            MessageEntity previousMessage = Database.withExtension(MessageDao.class, dao ->
+                dao.getLastCountingMessage(message.getGuildIdLong(), message.getChannelIdLong(), JosetaBot.get().getSelfUser().getIdLong(), message.getIdLong()));
+            
+            // First message in the channel, so no previous message to check
+            if (previousMessage == null) {
+                if (special) {
+                    changeSpecialMode();
+                    channel.sendMessage("Le mode de comptage spécial a été initialisé ! Le mode actuel est **"+ specialCountingMode +"**.").queue();
+                    specialLastNumber = 1;
+                } else lastNumber = 0;
+                
+                return false;
             }
             
-            if (previousMessage == null) {
-                channel.sendMessage("Le comptage n'a pas pu être initialiser. Contacter un administrateur et continuer (vérification manuelle).").queue();
-                autoCheck = false;
-                return false;
+            if (special) {
+                MessageEntity modeChangeMessage = Database.withExtension(MessageDao.class, dao ->
+                    dao.getLastCountingModeChangeMessage(message.getGuildIdLong(), message.getChannelIdLong(), JosetaBot.get().getSelfUser().getIdLong()));
+                
+                Log.debug("Last counting mode change message: {}", modeChangeMessage);
+                // No previous mode, so new channel
+                if (modeChangeMessage == null) {
+                    changeSpecialMode();
+                    channel.sendMessage("Le mode de comptage spécial a été initialisé ! Le mode actuel est **"+ specialCountingMode +"**.").queue();
+                    specialLastNumber = 1;
+                } else {
+                    String content = modeChangeMessage.content;
+                    
+                    int firstAsterisk = content.indexOf("**") + 2;
+                    String currentMode = content.substring(firstAsterisk, content.indexOf("**", firstAsterisk));
+                    specialCountingMode = CountingMode.fromString(currentMode);
+                    lastSpecialModeChangeTimestamp = System.currentTimeMillis();
+                    
+                    if (!content.contains("initialisé")) {
+                        int secondAsterisk = content.indexOf("**", firstAsterisk + 2) + 2;
+                        String previousMode = content.substring(secondAsterisk, content.indexOf("**", secondAsterisk));
+                        lastSpecialCountingMode = CountingMode.fromString(previousMode);
+                    }
+                }
             }
             
             ConfigurationEntity config = BotCache.getConfiguration(message.getGuild().getIdLong());
-            long previousAuthordId = previousMessage.getAuthor().getIdLong();
-            long previousNumber = parseNumber(previousMessage.getContentRaw().replace(" ", ""), config.countingCommentsEnabled);
-            if (special)
-                channel.sendMessage("Le comptage spécial ne peut pas être initialisé après un redémarrage du bot. Contacter un administrateur pour définir la valeur correct.").queue();
+            String content = previousMessage.content.replace(" ", "");
+            
+            long previousAuthorId = previousMessage.authorId;
+            long previousNumber = special ? parseSpecial(content, config.countingCommentsEnabled) : parseNumber(content, config.countingCommentsEnabled);
             if (previousNumber == -1) previousNumber = 0;
-            long previousTimestamp = previousMessage.getTimeCreated().toInstant().toEpochMilli();
+            long previousTimestamp = previousMessage.createdAt.toEpochMilli();
             
             if (special) {
-                specialLastNumber = previousNumber;
-                specialLastAuthorId = previousAuthordId;
+                if (specialCountingMode != null) specialLastNumber = previousNumber;
+                specialLastAuthorId = previousAuthorId;
                 specialLastTimestamp = previousTimestamp;
             } else {
                 lastNumber = previousNumber;
-                lastAuthorId = previousAuthordId;
+                lastAuthorId = previousAuthorId;
                 lastTimestamp = previousTimestamp;
-            }
-            
-            if (previousAuthordId == -1) {
-                channel.sendMessage("Le comptage n'a pas pu être initialiser. Contacter un administrateur et continuer (vérification manuelle).").queue();
-                autoCheck = false;
-                return false;
             }
         }
         
@@ -164,13 +192,6 @@ public class CountingChannel {
         if (!autoCheck) return;
         
         if (!preCheck(channel, message, true)) return;
-        
-        if (specialCountingMode == null) {
-            changeSpecialMode();
-            String mode = specialCountingMode.toString();
-            message.reply("Le mode de comptage spécial a été initialisé ! Le mode actuel est **"+ mode +"**. Le chiffre précedent ne peut pas être vérifié.").queue();
-            return;
-        }
         
         ConfigurationEntity config = BotCache.getConfiguration(message.getGuild().getIdLong());
         long number = parseSpecial(message.getContentStripped().replace(" ", ""), config.countingCommentsEnabled);
@@ -282,7 +303,7 @@ public class CountingChannel {
         return switch (specialCountingMode) {
             case BINARY -> parseWithRadix(message, commentsEnabled, BINARY_REGEX, 2);
             case OCTAL -> parseWithRadix(message, commentsEnabled, OCTAL_REGEX, 8);
-            case HEXADECIMAL ->  parseWithRadix(message, commentsEnabled, HEXADECIMAL_REGEX, 16);
+            case HEXADECIMAL -> parseWithRadix(message, commentsEnabled, HEXADECIMAL_REGEX, 16);
             case BASE36 -> parseWithRadix(message, commentsEnabled, BASE36_REGEX, 36);
             case ROMAN -> parseRoman(message, commentsEnabled);
         };
@@ -349,7 +370,7 @@ public class CountingChannel {
     
     public static void changeSpecialMode(String mode) {
         lastSpecialCountingMode = specialCountingMode;
-        specialCountingMode = CountingMode.valueOf(mode.toUpperCase());
+        specialCountingMode = CountingMode.fromString(mode);
         lastSpecialModeChangeTimestamp = System.currentTimeMillis();
     }
 }

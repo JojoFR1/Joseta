@@ -48,6 +48,26 @@ public interface MessageDao {
     @RegisterFieldMapper(value = MessageEntity.class)
     Stream<MessageEntity> getByGuildId(long guildId);
     
+    @SqlQuery("""
+        SELECT * FROM messages
+        WHERE guild_id = :guildId AND channel_id = :channelId AND author_id != :botId AND id != :currentMessageId
+        ORDER BY created_at DESC
+        LIMIT 1
+    """)
+    @RegisterFieldMapper(MessageEntity.class)
+    MessageEntity getLastCountingMessage(long guildId, long channelId, long botId, long currentMessageId);
+    
+    @SqlQuery("""
+        SELECT * FROM messages
+        WHERE guild_id = :guildId AND channel_id = :channelId AND author_id = :botId
+            AND content LIKE '%Le mode de comptage spécial a %'
+        ORDER BY created_at DESC
+        LIMIT 1
+    """)
+    @RegisterFieldMapper(MessageEntity.class)
+    MessageEntity getLastCountingModeChangeMessage(long guildId, long channelId, long botId);
+    
+    
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId")
     int getMemberMessageCount(long authorId, long guildId);
     
