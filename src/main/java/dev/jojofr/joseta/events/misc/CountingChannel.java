@@ -140,7 +140,7 @@ public class CountingChannel {
         // Rule - Cannot count twice in a row
         if (message.getAuthor().getIdLong() == lastAuthorId) {
             // Check if user is new (< 7 days join) and has less than 5 messages in counting channel, if so, don't apply the penalty and just delete the message
-            if (!config.countingPenaltyEnabled || memberIsNew(message)) {
+            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
@@ -156,7 +156,7 @@ public class CountingChannel {
         // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
         if (number == -1) {
             String hasToString = config.countingCommentsEnabled ? "commencer par" : "uniquement utiliser";
-            if (!config.countingPenaltyEnabled || memberIsNew(message)) {
+            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon !").queue(
                     botMessage -> botMessage.delete().queueAfter(5, TimeUnit.SECONDS)
                 );
@@ -171,7 +171,7 @@ public class CountingChannel {
         
         // Rule - Must increment the last number by 1
         if (number != lastNumber + 1) {
-            if (!config.countingPenaltyEnabled || memberIsNew(message)) {
+            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
@@ -205,7 +205,7 @@ public class CountingChannel {
         
         // Rule - Cannot count twice in a row
         if (message.getAuthor().getIdLong() == specialLastAuthorId) {
-            if (!config.countingPenaltyEnabled || memberIsNew(message)) {
+            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
@@ -228,7 +228,7 @@ public class CountingChannel {
                 case BASE36 -> "en base 36";
                 case ROMAN -> "romain";
             };
-            if (!config.countingPenaltyEnabled || memberIsNew(message)) {
+            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon "+ type + "!").queue(
                     botMessage -> botMessage.delete().queueAfter(5, TimeUnit.SECONDS)
                 );
@@ -244,7 +244,7 @@ public class CountingChannel {
         // Rule - Must increment the last number by 1
         long supposedNumber = specialLastNumber + 1;
         if (number != supposedNumber) {
-            if (!config.countingPenaltyEnabled || memberIsNew(message)) {
+            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
@@ -374,10 +374,5 @@ public class CountingChannel {
         lastSpecialCountingMode = specialCountingMode;
         specialCountingMode = CountingMode.fromString(mode);
         lastSpecialModeChangeTimestamp = System.currentTimeMillis();
-    }
-    
-    public static boolean memberIsNew(Message message) {
-        return message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))
-            && Database.withExtension(MessageDao.class, dao -> dao.getMemberChannelMessageCount(message.getAuthor().getIdLong(), message.getGuild().getIdLong(), message.getChannelIdLong())) < 5;
     }
 }
