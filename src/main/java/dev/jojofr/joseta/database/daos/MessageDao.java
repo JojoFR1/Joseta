@@ -71,6 +71,9 @@ public interface MessageDao {
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId")
     int getMemberMessageCount(long authorId, long guildId);
     
+    @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId AND channel_id = :channelId")
+    int getMemberChannelMessageCount(long authorId, long guildId, long channelId);
+    
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
     void clearMarkovContent(long authorId, long guildId);
     
