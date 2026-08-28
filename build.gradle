@@ -8,10 +8,10 @@ plugins {
     id 'java'
     id 'application'
     id 'com.gradleup.shadow' version '9.6.1'
-    id 'org.hidetake.ssh' version '2.12.0'
     id 'org.kordamp.gradle.jandex' version '2.3.0'
 }
 
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.github.cdimascio.dotenv.Dotenv
 
 group = 'dev.jojofr'
@@ -22,8 +22,13 @@ def dotenv = Dotenv.configure()
         .ignoreIfMissing().ignoreIfMalformed()
         .load()
 
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
+def remoteUser = dotenv.get('REMOTE_USER') ?: System.getProperty('user.name')
+def remoteHost = dotenv.get('REMOTE_HOST') ?: 'localhost'
+def remotePort = dotenv.get('REMOTE_PORT')?.toInteger() ?: 22
+def remoteKeyPath = dotenv.get('REMOTE_KEY_PATH')
+def remoteIdentity = remoteKeyPath ? file(remoteKeyPath.replace('~', System.getProperty('user.home'))).absolutePath : null
+
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 application.mainClass = 'dev.jojofr.joseta.JosetaBot'
 
 repositories { mavenCentral() }
@@ -61,9 +66,31 @@ dependencies {
 }
 jandex { version = '3.6.0' }
 
-test {
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.incremental = true
+    options.compilerArgs << '-parameters' // Enable parameter name retention at runtime, required for the InteractionProcessor & for JDBI arguments
+}
+
+def shadowJarTask = tasks.named('shadowJar', ShadowJar)
+shadowJarTask.configure {
+    dependsOn tasks.named('jandex')
+    archiveFileName = 'JosetaBot.jar'
+
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+
+    filesMatching('META-INF/services/**') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    exclude 'META-INF/*LICENSE*', 'META-INF/*LICENCE*', 'META-INF/README*', 'META-INF/NOTICE*'
+}
+
+tasks.named('test', Test) {
     useJUnitPlatform()
     maxHeapSize = '1g'
+
     testLogging {
         events 'passed', 'skipped', 'failed'
         showStandardStreams = true
@@ -72,45 +99,23 @@ test {
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.incremental = true
-    options.compilerArgs << '-parameters' // Enable parameter name retention at runtime, required for the InteractionProcessor & for JDBI arguments
-}
+tasks.register('uploadServer', Exec) {
+    group = 'deployment'
+    description = 'Uploads the shadow jar to the remote server via `scp`.'
+    dependsOn shadowJarTask
 
-shadowJar {
-    dependsOn 'jandex'
-    archiveFileName = 'JosetaBot.jar'
+    def archiveFile = shadowJarTask.flatMap { it.archiveFile }
+    inputs.files(archiveFile)
 
-    mergeServiceFiles()
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
+    doFirst {
+        def cmd = ['sftp', '-P', remotePort.toString()]
+        if (remoteIdentity) cmd += ['-i', remoteIdentity]
+        cmd += ["${remoteUser}@${remoteHost}:."]
 
-remotes {
-    remoteServer {
-        host     = dotenv.get('REMOTE_HOST') ?: 'localhost'
-        user     = dotenv.get('REMOTE_USER') ?: System.getProperty('user.name')
-        identity = dotenv.get('REMOTE_KEY_PATH') ? file(dotenv.get('REMOTE_KEY_PATH')?.replace('~', System.getProperty('user.home'))) : null
-        port     = dotenv.get('REMOTE_PORT')?.toInteger() ?: 22
-    }
-}
+        commandLine cmd
 
-tasks.register('uploadServer') {
-    dependsOn shadowJar
+        standardInput = new ByteArrayInputStream("put \"${archiveFile.get().asFile.absolutePath}\"\nexit\n".getBytes())
 
-    def archiveFile = shadowJar.archiveFile
-    def ssh = project.ssh
-    def remote = remotes.remoteServer
-
-    inputs.file archiveFile
-    doLast {
-        def jarFile = archiveFile.get().asFile
-        println "Uploading ${jarFile} to remote server..."
-        ssh.run {
-            session(remote) {
-                put from: jarFile, into: '.'
-            }
-        }
-        println 'Upload complete.'
+        println "Uploading ${archiveFile.get().asFile.name} to ${remoteUser}..."
     }
 }
