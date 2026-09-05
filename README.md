@@ -8,7 +8,7 @@ Joseta is a multipurpose, single server, Discord bot made with in Java with the 
 
 ### Why single server?
 
-This bot original purpose is to only be used in the official [Mindustry France](https://discord.com/invite/hzGPWhZSGV) Discord server. It was made without
+This bot original purpose is to only be used in the official [Mindustry France](https://discord.gg/2Jv8XR8zJe) Discord server. It was made without
 support for multiple servers nor to be for public usage. This could change in the future.
 
 This bot is not *yet* fully usable for personal use due to multiple hardcoded values that are now mostly removed with
