@@ -3,6 +3,7 @@ package dev.jojofr.joseta.commands;
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.events.MessageEvents;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
@@ -43,7 +44,7 @@ public class MiscCommands {
     
     
     @SlashCommandInteraction(name = "multi", description = "Envoie le texte d'aide pour le multijoueur.")
-    public void multiInfo(SlashCommandInteractionEvent event) { event.reply(MiscEvents.autoResponseMessage).queue(); }
+    public void multiInfo(SlashCommandInteractionEvent event) { event.reply(MessageEvents.autoResponseMessage).queue(); }
     
     @SlashCommandInteraction(name = "surprendmoi", description = "Obtenez une surprise aléatoire.")
     public void surprises(SlashCommandInteractionEvent event) {
