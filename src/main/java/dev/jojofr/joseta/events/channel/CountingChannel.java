@@ -22,10 +22,12 @@ public class CountingChannel {
     
     public static long lastNumber = -1;
     public static long lastAuthorId = -1;
+    private static long lastMessageId = -1;
     private static long lastTimestamp = -1;
     
     public static long specialLastNumber = -1;
     public static long specialLastAuthorId = -1;
+    private static long specialLastMessageId = -1;
     private static long specialLastTimestamp = -1;
     private static long lastSpecialModeChangeTimestamp = -1;
     public static CountingMode specialCountingMode = null, lastSpecialCountingMode = null;
@@ -107,15 +109,18 @@ public class CountingChannel {
             long previousNumber = special ? parseSpecial(content, config.countingCommentsEnabled) : parseNumber(content, config.countingCommentsEnabled);
             if (previousNumber == -1) previousNumber = 0;
             long previousTimestamp = previousMessage.createdAt.toEpochMilli();
+            long previousMessageId = previousMessage.id;
             
             if (special) {
                 if (specialCountingMode != null) specialLastNumber = previousNumber;
                 specialLastAuthorId = previousAuthorId;
                 specialLastTimestamp = previousTimestamp;
+                specialLastMessageId = previousMessageId;
             } else {
                 lastNumber = previousNumber;
                 lastAuthorId = previousAuthorId;
                 lastTimestamp = previousTimestamp;
+                lastMessageId = previousMessageId;
             }
         }
         
@@ -179,12 +184,16 @@ public class CountingChannel {
             }
             return;
         }
+
+        channel.retrieveMessageById(lastMessageId).queue(
+            lastMessage -> lastMessage.clearReactions().queue(),
+            failure -> Log.err("Failed to retrieve the last counting message to clear reactions.", failure)
+        );
+        message.addReaction(BotCache.CHECK_EMOJI).queue();
         
         lastNumber += 1;
         lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
-        message.addReaction(BotCache.CHECK_EMOJI).queue(
-            v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
-        );
+        lastMessageId = message.getIdLong();
     }
     
     // In a thread, where the bot switch "type" every X hours, can be: binary, octal, decimal, hexadecimal, roman, double, power of two
@@ -253,11 +262,16 @@ public class CountingChannel {
             return;
         }
         
+        channel.retrieveMessageById(specialLastMessageId).queue(
+            lastMessage -> lastMessage.clearReactions().queue(),
+            failure -> Log.err("Failed to retrieve the last special counting message to clear reactions.", failure)
+        );
+        message.addReaction(BotCache.CHECK_EMOJI).queue();
+        
         specialLastNumber = number;
         specialLastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
-        message.addReaction(BotCache.CHECK_EMOJI).queue(
-            v -> message.clearReactions().queueAfter(5, TimeUnit.SECONDS)
-        );
+        specialLastMessageId = message.getIdLong();
+        
         
         if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(4)) {
             String oldMode = specialCountingMode.toString();
