@@ -3,7 +3,6 @@ package dev.jojofr.joseta.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
-import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.utils.Log;
 import org.flywaydb.core.Flyway;
@@ -12,6 +11,7 @@ import org.jdbi.v3.core.HandleConsumer;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.argument.AbstractArgumentFactory;
 import org.jdbi.v3.core.argument.Argument;
+import org.jdbi.v3.core.async.JdbiExecutor;
 import org.jdbi.v3.core.config.ConfigRegistry;
 import org.jdbi.v3.core.extension.ExtensionCallback;
 import org.jdbi.v3.core.extension.ExtensionConsumer;
@@ -19,9 +19,16 @@ import org.jdbi.v3.postgres.PostgresPlugin;
 import org.jdbi.v3.sqlobject.SqlObjectPlugin;
 
 import java.sql.Types;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Database {
+    private static HikariDataSource dataSource;
     private static Jdbi jdbi;
+    
+    private static ExecutorService executorService;
+    private static JdbiExecutor executor;
     
     public static boolean initialize(String user, String password, String host, String port, String database) {
         if (user == null || user.isBlank()) {
@@ -54,7 +61,7 @@ public class Database {
         config.setPoolName("JosetaHikariPool");
         
         try {
-            HikariDataSource dataSource = new HikariDataSource(config);
+            dataSource = new HikariDataSource(config);
             
             Flyway.configure()
                 .dataSource(dataSource)
@@ -99,6 +106,9 @@ public class Database {
                 }
             });
             
+            executorService = Executors.newFixedThreadPool(8);
+            executor = JdbiExecutor.create(jdbi, executorService);
+            
             return true;
         } catch (Exception e) {
             Log.err("Database initialization failed.", e);
@@ -107,6 +117,7 @@ public class Database {
     }
     
     public static void close() {
+        if (executorService != null) executorService.close();
         if (dataSource != null) dataSource.close();
     }
     
@@ -115,27 +126,56 @@ public class Database {
         return jdbi;
     }
     
+    public static JdbiExecutor getExecutor() {
+        if (executor == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        return executor;
+    }
+    
     public static <R, E> R withExtension(Class<E> extensionType, ExtensionCallback<R, E, RuntimeException> callback) {
         return getJdbi().withExtension(extensionType, callback);
+    }
+    
+    public static <R, E> CompletionStage<R> withExtensionAsync(Class<E> extensionType, ExtensionCallback<R, E, RuntimeException> callback) {
+        return getExecutor().withExtension(extensionType, callback);
     }
     
     public static <E> void useExtension(Class<E> extensionType, ExtensionConsumer<E, RuntimeException> callback) {
         getJdbi().useExtension(extensionType, callback);
     }
     
+    public static <E> CompletionStage<Void> useExtensionAsync(Class<E> extensionType, ExtensionConsumer<E, RuntimeException> callback) {
+        return getExecutor().useExtension(extensionType, callback);
+    }
+    
     public static <R> R withHandle(HandleCallback<R, RuntimeException> callback) {
         return getJdbi().withHandle(callback);
+    }
+    
+    public static <R> CompletionStage<R> withHandleAsync(HandleCallback<R, RuntimeException> callback) {
+        return getExecutor().withHandle(callback);
     }
     
     public static void useHandle(HandleConsumer<RuntimeException> callback) {
         getJdbi().useHandle(callback);
     }
     
+    public static CompletionStage<Void> useHandleAsync(HandleConsumer<RuntimeException> callback) {
+        return getExecutor().useHandle(callback);
+    }
+    
     public static <R> R inTransaction(HandleCallback<R, RuntimeException> callback) {
         return getJdbi().inTransaction(callback);
     }
     
+    public static <R> CompletionStage<R> inTransactionAsync(HandleCallback<R, RuntimeException> callback) {
+        return getExecutor().inTransaction(callback);
+    }
+    
     public static void useTransaction(HandleConsumer<RuntimeException> callback) {
         getJdbi().useTransaction(callback);
+    }
+    
+    public static CompletionStage<Void> useTransactionAsync(HandleConsumer<RuntimeException> callback) {
+        return getExecutor().useTransaction(callback);
     }
 }
