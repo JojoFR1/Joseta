@@ -107,6 +107,8 @@ public class JosetaBot {
             }
             
             Database.useExtension(BotDao.class, dao -> dao.setLastOnline());
+            
+            Database.close();
         }, "ShutdownThread"));
     }
 }

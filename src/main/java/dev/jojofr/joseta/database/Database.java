@@ -106,32 +106,36 @@ public class Database {
         }
     }
     
-    public static Jdbi get() {
+    public static void close() {
+        if (dataSource != null) dataSource.close();
+    }
+    
+    public static Jdbi getJdbi() {
         if (jdbi == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
         return jdbi;
     }
     
     public static <R, E> R withExtension(Class<E> extensionType, ExtensionCallback<R, E, RuntimeException> callback) {
-        return get().withExtension(extensionType, callback);
+        return getJdbi().withExtension(extensionType, callback);
     }
     
     public static <E> void useExtension(Class<E> extensionType, ExtensionConsumer<E, RuntimeException> callback) {
-        get().useExtension(extensionType, callback);
+        getJdbi().useExtension(extensionType, callback);
     }
     
-    public static <T> T withHandle(HandleCallback<T, RuntimeException> callback) {
-        return get().withHandle(callback);
+    public static <R> R withHandle(HandleCallback<R, RuntimeException> callback) {
+        return getJdbi().withHandle(callback);
     }
     
     public static void useHandle(HandleConsumer<RuntimeException> callback) {
-        get().useHandle(callback);
+        getJdbi().useHandle(callback);
     }
     
-    public static <T> T inTransaction(HandleCallback<T, RuntimeException> callback) {
-        return get().inTransaction(callback);
+    public static <R> R inTransaction(HandleCallback<R, RuntimeException> callback) {
+        return getJdbi().inTransaction(callback);
     }
     
     public static void useTransaction(HandleConsumer<RuntimeException> callback) {
-        get().useTransaction(callback);
+        getJdbi().useTransaction(callback);
     }
 }
