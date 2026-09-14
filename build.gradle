@@ -33,7 +33,7 @@ application.mainClass = 'dev.jojofr.joseta.JosetaBot'
 
 repositories { mavenCentral() }
 dependencies {
-    implementation('net.dv8tion:JDA:6.5.0') {
+    implementation('net.dv8tion:JDA:6.6.0') {
         // Optionally disable audio natives to reduce jar size by excluding `opus-java` and `tink`
         exclude module: 'opus-java'
         exclude module: 'tink'
@@ -51,8 +51,8 @@ dependencies {
     implementation 'org.jdbi:jdbi3-sqlobject'
     implementation 'org.jdbi:jdbi3-postgres'
 
-    implementation 'org.flywaydb:flyway-core:13.2.0'
-    implementation 'org.flywaydb:flyway-database-postgresql:13.2.0'
+    implementation 'org.flywaydb:flyway-core:13.6.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:13.6.0'
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'
