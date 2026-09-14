@@ -1,4 +1,4 @@
-package dev.jojofr.joseta.events.misc;
+package dev.jojofr.joseta.events.channel;
 
 import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.database.Database;
@@ -11,10 +11,8 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

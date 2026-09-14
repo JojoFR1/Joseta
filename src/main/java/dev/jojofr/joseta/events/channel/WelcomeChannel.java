@@ -1,4 +1,4 @@
-package dev.jojofr.joseta.events.misc;
+package dev.jojofr.joseta.events.channel;
 
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.User;
