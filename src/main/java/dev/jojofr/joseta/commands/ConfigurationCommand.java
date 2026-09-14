@@ -556,10 +556,9 @@ public class ConfigurationCommand {
             .addOption("Comptage en base 36", "base36", "Le salon de comptage compte uniquement en base 36 (0-9 et A-Z).")
             .addOption("Comptage romain", "roman", "Le salon de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).");
         if (CountingChannel.specialCountingMode != null)
-            countingModeSelectMenuBuilder.setDefaultValues(CountingChannel.specialCountingMode.toString());
+            countingModeSelectMenuBuilder.setDefaultValues(CountingChannel.specialCountingMode.name().toLowerCase());
         
         StringSelectMenu countingModeSelectMenu = countingModeSelectMenuBuilder.build();
-        
         
         return Container.of(
             TextDisplay.of("# Configuration - Comptage"),
@@ -589,26 +588,21 @@ public class ConfigurationCommand {
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
                 TextDisplay.of("### Définir le nombre de comptage\n-# Définit le nombre actuel du salon de comptage à un nombre spécifique.")
             ),
-            Section.of(
-                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number", "Réinitialiser le nombre", Emoji.fromUnicode("\uD83D\uDDD1️"))
+            
+            TextDisplay.of("### Réinitialiser le nombre\n-# Réinitialise le nombre actuel du salon de comptage à 0."),
+            ActionRow.of(
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number", "Salon de comptage", Emoji.fromUnicode("\uD83D\uDDD1️"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser le nombre de comptage\n-# Réinitialise le nombre actuel à 0.")
-            ),
-            Section.of(
-                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author", "Réinitialiser l'auteur du dernier nombre", Emoji.fromUnicode("\uD83D\uDC64"))
-                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser l'auteur du dernier nombre\n-# Réinitialise l'auteur du dernier nombre.")
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number_special", "Salon de comptage spécial", Emoji.fromUnicode("\uD83D\uDDD1️"))
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled)
             ),
             
-            Section.of(
-                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number_special", "Réinitialiser le nombre du salon de comptage spécial", Emoji.fromUnicode("\uD83D\uDDD1️"))
+            TextDisplay.of("### Réinitialiser l'auteur\n-# Réinitialise l'auteur du dernier nombre du salon de comptage."),
+            ActionRow.of(
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author", "Salon de comptage", Emoji.fromUnicode("\uD83D\uDC64"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser le nombre spécial de comptage \n-# Réinitialise le nombre actuel du salon de comptage spécial à 0.")
-            ),
-            Section.of(
-                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author_special", "Réinitialiser l'auteur du dernier nombre du salon de comptage spécial", Emoji.fromUnicode("\uD83D\uDC64"))
-                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser l'auteur spécial du dernier nombre\n-# Réinitialise l'auteur du dernier nombre du salon de comptage spécial.")
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author_special", "Salon de comptage spécial", Emoji.fromUnicode("\uD83D\uDC64"))
+                    .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled)
             ),
             
             createBottomRow(configurationMessage)
