@@ -541,7 +541,7 @@ public class ConfigurationCommand {
         EntitySelectMenu channelSelectMenu = channelSelectMenuBuilder.build();
         
         EntitySelectMenu.Builder secondChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:second_channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
-            .setPlaceholder("Sélectionnez un fil de comptage")
+            .setPlaceholder("Sélectionnez un salon de comptage")
             .setChannelTypes(ChannelType.TEXT, ChannelType.GUILD_PUBLIC_THREAD);
         if (configurationMessage.getConfigurationEntity().countingSpecialChannelId != null)
             secondChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().countingSpecialChannelId));
@@ -549,12 +549,12 @@ public class ConfigurationCommand {
         EntitySelectMenu secondCannelSelectMenu = secondChannelSelectMenuBuilder.build();
         
         StringSelectMenu.Builder countingModeSelectMenuBuilder = StringSelectMenu.create("config:cat_counting:mode_select")
-            .setPlaceholder("Sélectionnez un mode de comptage pour le fil")
-            .addOption("Comptage binaire", "binary", "Le fil de comptage compte uniquement en binaire (0 et 1).")
-            .addOption("Comptage octal", "octal", "Le fil de comptage compte uniquement en octal (0-7).")
-            .addOption("Comptage hexadécimal", "hexadecimal", "Le fil de comptage compte uniquement en hexadécimal (0-9 et A-F).")
-            .addOption("Comptage en base 36", "base36", "Le fil de comptage compte uniquement en base 36 (0-9 et A-Z).")
-            .addOption("Comptage romain", "roman", "Le fil de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).");
+            .setPlaceholder("Sélectionnez un mode de comptage pour le salon de comptage spécial")
+            .addOption("Comptage binaire", "binary", "Le salon de comptage compte uniquement en binaire (0 et 1).")
+            .addOption("Comptage octal", "octal", "Le salon de comptage compte uniquement en octal (0-7).")
+            .addOption("Comptage hexadécimal", "hexadecimal", "Le salon de comptage compte uniquement en hexadécimal (0-9 et A-F).")
+            .addOption("Comptage en base 36", "base36", "Le salon de comptage compte uniquement en base 36 (0-9 et A-Z).")
+            .addOption("Comptage romain", "roman", "Le salon de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).");
         if (CountingChannel.specialCountingMode != null)
             countingModeSelectMenuBuilder.setDefaultValues(CountingChannel.specialCountingMode.toString());
         
@@ -579,7 +579,7 @@ public class ConfigurationCommand {
             TextDisplay.of("### Salon de comptage\n-# Le salon où le comptage est actif."),
             ActionRow.of(channelSelectMenu),
             
-            TextDisplay.of("### Fil de comptage\n-# Le fil où le comptage spécial est actif."),
+            TextDisplay.of("### Salon de comptage spécial\n-# Le salon où le comptage spécial est actif."),
             ActionRow.of(secondCannelSelectMenu),
             
             ActionRow.of(countingModeSelectMenu),
@@ -601,14 +601,14 @@ public class ConfigurationCommand {
             ),
             
             Section.of(
-                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number_special", "Réinitialiser le nombre du fil de comptage spécial", Emoji.fromUnicode("\uD83D\uDDD1️"))
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_number_special", "Réinitialiser le nombre du salon de comptage spécial", Emoji.fromUnicode("\uD83D\uDDD1️"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser le nombre spécial de comptage \n-# Réinitialise le nombre actuel du fil de comptage spécial à 0.")
+                TextDisplay.of("### Réinitialiser le nombre spécial de comptage \n-# Réinitialise le nombre actuel du salon de comptage spécial à 0.")
             ),
             Section.of(
-                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author_special", "Réinitialiser l'auteur du dernier nombre du fil de comptage spécial", Emoji.fromUnicode("\uD83D\uDC64"))
+                Button.of(ButtonStyle.DANGER, "config:cat_counting:reset_author_special", "Réinitialiser l'auteur du dernier nombre du salon de comptage spécial", Emoji.fromUnicode("\uD83D\uDC64"))
                     .withDisabled(!configurationMessage.getConfigurationEntity().countingEnabled),
-                TextDisplay.of("### Réinitialiser l'auteur spécial du dernier nombre\n-# Réinitialise l'auteur du dernier nombre du fil de comptage spécial.")
+                TextDisplay.of("### Réinitialiser l'auteur spécial du dernier nombre\n-# Réinitialise l'auteur du dernier nombre du salon de comptage spécial.")
             ),
             
             createBottomRow(configurationMessage)
