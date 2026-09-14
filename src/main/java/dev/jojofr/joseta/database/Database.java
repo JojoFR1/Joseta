@@ -72,8 +72,7 @@ public class Database {
                 .migrate();
             
             jdbi = Jdbi.create(dataSource);
-            jdbi.installPlugin(new SqlObjectPlugin());
-            jdbi.installPlugin(new PostgresPlugin());
+            jdbi.installPlugin(new SqlObjectPlugin()).installPlugin (new PostgresPlugin());
             
             jdbi.registerColumnMapper(SanctionEntity.SanctionType.class, (rs, col, ctx) -> {
                 String value = rs.getString(col);

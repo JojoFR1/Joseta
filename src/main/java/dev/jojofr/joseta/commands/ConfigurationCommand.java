@@ -534,7 +534,7 @@ public class ConfigurationCommand {
     private Container createCountingMenuContainer(ConfigurationMessage configurationMessage) {
         EntitySelectMenu.Builder channelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un salon de comptage")
-            .setChannelTypes(ChannelType.TEXT);
+            .setChannelTypes(ChannelType.TEXT, ChannelType.GUILD_PUBLIC_THREAD);
         if (configurationMessage.getConfigurationEntity().countingChannelId != null)
             channelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().countingChannelId));
         
@@ -542,7 +542,7 @@ public class ConfigurationCommand {
         
         EntitySelectMenu.Builder secondChannelSelectMenuBuilder = EntitySelectMenu.create("config:cat_counting:second_channel_select", EntitySelectMenu.SelectTarget.CHANNEL)
             .setPlaceholder("Sélectionnez un fil de comptage")
-            .setChannelTypes(ChannelType.GUILD_PUBLIC_THREAD);
+            .setChannelTypes(ChannelType.TEXT, ChannelType.GUILD_PUBLIC_THREAD);
         if (configurationMessage.getConfigurationEntity().countingSpecialChannelId != null)
             secondChannelSelectMenuBuilder.setDefaultValues(EntitySelectMenu.DefaultValue.channel(configurationMessage.getConfigurationEntity().countingSpecialChannelId));
         
