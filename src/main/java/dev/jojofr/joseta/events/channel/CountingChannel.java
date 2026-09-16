@@ -277,7 +277,7 @@ public class CountingChannel {
             String oldMode = specialCountingMode.toString();
             changeSpecialMode();
             String mode = specialCountingMode.toString();
-            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
+            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").mentionRepliedUser(false).queue();
         }
     }
     
