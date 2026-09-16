@@ -15,7 +15,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import io.github.cdimascio.dotenv.Dotenv
 
 group = 'dev.jojofr'
-version = '2.4.0'
+version = '2.5.0'
 
 def dotenv = Dotenv.configure()
         .directory(project.rootDir.absolutePath)
