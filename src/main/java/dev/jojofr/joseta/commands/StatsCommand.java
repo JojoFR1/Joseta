@@ -5,6 +5,7 @@ import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.daos.UserDao;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.StringUtils;
@@ -13,6 +14,9 @@ import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
+import dev.jojofr.joseta.entities.GuildConfiguration;
+import dev.jojofr.joseta.utils.BotCache;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -21,20 +25,21 @@ public class StatsCommand {
     
     @SlashCommandInteraction(name = "stats", description = "Affiche les statistiques de l'utilisateur.")
     public void stats(SlashCommandInteractionEvent event) {
+        ConfigurationEntity config = BotCache.getConfiguration(event.getGuild().getIdLong());
+
         Database.useHandle(handle -> {
             UserEntity dbUser = handle.attach(UserDao.class).getById(event.getUser().getIdLong(), event.getGuild().getIdLong());
-            int messageCount = handle.attach(MessageDao.class).getMemberMessageCount(event.getUser().getIdLong(), event.getGuild().getIdLong());
 
-            Member member = event.getMember();
-            
-            Container statsContainer = createStatsContainer(member, dbUser, messageCount);
+            MessageDao messageDao = handle.attach(MessageDao.class);
+            int messageCount = messageDao.getMemberMessageCount(event.getUser().getIdLong(), event.getGuild().getIdLong());
 
-            // event.reply("Nombre de messages envoyés : " + StringUtils.formatNumber(messageCount)
-            //     + "\nTemps passé en vocal : " + (dbUser == null ? "0s" : TimeUtils.formatTime(dbUser.timeVoice / 1000))
-            //     + "\nA rejoint le serveur le : <t:" + (member == null ? 0 : member.getTimeJoined().toEpochSecond()) + ":F> (<t:" + (member == null ? 0 : member.getTimeJoined().toEpochSecond()) + ":R>)"
-            //     + "\nA créé son compte Discord le : <t:" + (member == null ? 0 : member.getTimeCreated().toEpochSecond()) + ":F> (<t:" + (member == null ? 0 : member.getTimeCreated().toEpochSecond()) + ":R>)"
-            // ).setEphemeral(true).queue();
-            
+            if (config.countingChannelId != null) {
+                int countingMessages = messageDao.getMemberCountingMessageCount(event.getUser().getIdLong(), event.getGuild().getIdLong(), config.countingChannelId, event.getJDA().getSelfUser().getIdLong());
+                int chainBreaks = messageDao.getMemberChainBreakCount(event.getUser().getIdLong(), event.getGuild().getIdLong(), config.countingChannelId, event.getJDA().getSelfUser().getIdLong());
+            }
+
+            Container statsContainer = createStatsContainer(event.getGuild(), event.getMember(), dbUser, messageCount);
+
             event.replyComponents(statsContainer).useComponentsV2().queue();
         });
     }
