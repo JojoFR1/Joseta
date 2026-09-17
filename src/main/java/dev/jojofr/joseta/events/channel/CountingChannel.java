@@ -86,13 +86,14 @@ public class CountingChannel {
                     changeSpecialMode();
                     channel.sendMessage("Le mode de comptage spécial a été initialisé ! Le mode actuel est **"+ specialCountingMode +"**.").queue();
                     specialLastNumber = 1;
+                    lastSpecialModeChangeTimestamp = System.currentTimeMillis();
                 } else {
                     String content = modeChangeMessage.content;
                     
                     int firstAsterisk = content.indexOf("**") + 2;
                     String currentMode = content.substring(firstAsterisk, content.indexOf("**", firstAsterisk));
                     specialCountingMode = CountingMode.fromString(currentMode);
-                    lastSpecialModeChangeTimestamp = System.currentTimeMillis();
+                    lastSpecialModeChangeTimestamp = modeChangeMessage.createdAt.toEpochMilli();
                     
                     if (!content.contains("initialisé")) {
                         int secondAsterisk = content.indexOf("**", firstAsterisk + 2) + 2;
@@ -277,7 +278,7 @@ public class CountingChannel {
             String oldMode = specialCountingMode.toString();
             changeSpecialMode();
             String mode = specialCountingMode.toString();
-            message.reply("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").mentionRepliedUser(false).queue();
+            channel.sendMessage("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
         }
     }
     
