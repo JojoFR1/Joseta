@@ -10,6 +10,7 @@ import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
 import dev.jojofr.joseta.entities.ReminderListMessage;
 import dev.jojofr.joseta.events.ScheduledEvents;
+import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.TimeUtils;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -90,11 +91,13 @@ public class ReminderCommand {
         
         ReminderEntity reminder = new ReminderEntity(event.getGuild().getIdLong(), event.getChannelIdLong(), userId, message, remindAt.atZone(parisZone).toInstant(), repeat ? TimeUtils.parseTime(repeatTime) : -1, dm, repeat);
         Database.useExtension(ReminderDao.class, dao -> dao.insert(reminder));
-        event.reply("⏰ Votre rappel a été ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>)."
+        
+        DiscordTimestamp timestamp = DiscordTimestamp.from(reminder.remindAt);
+        event.reply("⏰ Votre rappel a été ajouté pour le " + timestamp.longFull() + " (" + timestamp.relative() + ")."
             + (repeat ? " Il sera répété tous les " + TimeUtils.formatTime(reminder.repeatAfter, true) + "." : "")
             + (dm ? " Il vous sera envoyé en message privé." : "")).setEphemeral(true).queue();
         
-        if (dm)
+        if (dm) {
             event.getUser().openPrivateChannel().queue(
                 privateChannel -> {
                     if (!privateChannel.canTalk()) {
@@ -102,10 +105,11 @@ public class ReminderCommand {
                         return;
                     }
                     
-                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>). Il vous sera envoyé ici.").queue();
+                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le " + timestamp.longFull() + " (" + timestamp.relative() + "). Il vous sera envoyé ici.").queue();
                 },
                 fail -> event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue()
             );
+        }
     }
     
     
@@ -233,7 +237,8 @@ public class ReminderCommand {
                         return;
                     }
                     
-                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le <t:" + reminder.remindAt.getEpochSecond() + ":F> (<t:" + reminder.remindAt.getEpochSecond() + ":R>). Il vous sera envoyé ici.").queue();
+                    DiscordTimestamp timestamp = DiscordTimestamp.from(reminder.remindAt);
+                    privateChannel.sendMessage("⏰ Nouveau rappel ajouté pour le " + timestamp.longFull() + " (" + timestamp.relative() + "). Il vous sera envoyé ici.").queue();
                 },
                 fail -> event.reply("⚠️ Je n'ai pas pu vous envoyer de message privé pour votre rappel. Veuillez vérifier que je peux vous envoyer des messages privés.").setEphemeral(true).queue()
             );
@@ -268,7 +273,8 @@ public class ReminderCommand {
             
             ReminderEntity reminder = reminders.get(i);
             
-            sb.append(i + 1).append(". <t:").append(reminder.remindAt.getEpochSecond()).append(":F> (<t:").append(reminder.remindAt.getEpochSecond()).append(":R>");
+            DiscordTimestamp timestamp = DiscordTimestamp.from(reminder.remindAt);
+            sb.append(i + 1).append(". ").append(timestamp.longFull()).append(timestamp.relative());
             
             if (reminder.repeat) sb.append(", répété");
             if (reminder.dm) sb.append(", en MP");

@@ -13,6 +13,7 @@ import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
 import dev.jojofr.joseta.entities.ModlogMessage;
 import dev.jojofr.joseta.utils.BotCache;
+import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.Log;
 import dev.jojofr.joseta.utils.TimeUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -93,9 +94,9 @@ public class ModerationCommands {
             else description.append("<@").append(sanction.moderatorId).append("> (`").append(sanction.moderatorId).append("`)");
             
             description.append("\n>    - Raison: ").append(sanction.reason)
-                .append("\n>    - Date: <t:").append(sanction.createdAt.getEpochSecond()).append(":F>");
+                .append("\n>    - Date: ").append(DiscordTimestamp.from(sanction.createdAt).longFull());
             
-            if (sanction.type != SanctionEntity.SanctionType.KICK && sanction.expiresAt != null && !sanction.isPermanent) description.append("\n>    - Expire: <t:").append(sanction.expiresAt.getEpochSecond()).append(":F>");
+            if (sanction.type != SanctionEntity.SanctionType.KICK && sanction.expiresAt != null && !sanction.isPermanent) description.append("\n>    - Expire: ").append(DiscordTimestamp.from(sanction.expiresAt).longFull());
             description.append("\n");
         }
         
@@ -225,8 +226,8 @@ public class ModerationCommands {
         
         member.getUser().openPrivateChannel().queue(
             channel -> channel.sendMessage("Vous avez été averti sur le serveur **`" + event.getGuild().getName() + "`** par " + event.getUser().getAsMention() +
-                " pour la raison suivante : " + reasonFinal + ".\nCette sanction expirera dans: <t:" + (Instant.now().getEpochSecond() + timeSeconds) +
-                ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                " pour la raison suivante : " + reasonFinal + ".\nCette sanction expirera dans: " + DiscordTimestamp.now(timeSeconds).relative() +
+                "\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
             ).queue(null, f -> event.getHook().editOriginal("Le membre a bien été averti... mais impossible d'envoyer un message privé à " + member.getAsMention() + ".").queue())
         );
         

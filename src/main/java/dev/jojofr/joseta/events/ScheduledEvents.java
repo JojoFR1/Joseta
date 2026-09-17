@@ -9,6 +9,7 @@ import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
+import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
@@ -131,7 +132,7 @@ public class ScheduledEvents {
                     
                     user.openPrivateChannel().queue(
                         channel ->
-                            channel.sendMessage("Votre sanction sur le serveur **`"+ guild.getName() +"`** d'identifiant **`"+ sanction.getSanctionId() +"`** du <t:"+ sanction.createdAt.getEpochSecond() +":F> a expiré.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***").queue(
+                            channel.sendMessage("Votre sanction sur le serveur **`"+ guild.getName() +"`** d'identifiant **`"+ sanction.getSanctionId() +"`** du "+ DiscordTimestamp.from(sanction.createdAt).longFull() +" a expiré.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable***").queue(
                                 null,
                                 failure -> Log.err("Failed to send private message to user {} (ID: {}) for expired sanction ID {}", failure, user.getAsTag(), user.getIdLong(), sanction.getSanctionId())
                             ),
