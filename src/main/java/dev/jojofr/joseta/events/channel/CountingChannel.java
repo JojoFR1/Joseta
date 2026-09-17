@@ -32,7 +32,7 @@ public class CountingChannel {
     private static long lastSpecialModeChangeTimestamp = -1;
     public static CountingMode specialCountingMode = null, lastSpecialCountingMode = null;
     
-    public enum CountingMode { BINARY, OCTAL, HEXADECIMAL, BASE36, ROMAN;
+    public enum CountingMode { BINARY, OCTAL, HEXADECIMAL, BASE36, ROMAN, ALPHABETICAL;
         
         @Override
         public String toString() {
@@ -42,6 +42,7 @@ public class CountingChannel {
                 case HEXADECIMAL -> "Hexadécimal";
                 case BASE36 -> "Base 36";
                 case ROMAN -> "Romain";
+                case ALPHABETICAL -> "Alphabétique";
             };
         }
         
@@ -52,6 +53,7 @@ public class CountingChannel {
                 case "hexadécimal", "hexadecimal" -> HEXADECIMAL;
                 case "base 36", "base36" -> BASE36;
                 case "romain", "roman" -> ROMAN;
+                case "alphabétique", "alphabetical" -> ALPHABETICAL;
                 default -> null;
             };
         }
@@ -80,7 +82,6 @@ public class CountingChannel {
                 MessageEntity modeChangeMessage = Database.withExtension(MessageDao.class, dao ->
                     dao.getLastCountingModeChangeMessage(message.getGuildIdLong(), message.getChannelIdLong(), JosetaBot.get().getSelfUser().getIdLong()));
                 
-                Log.debug("Last counting mode change message: {}", modeChangeMessage);
                 // No previous mode, so new channel
                 if (modeChangeMessage == null) {
                     changeSpecialMode();
@@ -235,6 +236,7 @@ public class CountingChannel {
                 case HEXADECIMAL -> "hexadécimal";
                 case BASE36 -> "en base 36";
                 case ROMAN -> "romain";
+                case ALPHABETICAL -> "alphabétique";
             };
             if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon "+ type + "!").queue(
@@ -305,6 +307,7 @@ public class CountingChannel {
     private static final Pattern HEXADECIMAL_REGEX = Pattern.compile("^[0-9a-fA-F]+");
     private static final Pattern BASE36_REGEX = Pattern.compile("^[0-9a-zA-Z]+");
     private static final Pattern ROMAN_REGEX = Pattern.compile("^[ivxlcdm]+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ALPHABETICAL_REGEX = Pattern.compile("^[a-zA-Z]+");
     private static final Map<Character, Integer> ROMAN_VALUES = Map.of(
         'I', 1, 'V', 5, 'X', 10, 'L', 50, 'C', 100, 'D', 500, 'M', 1000
     );
@@ -321,6 +324,7 @@ public class CountingChannel {
             case HEXADECIMAL -> parseWithRadix(message, commentsEnabled, HEXADECIMAL_REGEX, 16);
             case BASE36 -> parseWithRadix(message, commentsEnabled, BASE36_REGEX, 36);
             case ROMAN -> parseRoman(message, commentsEnabled);
+            case ALPHABETICAL -> parseAlphabetical(message, commentsEnabled);
         };
     }
     
@@ -368,6 +372,21 @@ public class CountingChannel {
         }
         
         if (!romanBuilder.toString().equals(upper)) return -1;
+        
+        return number > 0 ? number : -1;
+    }
+    
+    private static long parseAlphabetical(String message, boolean commentsEnabled) {
+        Matcher matcher = ALPHABETICAL_REGEX.matcher(message);
+        boolean matched = commentsEnabled ? matcher.find() : matcher.matches();
+        if (!matched) return -1;
+        
+        String upper = matcher.group().toUpperCase(Locale.ROOT);
+        long number = 0;
+        for (int i = 0; i < upper.length(); i++) {
+            number *= 26;
+            number += upper.charAt(i) - 'A' + 1;
+        }
         
         return number > 0 ? number : -1;
     }

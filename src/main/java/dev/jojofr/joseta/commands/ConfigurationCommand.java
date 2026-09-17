@@ -554,7 +554,8 @@ public class ConfigurationCommand {
             .addOption("Comptage octal", "octal", "Le salon de comptage compte uniquement en octal (0-7).")
             .addOption("Comptage hexadécimal", "hexadecimal", "Le salon de comptage compte uniquement en hexadécimal (0-9 et A-F).")
             .addOption("Comptage en base 36", "base36", "Le salon de comptage compte uniquement en base 36 (0-9 et A-Z).")
-            .addOption("Comptage romain", "roman", "Le salon de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).");
+            .addOption("Comptage romain", "roman", "Le salon de comptage compte uniquement en chiffres romains (I, II, III, IV, V, VI, VII, ...).")
+            .addOption("Comptage alphabétique", "alphabetical", "Le salon de comptage compte uniquement en lettres (A-Z).");
         if (CountingChannel.specialCountingMode != null)
             countingModeSelectMenuBuilder.setDefaultValues(CountingChannel.specialCountingMode.name().toLowerCase());
         
