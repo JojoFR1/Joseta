@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/build/libs/JosetaBot.jar" />
+    <option name="WORKING_DIRECTORY" value="D:\Jojo\Dev\Joseta" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <module name="Joseta.main" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="false" run_configuration_name="Build" run_configuration_type="GradleRunConfiguration" />
+    </method>
+  </configuration>
+</component>
