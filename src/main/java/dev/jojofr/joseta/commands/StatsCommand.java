@@ -61,6 +61,8 @@ public class StatsCommand {
 
                 event.getUser().retrieveProfile().queue(profile -> {
                     Color color = profile.getAccentColor();
+                    if (color == null) color = event.getMember().getColors().getPrimary();
+                    
                     Container statsContainer = createStatsContainer(event.getGuild(), event.getMember(), dbUser, messageCount, countingMessages, chainBreaks, countingSpecialMessages, chainBreaksSpecial, color);
                     hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
                 });
@@ -85,7 +87,7 @@ public class StatsCommand {
 
             TextDisplay.ofFormat(
                 """
-                ### Profil
+                ### 👤 Profil
                 **Compte créé**
                 %s · %s
                 
@@ -99,7 +101,7 @@ public class StatsCommand {
 
             TextDisplay.ofFormat(
                 """
-                ### Activité
+                ### 📊 Activité
                 **%,d** messages
                 **%s** en vocal
                 """,
@@ -109,11 +111,11 @@ public class StatsCommand {
 
             TextDisplay.ofFormat(
                 """
-                ### Comptage
+                ### 🔢 Comptage
                 **%,d** nombre réussi
                 **%,d** chaînes cassées
                 **%.2f %%** de réussite
-                ### Comptage spécial
+                ### ✨ Comptage spécial
                 **%,d** nombre réussi
                 **%,d** chaînes cassées
                 **%.2f %%** de réussite
