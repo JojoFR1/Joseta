@@ -83,10 +83,10 @@ public interface MessageDao {
             WHERE guild_id = :guildId AND channel_id = :channelId
         )
         SELECT COUNT(*) FROM ordered
-        WHERE author_id = :authorId AND content ~ '^[0-9]+'
+        WHERE author_id = :authorId AND content ~ :likePattern
             AND NOT (next_author_id = :botId AND next_content ~ CONCAT('<@', :authorId, '> a cassé la chaîne !'))
     """)
-    int getMemberCountingMessageCount(long authorId, long guildId, long channelId, long botId);
+    int getMemberCountingMessageCount(long authorId, long guildId, long channelId, long botId, String likePattern);
     
     @SqlQuery("""
         SELECT COUNT(*) FROM messages
