@@ -2,7 +2,7 @@
   <configuration default="false" name="Run (Debug)" type="JarApplication">
     <option name="JAR_PATH" value="$PROJECT_DIR$/build/libs/JosetaBot.jar" />
     <option name="PROGRAM_PARAMETERS" value="--debug" />
-    <option name="WORKING_DIRECTORY" value="D:\Jojo\Dev\Joseta" />
+    <option name="WORKING_DIRECTORY" value="$ProjectFileDir$" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <module name="Joseta.main" />
     <method v="2">
