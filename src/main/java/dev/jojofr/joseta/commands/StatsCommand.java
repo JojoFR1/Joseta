@@ -3,6 +3,10 @@ package dev.jojofr.joseta.commands;
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
+import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.UserDao;
+import dev.jojofr.joseta.database.entities.LeaderboardEntry;
 import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.entities.messages.StatsMessage;
 import dev.jojofr.joseta.utils.BotCache;
@@ -17,13 +21,16 @@ import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @InteractionModule
@@ -42,7 +49,7 @@ public class StatsCommand {
         // StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), event.getJDA().getSelfUser().getIdLong(), config.countingChannelId, config.countingSpecialChannelId);
         statsMessages.put(event.getUser().getIdLong(), statsMessage);
         
-        event.deferReply().useComponentsV2().queue(hook -> {
+        event.deferReply().useComponentsV2().setAllowedMentions(Set.of()).queue(hook -> {
             Container statsContainer = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
             hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
         });
@@ -173,6 +180,24 @@ public class StatsCommand {
     private Container createGlobalStatsContainer(StatsMessage statsMessage, Guild guild) {
         GuildConfiguration guildConfiguration = BotCache.getGuildConfiguration(guild.getIdLong());
         
+        StringBuilder messageLeaderboardContent = new StringBuilder();
+        List<LeaderboardEntry> leaderboardEntries = Database.withExtension(MessageDao.class, dao -> dao.getMessageLeaderboard(guild.getIdLong(), 10, 0));
+        
+        messageLeaderboardContent.append("### 🏆 Classement des messages\n");
+        for (int i = 0; i < leaderboardEntries.size(); i++) {
+            LeaderboardEntry entry = leaderboardEntries.get(i);
+            messageLeaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1, entry.userId(), entry.count()));
+        }
+        
+        StringBuilder voiceLeaderboardContent = new StringBuilder();
+        leaderboardEntries = Database.withExtension(UserDao.class, dao -> dao.getVoiceLeaderboard(guild.getIdLong(), 10, 0));
+        
+        voiceLeaderboardContent.append("### 🏆 Classement du temps vocal\n");
+        for (int i = 0; i < leaderboardEntries.size(); i++) {
+            LeaderboardEntry entry = leaderboardEntries.get(i);
+            voiceLeaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1, entry.userId(), TimeUtils.formatTime(entry.count() / 1000)));
+        }
+        
         return Container.of(
             Section.of(
                 Thumbnail.fromUrl(guild.getIconUrl()),
@@ -193,6 +218,12 @@ public class StatsCommand {
                 """,
                 guildConfiguration.totalMessages, TimeUtils.formatTime(guildConfiguration.totalVoiceTime / 1000)
             ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+            
+            TextDisplay.of(messageLeaderboardContent.toString()),
+            Separator.createDivider(Separator.Spacing.SMALL),
+
+            TextDisplay.of(voiceLeaderboardContent.toString()),
             Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)

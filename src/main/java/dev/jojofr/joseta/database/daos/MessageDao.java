@@ -1,10 +1,10 @@
 package dev.jojofr.joseta.database.daos;
 
+import dev.jojofr.joseta.database.entities.LeaderboardEntry;
 import dev.jojofr.joseta.database.entities.MessageEntity;
+import org.jdbi.v3.sqlobject.config.RegisterConstructorMapper;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
-import org.jdbi.v3.sqlobject.customizer.Bind;
 import org.jdbi.v3.sqlobject.customizer.BindFields;
-import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
@@ -97,6 +97,9 @@ public interface MessageDao {
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE guild_id = :guildId")
     int getGuildMessageCount(long guildId);
     
+    @SqlQuery("SELECT author_id as user_id, COUNT(*) AS count FROM messages WHERE guild_id = :guildId GROUP BY author_id ORDER BY count DESC LIMIT :limit OFFSET :offset")
+    @RegisterConstructorMapper(value = LeaderboardEntry.class)
+    List<LeaderboardEntry> getMessageLeaderboard(long guildId, int limit, int offset);
     
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
     void clearMarkovContent(long authorId, long guildId);

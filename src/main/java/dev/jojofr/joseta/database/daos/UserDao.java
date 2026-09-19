@@ -1,10 +1,14 @@
 package dev.jojofr.joseta.database.daos;
 
+import dev.jojofr.joseta.database.entities.LeaderboardEntry;
 import dev.jojofr.joseta.database.entities.UserEntity;
+import org.jdbi.v3.sqlobject.config.RegisterConstructorMapper;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
 import org.jdbi.v3.sqlobject.customizer.BindFields;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
+
+import java.util.List;
 
 public interface UserDao {
     @SqlUpdate("""
@@ -25,6 +29,9 @@ public interface UserDao {
     @SqlUpdate("UPDATE users SET time_voice = time_voice + :timeVoice WHERE id = :id AND guild_id = :guildId")
     int addTimeVoice(long id, long guildId, long timeVoice);
     
+    @SqlQuery("SELECT id as user_id, time_voice as count FROM users WHERE guild_id = :guildId AND time_voice > 0 GROUP BY id, time_voice ORDER BY time_voice DESC LIMIT :limit OFFSET :offset")
+    @RegisterConstructorMapper(value = LeaderboardEntry.class)
+    List<LeaderboardEntry> getVoiceLeaderboard(long guildId, int limit, int offset);
     
     @SqlQuery("SELECT * FROM users WHERE id = :id AND guild_id = :guildId")
     @RegisterFieldMapper(value = UserEntity.class)
