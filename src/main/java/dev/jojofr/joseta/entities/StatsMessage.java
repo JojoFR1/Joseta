@@ -13,6 +13,7 @@ import java.awt.*;
 import java.time.Instant;
 
 public class StatsMessage {
+    public final ConfigurationEntity config;
     public boolean isGlobal = false;
     public Color color;
     
@@ -27,6 +28,8 @@ public class StatsMessage {
     public int chainBreaks = 0;
     public int countingSpecialMessages = 0;
     public int chainBreaksSpecial = 0;
+    public int countingSpecialMessagesLegacy = 0;
+    public int chainBreaksSpecialLegacy = 0;
     
     public final Instant timestamp;
     
@@ -35,22 +38,26 @@ public class StatsMessage {
         this.userId = user.getIdLong();
         this.botId = botId;
         
-        color = user.retrieveProfile().complete().getAccentColor();
+        this.color = user.retrieveProfile().complete().getAccentColor();
         
-        ConfigurationEntity config = BotCache.getConfiguration(guildId);
+        this.config = BotCache.getConfiguration(guildId);
         Database.useHandle(handle -> {
             this.dbUser = handle.attach(UserDao.class).getById(userId, guildId);
             
             MessageDao messageDao = handle.attach(MessageDao.class);
             messageCount = messageDao.getMemberMessageCount(userId, guildId);
             
-            if (config.countingChannelId != null) {
-                countingMessages = messageDao.getMemberCountingMessageCount(userId, guildId, config.countingChannelId, botId, "[0-9]+");
-                chainBreaks = messageDao.getMemberChainBreakCount(userId, guildId, config.countingChannelId, botId);
+            if (this.config.countingChannelId != null) {
+                countingMessages = messageDao.getMemberCountingMessageCount(userId, guildId, this.config.countingChannelId, botId, "[0-9]+");
+                chainBreaks = messageDao.getMemberChainBreakCount(userId, guildId, this.config.countingChannelId, botId);
             }
-            if (config.countingSpecialChannelId != null) {
-                countingSpecialMessages = messageDao.getMemberCountingMessageCount(userId, guildId, config.countingSpecialChannelId, botId, "[0-9A-Za-z]+");
-                chainBreaksSpecial = messageDao.getMemberChainBreakCount(userId, guildId, config.countingSpecialChannelId, botId);
+            if (this.config.countingSpecialChannelId != null) {
+                countingSpecialMessages = messageDao.getMemberCountingMessageCount(userId, guildId, this.config.countingSpecialChannelId, botId, "[0-9A-Za-z]+");
+                chainBreaksSpecial = messageDao.getMemberChainBreakCount(userId, guildId, this.config.countingSpecialChannelId, botId);
+            }
+            if (guildId == 1219005659194851389L) { // Main server
+                countingSpecialMessagesLegacy = messageDao.getMemberCountingMessageCount(userId, guildId, 1534307776963022848L, botId, "[0-9A-Za-z]+"); // Counting channel
+                chainBreaksSpecialLegacy = messageDao.getMemberChainBreakCount(userId, guildId, 1534307776963022848L, botId);
             }
         });
         
