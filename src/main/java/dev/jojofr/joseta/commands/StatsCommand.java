@@ -47,15 +47,27 @@ public class StatsCommand {
     
     @Interaction(id = "stats:nav:*")
     public void onNavigationButton(ButtonInteractionEvent event) {
-        StatsMessage statsMessage = checkStatsMessage(event, event.getUser().getIdLong());
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length < 3) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        };
+        
+        long ownerId = Long.parseLong(parts[3]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
         if (statsMessage == null) return;
         
         Container container = null;
-        String buttonId = event.getComponentId();
-        if (buttonId.equals("stats:nav:self")) {
+        String buttonId = parts[2];
+        if (buttonId.equals("self")) {
             statsMessage.isGlobal = false;
             container = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
-        } else if (buttonId.equals("stats:nav:global")) {
+        } else if (buttonId.equals("global")) {
             statsMessage.isGlobal = true;
             container = createGlobalStatsContainer(statsMessage, event.getGuild());
         }
@@ -68,7 +80,7 @@ public class StatsCommand {
         
         StatsMessage statsMessage = statsMessages.get(userId);
         if (statsMessage == null || Instant.now().isAfter(statsMessage.timestamp.plusSeconds(30 * 60))) {
-            replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir un nouveau menu.").setEphemeral(true).queue();
+            replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande `/stats` pour obtenir un nouveau menu.").setEphemeral(true).queue();
             statsMessages.remove(userId);
             return null;
         }
@@ -152,8 +164,8 @@ public class StatsCommand {
     
     private ActionRow createNavigationRow(StatsMessage statsMessage) {
         return ActionRow.of(
-            Button.primary("stats:nav:self", "Statistiques personnelles").withDisabled(statsMessage == null || !statsMessage.isGlobal),
-            Button.primary("stats:nav:global", "Statistiques globales").withDisabled(statsMessage == null || statsMessage.isGlobal)
+            Button.primary("stats:nav:self:" + statsMessage.userId, "Statistiques personnelles").withDisabled(statsMessage == null || !statsMessage.isGlobal),
+            Button.primary("stats:nav:global:" + statsMessage.userId, "Statistiques globales").withDisabled(statsMessage == null || statsMessage.isGlobal)
         );
     }
 }
