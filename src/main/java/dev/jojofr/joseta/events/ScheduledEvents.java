@@ -4,6 +4,7 @@ import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.commands.ConfigurationCommand;
 import dev.jojofr.joseta.commands.ModerationCommands;
 import dev.jojofr.joseta.commands.ReminderCommand;
+import dev.jojofr.joseta.commands.StatsCommand;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.daos.SanctionDao;
@@ -148,6 +149,7 @@ public class ScheduledEvents {
         removeExpiredMessages(ConfigurationCommand.configurationMessages, message -> message.timestamp);
         removeExpiredMessages(ModerationCommands.modlogMessages, message -> message.timestamp);
         removeExpiredMessages(ReminderCommand.reminderListMessages, message -> message.timestamp);
+        removeExpiredMessages(StatsCommand.statsMessages, message -> message.timestamp);
     }
     
     private static <T> void removeExpiredMessages(Map<?, T> messages, Function<T, Instant> instantGetter) {
