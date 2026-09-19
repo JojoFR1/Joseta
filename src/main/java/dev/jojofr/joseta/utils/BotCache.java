@@ -5,6 +5,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ConfigurationDao;
 import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
+import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.entities.GuildConfiguration;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -36,7 +37,11 @@ public class BotCache {
             }
             
             GuildConfiguration guildConfig = new GuildConfiguration(config);
-            guildConfig.markovBlacklistIds = Database.withExtension(MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
+            Database.useHandle(handle -> {
+                guildConfig.markovBlacklistIds = handle.attach(MarkovBlacklistDao.class).getAllIds(id);
+                guildConfig.totalMessages = handle.attach(MessageDao.class).getGuildMessageCount(id);
+                guildConfig.totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(id);
+            });
             
             return guildConfig;
         });

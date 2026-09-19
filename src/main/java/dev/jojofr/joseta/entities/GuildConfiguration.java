@@ -12,6 +12,9 @@ public class GuildConfiguration {
     public final ConfigurationEntity configuration;
     public Set<Long> markovBlacklistIds = new HashSet<>();
     
+    public int totalMessages = 0;
+    public int totalVoiceTime = 0;
+    
     public GuildConfiguration(ConfigurationEntity configuration) {
         this.configuration = configuration;
     }
@@ -19,6 +22,9 @@ public class GuildConfiguration {
     public GuildConfiguration(GuildConfiguration other) {
         this.configuration = new ConfigurationEntity(other.configuration);
         this.markovBlacklistIds = new HashSet<>(other.markovBlacklistIds);
+        
+        this.totalMessages = other.totalMessages;
+        this.totalVoiceTime = other.totalVoiceTime;
     }
     
     public TextChannel getWelcomeChannel(Guild guild) {

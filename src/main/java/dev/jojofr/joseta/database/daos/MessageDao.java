@@ -94,6 +94,9 @@ public interface MessageDao {
     """)
     int getMemberChainBreakCount(long authorId, long guildId, long channelId, long botId);
     
+    @SqlQuery("SELECT COUNT(*) FROM messages WHERE guild_id = :guildId")
+    int getGuildMessageCount(long guildId);
+    
     
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
     void clearMarkovContent(long authorId, long guildId);

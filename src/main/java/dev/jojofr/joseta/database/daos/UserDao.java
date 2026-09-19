@@ -25,9 +25,13 @@ public interface UserDao {
     @SqlUpdate("UPDATE users SET time_voice = time_voice + :timeVoice WHERE id = :id AND guild_id = :guildId")
     int addTimeVoice(long id, long guildId, long timeVoice);
     
+    
     @SqlQuery("SELECT * FROM users WHERE id = :id AND guild_id = :guildId")
     @RegisterFieldMapper(value = UserEntity.class)
     UserEntity getById(long id, long guildId);
+    
+    @SqlQuery("SELECT SUM(time_voice) FROM users WHERE guild_id = :guildId")
+    int getTotalTimeVoice(long guildId);
     
     @SqlUpdate("DELETE FROM users WHERE id = :id AND guild_id = :guildId")
     void delete(long id, long guildId);

@@ -3,8 +3,11 @@ package dev.jojofr.joseta.commands;
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
+import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.entities.messages.StatsMessage;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
+import dev.jojofr.joseta.utils.TimeUtils;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
@@ -168,6 +171,8 @@ public class StatsCommand {
     }
     
     private Container createGlobalStatsContainer(StatsMessage statsMessage, Guild guild) {
+        GuildConfiguration guildConfiguration = BotCache.getGuildConfiguration(guild.getIdLong());
+        
         return Container.of(
             Section.of(
                 Thumbnail.fromUrl(guild.getIconUrl()),
@@ -178,6 +183,17 @@ public class StatsCommand {
                     """, guild.getName()
                 )
             ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+            
+            TextDisplay.ofFormat(
+                """
+                ### 📊 Activité
+                **%,d** messages
+                **%s** en vocal
+                """,
+                guildConfiguration.totalMessages, TimeUtils.formatTime(guildConfiguration.totalVoiceTime / 1000)
+            ),
+            Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)
         );
