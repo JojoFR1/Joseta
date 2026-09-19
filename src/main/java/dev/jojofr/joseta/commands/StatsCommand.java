@@ -196,7 +196,7 @@ public class StatsCommand {
             Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)
-        );
+        ).withAccentColor(guildConfiguration.accentColor);
     }
     
     private ActionRow createNavigationRow(StatsMessage statsMessage) {

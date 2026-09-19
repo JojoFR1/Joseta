@@ -40,6 +40,8 @@ public class SetupEvents {
                 return null;
             });
         }
+        
+        BotCache.getGuildConfiguration(event.getGuild().getIdLong()).updateAccentColor(event.getGuild());
     }
     
     @EventHandler(priority = EventPriority.HIGH)
