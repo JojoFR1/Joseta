@@ -1,4 +1,4 @@
-package dev.jojofr.joseta.entities;
+package dev.jojofr.joseta.entities.messages;
 
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;

@@ -3,7 +3,7 @@ package dev.jojofr.joseta.commands;
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
-import dev.jojofr.joseta.entities.StatsMessage;
+import dev.jojofr.joseta.entities.messages.StatsMessage;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;

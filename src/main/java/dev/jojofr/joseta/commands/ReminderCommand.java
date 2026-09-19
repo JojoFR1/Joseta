@@ -8,7 +8,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
-import dev.jojofr.joseta.entities.ReminderListMessage;
+import dev.jojofr.joseta.entities.messages.ReminderListMessage;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.TimeUtils;

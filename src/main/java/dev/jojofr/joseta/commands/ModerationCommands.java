@@ -11,7 +11,7 @@ import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
-import dev.jojofr.joseta.entities.ModlogMessage;
+import dev.jojofr.joseta.entities.messages.ModlogMessage;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.Log;
