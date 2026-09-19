@@ -91,6 +91,39 @@ public class StatsCommand {
     private Container createUserStatsContainer(StatsMessage statsMessage, Member member, String guildName) {
         DiscordTimestamp timestampCreated = DiscordTimestamp.from(member.getTimeCreated());
         DiscordTimestamp timestampJoined = DiscordTimestamp.from(member.getTimeJoined());
+        
+        StringBuilder countingContent = new StringBuilder();
+        if (statsMessage.config.countingChannelId != null) {
+            countingContent.append(
+                """
+                ### 🔢 Comptage
+                **%,d** nombre réussi
+                **%,d** chaînes cassées
+                **%.2f %%** de réussite
+                """.formatted(statsMessage.countingMessages, statsMessage.chainBreaks, statsMessage.getSuccessRate(statsMessage.countingMessages, statsMessage.chainBreaks))
+            );
+        }
+        if (statsMessage.config.countingSpecialChannelId != null || statsMessage.guildId == 1219005659194851389L) {
+            countingContent.append("### ✨ Comptage spécial");
+            if (statsMessage.countingSpecialMessagesLegacy > 0 || statsMessage.chainBreaksSpecialLegacy > 0)
+                countingContent.append(" (+ ancien)");
+            countingContent.append("\n");
+            
+            countingContent.append("**%,d** nombre réussi".formatted(statsMessage.countingSpecialMessages));
+            if (statsMessage.countingSpecialMessagesLegacy > 0)
+                countingContent.append(" (**+%,d**)".formatted(statsMessage.countingSpecialMessagesLegacy));
+            countingContent.append("\n");
+            
+            countingContent.append("**%,d** chaînes cassées".formatted(statsMessage.chainBreaksSpecial));
+            if (statsMessage.chainBreaksSpecialLegacy > 0)
+                countingContent.append(" (**+%,d**)".formatted(statsMessage.chainBreaksSpecialLegacy));
+            countingContent.append("\n");
+            
+            countingContent.append("**%.2f %%** de réussite".formatted(statsMessage.getSuccessRate(statsMessage.countingSpecialMessages, statsMessage.chainBreaksSpecial)));
+            if (statsMessage.countingSpecialMessagesLegacy > 0)
+                countingContent.append(" (**%.2f %%**)".formatted(statsMessage.getSuccessRate(statsMessage.countingSpecialMessagesLegacy, statsMessage.chainBreaksSpecialLegacy)));
+        }
+        
         return Container.of(
             Section.of(
                 Thumbnail.fromUrl(member.getEffectiveAvatarUrl()),
@@ -126,21 +159,9 @@ public class StatsCommand {
                 statsMessage.messageCount, statsMessage.getVoiceTime()
             ),
             Separator.createDivider(Separator.Spacing.SMALL),
-
-            TextDisplay.ofFormat(
-                """
-                ### 🔢 Comptage
-                **%,d** nombre réussi
-                **%,d** chaînes cassées
-                **%.2f %%** de réussite
-                ### ✨ Comptage spécial
-                **%,d** nombre réussi
-                **%,d** chaînes cassées
-                **%.2f %%** de réussite
-                """,
-                statsMessage.countingMessages, statsMessage.chainBreaks, statsMessage.getSuccessRate(statsMessage.countingMessages, statsMessage.chainBreaks),
-                statsMessage.countingSpecialMessages, statsMessage.chainBreaksSpecial, statsMessage.getSuccessRate(statsMessage.countingSpecialMessages, statsMessage.chainBreaksSpecial)
-            ),
+            
+            TextDisplay.of(countingContent.toString()),
+            Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)
         ).withAccentColor(statsMessage.color);
