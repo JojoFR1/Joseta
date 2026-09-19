@@ -35,12 +35,11 @@ public class StatsCommand {
             event.reply("Vous avez déjà une interaction de statistiques en cours. Veuillez utiliser le menu existant ou attendre "+ remainingMinutes +" minutes avant d'en créer un nouveau.").setEphemeral(true).queue();
             return;
         }
+        StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), 1307015890146955285L);
+        // StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), event.getJDA().getSelfUser().getIdLong(), config.countingChannelId, config.countingSpecialChannelId);
+        statsMessages.put(event.getUser().getIdLong(), statsMessage);
         
         event.deferReply().useComponentsV2().queue(hook -> {
-            StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), 1307015890146955285L);
-            // StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), event.getJDA().getSelfUser().getIdLong(), config.countingChannelId, config.countingSpecialChannelId);
-            statsMessages.put(event.getUser().getIdLong(), statsMessage);
-            
             Container statsContainer = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
             hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
         });
