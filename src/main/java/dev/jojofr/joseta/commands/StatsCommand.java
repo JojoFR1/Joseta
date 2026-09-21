@@ -21,13 +21,13 @@ import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,6 +83,59 @@ public class StatsCommand {
         }
         
         event.editComponents(container).useComponentsV2().queue();
+    }
+    
+    @Interaction(id = "stats:leaderboard:nav:*")
+    public void onLeaderboardNavigationButton(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length < 4) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        long ownerId = Long.parseLong(parts[4]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
+        if (statsMessage == null) return;
+        
+        String buttonId = parts[3];
+        switch (buttonId) {
+            case "first" -> statsMessage.currentPage = 0;
+            case "prev" -> statsMessage.previousPage();
+            case "next" -> statsMessage.nextPage();
+            case "last" -> statsMessage.currentPage = statsMessage.getLastPage();
+        }
+        
+        event.editComponents(createGlobalStatsContainer(statsMessage, event.getGuild())).useComponentsV2().queue();
+    }
+    
+    @Interaction(id = "stats:leaderboard:type:*")
+    public void onLeaderboardTypeButton(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length < 4) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        long ownerId = Long.parseLong(parts[4]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
+        if (statsMessage == null) return;
+        
+        String buttonId = parts[3];
+        if (buttonId.equals("m") || buttonId.equals("v")) statsMessage.leaderboardType = buttonId.charAt(0);
+        
+        if (statsMessage.currentPage > statsMessage.getLastPage()) statsMessage.currentPage = statsMessage.getLastPage();
+        
+        event.editComponents(createGlobalStatsContainer(statsMessage, event.getGuild())).useComponentsV2().queue();
     }
     
     private StatsMessage checkStatsMessage(GenericInteractionCreateEvent event, long userId) {
@@ -180,22 +233,28 @@ public class StatsCommand {
     private Container createGlobalStatsContainer(StatsMessage statsMessage, Guild guild) {
         GuildConfiguration guildConfiguration = BotCache.getGuildConfiguration(guild.getIdLong());
         
-        StringBuilder messageLeaderboardContent = new StringBuilder();
-        List<LeaderboardEntry> leaderboardEntries = Database.withExtension(MessageDao.class, dao -> dao.getMessageLeaderboard(guild.getIdLong(), 10, 0));
+        StringBuilder leaderboardContent = new StringBuilder();
+        leaderboardContent.append("### 🏆 Classement des ");
         
-        messageLeaderboardContent.append("### 🏆 Classement des messages\n");
-        for (int i = 0; i < leaderboardEntries.size(); i++) {
-            LeaderboardEntry entry = leaderboardEntries.get(i);
-            messageLeaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1, entry.userId(), entry.count()));
+        List<LeaderboardEntry> leaderboardEntries = new ArrayList<>(10);
+        if (statsMessage.leaderboardType == 'm') {
+            leaderboardEntries = Database.withExtension(MessageDao.class, dao -> dao.getMessageLeaderboard(guild.getIdLong(), 10, statsMessage.currentPage * 10));
+            leaderboardContent.append("messages");
         }
+        else if (statsMessage.leaderboardType == 'v') {
+            leaderboardEntries = Database.withExtension(UserDao.class, dao -> dao.getVoiceLeaderboard(guild.getIdLong(), 10, statsMessage.currentPage * 10));
+            leaderboardContent.append("temps vocal");
+        }
+        leaderboardContent.append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage() + 1));
         
-        StringBuilder voiceLeaderboardContent = new StringBuilder();
-        leaderboardEntries = Database.withExtension(UserDao.class, dao -> dao.getVoiceLeaderboard(guild.getIdLong(), 10, 0));
+        Button typeSwitch = Button.success("stats:leaderboard:type:" + (statsMessage.leaderboardType == 'm' ? 'v' : 'm') + ":" + statsMessage.userId, "Classement " + (statsMessage.leaderboardType == 'm' ? "temps vocal" : "messages"));
         
-        voiceLeaderboardContent.append("### 🏆 Classement du temps vocal\n");
         for (int i = 0; i < leaderboardEntries.size(); i++) {
             LeaderboardEntry entry = leaderboardEntries.get(i);
-            voiceLeaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1, entry.userId(), TimeUtils.formatTime(entry.count() / 1000)));
+            if (statsMessage.leaderboardType == 'm')
+                leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.userId(), entry.count()));
+            else if (statsMessage.leaderboardType == 'v')
+                leaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.userId(), TimeUtils.formatTime(entry.count() / 1000)));
         }
         
         return Container.of(
@@ -220,10 +279,14 @@ public class StatsCommand {
             ),
             Separator.createDivider(Separator.Spacing.SMALL),
             
-            TextDisplay.of(messageLeaderboardContent.toString()),
-            Separator.createDivider(Separator.Spacing.SMALL),
-
-            TextDisplay.of(voiceLeaderboardContent.toString()),
+            TextDisplay.of(leaderboardContent.toString()),
+            ActionRow.of(
+                Button.secondary("stats:leaderboard:nav:first:" + statsMessage.userId, "⏪").withDisabled(statsMessage.currentPage == 0),
+                Button.secondary("stats:leaderboard:nav:prev:" + statsMessage.userId, "◀️").withDisabled(statsMessage.currentPage <= 0),
+                typeSwitch,
+                Button.secondary("stats:leaderboard:nav:next:" + statsMessage.userId, "▶️").withDisabled(statsMessage.currentPage >= statsMessage.getLastPage()),
+                Button.secondary("stats:leaderboard:nav:last:" + statsMessage.userId, "⏩").withDisabled(statsMessage.currentPage == statsMessage.getLastPage())
+            ),
             Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)

@@ -101,6 +101,9 @@ public interface MessageDao {
     @RegisterConstructorMapper(value = LeaderboardEntry.class)
     List<LeaderboardEntry> getMessageLeaderboard(long guildId, int limit, int offset);
     
+    @SqlQuery("SELECT COUNT(DISTINCT author_id) FROM messages WHERE guild_id = :guildId")
+    int getAmountOfMembersWithMessages(long guildId);
+    
     @SqlUpdate("UPDATE messages SET markov_content = NULL WHERE author_id = :authorId AND guild_id = :guildId")
     void clearMarkovContent(long authorId, long guildId);
     

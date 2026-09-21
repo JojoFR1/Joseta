@@ -29,6 +29,7 @@ public interface UserDao {
     @SqlUpdate("UPDATE users SET time_voice = time_voice + :timeVoice WHERE id = :id AND guild_id = :guildId")
     int addTimeVoice(long id, long guildId, long timeVoice);
     
+    
     @SqlQuery("SELECT id as user_id, time_voice as count FROM users WHERE guild_id = :guildId AND time_voice > 0 GROUP BY id, time_voice ORDER BY time_voice DESC LIMIT :limit OFFSET :offset")
     @RegisterConstructorMapper(value = LeaderboardEntry.class)
     List<LeaderboardEntry> getVoiceLeaderboard(long guildId, int limit, int offset);
@@ -39,6 +40,9 @@ public interface UserDao {
     
     @SqlQuery("SELECT SUM(time_voice) FROM users WHERE guild_id = :guildId")
     int getTotalTimeVoice(long guildId);
+    
+    @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId")
+    int getMemberCountInGuild(long guildId);
     
     @SqlUpdate("DELETE FROM users WHERE id = :id AND guild_id = :guildId")
     void delete(long id, long guildId);

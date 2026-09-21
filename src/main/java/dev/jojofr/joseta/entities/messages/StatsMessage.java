@@ -14,7 +14,12 @@ import java.time.Instant;
 
 public class StatsMessage {
     public final ConfigurationEntity config;
+    
     public boolean isGlobal = false;
+    public int currentPage = 0;
+    private int lastMessagePage = 0;
+    private int lastVoicePage = 0;
+    public char leaderboardType = 'm';
     public Color color;
     
     public long guildId;
@@ -42,7 +47,9 @@ public class StatsMessage {
         
         this.config = BotCache.getConfiguration(guildId);
         Database.useHandle(handle -> {
-            this.dbUser = handle.attach(UserDao.class).getById(userId, guildId);
+            UserDao userDao = handle.attach(UserDao.class);
+            dbUser = userDao.getById(userId, guildId);
+            lastVoicePage = userDao.getMemberCountInGuild(guildId) / 10;
             
             MessageDao messageDao = handle.attach(MessageDao.class);
             messageCount = messageDao.getMemberMessageCount(userId, guildId);
@@ -59,6 +66,8 @@ public class StatsMessage {
                 countingSpecialMessagesLegacy = messageDao.getMemberCountingMessageCount(userId, guildId, 1534307776963022848L, botId, "[0-9A-Za-z]+"); // Counting channel
                 chainBreaksSpecialLegacy = messageDao.getMemberChainBreakCount(userId, guildId, 1534307776963022848L, botId);
             }
+            
+            this.lastMessagePage = messageDao.getAmountOfMembersWithMessages(guildId) / 10;
         });
         
         this.timestamp = Instant.now();
@@ -72,5 +81,17 @@ public class StatsMessage {
     public double getSuccessRate(int success, int failures) {
         if (success + failures == 0) return 0;
         return (double) success / (success + failures) * 100;
+    }
+    
+    public void previousPage() {
+        if (currentPage > 0) currentPage--;
+    }
+    
+    public void nextPage() {
+        if (currentPage < lastMessagePage) currentPage++;
+    }
+    
+    public int getLastPage() {
+        return leaderboardType == 'm' ? lastMessagePage : lastVoicePage;
     }
 }
