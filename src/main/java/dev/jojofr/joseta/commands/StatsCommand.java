@@ -216,6 +216,7 @@ public class StatsCommand {
             TextDisplay.ofFormat(
                 """
                 ### 📊 Activité
+                -# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026
                 **%,d** messages
                 **%s** en vocal
                 """,
@@ -246,6 +247,7 @@ public class StatsCommand {
             leaderboardContent.append("temps vocal");
         }
         leaderboardContent.append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage() + 1));
+        if (statsMessage.leaderboardType == 'v') leaderboardContent.append("-# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026\n");
         
         Button typeSwitch = Button.success("stats:leaderboard:type:" + (statsMessage.leaderboardType == 'm' ? 'v' : 'm') + ":" + statsMessage.userId, "Classement " + (statsMessage.leaderboardType == 'm' ? "temps vocal" : "messages"));
         
@@ -272,6 +274,7 @@ public class StatsCommand {
             TextDisplay.ofFormat(
                 """
                 ### 📊 Activité
+                -# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026
                 **%,d** messages
                 **%s** en vocal
                 """,
