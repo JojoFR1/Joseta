@@ -41,8 +41,9 @@ public interface UserDao {
     @SqlQuery("SELECT SUM(time_voice) FROM users WHERE guild_id = :guildId")
     int getTotalTimeVoice(long guildId);
     
-    @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId")
-    int getMemberCountInGuild(long guildId);
+    @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId AND time_voice > 0")
+    int getMemberCountWithVoiceInGuild(long guildId);
+    
     
     @SqlUpdate("DELETE FROM users WHERE id = :id AND guild_id = :guildId")
     void delete(long id, long guildId);

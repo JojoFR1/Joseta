@@ -49,7 +49,7 @@ public class StatsMessage {
         Database.useHandle(handle -> {
             UserDao userDao = handle.attach(UserDao.class);
             dbUser = userDao.getById(userId, guildId);
-            lastVoicePage = userDao.getMemberCountInGuild(guildId) / 10;
+            lastVoicePage = userDao.getMemberCountWithVoiceInGuild(guildId) / 10;
             
             MessageDao messageDao = handle.attach(MessageDao.class);
             messageCount = messageDao.getMemberMessageCount(userId, guildId);
