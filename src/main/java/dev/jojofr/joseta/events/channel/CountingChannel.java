@@ -5,10 +5,12 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.MessageEntity;
+import dev.jojofr.joseta.database.helper.UserDatabase;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.time.OffsetDateTime;
 import java.util.Locale;
@@ -129,106 +131,55 @@ public class CountingChannel {
         return true;
     }
     
-    public static void check(MessageChannelUnion channel, Message message) {
+    public static void check(MessageChannelUnion channel, Message message, boolean special) {
         if (!autoCheck) return;
         
-        if (!preCheck(channel, message, false)) return;
+        if (!preCheck(channel, message, special)) return;
         
         ConfigurationEntity config = BotCache.getConfiguration(message.getGuild().getIdLong());
-        long number = parseNumber(message.getContentStripped().replace(" ", ""), config.countingCommentsEnabled);
+        String content = message.getContentStripped().replace(" ", "");
+        long number = special ? parseSpecial(content, config.countingCommentsEnabled) : parseNumber(content, config.countingCommentsEnabled);
         
-        if (number == lastNumber && message.getTimeCreated().toInstant().toEpochMilli() - lastTimestamp < 2000) {
+        long currentLastNumber = special ? specialLastNumber : lastNumber;
+        long currentLastAuthorId = special ? specialLastAuthorId : lastAuthorId;
+        long currentLastTimestamp = special ? specialLastTimestamp : lastTimestamp;
+        long currentLastMessageId = special ? specialLastMessageId : lastMessageId;
+        
+        if (number == currentLastNumber && message.getTimeCreated().toInstant().toEpochMilli() - currentLastTimestamp < 2000) {
             message.delete().queue();
             return;
         }
         
         // Rule - Cannot count twice in a row
-        if (message.getAuthor().getIdLong() == lastAuthorId) {
+        if (message.getAuthor().getIdLong() == currentLastAuthorId) {
+            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember(), message.getGuild().getIdLong());
+            else UserDatabase.incrementCountingFail(message.getMember(), message.getGuild().getIdLong());
+            
             // Check if user is new (< 7 days join) and has less than 5 messages in counting channel, if so, don't apply the penalty and just delete the message
             if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
-                lastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0.").queue();
+                if (special) specialLastNumber = 0;
+                else lastNumber = 0;
+                // TODO CHANGE BACK AFTER TEST
+                // message.addReaction(BotCache.CROSS_EMOJI).queue();
+                message.addReaction(Emoji.fromUnicode("❌")).queue();
+                // TODO CHANGE BACK AFTER TEST
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0" + (special ? ", en mode **" + specialCountingMode + "**." : ".")).queue();
+                
             }
             return;
         }
         
-        lastAuthorId = message.getAuthor().getIdLong();
+        if (special) specialLastAuthorId = message.getAuthor().getIdLong();
+        else lastAuthorId = message.getAuthor().getIdLong();
         
         // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
         if (number == -1) {
-            String hasToString = config.countingCommentsEnabled ? "commencer par" : "uniquement utiliser";
-            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
-                message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon !").queue(
-                    botMessage -> botMessage.delete().queueAfter(5, TimeUnit.SECONDS)
-                );
-                message.delete().queue();
-            } else {
-                lastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres.\n\n-# Le comptage repart de 0.").queue();
-            }
-            return;
-        }
-        
-        // Rule - Must increment the last number by 1
-        if (number != lastNumber + 1) {
-            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
-                message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-                message.delete().queue();
-            } else {
-                lastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0.").queue();
-            }
-            return;
-        }
-
-        channel.retrieveMessageById(lastMessageId).queue(
-            lastMessage -> lastMessage.clearReactions().queue(),
-            failure -> Log.err("Failed to retrieve the last counting message to clear reactions.", failure)
-        );
-        message.addReaction(BotCache.CHECK_EMOJI).queue();
-        
-        lastNumber += 1;
-        lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
-        lastMessageId = message.getIdLong();
-    }
-    
-    // In a thread, where the bot switch "type" every X hours, can be: binary, octal, decimal, hexadecimal, roman, double, power of two
-    public static void specialCheck(MessageChannelUnion channel, Message message) {
-        if (!autoCheck) return;
-        
-        if (!preCheck(channel, message, true)) return;
-        
-        ConfigurationEntity config = BotCache.getConfiguration(message.getGuild().getIdLong());
-        long number = parseSpecial(message.getContentStripped().replace(" ", ""), config.countingCommentsEnabled);
-        
-        if (number == specialLastNumber && message.getTimeCreated().toInstant().toEpochMilli() - specialLastTimestamp < 2000) {
-            message.delete().queue();
-            return;
-        }
-        
-        // Rule - Cannot count twice in a row
-        if (message.getAuthor().getIdLong() == specialLastAuthorId) {
-            if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
-                message.reply(message.getAuthor().getAsMention() + " vous ne pouvez pas compter deux fois de suite !").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-                message.delete().queue();
-            } else {
-                specialLastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0, en mode **"+ specialCountingMode +"**.").queue();
-            }
-            return;
-        }
-        
-        specialLastAuthorId = message.getAuthor().getIdLong();
-        
-        // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
-        if (number == -1) {
+            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember(), message.getGuild().getIdLong());
+            else UserDatabase.incrementCountingFail(message.getMember(), message.getGuild().getIdLong());
+            
             String hasToString = config.countingCommentsEnabled ? "commencer par" : "uniquement utiliser";
             String type = switch (specialCountingMode) {
                 case BINARY -> "binaire";
@@ -238,52 +189,92 @@ public class CountingChannel {
                 case ROMAN -> "romain";
                 case ALPHABETICAL -> "alphabétique";
             };
+            
             if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
-                message.reply(message.getAuthor().getAsMention() + " vous devez "+ hasToString +" des chiffres dans ce salon "+ type + "!").queue(
+                message.reply(message.getAuthor().getAsMention() + " vous devez " + hasToString + " des chiffres dans ce salon " + (special ? type : "") + "!").queue(
                     botMessage -> botMessage.delete().queueAfter(5, TimeUnit.SECONDS)
                 );
                 message.delete().queue();
             } else {
-                specialLastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait "+ hasToString +" des chiffres "+ type +".\n\n-# Le comptage repart de 0, en mode **"+ specialCountingMode +"**.").queue();
+                lastNumber = 0;
+                // TODO CHANGE BACK AFTER TEST
+                // message.addReaction(BotCache.CROSS_EMOJI).queue();
+                message.addReaction(Emoji.fromUnicode("❌")).queue();
+                // TODO CHANGE BACK AFTER TEST
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait " + hasToString + " des chiffres " + (special ? type : "") + ".\n\n-# Le comptage repart de 0" + (special ? ", en mode **" + specialCountingMode + "**." : ".")).queue();
             }
             return;
         }
         
         // Rule - Must increment the last number by 1
-        long supposedNumber = specialLastNumber + 1;
-        if (number != supposedNumber) {
+        if (number != currentLastNumber + 1) {
+            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember(), message.getGuild().getIdLong());
+            else UserDatabase.incrementCountingFail(message.getMember(), message.getGuild().getIdLong());
+            
             if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 message.delete().queue();
             } else {
-                specialLastNumber = 0;
-                message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0, en mode **"+ specialCountingMode +"**.").queue();
+                if (special) specialLastNumber = 0;
+                else lastNumber = 0;
+                // TODO CHANGE BACK AFTER TEST
+                // message.addReaction(BotCache.CROSS_EMOJI).queue();
+                message.addReaction(Emoji.fromUnicode("❌")).queue();
+                // TODO CHANGE BACK AFTER TEST
+                message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0" + (special ? ", en mode **" + specialCountingMode + "**." : ".")).queue();
             }
             return;
         }
         
-        channel.retrieveMessageById(specialLastMessageId).queue(
+        channel.retrieveMessageById(currentLastMessageId).queue(
             lastMessage -> lastMessage.clearReactions().queue(),
-            failure -> Log.err("Failed to retrieve the last special counting message to clear reactions.", failure)
+            failure -> Log.err("Failed to retrieve the last counting message to clear reactions.", failure)
         );
-        message.addReaction(BotCache.CHECK_EMOJI).queue();
+        // TODO CHANGE BACK AFTER TEST
+        // TODO CHANGE BACK AFTER TEST
+        // TODO CHANGE BACK AFTER TEST
+        message.addReaction(Emoji.fromUnicode("✅")).queue();
+        // TODO CHANGE BACK AFTER TEST
+        // TODO CHANGE BACK AFTER TEST
+        // TODO CHANGE BACK AFTER TEST
         
-        specialLastNumber = number;
-        specialLastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
-        specialLastMessageId = message.getIdLong();
-        
-        
-        if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(4)) {
-            String oldMode = specialCountingMode.toString();
-            changeSpecialMode();
-            String mode = specialCountingMode.toString();
-            channel.sendMessage("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
+        if (special) {
+            UserDatabase.incrementCountingSpecialSuccess(message.getMember(), message.getGuild().getIdLong());
+
+            specialLastNumber = number;
+            specialLastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
+            specialLastMessageId = message.getIdLong();
+            
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.MINUTES.toMillis(15)) {
+                String oldMode = specialCountingMode.toString();
+                changeSpecialMode();
+                String mode = specialCountingMode.toString();
+                channel.sendMessage("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
+            }
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+            // TODO CHANGE BACK AFTER TEST
+        } else {
+            UserDatabase.incrementCountingSuccess(message.getMember(), message.getGuild().getIdLong());
+            
+            lastNumber += 1;
+            lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
+            lastMessageId = message.getIdLong();
         }
     }
-    
     
     // Start with a number
     private static final Pattern NUMBER_REGEX = Pattern.compile("^-?\\d+");
