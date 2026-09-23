@@ -97,7 +97,7 @@ public interface MessageDao {
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE guild_id = :guildId")
     int getGuildMessageCount(long guildId);
     
-    @SqlQuery("SELECT author_id as user_id, COUNT(*) AS count FROM messages WHERE guild_id = :guildId GROUP BY author_id ORDER BY count DESC LIMIT :limit OFFSET :offset")
+    @SqlQuery("SELECT author_id as id, COUNT(*) AS count FROM messages WHERE guild_id = :guildId GROUP BY author_id ORDER BY count DESC LIMIT :limit OFFSET :offset")
     @RegisterConstructorMapper(value = LeaderboardEntry.class)
     List<LeaderboardEntry> getMessageLeaderboard(long guildId, int limit, int offset);
     

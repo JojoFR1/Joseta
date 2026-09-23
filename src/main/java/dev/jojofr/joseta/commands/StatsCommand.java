@@ -254,9 +254,9 @@ public class StatsCommand {
         for (int i = 0; i < leaderboardEntries.size(); i++) {
             LeaderboardEntry entry = leaderboardEntries.get(i);
             if (statsMessage.leaderboardType == 'm')
-                leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.userId(), entry.count()));
+                leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
             else if (statsMessage.leaderboardType == 'v')
-                leaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.userId(), TimeUtils.formatTime(entry.count() / 1000)));
+                leaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), TimeUtils.formatTime(entry.count() / 1000)));
         }
         
         return Container.of(
