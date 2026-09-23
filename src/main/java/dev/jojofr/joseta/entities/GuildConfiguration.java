@@ -60,6 +60,13 @@ public class GuildConfiguration {
         }
     }
     
+    public void updateStats() {
+        Database.useHandle(handle -> {
+            totalMessages = handle.attach(MessageDao.class).getGuildMessageCount(configuration.guildId);
+            totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(configuration.guildId);
+        });
+    }
+    
     public TextChannel getWelcomeChannel(Guild guild) {
         Long id = configuration.welcomeChannelId;
         return id == null ? null : guild.getTextChannelById(id);

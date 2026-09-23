@@ -10,6 +10,7 @@ import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
@@ -35,6 +36,8 @@ public class ScheduledEvents {
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
         // Check expired "Message" entities every 30 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredMessages, 30, 30, TimeUnit.MINUTES);
+        // Update guild information every 12 hours
+        scheduler.scheduleAtFixedRate(ScheduledEvents::updateGuildInformation, 0, 12, TimeUnit.HOURS);
     }
     
     public static void shutdown() {
@@ -159,5 +162,11 @@ public class ScheduledEvents {
             entry.getValue() == null ||
             instantGetter.apply(entry.getValue()).isBefore(expiration)
         );
+    }
+    
+    private static void updateGuildInformation() {
+        for (Guild guild : JosetaBot.get().getGuilds()) {
+            BotCache.getGuildConfiguration(guild.getIdLong()).updateStats();
+        }
     }
 }
