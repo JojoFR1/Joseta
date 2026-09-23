@@ -166,25 +166,15 @@ public class StatsCommand {
                 """.formatted(statsMessage.countingMessages, statsMessage.chainBreaks, statsMessage.getSuccessRate(statsMessage.countingMessages, statsMessage.chainBreaks))
             );
         }
-        if (statsMessage.config.countingSpecialChannelId != null || statsMessage.guildId == 1219005659194851389L) {
-            countingContent.append("### ✨ Comptage spécial");
-            if (statsMessage.countingSpecialMessagesLegacy > 0 || statsMessage.chainBreaksSpecialLegacy > 0)
-                countingContent.append(" (+ ancien)");
-            countingContent.append("\n");
-            
-            countingContent.append("**%,d** nombre réussi".formatted(statsMessage.countingSpecialMessages));
-            if (statsMessage.countingSpecialMessagesLegacy > 0)
-                countingContent.append(" (**+%,d**)".formatted(statsMessage.countingSpecialMessagesLegacy));
-            countingContent.append("\n");
-            
-            countingContent.append("**%,d** chaînes cassées".formatted(statsMessage.chainBreaksSpecial));
-            if (statsMessage.chainBreaksSpecialLegacy > 0)
-                countingContent.append(" (**+%,d**)".formatted(statsMessage.chainBreaksSpecialLegacy));
-            countingContent.append("\n");
-            
-            countingContent.append("**%.2f %%** de réussite".formatted(statsMessage.getSuccessRate(statsMessage.countingSpecialMessages, statsMessage.chainBreaksSpecial)));
-            if (statsMessage.countingSpecialMessagesLegacy > 0)
-                countingContent.append(" (**%.2f %%**)".formatted(statsMessage.getSuccessRate(statsMessage.countingSpecialMessagesLegacy, statsMessage.chainBreaksSpecialLegacy)));
+        if (statsMessage.config.countingSpecialChannelId != null) {
+            countingContent.append(
+                """
+                ### ✨ Comptage spécial"
+                **%,d** nombre réussi
+                **%,d** chaînes cassées
+                **%.2f %%** de réussite
+                """.formatted(statsMessage.dbUser.countingSpecialSuccess, statsMessage.dbUser.countingSpecialFail, statsMessage.getSuccessRate(statsMessage.dbUser.countingSpecialSuccess, statsMessage.dbUser.countingSpecialFail))
+            );
         }
         
         return Container.of(
