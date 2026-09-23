@@ -8,6 +8,7 @@ import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.utils.ImageProxy;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -39,9 +40,10 @@ public class GuildConfiguration {
     }
     
     public void updateAccentColor(Guild guild) {
-        if (guild.getIconUrl() == null) { accentColor = Color.GRAY; return; }
+        ImageProxy imageProxy = guild.getIcon();
+        if (imageProxy == null) { accentColor = Color.GRAY; return; }
         
-        try (InputStream is = new URI(guild.getIcon().getUrl(64)).toURL().openStream()) {
+        try (InputStream is = new URI(imageProxy.getUrl(64)).toURL().openStream()) {
             BufferedImage image = ImageIO.read(is);
             if (image == null) { accentColor = Color.GRAY; return; }
             
