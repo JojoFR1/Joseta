@@ -5,6 +5,7 @@ import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.UserEntity;
+import dev.jojofr.joseta.database.helper.UserDatabase;
 import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.events.channel.WelcomeChannel;
 import dev.jojofr.joseta.utils.BotCache;
@@ -72,10 +73,7 @@ public class MiscEvents {
             Long time = userVoiceJoinTime.remove(event.getMember().getIdLong());
             if (time != null) {
                 long timeSpent = System.currentTimeMillis() - time;
-                Database.useExtension(UserDao.class, dao -> {
-                    if (dao.addTimeVoice(event.getMember().getIdLong(), event.getGuild().getIdLong(), timeSpent) == 0)
-                        dao.upsert(new UserEntity(event.getMember()).setTimeVoice(timeSpent));
-                });
+                UserDatabase.addTimeVoice(event.getMember(), event.getGuild().getIdLong(), timeSpent);
             }
         }
         // Joined a voice channel
