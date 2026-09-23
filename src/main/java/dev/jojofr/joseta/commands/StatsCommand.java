@@ -163,7 +163,7 @@ public class StatsCommand {
                 **%,d** nombre réussi
                 **%,d** chaînes cassées
                 **%.2f %%** de réussite
-                """.formatted(statsMessage.countingMessages, statsMessage.chainBreaks, statsMessage.getSuccessRate(statsMessage.countingMessages, statsMessage.chainBreaks))
+                """.formatted(statsMessage.dbUser.countingSuccess, statsMessage.dbUser.countingFail, statsMessage.getSuccessRate(statsMessage.dbUser.countingSuccess, statsMessage.dbUser.countingFail))
             );
         }
         if (statsMessage.config.countingSpecialChannelId != null) {
