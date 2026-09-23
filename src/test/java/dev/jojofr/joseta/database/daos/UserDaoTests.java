@@ -25,6 +25,10 @@ class UserDaoTests extends AbstractDaoTest<UserEntity, UserDao> {
         user.creationDate = Instant.now().minusSeconds(3600).truncatedTo(ChronoUnit.MICROS);
         user.sanctionCount = 10;
         user.timeVoice = 120;
+        user.countingSuccess = 5;
+        user.countingFail = 2;
+        user.countingSpecialSuccess = 3;
+        user.countingSpecialFail = 1;
         
         return user;
     }
@@ -37,6 +41,10 @@ class UserDaoTests extends AbstractDaoTest<UserEntity, UserDao> {
         updatedUser.creationDate = Instant.now().minusSeconds(1800).truncatedTo(ChronoUnit.MICROS);
         updatedUser.sanctionCount = 20;
         updatedUser.timeVoice = 240;
+        updatedUser.countingSuccess = 10;
+        updatedUser.countingFail = 4;
+        updatedUser.countingSpecialSuccess = 6;
+        updatedUser.countingSpecialFail = 2;
         
         return updatedUser;
     }
