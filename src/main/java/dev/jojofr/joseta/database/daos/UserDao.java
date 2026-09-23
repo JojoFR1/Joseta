@@ -30,7 +30,7 @@ public interface UserDao {
     int addTimeVoice(long id, long guildId, long timeVoice);
     
     
-    @SqlQuery("SELECT id as user_id, time_voice as count FROM users WHERE guild_id = :guildId AND time_voice > 0 GROUP BY id, time_voice ORDER BY time_voice DESC LIMIT :limit OFFSET :offset")
+    @SqlQuery("SELECT id, time_voice as count FROM users WHERE guild_id = :guildId AND time_voice > 0 ORDER BY time_voice DESC LIMIT :limit OFFSET :offset")
     @RegisterConstructorMapper(value = LeaderboardEntry.class)
     List<LeaderboardEntry> getVoiceLeaderboard(long guildId, int limit, int offset);
     
