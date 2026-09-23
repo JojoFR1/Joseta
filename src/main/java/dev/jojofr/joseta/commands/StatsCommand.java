@@ -46,12 +46,16 @@ public class StatsCommand {
             return;
         }
         event.deferReply().useComponentsV2().setAllowedMentions(Set.of()).queue(hook -> {
-            StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), 1307015890146955285L);
-            // StatsMessage statsMessage = new StatsMessage(event.getGuild().getIdLong(), event.getUser(), event.getJDA().getSelfUser().getIdLong(), config.countingChannelId, config.countingSpecialChannelId);
-            statsMessages.put(event.getUser().getIdLong(), statsMessage);
-            
-            Container statsContainer = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
-            hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
+            StatsMessage.createAsync(event.getGuild().getIdLong(), event.getUser(), 1307015890146955285L)
+                .thenAccept(statsMessage -> {
+                    statsMessages.put(event.getUser().getIdLong(), statsMessage);
+                    
+                    Container statsContainer = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
+                    hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
+                }).exceptionally(e -> {
+                    hook.editOriginal("Une erreur est survenue lors de la récupération des statistiques. Veuillez réessayer plus tard.").queue();
+                    return null;
+                });
         });
     }
     

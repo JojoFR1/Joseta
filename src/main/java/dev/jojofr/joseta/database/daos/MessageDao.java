@@ -74,26 +74,6 @@ public interface MessageDao {
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId AND channel_id = :channelId")
     int getMemberChannelMessageCount(long authorId, long guildId, long channelId);
     
-    @SqlQuery("""
-        WITH ordered AS (
-            SELECT author_id, content,
-               LEAD(author_id) OVER (ORDER BY id) AS next_author_id,
-               LEAD(content) OVER (ORDER BY id) AS next_content
-            FROM messages
-            WHERE guild_id = :guildId AND channel_id = :channelId
-        )
-        SELECT COUNT(*) FROM ordered
-        WHERE author_id = :authorId AND content ~ :likePattern
-            AND NOT (next_author_id = :botId AND next_content ~ CONCAT('<@', :authorId, '> a cassé la chaîne !'))
-    """)
-    int getMemberCountingMessageCount(long authorId, long guildId, long channelId, long botId, String likePattern);
-    
-    @SqlQuery("""
-        SELECT COUNT(*) FROM messages
-        WHERE guild_id = :guildId AND channel_id = :channelId AND author_id = :botId AND content ~ CONCAT('<@', :authorId, '> a cassé la chaîne !')
-    """)
-    int getMemberChainBreakCount(long authorId, long guildId, long channelId, long botId);
-    
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE guild_id = :guildId")
     int getGuildMessageCount(long guildId);
     

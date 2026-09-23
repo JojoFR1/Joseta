@@ -11,6 +11,8 @@ import net.dv8tion.jda.api.entities.User;
 
 import java.awt.*;
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 public class StatsMessage {
     public final ConfigurationEntity config;
@@ -29,13 +31,6 @@ public class StatsMessage {
     public UserEntity dbUser;
     
     public int messageCount = 0;
-    public int countingMessages = 0;
-    public int chainBreaks = 0;
-    public int countingSpecialMessages = 0;
-    public int chainBreaksSpecial = 0;
-    public int countingSpecialMessagesLegacy = 0;
-    public int chainBreaksSpecialLegacy = 0;
-    
     public final Instant timestamp;
     
     public StatsMessage(long guildId, User user, long botId) {
@@ -43,34 +38,30 @@ public class StatsMessage {
         this.userId = user.getIdLong();
         this.botId = botId;
         
-        this.color = user.retrieveProfile().complete().getAccentColor();
-        
         this.config = BotCache.getConfiguration(guildId);
-        Database.useHandle(handle -> {
+        this.timestamp = Instant.now();
+    }
+    
+    public static CompletableFuture<StatsMessage> createAsync(long guildId, User user, long botId) {
+        StatsMessage message = new StatsMessage(guildId, user, botId);
+        
+        CompletableFuture<Color> colorFuture = user.retrieveProfile().submit().thenApply(User.Profile::getAccentColor);
+        
+        CompletionStage<Void> dbFuture = Database.useHandleAsync(handle -> {
             UserDao userDao = handle.attach(UserDao.class);
-            dbUser = userDao.getById(userId, guildId);
-            lastVoicePage = userDao.getMemberCountWithVoiceInGuild(guildId) / 10;
+            message.dbUser = userDao.getById(message.userId, guildId);
+            message.lastVoicePage = userDao.getMemberCountWithVoiceInGuild(guildId) / 10;
             
             MessageDao messageDao = handle.attach(MessageDao.class);
-            messageCount = messageDao.getMemberMessageCount(userId, guildId);
+            message.messageCount = messageDao.getMemberMessageCount(message.userId, guildId);
             
-            if (this.config.countingChannelId != null) {
-                countingMessages = messageDao.getMemberCountingMessageCount(userId, guildId, this.config.countingChannelId, botId, "[0-9]+");
-                chainBreaks = messageDao.getMemberChainBreakCount(userId, guildId, this.config.countingChannelId, botId);
-            }
-            if (this.config.countingSpecialChannelId != null) {
-                countingSpecialMessages = messageDao.getMemberCountingMessageCount(userId, guildId, this.config.countingSpecialChannelId, botId, "[0-9A-Za-z]+");
-                chainBreaksSpecial = messageDao.getMemberChainBreakCount(userId, guildId, this.config.countingSpecialChannelId, botId);
-            }
-            if (guildId == 1219005659194851389L) { // Main server
-                countingSpecialMessagesLegacy = messageDao.getMemberCountingMessageCount(userId, guildId, 1534307776963022848L, botId, "[0-9A-Za-z]+"); // Counting channel
-                chainBreaksSpecialLegacy = messageDao.getMemberChainBreakCount(userId, guildId, 1534307776963022848L, botId);
-            }
-            
-            this.lastMessagePage = messageDao.getAmountOfMembersWithMessages(guildId) / 10;
+            message.lastMessagePage = messageDao.getAmountOfMembersWithMessages(guildId) / 10;
         });
         
-        this.timestamp = Instant.now();
+        return colorFuture.thenCombine(dbFuture, (color, ignored) -> {
+            message.color = color;
+            return message;
+        });
     }
     
     public String getVoiceTime() {
