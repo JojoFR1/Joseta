@@ -18,7 +18,7 @@ public class GuildConfiguration {
     public Set<Long> markovBlacklistIds = new HashSet<>();
     
     public int totalMessages = 0;
-    public int totalVoiceTime = 0;
+    public long totalVoiceTime = 0;
     public Color accentColor = null;
     
     public GuildConfiguration(ConfigurationEntity configuration) {

@@ -39,7 +39,7 @@ public interface UserDao {
     UserEntity getById(long id, long guildId);
     
     @SqlQuery("SELECT SUM(time_voice) FROM users WHERE guild_id = :guildId")
-    int getTotalTimeVoice(long guildId);
+    long getTotalTimeVoice(long guildId);
     
     @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId AND time_voice > 0")
     int getMemberCountWithVoiceInGuild(long guildId);
