@@ -173,7 +173,7 @@ public class StatsCommand {
         if (statsMessage.config.countingSpecialChannelId != null) {
             countingContent.append(
                 """
-                ### ✨ Comptage spécial"
+                ### ✨ Comptage spécial
                 **%,d** nombre réussi
                 **%,d** chaînes cassées
                 **%.2f %%** de réussite
