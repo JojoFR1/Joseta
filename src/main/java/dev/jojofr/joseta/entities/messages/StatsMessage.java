@@ -79,7 +79,7 @@ public class StatsMessage {
     }
     
     public void nextPage() {
-        if (currentPage < lastMessagePage) currentPage++;
+        if (currentPage < getLastPage()) currentPage++;
     }
     
     public int getLastPage() {
