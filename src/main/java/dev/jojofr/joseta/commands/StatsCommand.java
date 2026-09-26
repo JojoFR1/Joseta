@@ -230,9 +230,8 @@ public class StatsCommand {
         Color accentColor = BotCache.getGuildConfiguration(guild.getIdLong()).accentColor;
         
         StringBuilder leaderboardContent = new StringBuilder();
-        leaderboardContent.append("### 🏆 Classement des ").append(statsMessage.leaderboardType == 'm' ? "messages" : "temps de vocal").append("\n");
-        
-        leaderboardContent.append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage()));
+        leaderboardContent.append("### 🏆 Classement des ").append(statsMessage.leaderboardType == 'm' ? "messages" : "temps de vocal")
+            .append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage()));
         if (statsMessage.leaderboardType == 'v') leaderboardContent.append("-# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026\n");
         
         Button typeSwitch = Button.success("stats:leaderboard:type:" + (statsMessage.leaderboardType == 'm' ? 'v' : 'm') + ":" + statsMessage.userId, "Classement " + (statsMessage.leaderboardType == 'm' ? "temps vocal" : "messages"));
