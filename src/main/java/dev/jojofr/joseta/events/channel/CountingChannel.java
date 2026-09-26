@@ -152,8 +152,8 @@ public class CountingChannel {
         
         // Rule - Cannot count twice in a row
         if (message.getAuthor().getIdLong() == currentLastAuthorId) {
-            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember(), message.getGuild().getIdLong());
-            else UserDatabase.incrementCountingFail(message.getMember(), message.getGuild().getIdLong());
+            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember());
+            else UserDatabase.incrementCountingFail(message.getMember());
             
             // Check if user is new (< 7 days join) and has less than 5 messages in counting channel, if so, don't apply the penalty and just delete the message
             if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
@@ -175,8 +175,8 @@ public class CountingChannel {
         
         // Rule - Cannot use non-numeric characters if comments are disabled & has to start with a number
         if (number == -1) {
-            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember(), message.getGuild().getIdLong());
-            else UserDatabase.incrementCountingFail(message.getMember(), message.getGuild().getIdLong());
+            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember());
+            else UserDatabase.incrementCountingFail(message.getMember());
             
             String hasToString = config.countingCommentsEnabled ? "commencer par" : "uniquement utiliser";
             String type = switch (specialCountingMode) {
@@ -205,8 +205,8 @@ public class CountingChannel {
         
         // Rule - Must increment the last number by 1
         if (number != currentLastNumber + 1) {
-            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember(), message.getGuild().getIdLong());
-            else UserDatabase.incrementCountingFail(message.getMember(), message.getGuild().getIdLong());
+            if (special) UserDatabase.incrementCountingSpecialFail(message.getMember());
+            else UserDatabase.incrementCountingFail(message.getMember());
             
             if (!config.countingPenaltyEnabled || message.getMember().getTimeJoined().isAfter(OffsetDateTime.now().minusDays(7))) {
                 message.reply(message.getAuthor().getAsMention() + " vous devez augmenter le nombre précédent par 1.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
@@ -228,7 +228,7 @@ public class CountingChannel {
         message.addReaction(BotCache.CHECK_EMOJI).queue();
         
         if (special) {
-            UserDatabase.incrementCountingSpecialSuccess(message.getMember(), message.getGuild().getIdLong());
+            UserDatabase.incrementCountingSpecialSuccess(message.getMember());
 
             specialLastNumber = number;
             specialLastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
@@ -241,7 +241,7 @@ public class CountingChannel {
                 channel.sendMessage("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
             }
         } else {
-            UserDatabase.incrementCountingSuccess(message.getMember(), message.getGuild().getIdLong());
+            UserDatabase.incrementCountingSuccess(message.getMember());
             
             lastNumber += 1;
             lastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();

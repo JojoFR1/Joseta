@@ -30,17 +30,57 @@ public interface UserDao {
     @SqlUpdate("UPDATE users SET sanction_count = sanction_count + 1 WHERE id = :id AND guild_id = :guildId")
     void incrementSanctionCount(long id, long guildId);
     
-    @SqlUpdate("UPDATE users SET time_voice = time_voice + :timeVoice WHERE id = :id AND guild_id = :guildId")
-    int addTimeVoice(long id, long guildId, long timeVoice);
+    @SqlUpdate("""
+        INSERT INTO users (id, guild_id, name, avatar_url, creation_date, time_voice)
+            VALUES (:id, :guildId, :name, :avatarUrl, :creationDate, :timeVoice)
+        ON CONFLICT (id, guild_id) DO UPDATE SET
+            time_voice = users.time_voice + EXCLUDED.time_voice,
+            name = EXCLUDED.name,
+            avatar_url = EXCLUDED.avatar_url,
+            creation_date = EXCLUDED.creation_date
+    """)
+    void addTimeVoice(@BindFields UserEntity user);
     
-    @SqlUpdate("UPDATE users SET counting_success = counting_success + 1 WHERE id = :id AND guild_id = :guildId")
-    int incrementCountingSuccess(long id, long guildId);
-    @SqlUpdate("UPDATE users SET counting_fail = counting_fail + 1 WHERE id = :id AND guild_id = :guildId")
-    int incrementCountingFail(long id, long guildId);
-    @SqlUpdate("UPDATE users SET counting_special_success = counting_special_success + 1 WHERE id = :id AND guild_id = :guildId")
-    int incrementCountingSpecialSuccess(long id, long guildId);
-    @SqlUpdate("UPDATE users SET counting_special_fail = counting_special_fail + 1 WHERE id = :id AND guild_id = :guildId")
-    int incrementCountingSpecialFail(long id, long guildId);
+    @SqlUpdate("""
+        INSERT INTO users (id, guild_id, name, avatar_url, creation_date, counting_success)
+            VALUES (:id, :guildId, :name, :avatarUrl, :creationDate, 1)
+        ON CONFLICT (id, guild_id) DO UPDATE SET
+            counting_success = users.counting_success + 1,
+            name = EXCLUDED.name,
+            avatar_url = EXCLUDED.avatar_url,
+            creation_date = EXCLUDED.creation_date
+    """)
+    void incrementCountingSuccess(@BindFields UserEntity user);
+    @SqlUpdate("""
+        INSERT INTO users (id, guild_id, name, avatar_url, creation_date, counting_fail)
+            VALUES (:id, :guildId, :name, :avatarUrl, :creationDate, 1)
+        ON CONFLICT (id, guild_id) DO UPDATE SET
+            counting_fail = users.counting_fail + 1,
+            name = EXCLUDED.name,
+            avatar_url = EXCLUDED.avatar_url,
+            creation_date = EXCLUDED.creation_date
+    """)
+    void incrementCountingFail(@BindFields UserEntity user);
+    @SqlUpdate("""
+        INSERT INTO users (id, guild_id, name, avatar_url, creation_date, counting_special_success)
+            VALUES (:id, :guildId, :name, :avatarUrl, :creationDate, 1)
+        ON CONFLICT (id, guild_id) DO UPDATE SET
+            counting_special_success = users.counting_special_success + 1,
+            name = EXCLUDED.name,
+            avatar_url = EXCLUDED.avatar_url,
+            creation_date = EXCLUDED.creation_date
+    """)
+    void incrementCountingSpecialSuccess(@BindFields UserEntity user);
+    @SqlUpdate("""
+        INSERT INTO users (id, guild_id, name, avatar_url, creation_date, counting_special_fail)
+            VALUES (:id, :guildId, :name, :avatarUrl, :creationDate, 1)
+        ON CONFLICT (id, guild_id) DO UPDATE SET
+            counting_special_fail = users.counting_special_fail + 1,
+            name = EXCLUDED.name,
+            avatar_url = EXCLUDED.avatar_url,
+            creation_date = EXCLUDED.creation_date
+    """)
+    void incrementCountingSpecialFail(@BindFields UserEntity user);
     
     
     @SqlQuery("SELECT id, time_voice as count FROM users WHERE guild_id = :guildId AND time_voice > 0 ORDER BY time_voice DESC LIMIT :limit OFFSET :offset")

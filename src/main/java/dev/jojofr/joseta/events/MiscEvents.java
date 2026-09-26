@@ -73,7 +73,7 @@ public class MiscEvents {
             Long time = userVoiceJoinTime.remove(event.getMember().getIdLong());
             if (time != null) {
                 long timeSpent = System.currentTimeMillis() - time;
-                UserDatabase.addTimeVoice(event.getMember(), event.getGuild().getIdLong(), timeSpent);
+                UserDatabase.addTimeVoice(event.getMember(), timeSpent);
             }
         }
         // Joined a voice channel

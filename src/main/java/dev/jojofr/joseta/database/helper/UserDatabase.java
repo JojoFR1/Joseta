@@ -7,38 +7,19 @@ import net.dv8tion.jda.api.entities.Member;
 
 public class UserDatabase {
     
-    public static void addTimeVoice(Member member, long guildId, long timeSpent) {
-        Database.useExtensionAsync(UserDao.class, dao -> {
-            if (dao.addTimeVoice(member.getIdLong(), guildId, timeSpent) == 0)
-                dao.upsert(new UserEntity(member).setTimeVoice(timeSpent));
-        });
+    public static void addTimeVoice(Member member, long timeSpent) {
+        Database.useExtensionAsync(UserDao.class, dao -> dao.addTimeVoice((new UserEntity(member).setTimeVoice(timeSpent))));
     }
-    
-    public static void incrementCountingSuccess(Member member, long guildId) {
-        Database.useExtensionAsync(UserDao.class, dao -> {
-            if (dao.incrementCountingSuccess(member.getIdLong(), guildId) == 0)
-                dao.upsert(new UserEntity(member).setCountingSuccess(1));
-        });
+    public static void incrementCountingSuccess(Member member) {
+        Database.useExtensionAsync(UserDao.class, dao -> dao.incrementCountingSuccess(new UserEntity(member)));
     }
-    
-    public static void incrementCountingFail(Member member, long guildId) {
-        Database.useExtensionAsync(UserDao.class, dao -> {
-            if (dao.incrementCountingFail(member.getIdLong(), guildId) == 0)
-                dao.upsert(new UserEntity(member).setCountingFail(1));
-        });
+    public static void incrementCountingFail(Member member) {
+        Database.useExtensionAsync(UserDao.class, dao -> dao.incrementCountingFail(new UserEntity(member)));
     }
-    
-    public static void incrementCountingSpecialSuccess(Member member, long guildId) {
-        Database.useExtensionAsync(UserDao.class, dao -> {
-            if (dao.incrementCountingSpecialSuccess(member.getIdLong(), guildId) == 0)
-                dao.upsert(new UserEntity(member).setCountingSpecialSuccess(1));
-        });
+    public static void incrementCountingSpecialSuccess(Member member) {
+        Database.useExtensionAsync(UserDao.class, dao -> dao.incrementCountingSpecialSuccess(new UserEntity(member)));
     }
-    
-    public static void incrementCountingSpecialFail(Member member, long guildId) {
-        Database.useExtensionAsync(UserDao.class, dao -> {
-            if (dao.incrementCountingSpecialFail(member.getIdLong(), guildId) == 0)
-                dao.upsert(new UserEntity(member).setCountingSpecialFail(1));
-        });
+    public static void incrementCountingSpecialFail(Member member) {
+        Database.useExtensionAsync(UserDao.class, dao -> dao.incrementCountingSpecialFail(new UserEntity(member)));
     }
 }
