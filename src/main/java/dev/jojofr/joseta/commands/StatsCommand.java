@@ -32,28 +32,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @InteractionModule
 public class StatsCommand {
-    public static final Map<Long, StatsMessage> statsMessages = new ConcurrentHashMap<>();
+    public record StatsKey(long guildId, long userId) {}
+    public static final Map<StatsKey, StatsMessage> statsMessages = new ConcurrentHashMap<>();
     
     @SlashCommandInteraction(name = "stats", description = "Affiche les statistiques de l'utilisateur.")
     public void stats(SlashCommandInteractionEvent event) {
-        StatsMessage userExist = statsMessages.get(event.getUser().getIdLong());
+        StatsKey key = new StatsKey(event.getGuild().getIdLong(), event.getUser().getIdLong());
+        StatsMessage userExist = statsMessages.get(key);
         if (userExist != null && Instant.now().isBefore(userExist.timestamp.plusSeconds(30 * 60))) {
             int remainingMinutes = (int) (30 - (Instant.now().getEpochSecond() - userExist.timestamp.getEpochSecond()) / 60);
             event.reply("Vous avez déjà une interaction de statistiques en cours. Veuillez utiliser le menu existant ou attendre "+ remainingMinutes +" minutes avant d'en créer un nouveau.").setEphemeral(true).queue();
             return;
         }
-        event.deferReply().useComponentsV2().setAllowedMentions(Set.of()).queue(hook -> {
+        event.deferReply().useComponentsV2().setAllowedMentions(Set.of()).queue(hook ->
             StatsMessage.createAsync(event.getGuild().getIdLong(), event.getUser(), 1307015890146955285L)
                 .thenAccept(statsMessage -> {
-                    statsMessages.put(event.getUser().getIdLong(), statsMessage);
+                    statsMessages.put(key, statsMessage);
                     
                     Container statsContainer = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
                     hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
                 }).exceptionally(e -> {
                     hook.editOriginal("Une erreur est survenue lors de la récupération des statistiques. Veuillez réessayer plus tard.").queue();
                     return null;
-                });
-        });
+                })
+        );
     }
     
     @Interaction(id = "stats:nav:*")
@@ -62,7 +64,7 @@ public class StatsCommand {
         if (parts.length <= 3) {
             event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
             return;
-        };
+        }
         
         long ownerId = Long.parseLong(parts[3]);
         if (event.getUser().getIdLong() != ownerId) {
@@ -142,10 +144,11 @@ public class StatsCommand {
     private StatsMessage checkStatsMessage(GenericInteractionCreateEvent event, long userId) {
         if (!(event instanceof IReplyCallback replyCallback)) return null;
         
-        StatsMessage statsMessage = statsMessages.get(userId);
+        StatsKey key = new StatsKey(event.getGuild().getIdLong(), userId);
+        StatsMessage statsMessage = statsMessages.get(key);
         if (statsMessage == null || Instant.now().isAfter(statsMessage.timestamp.plusSeconds(30 * 60))) {
             replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande `/stats` pour obtenir un nouveau menu.").setEphemeral(true).queue();
-            statsMessages.remove(userId);
+            statsMessages.remove(key);
             return null;
         }
         
