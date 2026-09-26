@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.utils.ImageProxy;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.HashSet;
@@ -39,29 +40,32 @@ public class GuildConfiguration {
         ImageProxy imageProxy = guild.getIcon();
         if (imageProxy == null) { accentColor = Color.GRAY; return; }
         
-        try (InputStream is = new URI(imageProxy.getUrl(64)).toURL().openStream()) {
-            BufferedImage image = ImageIO.read(is);
-            if (image == null) { accentColor = Color.GRAY; return; }
-            
-            int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-            if (pixels == null || pixels.length == 0) { accentColor = Color.GRAY; return; }
-
-            int pixelCount = pixels.length;
-            
-            long r = 0, g = 0, b = 0;
-            for (int argb : pixels) {
-                if (((argb >> 24) & 0xFF) < 16) continue;
+        imageProxy.download(64).thenAccept(is -> {
+            try (InputStream input = is) {
+                BufferedImage image = ImageIO.read(input);
+                if (image == null) { accentColor = Color.GRAY; return; }
                 
-                r += (argb >> 16) & 0xFF;
-                g += (argb >> 8) & 0xFF;
-                b += argb & 0xFF;
+                int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+                if (pixels == null || pixels.length == 0) { accentColor = Color.GRAY; return; }
+                
+                long r = 0, g = 0, b = 0;
+                int count = 0;
+                for (int argb : pixels) {
+                    if (((argb >> 24) & 0xFF) < 16) continue;
+                    
+                    r += (argb >> 16) & 0xFF;
+                    g += (argb >> 8) & 0xFF;
+                    b += argb & 0xFF;
+                    count++;
+                }
+                if (count == 0) { accentColor = Color.GRAY; return; }
+                
+                accentColor = new Color((int) (r / count), (int) (g / count), (int) (b / count));
+            } catch (Exception e) {
+                Log.err("Failed to update accent color for guild: {} (ID: {})", e, guild.getName(), guild.getIdLong());
+                accentColor = Color.GRAY;
             }
-            
-            accentColor = new Color((int) (r / pixelCount), (int) (g / pixelCount), (int) (b / pixelCount));
-        } catch (Exception e) {
-            Log.err("Failed to update accent color for guild: {} (ID: {})", e, guild.getName(), guild.getIdLong());
-            accentColor = Color.GRAY;
-        }
+        });
     }
     
     public TextChannel getWelcomeChannel(Guild guild) {

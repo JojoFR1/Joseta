@@ -162,10 +162,8 @@ public class CountingChannel {
             } else {
                 if (special) specialLastNumber = 0;
                 else lastNumber = 0;
-                // TODO CHANGE BACK AFTER TEST
-                // message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.addReaction(Emoji.fromUnicode("❌")).queue();
-                // TODO CHANGE BACK AFTER TEST
+                
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait attendre que quelqu'un d'autre compte.\n\n-# Le comptage repart de 0" + (special ? ", en mode **" + specialCountingMode + "**." : ".")).queue();
                 
             }
@@ -196,11 +194,10 @@ public class CountingChannel {
                 );
                 message.delete().queue();
             } else {
-                lastNumber = 0;
-                // TODO CHANGE BACK AFTER TEST
-                // message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.addReaction(Emoji.fromUnicode("❌")).queue();
-                // TODO CHANGE BACK AFTER TEST
+                if (special) specialLastNumber = 0;
+                else lastNumber = 0;
+                
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait " + hasToString + " des chiffres " + (special ? type : "") + ".\n\n-# Le comptage repart de 0" + (special ? ", en mode **" + specialCountingMode + "**." : ".")).queue();
             }
             return;
@@ -217,10 +214,8 @@ public class CountingChannel {
             } else {
                 if (special) specialLastNumber = 0;
                 else lastNumber = 0;
-                // TODO CHANGE BACK AFTER TEST
-                // message.addReaction(BotCache.CROSS_EMOJI).queue();
-                message.addReaction(Emoji.fromUnicode("❌")).queue();
-                // TODO CHANGE BACK AFTER TEST
+                
+                message.addReaction(BotCache.CROSS_EMOJI).queue();
                 message.reply(message.getAuthor().getAsMention() + " a cassé la chaîne ! Il fallait augmenter le nombre précédent par 1.\n\n-# Le comptage repart de 0" + (special ? ", en mode **" + specialCountingMode + "**." : ".")).queue();
             }
             return;
@@ -230,13 +225,7 @@ public class CountingChannel {
             lastMessage -> lastMessage.clearReactions().queue(),
             failure -> Log.err("Failed to retrieve the last counting message to clear reactions.", failure)
         );
-        // TODO CHANGE BACK AFTER TEST
-        // TODO CHANGE BACK AFTER TEST
-        // TODO CHANGE BACK AFTER TEST
-        message.addReaction(Emoji.fromUnicode("✅")).queue();
-        // TODO CHANGE BACK AFTER TEST
-        // TODO CHANGE BACK AFTER TEST
-        // TODO CHANGE BACK AFTER TEST
+        message.addReaction(BotCache.CHECK_EMOJI).queue();
         
         if (special) {
             UserDatabase.incrementCountingSpecialSuccess(message.getMember(), message.getGuild().getIdLong());
@@ -245,28 +234,12 @@ public class CountingChannel {
             specialLastTimestamp = message.getTimeCreated().toInstant().toEpochMilli();
             specialLastMessageId = message.getIdLong();
             
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.MINUTES.toMillis(15)) {
+            if (lastSpecialModeChangeTimestamp == -1 || System.currentTimeMillis() - lastSpecialModeChangeTimestamp > TimeUnit.HOURS.toMillis(4)) {
                 String oldMode = specialCountingMode.toString();
                 changeSpecialMode();
                 String mode = specialCountingMode.toString();
                 channel.sendMessage("Le mode de comptage spécial a changé ! Le nouveau mode est **"+ mode +"** (anciennement **"+ oldMode +"**).").queue();
             }
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
-            // TODO CHANGE BACK AFTER TEST
         } else {
             UserDatabase.incrementCountingSuccess(message.getMember(), message.getGuild().getIdLong());
             

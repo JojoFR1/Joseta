@@ -59,7 +59,7 @@ public class StatsCommand {
     @Interaction(id = "stats:nav:*")
     public void onNavigationButton(ButtonInteractionEvent event) {
         String[] parts = event.getComponentId().split(":");
-        if (parts.length < 3) {
+        if (parts.length <= 3) {
             event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
             return;
         };
@@ -89,7 +89,7 @@ public class StatsCommand {
     @Interaction(id = "stats:leaderboard:nav:*")
     public void onLeaderboardNavigationButton(ButtonInteractionEvent event) {
         String[] parts = event.getComponentId().split(":");
-        if (parts.length < 4) {
+        if (parts.length <= 4) {
             event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
             return;
         }
@@ -117,7 +117,7 @@ public class StatsCommand {
     @Interaction(id = "stats:leaderboard:type:*")
     public void onLeaderboardTypeButton(ButtonInteractionEvent event) {
         String[] parts = event.getComponentId().split(":");
-        if (parts.length < 4) {
+        if (parts.length <= 4) {
             event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
             return;
         }
@@ -164,7 +164,7 @@ public class StatsCommand {
                 **%,d** nombre réussi
                 **%,d** chaînes cassées
                 **%.2f %%** de réussite
-                """.formatted(statsMessage.dbUser.countingSuccess, statsMessage.dbUser.countingFail, statsMessage.getSuccessRate(statsMessage.dbUser.countingSuccess, statsMessage.dbUser.countingFail))
+                """.formatted(statsMessage.getCountingSuccess(), statsMessage.getCountingFail(), statsMessage.getSuccessRate(statsMessage.getCountingSuccess(), statsMessage.getCountingFail()))
             );
         }
         if (statsMessage.config.countingSpecialChannelId != null) {
@@ -174,7 +174,7 @@ public class StatsCommand {
                 **%,d** nombre réussi
                 **%,d** chaînes cassées
                 **%.2f %%** de réussite
-                """.formatted(statsMessage.dbUser.countingSpecialSuccess, statsMessage.dbUser.countingSpecialFail, statsMessage.getSuccessRate(statsMessage.dbUser.countingSpecialSuccess, statsMessage.dbUser.countingSpecialFail))
+                """.formatted(statsMessage.getCountingSpecialSuccess(), statsMessage.getCountingSpecialFail(), statsMessage.getSuccessRate(statsMessage.getCountingSpecialSuccess(), statsMessage.getCountingSpecialFail()))
             );
         }
         
@@ -227,7 +227,7 @@ public class StatsCommand {
         Color accentColor = BotCache.getGuildConfiguration(guild.getIdLong()).accentColor;
         
         StringBuilder leaderboardContent = new StringBuilder();
-        leaderboardContent.append("### 🏆 Classement des ");
+        leaderboardContent.append("### 🏆 Classement des ").append(statsMessage.leaderboardType == 'm' ? "messages" : "temps de vocal").append("\n");
         
         leaderboardContent.append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage() + 1));
         if (statsMessage.leaderboardType == 'v') leaderboardContent.append("-# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026\n");

@@ -274,7 +274,7 @@ public class ReminderCommand {
             ReminderEntity reminder = reminders.get(i);
             
             DiscordTimestamp timestamp = DiscordTimestamp.from(reminder.remindAt);
-            sb.append(i + 1).append(". ").append(timestamp.longFull()).append(timestamp.relative());
+            sb.append(i + 1).append(". ").append(timestamp.longFull()).append(" (").append(timestamp.relative()).append(")");
             
             if (reminder.repeat) sb.append(", répété");
             if (reminder.dm) sb.append(", en MP");

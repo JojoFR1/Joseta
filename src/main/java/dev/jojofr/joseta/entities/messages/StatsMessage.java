@@ -28,7 +28,7 @@ public class StatsMessage {
     public long userId;
     public long botId;
     
-    public UserEntity dbUser;
+    private UserEntity dbUser;
     
     public int messageCount = 0;
     public final Instant timestamp;
@@ -64,10 +64,12 @@ public class StatsMessage {
         });
     }
     
-    public String getVoiceTime() {
-        if (dbUser == null) return "Os";
-        return TimeUtils.formatTime(dbUser.timeVoice / 1000);
-    }
+    public String getVoiceTime() { return dbUser == null ? "0s" : TimeUtils.formatTime(dbUser.timeVoice / 1000); }
+    public int getCountingSuccess() { return dbUser == null ? 0 : dbUser.countingSuccess; }
+    public int getCountingFail() { return dbUser == null ? 0 : dbUser.countingFail; }
+    public int getCountingSpecialSuccess() { return dbUser == null ? 0 : dbUser.countingSpecialSuccess; }
+    public int getCountingSpecialFail() { return dbUser == null ? 0 : dbUser.countingSpecialFail; }
+    
     
     public double getSuccessRate(int success, int failures) {
         if (success + failures == 0) return 0;
