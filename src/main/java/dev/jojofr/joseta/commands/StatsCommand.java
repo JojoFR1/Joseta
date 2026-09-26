@@ -1,32 +1,291 @@
 package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
+import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
-import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.daos.MessageDao;
-import dev.jojofr.joseta.database.daos.UserDao;
-import dev.jojofr.joseta.database.entities.UserEntity;
-import dev.jojofr.joseta.utils.Parser;
+import dev.jojofr.joseta.database.entities.LeaderboardEntry;
+import dev.jojofr.joseta.entities.GuildStatsCache;
+import dev.jojofr.joseta.entities.messages.StatsMessage;
+import dev.jojofr.joseta.utils.BotCache;
+import dev.jojofr.joseta.utils.DiscordTimestamp;
+import dev.jojofr.joseta.utils.TimeUtils;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.section.Section;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+
+import java.awt.*;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @InteractionModule
 public class StatsCommand {
+    public static final Map<Long, StatsMessage> statsMessages = new ConcurrentHashMap<>();
     
     @SlashCommandInteraction(name = "stats", description = "Affiche les statistiques de l'utilisateur.")
     public void stats(SlashCommandInteractionEvent event) {
-        Database.useHandle(handle -> {
-            UserEntity dbUser = handle.attach(UserDao.class).getById(event.getUser().getIdLong(), event.getGuild().getIdLong());
-            int messageCount = handle.attach(MessageDao.class).getMemberMessageCount(event.getUser().getIdLong(), event.getGuild().getIdLong());
-            
-            Member member = event.getMember();
-            
-            event.reply("Nombre de messages envoyés : " + Parser.formatNumber(messageCount)
-                + "\nTemps passé en vocal : " + (dbUser == null ? "0s" : Parser.formatTime(dbUser.timeVoice / 1000))
-                + "\nNombre de sanctions : " + (dbUser == null ? 0 : dbUser.sanctionCount)
-                + "\nA rejoint le serveur le : <t:" + (member == null ? 0 : member.getTimeJoined().toEpochSecond()) + ":F> (<t:" + (member == null ? 0 : member.getTimeJoined().toEpochSecond()) + ":R>)"
-                + "\nA créé son compte Discord le : <t:" + (member == null ? 0 : member.getTimeCreated().toEpochSecond()) + ":F> (<t:" + (member == null ? 0 : member.getTimeCreated().toEpochSecond()) + ":R>)"
-            ).setEphemeral(true).queue();
+        StatsMessage userExist = statsMessages.get(event.getUser().getIdLong());
+        if (userExist != null && Instant.now().isBefore(userExist.timestamp.plusSeconds(30 * 60))) {
+            int remainingMinutes = (int) (30 - (Instant.now().getEpochSecond() - userExist.timestamp.getEpochSecond()) / 60);
+            event.reply("Vous avez déjà une interaction de statistiques en cours. Veuillez utiliser le menu existant ou attendre "+ remainingMinutes +" minutes avant d'en créer un nouveau.").setEphemeral(true).queue();
+            return;
+        }
+        event.deferReply().useComponentsV2().setAllowedMentions(Set.of()).queue(hook -> {
+            StatsMessage.createAsync(event.getGuild().getIdLong(), event.getUser(), 1307015890146955285L)
+                .thenAccept(statsMessage -> {
+                    statsMessages.put(event.getUser().getIdLong(), statsMessage);
+                    
+                    Container statsContainer = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
+                    hook.editOriginalComponents(statsContainer).useComponentsV2().queue();
+                }).exceptionally(e -> {
+                    hook.editOriginal("Une erreur est survenue lors de la récupération des statistiques. Veuillez réessayer plus tard.").queue();
+                    return null;
+                });
         });
+    }
+    
+    @Interaction(id = "stats:nav:*")
+    public void onNavigationButton(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length < 3) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        };
+        
+        long ownerId = Long.parseLong(parts[3]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
+        if (statsMessage == null) return;
+        
+        Container container = null;
+        String buttonId = parts[2];
+        if (buttonId.equals("self")) {
+            statsMessage.isGlobal = false;
+            container = createUserStatsContainer(statsMessage, event.getMember(), event.getGuild().getName());
+        } else if (buttonId.equals("global")) {
+            statsMessage.isGlobal = true;
+            container = createGlobalStatsContainer(statsMessage, event.getGuild());
+        }
+        
+        event.editComponents(container).useComponentsV2().queue();
+    }
+    
+    @Interaction(id = "stats:leaderboard:nav:*")
+    public void onLeaderboardNavigationButton(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length < 4) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        long ownerId = Long.parseLong(parts[4]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
+        if (statsMessage == null) return;
+        
+        String buttonId = parts[3];
+        switch (buttonId) {
+            case "first" -> statsMessage.currentPage = 0;
+            case "prev" -> statsMessage.previousPage();
+            case "next" -> statsMessage.nextPage();
+            case "last" -> statsMessage.currentPage = statsMessage.getLastPage();
+        }
+        
+        event.editComponents(createGlobalStatsContainer(statsMessage, event.getGuild())).useComponentsV2().queue();
+    }
+    
+    @Interaction(id = "stats:leaderboard:type:*")
+    public void onLeaderboardTypeButton(ButtonInteractionEvent event) {
+        String[] parts = event.getComponentId().split(":");
+        if (parts.length < 4) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        long ownerId = Long.parseLong(parts[4]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
+        if (statsMessage == null) return;
+        
+        String buttonId = parts[3];
+        if (buttonId.equals("m") || buttonId.equals("v")) statsMessage.leaderboardType = buttonId.charAt(0);
+        
+        if (statsMessage.currentPage > statsMessage.getLastPage()) statsMessage.currentPage = statsMessage.getLastPage();
+        
+        event.editComponents(createGlobalStatsContainer(statsMessage, event.getGuild())).useComponentsV2().queue();
+    }
+    
+    private StatsMessage checkStatsMessage(GenericInteractionCreateEvent event, long userId) {
+        if (!(event instanceof IReplyCallback replyCallback)) return null;
+        
+        StatsMessage statsMessage = statsMessages.get(userId);
+        if (statsMessage == null || Instant.now().isAfter(statsMessage.timestamp.plusSeconds(30 * 60))) {
+            replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande `/stats` pour obtenir un nouveau menu.").setEphemeral(true).queue();
+            statsMessages.remove(userId);
+            return null;
+        }
+        
+        return statsMessage;
+    }
+
+    private Container createUserStatsContainer(StatsMessage statsMessage, Member member, String guildName) {
+        DiscordTimestamp timestampCreated = DiscordTimestamp.from(member.getTimeCreated());
+        DiscordTimestamp timestampJoined = DiscordTimestamp.from(member.getTimeJoined());
+        
+        StringBuilder countingContent = new StringBuilder();
+        if (statsMessage.config.countingChannelId != null) {
+            countingContent.append(
+                """
+                ### 🔢 Comptage
+                **%,d** nombre réussi
+                **%,d** chaînes cassées
+                **%.2f %%** de réussite
+                """.formatted(statsMessage.dbUser.countingSuccess, statsMessage.dbUser.countingFail, statsMessage.getSuccessRate(statsMessage.dbUser.countingSuccess, statsMessage.dbUser.countingFail))
+            );
+        }
+        if (statsMessage.config.countingSpecialChannelId != null) {
+            countingContent.append(
+                """
+                ### ✨ Comptage spécial
+                **%,d** nombre réussi
+                **%,d** chaînes cassées
+                **%.2f %%** de réussite
+                """.formatted(statsMessage.dbUser.countingSpecialSuccess, statsMessage.dbUser.countingSpecialFail, statsMessage.getSuccessRate(statsMessage.dbUser.countingSpecialSuccess, statsMessage.dbUser.countingSpecialFail))
+            );
+        }
+        
+        return Container.of(
+            Section.of(
+                Thumbnail.fromUrl(member.getEffectiveAvatarUrl()),
+                TextDisplay.ofFormat(
+                    """
+                    ## Statistiques de %s
+                    -# Statistiques sur **%s**
+                    """, member.getEffectiveName(), guildName
+                )
+            ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+
+            TextDisplay.ofFormat(
+                """
+                ### 👤 Profil
+                **Compte créé**
+                %s · %s
+                
+                **A rejoint le serveur**
+                %s · %s
+                """,
+                timestampCreated.longDate(), timestampCreated.relative(),
+                timestampJoined.longDate(), timestampJoined.relative()
+            ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+
+            TextDisplay.ofFormat(
+                """
+                ### 📊 Activité
+                -# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026
+                **%,d** messages
+                **%s** en vocal
+                """,
+                statsMessage.messageCount, statsMessage.getVoiceTime()
+            ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+            
+            TextDisplay.of(countingContent.toString()),
+            Separator.createDivider(Separator.Spacing.LARGE),
+            
+            createNavigationRow(statsMessage)
+        ).withAccentColor(statsMessage.color);
+    }
+    
+    private Container createGlobalStatsContainer(StatsMessage statsMessage, Guild guild) {
+        GuildStatsCache guildStatsCache = BotCache.getGuildStatsCache(guild.getIdLong());
+        Color accentColor = BotCache.getGuildConfiguration(guild.getIdLong()).accentColor;
+        
+        StringBuilder leaderboardContent = new StringBuilder();
+        leaderboardContent.append("### 🏆 Classement des ");
+        
+        leaderboardContent.append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage() + 1));
+        if (statsMessage.leaderboardType == 'v') leaderboardContent.append("-# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026\n");
+        
+        Button typeSwitch = Button.success("stats:leaderboard:type:" + (statsMessage.leaderboardType == 'm' ? 'v' : 'm') + ":" + statsMessage.userId, "Classement " + (statsMessage.leaderboardType == 'm' ? "temps vocal" : "messages"));
+        
+        int startIndex = statsMessage.currentPage * 10;
+        int endIndex = startIndex + 10;
+        List<LeaderboardEntry> pageEntry = statsMessage.leaderboardType == 'm' ? guildStatsCache.getMessageLeaderboard(startIndex, endIndex) : guildStatsCache.getVoiceLeaderboard(startIndex, endIndex);
+        for (int i = 0; i < pageEntry.size(); i++) {
+            LeaderboardEntry entry = pageEntry.get(i);
+            if (statsMessage.leaderboardType == 'm')
+                leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
+            else if (statsMessage.leaderboardType == 'v')
+                leaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), TimeUtils.formatTime(entry.count() / 1000)));
+        }
+        
+        return Container.of(
+            Section.of(
+                Thumbnail.fromUrl(guild.getIconUrl()),
+                TextDisplay.ofFormat(
+                    """
+                    ## Statistiques globales
+                    -# Statistiques sur **%s**
+                    """, guild.getName()
+                )
+            ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+            
+            TextDisplay.ofFormat(
+                """
+                ### 📊 Activité
+                -# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026
+                **%,d** messages
+                **%s** en vocal
+                """,
+                guildStatsCache.totalMessages, TimeUtils.formatTime(guildStatsCache.totalVoiceTime / 1000)
+            ),
+            Separator.createDivider(Separator.Spacing.SMALL),
+            
+            TextDisplay.of(leaderboardContent.toString()),
+            ActionRow.of(
+                Button.secondary("stats:leaderboard:nav:first:" + statsMessage.userId, "⏪").withDisabled(statsMessage.currentPage == 0),
+                Button.secondary("stats:leaderboard:nav:prev:" + statsMessage.userId, "◀️").withDisabled(statsMessage.currentPage <= 0),
+                typeSwitch,
+                Button.secondary("stats:leaderboard:nav:next:" + statsMessage.userId, "▶️").withDisabled(statsMessage.currentPage >= statsMessage.getLastPage()),
+                Button.secondary("stats:leaderboard:nav:last:" + statsMessage.userId, "⏩").withDisabled(statsMessage.currentPage == statsMessage.getLastPage())
+            ),
+            Separator.createDivider(Separator.Spacing.LARGE),
+            
+            createNavigationRow(statsMessage)
+        ).withAccentColor(accentColor);
+    }
+    
+    private ActionRow createNavigationRow(StatsMessage statsMessage) {
+        return ActionRow.of(
+            Button.primary("stats:nav:self:" + statsMessage.userId, "Statistiques personnelles").withDisabled(!statsMessage.isGlobal),
+            Button.primary("stats:nav:global:" + statsMessage.userId, "Statistiques globales").withDisabled(statsMessage.isGlobal)
+        );
     }
 }

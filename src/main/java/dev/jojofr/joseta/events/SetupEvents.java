@@ -16,6 +16,7 @@ import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.update.GuildUpdateIconEvent;
 
 @EventModule
 public class SetupEvents {
@@ -40,6 +41,8 @@ public class SetupEvents {
                 return null;
             });
         }
+        
+        BotCache.getGuildConfiguration(event.getGuild().getIdLong()).updateAccentColor(event.getGuild());
     }
     
     @EventHandler(priority = EventPriority.HIGH)
@@ -57,5 +60,10 @@ public class SetupEvents {
             handle.attach(MessageDao.class).clearMarkovContent(event.getUser().getIdLong(), event.getGuild().getIdLong());
             handle.attach(ReminderDao.class).deleteByUserId(event.getUser().getIdLong(), event.getGuild().getIdLong());
         });
+    }
+    
+    @EventHandler
+    public void onGuildUpdateIcon(GuildUpdateIconEvent event) {
+        BotCache.getGuildConfiguration(event.getGuild().getIdLong()).updateAccentColor(event.getGuild());
     }
 }
