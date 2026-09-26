@@ -3,11 +3,8 @@ package dev.jojofr.joseta.commands;
 import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
-import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.daos.MessageDao;
-import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.LeaderboardEntry;
-import dev.jojofr.joseta.entities.GuildConfiguration;
+import dev.jojofr.joseta.entities.GuildStatsCache;
 import dev.jojofr.joseta.entities.messages.StatsMessage;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
@@ -26,8 +23,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
+import java.awt.*;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -226,27 +223,22 @@ public class StatsCommand {
     }
     
     private Container createGlobalStatsContainer(StatsMessage statsMessage, Guild guild) {
-        GuildConfiguration guildConfiguration = BotCache.getGuildConfiguration(guild.getIdLong());
+        GuildStatsCache guildStatsCache = BotCache.getGuildStatsCache(guild.getIdLong());
+        Color accentColor = BotCache.getGuildConfiguration(guild.getIdLong()).accentColor;
         
         StringBuilder leaderboardContent = new StringBuilder();
         leaderboardContent.append("### 🏆 Classement des ");
         
-        List<LeaderboardEntry> leaderboardEntries = new ArrayList<>(10);
-        if (statsMessage.leaderboardType == 'm') {
-            leaderboardEntries = Database.withExtension(MessageDao.class, dao -> dao.getMessageLeaderboard(guild.getIdLong(), 10, statsMessage.currentPage * 10));
-            leaderboardContent.append("messages");
-        }
-        else if (statsMessage.leaderboardType == 'v') {
-            leaderboardEntries = Database.withExtension(UserDao.class, dao -> dao.getVoiceLeaderboard(guild.getIdLong(), 10, statsMessage.currentPage * 10));
-            leaderboardContent.append("temps vocal");
-        }
         leaderboardContent.append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage() + 1));
         if (statsMessage.leaderboardType == 'v') leaderboardContent.append("-# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026\n");
         
         Button typeSwitch = Button.success("stats:leaderboard:type:" + (statsMessage.leaderboardType == 'm' ? 'v' : 'm') + ":" + statsMessage.userId, "Classement " + (statsMessage.leaderboardType == 'm' ? "temps vocal" : "messages"));
         
-        for (int i = 0; i < leaderboardEntries.size(); i++) {
-            LeaderboardEntry entry = leaderboardEntries.get(i);
+        int startIndex = statsMessage.currentPage * 10;
+        int endIndex = startIndex + 10;
+        List<LeaderboardEntry> pageEntry = statsMessage.leaderboardType == 'm' ? guildStatsCache.getMessageLeaderboard(startIndex, endIndex) : guildStatsCache.getVoiceLeaderboard(startIndex, endIndex);
+        for (int i = 0; i < pageEntry.size(); i++) {
+            LeaderboardEntry entry = pageEntry.get(i);
             if (statsMessage.leaderboardType == 'm')
                 leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
             else if (statsMessage.leaderboardType == 'v')
@@ -272,7 +264,7 @@ public class StatsCommand {
                 **%,d** messages
                 **%s** en vocal
                 """,
-                guildConfiguration.totalMessages, TimeUtils.formatTime(guildConfiguration.totalVoiceTime / 1000)
+                guildStatsCache.totalMessages, TimeUtils.formatTime(guildStatsCache.totalVoiceTime / 1000)
             ),
             Separator.createDivider(Separator.Spacing.SMALL),
             
@@ -287,7 +279,7 @@ public class StatsCommand {
             Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)
-        ).withAccentColor(guildConfiguration.accentColor);
+        ).withAccentColor(accentColor);
     }
     
     private ActionRow createNavigationRow(StatsMessage statsMessage) {

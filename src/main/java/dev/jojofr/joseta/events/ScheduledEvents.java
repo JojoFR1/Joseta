@@ -34,10 +34,8 @@ public class ScheduledEvents {
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkReminders, 0, 1, TimeUnit.MINUTES);
         // Check expired sanctions every 15 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
-        // Check expired "Message" entities every 30 minutes
-        scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredMessages, 30, 30, TimeUnit.MINUTES);
-        // Update guild information every 12 hours
-        scheduler.scheduleAtFixedRate(ScheduledEvents::updateGuildInformation, 0, 12, TimeUnit.HOURS);
+        // Check expired entities every 30 minutes
+        scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredEntities, 30, 30, TimeUnit.MINUTES);
     }
     
     public static void shutdown() {
@@ -148,25 +146,19 @@ public class ScheduledEvents {
         }
     }
     
-    private static void checkExpiredMessages() {
-        removeExpiredMessages(ConfigurationCommand.configurationMessages, message -> message.timestamp);
-        removeExpiredMessages(ModerationCommands.modlogMessages, message -> message.timestamp);
-        removeExpiredMessages(ReminderCommand.reminderListMessages, message -> message.timestamp);
-        removeExpiredMessages(StatsCommand.statsMessages, message -> message.timestamp);
+    private static void checkExpiredEntities() {
+        removeExpiredEntities(ConfigurationCommand.configurationMessages, message -> message.timestamp, 15 * 60);
+        removeExpiredEntities(ModerationCommands.modlogMessages, message -> message.timestamp, 15 * 60);
+        removeExpiredEntities(ReminderCommand.reminderListMessages, message -> message.timestamp, 15 * 60);
+        removeExpiredEntities(StatsCommand.statsMessages, message -> message.timestamp, 30 * 60);
+        BotCache.checkExpiredStatsCache(24 * 60 * 60);
     }
     
-    private static <T> void removeExpiredMessages(Map<?, T> messages, Function<T, Instant> instantGetter) {
-        Instant expiration = Instant.now().minusSeconds(15 * 60);
+    private static <T> void removeExpiredEntities(Map<?, T> messages, Function<T, Instant> instantGetter, int expirationSeconds) {
+        Instant expiration = Instant.now().minusSeconds(expirationSeconds);
         
         messages.entrySet().removeIf(entry ->
-            entry.getValue() == null ||
-            instantGetter.apply(entry.getValue()).isBefore(expiration)
+            entry.getValue() == null || instantGetter.apply(entry.getValue()).isBefore(expiration)
         );
-    }
-    
-    private static void updateGuildInformation() {
-        for (Guild guild : JosetaBot.get().getGuilds()) {
-            BotCache.getGuildConfiguration(guild.getIdLong()).updateStats();
-        }
     }
 }

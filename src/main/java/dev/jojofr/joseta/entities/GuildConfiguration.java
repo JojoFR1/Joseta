@@ -22,8 +22,6 @@ public class GuildConfiguration {
     public final ConfigurationEntity configuration;
     public Set<Long> markovBlacklistIds = new HashSet<>();
     
-    public int totalMessages = 0;
-    public long totalVoiceTime = 0;
     public Color accentColor = null;
     
     public GuildConfiguration(ConfigurationEntity configuration) {
@@ -34,8 +32,6 @@ public class GuildConfiguration {
         this.configuration = new ConfigurationEntity(other.configuration);
         this.markovBlacklistIds = new HashSet<>(other.markovBlacklistIds);
         
-        this.totalMessages = other.totalMessages;
-        this.totalVoiceTime = other.totalVoiceTime;
         this.accentColor = other.accentColor;
     }
     
@@ -66,13 +62,6 @@ public class GuildConfiguration {
             Log.err("Failed to update accent color for guild: {} (ID: {})", e, guild.getName(), guild.getIdLong());
             accentColor = Color.GRAY;
         }
-    }
-    
-    public void updateStats() {
-        Database.useHandle(handle -> {
-            totalMessages = handle.attach(MessageDao.class).getGuildMessageCount(configuration.guildId);
-            totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(configuration.guildId);
-        });
     }
     
     public TextChannel getWelcomeChannel(Guild guild) {

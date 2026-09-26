@@ -7,13 +7,18 @@ import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.database.entities.LeaderboardEntry;
 import dev.jojofr.joseta.entities.GuildConfiguration;
+import dev.jojofr.joseta.entities.GuildStatsCache;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BotCache {
     private static final ConcurrentHashMap<Long, GuildConfiguration> guildConfigurations = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long, GuildStatsCache> guildStatsCaches = new ConcurrentHashMap<>();
     
     public static final Emoji CHECK_EMOJI, CROSS_EMOJI, AUTO_RESPONSE_EMOJI;
     
@@ -37,11 +42,7 @@ public class BotCache {
             }
             
             GuildConfiguration guildConfig = new GuildConfiguration(config);
-            Database.useHandle(handle -> {
-                guildConfig.markovBlacklistIds = handle.attach(MarkovBlacklistDao.class).getAllIds(id);
-                guildConfig.totalMessages = handle.attach(MessageDao.class).getGuildMessageCount(id);
-                guildConfig.totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(id);
-            });
+            guildConfig.markovBlacklistIds = Database.withExtension(MarkovBlacklistDao.class, dao -> dao.getAllIds(id));
             
             return guildConfig;
         });
@@ -51,4 +52,25 @@ public class BotCache {
     
     public static void putGuildConfiguration(long guildId, GuildConfiguration guildConfig) { guildConfigurations.put(guildId, guildConfig); }
     public static void removeGuildConfiguration(long guildId) { guildConfigurations.remove(guildId); }
+    
+    public static GuildStatsCache getGuildStatsCache(long guildId) {
+        return guildStatsCaches.computeIfAbsent(guildId, id ->
+            Database.withHandle(handle -> {
+                int totalMessages = handle.attach(MessageDao.class).getGuildMessageCount(guildId);
+                long totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(guildId);
+                List<LeaderboardEntry> messageLeaderboard = handle.attach(MessageDao.class).getMessageLeaderboard(guildId, 50, 0);
+                List<LeaderboardEntry> voiceLeaderboard = handle.attach(UserDao.class).getVoiceLeaderboard(guildId, 50, 0);
+                
+                return new GuildStatsCache(id, totalMessages, totalVoiceTime, messageLeaderboard, voiceLeaderboard);
+            })
+        );
+    }
+    
+    public static void checkExpiredStatsCache(int expirationSeconds) {
+        Instant expiration = Instant.now().minusSeconds(expirationSeconds);
+        
+        guildStatsCaches.entrySet().removeIf(entry ->
+            entry.getValue() == null || entry.getValue().timestamp.isBefore(expiration)
+        );
+    }
 }
