@@ -292,8 +292,8 @@ public class StatsCommand {
     
     private ActionRow createNavigationRow(StatsMessage statsMessage) {
         return ActionRow.of(
-            Button.primary("stats:nav:self:" + statsMessage.userId, "Statistiques personnelles").withDisabled(statsMessage == null || !statsMessage.isGlobal),
-            Button.primary("stats:nav:global:" + statsMessage.userId, "Statistiques globales").withDisabled(statsMessage == null || statsMessage.isGlobal)
+            Button.primary("stats:nav:self:" + statsMessage.userId, "Statistiques personnelles").withDisabled(!statsMessage.isGlobal),
+            Button.primary("stats:nav:global:" + statsMessage.userId, "Statistiques globales").withDisabled(statsMessage.isGlobal)
         );
     }
 }
