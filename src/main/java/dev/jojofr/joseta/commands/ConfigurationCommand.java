@@ -8,7 +8,7 @@ import dev.jojofr.joseta.database.daos.ConfigurationDao;
 import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
-import dev.jojofr.joseta.entities.ConfigurationMessage;
+import dev.jojofr.joseta.entities.messages.ConfigurationMessage;
 import dev.jojofr.joseta.events.channel.CountingChannel;
 import dev.jojofr.joseta.utils.BotCache;
 import net.dv8tion.jda.api.EmbedBuilder;

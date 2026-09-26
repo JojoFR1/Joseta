@@ -7,6 +7,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.SanctionDao;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.database.helper.SanctionDatabase;
+import dev.jojofr.joseta.utils.DiscordTimestamp;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
@@ -43,8 +44,8 @@ public class SanctionEvents {
         
         user.openPrivateChannel().queue(
             channel -> channel.sendMessage("Vous avez été mis en timeout sur le serveur **`" + event.getGuild().getName() + "`** par <@" +  moderatorId +
-                "> pour la raison suivante : " + reason + ".\nCette sanction expirera dans: <t:" + timeOutEnd +
-                ":R>.\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
+                "> pour la raison suivante : " + reason + ".\nCette sanction expirera dans: " + DiscordTimestamp.from(timeOutEnd).relative() +
+                ".\n\n-# ***Ceci est un message automatique. Toutes contestations doivent se faire avec le modérateur responsable.***"
             ).queue()
         );
         

@@ -12,8 +12,13 @@ public class UserEntity {
     public String name;
     public String avatarUrl;
     public Instant creationDate;
+    
     public int sanctionCount = 0;
     public long timeVoice = 0;
+    public int countingSuccess = 0;
+    public int countingFail = 0;
+    public int countingSpecialSuccess = 0;
+    public int countingSpecialFail = 0;
     
     // A non-private and no-arg constructor is required by JDBI
     protected UserEntity() {}
@@ -62,6 +67,26 @@ public class UserEntity {
     
     public UserEntity setTimeVoice(long timeVoice) {
         this.timeVoice = timeVoice;
+        return this;
+    }
+    
+    public UserEntity setCountingSuccess(int countingSuccess) {
+        this.countingSuccess = countingSuccess;
+        return this;
+    }
+    
+    public UserEntity setCountingFail(int countingFail) {
+        this.countingFail = countingFail;
+        return this;
+    }
+    
+    public UserEntity setCountingSpecialSuccess(int countingSpecialSuccess) {
+        this.countingSpecialSuccess = countingSpecialSuccess;
+        return this;
+    }
+    
+    public UserEntity setCountingSpecialFail(int countingSpecialFail) {
+        this.countingSpecialFail = countingSpecialFail;
         return this;
     }
 }

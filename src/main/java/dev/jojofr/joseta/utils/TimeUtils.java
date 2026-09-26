@@ -1,17 +1,10 @@
 package dev.jojofr.joseta.utils;
 
-import java.text.NumberFormat;
-import java.util.Locale;
+import java.time.OffsetDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Parser {
-    
-    // Format number to a more readable format
-    public static String formatNumber(long number) {
-        return NumberFormat.getNumberInstance(Locale.FRANCE).format(number).replace('\u202F', ' ');
-    }
-    
+public class TimeUtils {
     private static final long SECONDS_IN_MINUTE = 60L;
     private static final long SECONDS_IN_HOUR = 60L * SECONDS_IN_MINUTE;
     private static final long SECONDS_IN_DAY = 24L * SECONDS_IN_HOUR;
@@ -28,98 +21,70 @@ public class Parser {
      * @return A formatted string representing the time in months, weeks, days, hours, minutes and seconds.
      * @throws IllegalArgumentException if the input seconds is negative.
      */
-    public static String formatTime(long seconds) {
-        if (seconds < 0) return "inf";
-        if (seconds == 0) return "0s";
+    public static String formatTime(long seconds) { return formatTime(seconds, false); }
+    public static String formatTime(long seconds, boolean readable) {
+        if (seconds < 0) return readable ? "infini" : "inf";
+        if (seconds == 0) return readable ? "0 seconde" : "0s";
         
         StringBuilder timeBuilder = new StringBuilder();
         long years = seconds / SECONDS_IN_YEAR;
         if (years > 0) {
-            timeBuilder.append(years).append("A ");
+            timeBuilder.append(years);
+            if (readable) timeBuilder.append("année").append(years > 1 ? "s " : " ");
+            else timeBuilder.append("A ");
+            
             seconds %= SECONDS_IN_YEAR;
         }
         
         long months = seconds / SECONDS_IN_MONTH;
         if (months > 0) {
-            timeBuilder.append(months).append("M ");
+            timeBuilder.append(months);
+            if (readable) timeBuilder.append("mois ");
+            else timeBuilder.append("M ");
+            
             seconds %= SECONDS_IN_MONTH;
         }
         
         long weeks = seconds / SECONDS_IN_WEEK;
         if (weeks > 0) {
-            timeBuilder.append(weeks).append("S ");
+            timeBuilder.append(weeks);
+            if (readable) timeBuilder.append("semaine").append(weeks > 1 ? "s " : " ");
+            else timeBuilder.append("S ");
+            
             seconds %= SECONDS_IN_WEEK;
         }
         
         long days = seconds / SECONDS_IN_DAY;
         if (days > 0) {
-            timeBuilder.append(days).append("j ");
+            timeBuilder.append(days);
+            if (readable) timeBuilder.append("jour").append(days > 1 ? "s " : " ");
+            else timeBuilder.append("j ");
+            
             seconds %= SECONDS_IN_DAY;
         }
         
         long hours = seconds / SECONDS_IN_HOUR;
         if (hours > 0) {
-            timeBuilder.append(hours).append("h ");
+            timeBuilder.append(hours);
+            if (readable) timeBuilder.append("heure").append(hours > 1 ? "s " : " ");
+            else timeBuilder.append("h ");
+            
             seconds %= SECONDS_IN_HOUR;
         }
         
         long minutes = seconds / SECONDS_IN_MINUTE;
         if (minutes > 0) {
-            timeBuilder.append(minutes).append("m ");
+            timeBuilder.append(minutes);
+            if (readable) timeBuilder.append("minute").append(minutes > 1 ? "s " : " ");
+            else timeBuilder.append("m ");
+            
             seconds %= SECONDS_IN_MINUTE;
         }
         
-        if (seconds > 0) timeBuilder.append(seconds).append("s");
+        if (seconds > 0) timeBuilder.append(seconds).append(readable ? "seconde" + (seconds > 1 ? "s" : "") : "s");
         
         return timeBuilder.toString();
     }
-    
-    public static String formatTimeReadable(long seconds) {
-        if (seconds < 0) return "infini";
-        if (seconds == 0) return "0 seconde";
-        
-        StringBuilder timeBuilder = new StringBuilder();
-        long years = seconds / SECONDS_IN_YEAR;
-        if (years > 0) {
-            timeBuilder.append(years).append("année").append(years > 1 ? "s " : " ");
-            seconds %= SECONDS_IN_YEAR;
-        }
-        
-        long months = seconds / SECONDS_IN_MONTH;
-        if (months > 0) {
-            timeBuilder.append(months).append("mois ");
-            seconds %= SECONDS_IN_MONTH;
-        }
-        
-        long weeks = seconds / SECONDS_IN_WEEK;
-        if (weeks > 0) {
-            timeBuilder.append(weeks).append("semaine").append(weeks > 1 ? "s " : " ");
-            seconds %= SECONDS_IN_WEEK;
-        }
-        
-        long days = seconds / SECONDS_IN_DAY;
-        if (days > 0) {
-            timeBuilder.append(days).append("jour").append(days > 1 ? "s " : " ");
-            seconds %= SECONDS_IN_DAY;
-        }
-        
-        long hours = seconds / SECONDS_IN_HOUR;
-        if (hours > 0) {
-            timeBuilder.append(hours).append("heure").append(hours > 1 ? "s " : " ");
-            seconds %= SECONDS_IN_HOUR;
-        }
-        
-        long minutes = seconds / SECONDS_IN_MINUTE;
-        if (minutes > 0) {
-            timeBuilder.append(minutes).append("minute").append(minutes > 1 ? "s " : " ");
-            seconds %= SECONDS_IN_MINUTE;
-        }
-        
-        if (seconds > 0) timeBuilder.append(seconds).append("seconde").append(seconds > 1 ? "s" : "");
-        
-        return timeBuilder.toString();
-    }
-    
     
     /**
      * Parses a formatted time string into a total number of seconds.
@@ -152,5 +117,4 @@ public class Parser {
         
         return totalSeconds;
     }
-    
 }

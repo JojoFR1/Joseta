@@ -1,19 +1,18 @@
-package dev.jojofr.joseta.entities;
+package dev.jojofr.joseta.entities.messages;
 
-import dev.jojofr.joseta.database.entities.ReminderEntity;
+import net.dv8tion.jda.api.entities.User;
 
 import java.time.Instant;
-import java.util.List;
 
-public class ReminderListMessage {
-    public final List<ReminderEntity> reminders;
+public class ModlogMessage {
+    public final User user;
     public final Instant timestamp;
     
     public int currentPage;
     public final int lastPage;
     
-    public ReminderListMessage(List<ReminderEntity> reminders, int lastPage) {
-        this.reminders = reminders;
+    public ModlogMessage(User user, int lastPage) {
+        this.user = user;
         this.timestamp = Instant.now();
         this.currentPage = 1;
         this.lastPage = lastPage;
@@ -28,5 +27,4 @@ public class ReminderListMessage {
         if (currentPage > 1) return --currentPage;
         return currentPage;
     }
-    
 }

@@ -1,9 +1,9 @@
-package dev.jojofr.joseta.entities;
+package dev.jojofr.joseta.entities.messages;
 
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
-import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
+import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.utils.BotCache;
 
 import java.time.Instant;

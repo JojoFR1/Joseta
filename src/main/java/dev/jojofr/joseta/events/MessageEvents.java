@@ -58,8 +58,9 @@ public class MessageEvents {
         if ((message.getType() != MessageType.DEFAULT && message.getType() != MessageType.INLINE_REPLY) || message.getPoll() != null) return;
         
         MessageChannelUnion channel = event.getChannel();
-        if (channel.getIdLong() == config.countingChannelId) CountingChannel.check(channel, message);
-        else if (channel.getIdLong() == config.countingSpecialChannelId) CountingChannel.specialCheck(channel, message);
+        if (channel.getIdLong() != config.countingChannelId && channel.getIdLong() != config.countingSpecialChannelId) return;
+        
+        CountingChannel.check(channel, message, channel.getIdLong() == config.countingSpecialChannelId);
     }
     
     @EventHandler
