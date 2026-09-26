@@ -50,12 +50,12 @@ public class StatsMessage {
         CompletionStage<Void> dbFuture = Database.useHandleAsync(handle -> {
             UserDao userDao = handle.attach(UserDao.class);
             message.dbUser = userDao.getById(message.userId, guildId);
-            message.lastVoicePage = userDao.getMemberCountWithVoiceInGuild(guildId) / 10;
+            message.lastVoicePage = (userDao.getMemberCountWithVoiceInGuild(guildId) + 9) / 10;
             
             MessageDao messageDao = handle.attach(MessageDao.class);
             message.messageCount = messageDao.getMemberMessageCount(message.userId, guildId);
             
-            message.lastMessagePage = messageDao.getAmountOfMembersWithMessages(guildId) / 10;
+            message.lastMessagePage = (messageDao.getAmountOfMembersWithMessages(guildId) + 9) / 10;
         });
         
         return colorFuture.thenCombine(dbFuture, (color, ignored) -> {
