@@ -5,6 +5,7 @@ import dev.jojofr.joseta.annotations.types.interaction.Interaction;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.entities.LeaderboardEntry;
 import dev.jojofr.joseta.entities.GuildStatsCache;
+import dev.jojofr.joseta.entities.GuildUserKey;
 import dev.jojofr.joseta.entities.messages.StatsMessage;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
@@ -32,12 +33,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @InteractionModule
 public class StatsCommand {
-    public record StatsKey(long guildId, long userId) {}
-    public static final Map<StatsKey, StatsMessage> statsMessages = new ConcurrentHashMap<>();
+    public static final Map<GuildUserKey, StatsMessage> statsMessages = new ConcurrentHashMap<>();
     
     @SlashCommandInteraction(name = "stats", description = "Affiche les statistiques de l'utilisateur.")
     public void stats(SlashCommandInteractionEvent event) {
-        StatsKey key = new StatsKey(event.getGuild().getIdLong(), event.getUser().getIdLong());
+        GuildUserKey key = new GuildUserKey(event.getGuild(), event.getUser());
         StatsMessage userExist = statsMessages.get(key);
         if (userExist != null && Instant.now().isBefore(userExist.timestamp.plusSeconds(30 * 60))) {
             int remainingMinutes = (int) (30 - (Instant.now().getEpochSecond() - userExist.timestamp.getEpochSecond()) / 60);
@@ -144,7 +144,7 @@ public class StatsCommand {
     private StatsMessage checkStatsMessage(GenericInteractionCreateEvent event, long userId) {
         if (!(event instanceof IReplyCallback replyCallback)) return null;
         
-        StatsKey key = new StatsKey(event.getGuild().getIdLong(), userId);
+        GuildUserKey key = new GuildUserKey(event.getGuild(), userId);
         StatsMessage statsMessage = statsMessages.get(key);
         if (statsMessage == null || Instant.now().isAfter(statsMessage.timestamp.plusSeconds(30 * 60))) {
             replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande `/stats` pour obtenir un nouveau menu.").setEphemeral(true).queue();

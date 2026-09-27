@@ -8,6 +8,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.ReminderDao;
 import dev.jojofr.joseta.database.entities.ReminderEntity;
 import dev.jojofr.joseta.database.helper.MessageDatabase;
+import dev.jojofr.joseta.entities.GuildUserKey;
 import dev.jojofr.joseta.entities.messages.ReminderListMessage;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
@@ -114,7 +115,7 @@ public class ReminderCommand {
     
     
     private static final int REMINDER_PER_PAGE = 5;
-    public static final Map<Long, ReminderListMessage> reminderListMessages = new ConcurrentHashMap<>();
+    public static final Map<GuildUserKey, ReminderListMessage> reminderListMessages = new ConcurrentHashMap<>();
     
     @SlashCommandInteraction(name = "reminder list", description = "Liste vos rappels.")
     public void reminderList(SlashCommandInteractionEvent event) {
@@ -130,7 +131,7 @@ public class ReminderCommand {
         
         event.replyComponents(generateContainer(reminders, event.getUser(), 1, lastPage))
             .useComponentsV2().setEphemeral(true).queue(
-                hook -> reminderListMessages.put(event.getUser().getIdLong(), new ReminderListMessage(reminders, lastPage))
+                hook -> reminderListMessages.put(new GuildUserKey(event.getMember()), new ReminderListMessage(reminders, lastPage))
             );
     }
     
@@ -296,7 +297,8 @@ public class ReminderCommand {
     private ReminderListMessage getReminderListMessage(GenericInteractionCreateEvent event) {
         if (!(event instanceof IReplyCallback replyCallback)) return null;
         
-        ReminderListMessage reminderMessage = reminderListMessages.get(event.getUser().getIdLong());
+        GuildUserKey key = new GuildUserKey(event.getGuild(), event.getUser());
+        ReminderListMessage reminderMessage = reminderListMessages.get(key);
         if (reminderMessage == null || Instant.now().isAfter(reminderMessage.timestamp.plusSeconds(15 * 60))) {
             replyCallback.reply("Cette interaction a expiré. Veuillez réutiliser la commande pour obtenir une nouvelle liste.").setEphemeral(true).queue();
             
@@ -305,7 +307,7 @@ public class ReminderCommand {
                 componentEvent.getMessage().editMessageComponents(TextDisplay.of("⚠️ Cette liste de rappels a expirer. Veuillez réutiliser la commande pour obtenir une nouvelle liste."))
                     .useComponentsV2().queue();
 
-            reminderListMessages.remove(event.getUser().getIdLong());
+            reminderListMessages.remove(key);
         }
         return reminderMessage;
     }

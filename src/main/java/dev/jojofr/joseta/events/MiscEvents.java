@@ -4,6 +4,7 @@ import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.helper.UserDatabase;
 import dev.jojofr.joseta.entities.GuildConfiguration;
+import dev.jojofr.joseta.entities.GuildUserKey;
 import dev.jojofr.joseta.events.channel.WelcomeChannel;
 import dev.jojofr.joseta.utils.BotCache;
 import net.dv8tion.jda.api.entities.Role;
@@ -58,22 +59,23 @@ public class MiscEvents {
     }
     
     
-    private static final ConcurrentHashMap<Long, Long> userVoiceJoinTime = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<GuildUserKey, Long> userVoiceJoinTime = new ConcurrentHashMap<>();
     
     @EventHandler
     public void voiceChannelUpdate(GuildVoiceUpdateEvent event) {
         AudioChannelUnion joinedChannel = event.getChannelJoined();
         AudioChannelUnion leftChannel = event.getChannelLeft();
         
+        GuildUserKey key = new GuildUserKey(event.getMember());
         // Left a voice channel
         if (leftChannel != null) {
-            Long time = userVoiceJoinTime.remove(event.getMember().getIdLong());
+            Long time = userVoiceJoinTime.remove(key);
             if (time != null) {
                 long timeSpent = System.currentTimeMillis() - time;
                 UserDatabase.addTimeVoice(event.getMember(), timeSpent);
             }
         }
         // Joined a voice channel
-        if (joinedChannel != null) userVoiceJoinTime.put(event.getMember().getIdLong(), System.currentTimeMillis());
+        if (joinedChannel != null) userVoiceJoinTime.put(key, System.currentTimeMillis());
     }
 }
