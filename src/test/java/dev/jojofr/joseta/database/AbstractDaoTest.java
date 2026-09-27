@@ -2,7 +2,6 @@ package dev.jojofr.joseta.database;
 
 import dev.jojofr.joseta.database.daos.GuildDao;
 import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
-import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.GuildEntity;
 import dev.jojofr.joseta.database.entities.SanctionEntity;

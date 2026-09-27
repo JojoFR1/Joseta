@@ -1,8 +1,5 @@
 package dev.jojofr.joseta.entities;
 
-import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.daos.MessageDao;
-import dev.jojofr.joseta.database.daos.UserDao;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
@@ -13,9 +10,7 @@ import net.dv8tion.jda.api.utils.ImageProxy;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -4,7 +4,6 @@ import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.events.MessageEvents;
-import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

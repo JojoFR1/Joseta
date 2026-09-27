@@ -2,14 +2,9 @@ package dev.jojofr.joseta.database.daos;
 
 import dev.jojofr.joseta.database.AbstractDaoTest;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 class ConfigurationDaoTests extends AbstractDaoTest<ConfigurationEntity, ConfigurationDao> {

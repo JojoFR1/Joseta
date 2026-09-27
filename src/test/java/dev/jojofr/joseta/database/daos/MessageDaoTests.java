@@ -1,16 +1,11 @@
 package dev.jojofr.joseta.database.daos;
 
 import dev.jojofr.joseta.database.AbstractDaoTest;
-import dev.jojofr.joseta.database.entities.GuildEntity;
 import dev.jojofr.joseta.database.entities.MessageEntity;
-import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 class MessageDaoTests extends AbstractDaoTest<MessageEntity, MessageDao> {

@@ -2,9 +2,6 @@ package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
-import dev.jojofr.joseta.database.Database;
-import dev.jojofr.joseta.database.daos.UserDao;
-import dev.jojofr.joseta.database.entities.UserEntity;
 import dev.jojofr.joseta.database.helper.UserDatabase;
 import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.events.channel.WelcomeChannel;
