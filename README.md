@@ -30,34 +30,36 @@ Below is non-exhaustive list of the features this bot currently has:
 - A **Goodbye Message** for leaving members.
 - **Rules** + an **Acceptation System**, acting as verification too (not *yet* configurable).
 - An **Auto Response** for common questions (not *yet* configurable but can be disabled).
-- A **Counting Channel** to let users count until infinity.
+- A **Counting Channel** to let users count until infinity, with a special mode where the counting base changes.
 - Multiple commands:
 
-  | Category   | Commands       | Use                                                                                    |
-  |:-----------|:---------------|:---------------------------------------------------------------------------------------|
-  |            | `/config`      | Configure the bot variables for your server. Use a GUI like comoponent message.        |
-  | Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                                      |
-  |            | `/multi`       | Manually send the multiplayer help message.                                            |
-  |            | `/markov`      | (Not implemented!) Generate a pseudo-random message using messages sent on the server. |
-  |            | `/reminder`    | Add or list (and edit/delete) reminders.                                               |
-  | Moderation | `/modlog`      | Get a member current moderation history.                                               |
-  |            | `/(un)ban`     | (Un)Ban a member from the server.                                                      |
-  |            | `/kick`        | Kick a member from the server.                                                         |
-  |            | `/(un)timeout` | (Un)Timeout a member on the server.                                                    |
-  |            | `/(un)warn`    | (Un)Warn a member on the server.                                                       |
-  |            | `/clear`       | Clear messages in the channel.                                                         |
+| Category   | Commands       | Use                                                                                    |
+|:-----------|:---------------|:---------------------------------------------------------------------------------------|
+|            | `/config`      | Configure the bot variables for your server. Use a GUI like comoponent message.        |
+| Misc.      | `/ping`        | Get the bot and Discord API ping in milliseconds.                                      |
+|            | `/multi`       | Manually send the multiplayer help message.                                            |
+|            | `/markov`      | (Not implemented!) Generate a pseudo-random message using messages sent on the server. |
+|            | `/reminder`    | Add or list (and edit/delete) reminders.                                               |
+|            | `/stats`       | Show the user/guild statistics.                                                        |
+| Moderation | `/modlog`      | Get a member current moderation history.                                               |
+|            | `/(un)ban`     | (Un)Ban a member from the server.                                                      |
+|            | `/kick`        | Kick a member from the server.                                                         |
+|            | `/(un)timeout` | (Un)Timeout a member on the server.                                                    |
+|            | `/(un)warn`    | (Un)Warn a member on the server.                                                       |
+|            | `/clear`       | Clear messages in the channel.                                                         |
 
 ## Plans
 
 The current plans and ideas for this bot are the following, in the likely order in which they will be made:
 
 - Add a Logging system ([PR #15](https://github.com/JojoFR1/Joseta/pull/15)):
-- Add a Ticket system (probably PR 17 or 18).
+- Add a Ticket system (probably PR 19 or 20).
+- Implement markov chain message generation (PR 19 or 20).
 - Add permissions check 
 
-- Collect and display statistics (message count, user join/leave)
+- Collect and display statistics (user join/leave)
 
-- Message leaderboard + levels (?).
+- Levels ?
  
 - Add translation for messages & logging (mainly to lower string repetitions and to have it all in one file)
 
