@@ -254,7 +254,7 @@ public class StatsCommand {
                     """
                     ## Statistiques globales
                     -# Statistiques sur **%s** (Prochaine mise à jour %s)
-                    """, guild.getName(), DiscordTimestamp.from(guildStatsCache.timestamp.plusSeconds(24 * 60 * 60)).relative()
+                    """, guild.getName(), DiscordTimestamp.from(guildStatsCache.timestamp.plusSeconds(12 * 60 * 60)).relative()
                 )
             ),
             Separator.createDivider(Separator.Spacing.SMALL),

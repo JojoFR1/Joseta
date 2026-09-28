@@ -151,7 +151,7 @@ public class ScheduledEvents {
         removeExpiredEntities(ModerationCommands.modlogMessages, message -> message.timestamp, 15 * 60);
         removeExpiredEntities(ReminderCommand.reminderListMessages, message -> message.timestamp, 15 * 60);
         removeExpiredEntities(StatsCommand.statsMessages, message -> message.timestamp, 30 * 60);
-        BotCache.checkExpiredStatsCache(24 * 60 * 60);
+        BotCache.checkExpiredStatsCache(12 * 60 * 60);
     }
     
     private static <T> void removeExpiredEntities(Map<?, T> messages, Function<T, Instant> instantGetter, int expirationSeconds) {
