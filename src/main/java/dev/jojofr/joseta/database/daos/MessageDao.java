@@ -5,6 +5,7 @@ import dev.jojofr.joseta.database.entities.MessageEntity;
 import org.jdbi.v3.sqlobject.config.RegisterConstructorMapper;
 import org.jdbi.v3.sqlobject.config.RegisterFieldMapper;
 import org.jdbi.v3.sqlobject.customizer.BindFields;
+import org.jdbi.v3.sqlobject.customizer.BindList;
 import org.jdbi.v3.sqlobject.statement.SqlBatch;
 import org.jdbi.v3.sqlobject.statement.SqlQuery;
 import org.jdbi.v3.sqlobject.statement.SqlUpdate;
@@ -70,15 +71,21 @@ public interface MessageDao {
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId")
     int getMemberMessageCount(long authorId, long guildId);
     
+    @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId AND channel_id NOT IN (<excludedChannelIds>)")
+    int getMemberMessageCountExcludingChannels(long authorId, long guildId, @BindList("excludedChannelIds") long[] excludedChannelIds);
+    
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE author_id = :authorId AND guild_id = :guildId AND channel_id = :channelId")
     int getMemberChannelMessageCount(long authorId, long guildId, long channelId);
     
     @SqlQuery("SELECT COUNT(*) FROM messages WHERE guild_id = :guildId")
     int getGuildMessageCount(long guildId);
     
-    @SqlQuery("SELECT author_id as id, COUNT(*) AS count FROM messages WHERE guild_id = :guildId GROUP BY author_id ORDER BY count DESC LIMIT :limit OFFSET :offset")
+    @SqlQuery("SELECT COUNT(*) FROM messages WHERE guild_id = :guildId AND channel_id NOT IN (<excludedChannelIds>)")
+    int getGuildMessageCountExcludingChannels(long guildId, @BindList("excludedChannelIds") long[] excludedChannelIds);
+    
+    @SqlQuery("SELECT author_id as id, COUNT(*) AS count FROM messages WHERE guild_id = :guildId AND channel_id NOT IN (<excludedChannelIds>) GROUP BY author_id ORDER BY count DESC LIMIT :limit OFFSET :offset")
     @RegisterConstructorMapper(value = LeaderboardEntry.class)
-    List<LeaderboardEntry> getMessageLeaderboard(long guildId, int limit, int offset);
+    List<LeaderboardEntry> getMessageLeaderboard(long guildId, int limit, int offset, @BindList("excludedChannelIds") long[] excludedChannelIds);
     
     @SqlQuery("SELECT COUNT(DISTINCT author_id) FROM messages WHERE guild_id = :guildId")
     int getAmountOfMembersWithMessages(long guildId);

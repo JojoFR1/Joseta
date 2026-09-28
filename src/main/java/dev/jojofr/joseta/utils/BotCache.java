@@ -56,9 +56,12 @@ public class BotCache {
     public static GuildStatsCache getGuildStatsCache(long guildId) {
         return guildStatsCaches.computeIfAbsent(guildId, id ->
             Database.withHandle(handle -> {
-                int totalMessages = handle.attach(MessageDao.class).getGuildMessageCount(guildId);
+                ConfigurationEntity config = getConfiguration(guildId);
+                long[] excludedChannels = { config.countingChannelId, config.countingSpecialChannelId, 1534307776963022848L };
+                
+                int totalMessages = handle.attach(MessageDao.class).getGuildMessageCountExcludingChannels(guildId, excludedChannels);
                 long totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(guildId);
-                List<LeaderboardEntry> messageLeaderboard = handle.attach(MessageDao.class).getMessageLeaderboard(guildId, 50, 0);
+                List<LeaderboardEntry> messageLeaderboard = handle.attach(MessageDao.class).getMessageLeaderboard(guildId, 50, 0, excludedChannels);
                 List<LeaderboardEntry> voiceLeaderboard = handle.attach(UserDao.class).getVoiceLeaderboard(guildId, 50, 0);
                 
                 return new GuildStatsCache(id, totalMessages, totalVoiceTime, messageLeaderboard, voiceLeaderboard);

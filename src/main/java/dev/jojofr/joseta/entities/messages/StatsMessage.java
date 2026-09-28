@@ -45,6 +45,9 @@ public class StatsMessage {
     public static CompletableFuture<StatsMessage> createAsync(long guildId, User user, long botId) {
         StatsMessage message = new StatsMessage(guildId, user, botId);
         
+        ConfigurationEntity config = BotCache.getConfiguration(guildId);
+        long[] excludedChannels = { config.countingChannelId, config.countingSpecialChannelId, 1534307776963022848L };
+        
         CompletableFuture<Color> colorFuture = user.retrieveProfile().submit().thenApply(User.Profile::getAccentColor);
         
         CompletionStage<Void> dbFuture = Database.useHandleAsync(handle -> {
@@ -53,7 +56,7 @@ public class StatsMessage {
             message.lastVoicePage = (userDao.getMemberCountWithVoiceInGuild(guildId) - 1) / 10;
             
             MessageDao messageDao = handle.attach(MessageDao.class);
-            message.messageCount = messageDao.getMemberMessageCount(message.userId, guildId);
+            message.messageCount = messageDao.getMemberMessageCountExcludingChannels(message.userId, guildId, excludedChannels);
             
             message.lastMessagePage = (messageDao.getAmountOfMembersWithMessages(guildId) - 1) / 10;
         });

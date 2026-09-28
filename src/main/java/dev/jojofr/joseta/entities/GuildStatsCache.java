@@ -3,7 +3,9 @@ package dev.jojofr.joseta.entities;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.MessageDao;
 import dev.jojofr.joseta.database.daos.UserDao;
+import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.database.entities.LeaderboardEntry;
+import dev.jojofr.joseta.utils.BotCache;
 
 import java.time.Instant;
 import java.util.List;
@@ -29,6 +31,9 @@ public class GuildStatsCache {
     public List<LeaderboardEntry> getMessageLeaderboard(int start, int end) {
         if (messageLeaderboard.size() < 10) return messageLeaderboard;
         if (end > messageLeaderboard.size()) {
+            ConfigurationEntity config = BotCache.getConfiguration(guildId);
+            long[] excludedChannels = { config.countingChannelId, config.countingSpecialChannelId, 1534307776963022848L };
+            
             int offset = messageLeaderboard.size();
             int limit = 50;
             if (offset + limit < end)
@@ -37,7 +42,7 @@ public class GuildStatsCache {
             if (limit % 50 != 0) limit += 50 - (limit % 50);
             
             int _limit = limit;
-            List<LeaderboardEntry> updatedLeaderboard = Database.withHandle(handle -> handle.attach(MessageDao.class).getMessageLeaderboard(guildId, _limit, offset));
+            List<LeaderboardEntry> updatedLeaderboard = Database.withHandle(handle -> handle.attach(MessageDao.class).getMessageLeaderboard(guildId, _limit, offset, excludedChannels));
             messageLeaderboard.addAll(updatedLeaderboard);
         }
         return messageLeaderboard.subList(Math.max(0, start), Math.min(messageLeaderboard.size(), end));
