@@ -93,7 +93,7 @@ public class ModerationCommands {
             if (sanction.moderatorId == 0) description.append("Inconnu.");
             else description.append("<@").append(sanction.moderatorId).append("> (`").append(sanction.moderatorId).append("`)");
             
-            description.append("\n>    - Raison: ").append(sanction.reason)
+            description.append("\n>    - Raison: ").append(sanction.reason.replace("\n", "\n>      "))
                 .append("\n>    - Date: ").append(DiscordTimestamp.from(sanction.createdAt).longFull());
             
             if (sanction.type != SanctionEntity.SanctionType.KICK && sanction.expiresAt != null && !sanction.isPermanent) description.append("\n>    - Expire: ").append(DiscordTimestamp.from(sanction.expiresAt).longFull());
