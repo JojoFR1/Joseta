@@ -1,5 +1,6 @@
 package dev.jojofr.joseta.events;
 
+import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.annotations.EventModule;
 import dev.jojofr.joseta.annotations.types.EventHandler;
 import dev.jojofr.joseta.database.helper.UserDatabase;
@@ -7,6 +8,9 @@ import dev.jojofr.joseta.entities.GuildConfiguration;
 import dev.jojofr.joseta.entities.GuildUserKey;
 import dev.jojofr.joseta.events.channel.WelcomeChannel;
 import dev.jojofr.joseta.utils.BotCache;
+import dev.jojofr.joseta.utils.Log;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -70,12 +74,35 @@ public class MiscEvents {
         // Left a voice channel
         if (leftChannel != null) {
             Long time = userVoiceJoinTime.remove(key);
-            if (time != null) {
-                long timeSpent = System.currentTimeMillis() - time;
-                UserDatabase.addTimeVoice(event.getMember(), timeSpent);
-            }
+            if (time == null) return;
+            
+            long timeSpent = System.currentTimeMillis() - time;
+            UserDatabase.addTimeVoice(event.getMember(), timeSpent);
         }
         // Joined a voice channel
         if (joinedChannel != null) userVoiceJoinTime.put(key, System.currentTimeMillis());
+    }
+    
+    public static void clearVoiceJoinTime() {
+        for (GuildUserKey key : userVoiceJoinTime.keySet()) {
+            Long time = userVoiceJoinTime.remove(key);
+            if (time == null) continue;
+            
+            long timeSpent = System.currentTimeMillis() - time;
+            
+            Guild guild = JosetaBot.get().getGuildById(key.guildId());
+            if (guild == null) {
+                Log.warn("Guild with ID {} not found while clearing voice join time for user ID {}", key.guildId(), key.userId());
+                continue;
+            }
+            
+            Member member = guild.getMemberById(key.userId());
+            if (member == null) {
+                Log.warn("Member with ID {} not found in guild ID {} while clearing voice join time", key.userId(), key.guildId());
+                continue;
+            }
+            
+            UserDatabase.addTimeVoice(member, timeSpent);
+        }
     }
 }

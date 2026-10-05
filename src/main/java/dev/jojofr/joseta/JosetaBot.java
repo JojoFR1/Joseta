@@ -5,6 +5,7 @@ import dev.jojofr.joseta.annotations.EventProcessor;
 import dev.jojofr.joseta.annotations.InteractionProcessor;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.BotDao;
+import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DotenvDebug;
 import dev.jojofr.joseta.utils.JandexLoader;
@@ -84,6 +85,7 @@ public class JosetaBot {
             Log.info("Shutting down...");
             
             ScheduledEvents.shutdown();
+            MiscEvents.clearVoiceJoinTime();
             
             bot.setAutoReconnect(false);
             bot.shutdown();
@@ -93,7 +95,6 @@ public class JosetaBot {
                     Log.warn("The shutdown 10 second limit was exceeded. Force shutting down...");
                     bot.shutdownNow();
                     
-                    // TODO Not sure if that works
                     if (!bot.awaitShutdown(1, TimeUnit.MINUTES)) {
                         Log.err("The bot did not shutdown after the forced shutdown. Exiting...");
                         OkHttpClient client = bot.getHttpClient();
