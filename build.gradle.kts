@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import java.util.Properties
 
 plugins {
     java
@@ -77,46 +78,48 @@ tasks.test {
     }
 }
 
-val remoteUser = providers.gradleProperty("remoteUser")
-    .orElse(providers.environmentVariable("REMOTE_USER"))
-    .orElse(providers.systemProperty("user.name"))
+val localProperties = providers.fileContents(layout.projectDirectory.file("local.properties"))
+    .asText
+    .map { text -> Properties().apply { load(text.reader()) } }
+    .orElse(Properties())
 
-val remoteHost = providers.gradleProperty("remoteHost")
-    .orElse(providers.environmentVariable("REMOTE_HOST"))
-    .orElse("localhost")
-
-val remotePort = providers.gradleProperty("remotePort")
-    .orElse(providers.environmentVariable("REMOTE_PORT"))
-    .map(String::toInt)
-    .orElse(22)
-
-val remoteKeyPath = providers.gradleProperty("remoteKeyPath")
-    .orElse(providers.environmentVariable("REMOTE_KEY_PATH"))
+val remoteUser = localProperties.map { it.getProperty("remoteUser") ?: System.getProperty("user.name") }
+val remoteHost = localProperties.map { it.getProperty("remoteHost") ?: "localhost" }
+val remotePort = localProperties.map { it.getProperty("remotePort")?.toInt() ?: 22 }
+val remoteKeyPath = localProperties.map { it.getProperty("remoteKeyPath")?.let { path ->
+    val home = System.getProperty("user.home")
+    when {
+        path == "~" -> home
+        path.startsWith("~/") -> home + path.substring(1)
+        else -> path
+    }
+}}
 
 tasks.register<Exec>("uploadServer") {
     group = "deployment"
     description = "Uploads the shadow JAR to the remote server using `scp`."
 
+    isIgnoreExitValue = true // Weird quirk of Pelican's SFTP
+
     dependsOn(tasks.shadowJar)
 
+    val jarFile = tasks.shadowJar.flatMap { it.archiveFile }
+    val user = remoteUser
+    val host = remoteHost
+    val port = remotePort
+    val key = remoteKeyPath
+
     doFirst {
-        val archiveFile = tasks.shadowJar.get().archiveFile.get().asFile
+        val file = jarFile.get().asFile
+        val target = "${user.get()}@${host.get()}"
 
-        val identity = remoteKeyPath.orNull?.let { path ->
-            when {
-                path == "~" -> File(System.getProperty("user.home"))
-                path.startsWith("~/") -> File(System.getProperty("user.home"), path.substring(2))
-                else -> File(path)
-            }
-        }
-
-        val command = mutableListOf("scp", "-P", remotePort.get().toString())
-        if (identity != null) command += listOf("-i", identity.absolutePath)
-
-        command += listOf(archiveFile.absolutePath, "${remoteUser.get()}@${remoteHost.get()}:.")
+        val command = mutableListOf("scp", "-P", port.get().toString())
+        key.orNull?.let { command += listOf("-i", File(it).absolutePath) }
+        command += listOf(file.absolutePath, "$target:.")
 
         commandLine(command)
-
-        logger.lifecycle("Uploading ${archiveFile.name} to ${remoteUser.get()}@${remoteHost.get()}...")
+        logger.lifecycle("Uploading ${file.name} to $target...")
     }
+
+    doLast { logger.lifecycle("scp finished (exit code ${executionResult.get().exitValue})") }
 }
