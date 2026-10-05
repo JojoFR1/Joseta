@@ -1,0 +1,48 @@
+[versions]
+jda = "6.7.0"
+logback = "1.6.5"
+dotenv = "3.2.0"
+
+jandex = "3.6.0"
+
+postgresql = "42.7.13"
+hikari = "7.1.0"
+
+jdbi = "3.54.0"
+flyway = "13.9.0"
+
+junit = "6.1.3"
+testcontainers = "2.0.5"
+assertj = "3.27.7"
+
+shadow = "9.6.0"
+jandexPlugin = "2.3.0"
+
+[libraries]
+jda = { group = "net.dv8tion", name = "JDA", version.ref = "jda" }
+logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }
+dotenv = { group = "io.github.cdimascio", name = "dotenv-java", version.ref = "dotenv" }
+
+jandex = { group = "io.smallrye", name = "jandex", version.ref = "jandex" }
+
+postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
+hikari = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikari" }
+
+jdbi-core = { group = "org.jdbi", name = "jdbi3-core", version.ref = "jdbi" }
+jdbi-sqlobject = { group = "org.jdbi", name = "jdbi3-sqlobject", version.ref = "jdbi" }
+jdbi-postgres = { group = "org.jdbi", name = "jdbi3-postgres", version.ref = "jdbi" }
+
+flyway-core = { group = "org.flywaydb", name = "flyway-core", version.ref = "flyway" }
+flyway-postgresql = { group = "org.flywaydb", name = "flyway-database-postgresql", version.ref = "flyway" }
+
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junit-platform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
+
+testcontainers-junit = { group = "org.testcontainers", name = "testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { group = "org.testcontainers", name = "testcontainers-postgresql", version.ref = "testcontainers" }
+
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+jandex = { id = "org.kordamp.gradle.jandex", version.ref = "jandexPlugin" }
