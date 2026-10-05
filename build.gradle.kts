@@ -44,9 +44,9 @@ dependencies {
 
     testImplementation(libs.assertj)
 }
-jandex { version = libs.versions.jandex.get() }
+jandex { version = libs.versions.jandex }
 
-tasks.withType<JavaCompile>() {
+tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     // Enable parameter name retention at runtime, required for the InteractionProcessor & for JDBI arguments
     options.compilerArgs.add("-parameters")
