@@ -21,7 +21,7 @@ jobs:
         cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
     - name: Build Project
-      run: ./gradlew test shadowJar --configuration-cache
+      run: ./gradlew test shadowJar
 
     - name: Upload built JAR file
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

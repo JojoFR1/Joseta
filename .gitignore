@@ -1,6 +1,7 @@
 # Sensible file
 .env
 *.cfg
+local.properties
 
 # Build
 .gradle/
