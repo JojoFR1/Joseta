@@ -263,15 +263,13 @@ public class ModerationCommands {
         if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
         else reasonFinal = reason;
         
+        pendingSanctions.put(member.getIdLong() + ":timeout", event.getUser().getIdLong());
         member.timeoutFor(TimeUtils.parseTime(time), TimeUnit.SECONDS).reason(reasonFinal).queue(
-            s -> {
-                event.reply("Le membre a bien été mis en timeout.").setEphemeral(true).queue();
-                
-                pendingSanctions.put(member.getIdLong() + ":timeout", event.getUser().getIdLong());
-            },
+            s -> event.reply("Le membre a bien été mis en timeout.").setEphemeral(true).queue(),
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
                 Log.err("Error while executing a command ('timeout').", f);
+                pendingSanctions.remove(member.getIdLong() + ":timeout");
             }
         );
     }
@@ -345,14 +343,13 @@ public class ModerationCommands {
         if (reason == null || reason.isEmpty()) reasonFinal = "Aucun motif fourni.";
         else reasonFinal = reason;
         
+        pendingSanctions.put(member.getIdLong() + ":ban", event.getUser().getIdLong());
         member.ban(clearTimeSeconds, TimeUnit.SECONDS).reason(reasonFinal).queue(
-            s -> {
-                event.reply("Le membre a bien été banni.").setEphemeral(true).queue();
-                pendingSanctions.put(member.getIdLong() + ":ban", event.getUser().getIdLong());
-            },
+            s -> event.reply("Le membre a bien été banni.").setEphemeral(true).queue(),
             f -> {
                 event.reply("Une erreur est survenue lors de l'exécution de la commande.").setEphemeral(true).queue();
                 Log.err("Error while executing a command ('ban').", f);
+                pendingSanctions.remove(member.getIdLong() + ":ban");
             }
         );
     }
