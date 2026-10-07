@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.jandex)
 }
 
-group = "dev.jojofr"
+group = "dev.jojofr.joseta"
 version = "2.6.0"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
