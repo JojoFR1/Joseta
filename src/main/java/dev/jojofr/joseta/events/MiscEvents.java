@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceDeafenEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
@@ -81,6 +82,20 @@ public class MiscEvents {
         }
         // Joined a voice channel
         if (joinedChannel != null) userVoiceJoinTime.put(key, System.currentTimeMillis());
+    }
+    
+    @EventHandler
+    public void deafenEvent(GuildVoiceDeafenEvent event) {
+        if (event.isDeafened()) {
+            GuildUserKey key = new GuildUserKey(event.getMember());
+            Long time = userVoiceJoinTime.remove(key);
+            if (time == null) return;
+            
+            long timeSpent = System.currentTimeMillis() - time;
+            UserDatabase.addTimeVoice(event.getMember(), timeSpent);
+        } else {
+            userVoiceJoinTime.put(new GuildUserKey(event.getMember()), System.currentTimeMillis());
+        }
     }
     
     public static void clearVoiceJoinTime() {
