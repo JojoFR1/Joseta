@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-@InteractionModule
+// @InteractionModule - DISABLED FOR EVENT
 public class ModerationCommands {
     private static final int SANCTION_PER_PAGE = 5;
     public static final Map<Long, ModlogMessage> modlogMessages = new ConcurrentHashMap<>();

@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@InteractionModule
+// @InteractionModule - DISABLED FOR EVENT
 public class StatsCommand {
     public static final Map<GuildUserKey, StatsMessage> statsMessages = new ConcurrentHashMap<>();
     

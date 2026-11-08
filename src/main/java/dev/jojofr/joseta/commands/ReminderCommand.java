@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@InteractionModule
+// @InteractionModule - DISABLED FOR EVENT
 public class ReminderCommand {
     
     @SlashCommandInteraction(name = "reminder add", description = "Ajouter un rappel pour plus tard.")
