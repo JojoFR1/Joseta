@@ -7,6 +7,7 @@ import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.BotDao;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
+import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.DotenvDebug;
 import dev.jojofr.joseta.utils.JandexLoader;
 import dev.jojofr.joseta.utils.Log;
@@ -22,6 +23,7 @@ import okhttp3.OkHttpClient;
 import org.jboss.jandex.Index;
 
 import java.time.*;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 public class JosetaBot {
@@ -36,6 +38,31 @@ public class JosetaBot {
         if (true) return true; // TODO Debug mode, always return true
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Paris"));
         return now.isAfter(START) && now.isBefore(END);
+    }
+    
+    public static HashMap<Long, Instant> eventTimeouts = new HashMap<>();
+    public static void putUserInEventTimeout(long userId, Instant timeoutEnd) { eventTimeouts.put(userId, timeoutEnd); }
+    public static boolean isUserInEventTimeout(long userId) {
+        if (!eventTimeouts.containsKey(userId)) return false;
+        
+        Instant timeoutEnd = eventTimeouts.get(userId);
+        if (Instant.now().isAfter(timeoutEnd)) {
+            eventTimeouts.remove(userId);
+            return false;
+        }
+        
+        return true;
+    }
+    public static DiscordTimestamp getUserEventTimeout(long userId) {
+        if (!eventTimeouts.containsKey(userId)) return null;
+        
+        Instant timeoutEnd = eventTimeouts.get(userId);
+        if (Instant.now().isAfter(timeoutEnd)) {
+            eventTimeouts.remove(userId);
+            return null;
+        }
+        
+        return DiscordTimestamp.from(timeoutEnd.getEpochSecond());
     }
     
     /* TODO Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal
