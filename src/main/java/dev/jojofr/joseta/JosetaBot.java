@@ -96,7 +96,7 @@ public class JosetaBot {
             ).enableCache(
                 CacheFlag.VOICE_STATE
             )
-            .setStatus(OnlineStatus.DO_NOT_DISTURB)
+            .setStatus(OnlineStatus.ONLINE)
             .setActivity(Activity.watching("🇫🇷 Mindustry France."))
             .build();
         

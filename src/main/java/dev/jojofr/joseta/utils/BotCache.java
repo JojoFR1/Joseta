@@ -20,15 +20,16 @@ public class BotCache {
     private static final ConcurrentHashMap<Long, GuildConfiguration> guildConfigurations = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, GuildStatsCache> guildStatsCaches = new ConcurrentHashMap<>();
     
-    public static final Emoji CHECK_EMOJI, CROSS_EMOJI, AUTO_RESPONSE_EMOJI;
+    public static final Emoji CHECK_EMOJI, CROSS_EMOJI, AUTO_RESPONSE_EMOJI, ICON_EMOJI;
     
     static {
         boolean debug = JosetaBot.debug;
         
         //                                                    Debug Emoji ID         Production Emoji ID
-        CHECK_EMOJI = Emoji.fromCustom("yes", debug ? 1459377029328801832L : 1451286173791031337L, false);
-        CROSS_EMOJI = Emoji.fromCustom("no", debug ? 1459377027747680266L : 1451286184817987719L, false);
+        CHECK_EMOJI = Emoji.fromCustom("yes", 1486803003229864147L, false);
+        CROSS_EMOJI = Emoji.fromCustom("no", 1486803124411830372L, false);
         AUTO_RESPONSE_EMOJI = Emoji.fromCustom("doyouknowtheway", debug ? 1533590589705289960L : 1533590364080832703L, false);
+        ICON_EMOJI = Emoji.fromCustom("mindustryfrance", 1487469879702327336L, false);
     }
     
     public static GuildConfiguration getGuildConfiguration(long guildId) {
