@@ -41,6 +41,7 @@ public class JosetaBot {
     }
     
     public static HashMap<Long, Instant> eventTimeouts = new HashMap<>();
+    public static void putUserInEventTimeout(long userId, long seconds, TimeUnit unit) { eventTimeouts.put(userId, Instant.now().plusSeconds(unit.toSeconds(seconds))); }
     public static void putUserInEventTimeout(long userId, Instant timeoutEnd) { eventTimeouts.put(userId, timeoutEnd); }
     public static boolean isUserInEventTimeout(long userId) {
         if (!eventTimeouts.containsKey(userId)) return false;
