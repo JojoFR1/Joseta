@@ -39,19 +39,60 @@ public class SpecialCommand {
         float chance = ThreadLocalRandom.current().nextFloat();
         Member member = event.getMember();
         Guild guild = event.getGuild();
-        if (chance <= 0.01f) {
+        if (chance < 0.01f) {
+            long randomDelay = ThreadLocalRandom.current().nextLong(36, 72);
             guild.addRoleToMember(member, guild.getRoleById(FAKE_ADMIN_ROLE_ID)).queue(
-                success -> event.reply("Surprise ! " + event.getUser().getAsMention() + " a obtenu un rôle très spécial ! (1% de chance)").queue(),
+                success -> {
+                    event.reply("Surprise ! " + event.getUser().getAsMention() + " a obtenu un rôle **très** spécial pendant " + randomDelay + " heures ! (1% de chance)").queue();
+                    guild.removeRoleFromMember(member, guild.getRoleById(FAKE_ADMIN_ROLE_ID)).queueAfter(randomDelay, TimeUnit.HOURS);
+                },
                 error -> {
-                    event.reply("Surprise--... ah, je n'ai pas pu vous le donner le rôle très spécial... dommage ! (1% de chance)").queue();
+                    event.reply("Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! (1% de chance)").queue();
                     Log.warn("Failed to add 'fake admin' role to user " + event.getUser().getIdLong() + " in guild " + event.getGuild().getIdLong(), error);
                 }
             );
-        } else if (chance <= 0.20f) {
+        } else if (chance < 0.05f) {
+            long randomDelay = ThreadLocalRandom.current().nextLong(24, 48);
+            guild.addRoleToMember(member, guild.getRoleById(FAKE_MOD_ROLE_ID)).queue(
+                success -> {
+                    event.reply("Surprise ! " + event.getUser().getAsMention() + " a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant " + randomDelay + " heures ! (5% de chance)").queue();
+                    guild.removeRoleFromMember(member, guild.getRoleById(FAKE_MOD_ROLE_ID)).queueAfter(randomDelay, TimeUnit.HOURS);
+                },
+                error -> {
+                    event.reply("Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! (5% de chance)").queue();
+                    Log.warn("Failed to add 'fake mod' role to user " + event.getUser().getIdLong() + " in guild " + event.getGuild().getIdLong(), error);
+                }
+            );
+        } else if (chance < 0.10f) {
+            long randomDelay = ThreadLocalRandom.current().nextLong(12, 36);
+            guild.addRoleToMember(member, guild.getRoleById(FAKE_SPECIAL_ROLE_ID)).queue(
+                success -> {
+                    event.reply("Surprise ! " + event.getUser().getAsMention() + " est maintenant **\"spécial\"** pendant " + randomDelay + " heures ! (10% de chance)").queue();
+                    guild.removeRoleFromMember(member, guild.getRoleById(FAKE_SPECIAL_ROLE_ID)).queueAfter(randomDelay, TimeUnit.HOURS);
+                },
+                error -> {
+                    event.reply("Surprise--... ah, je n'ai pas pu vous rendre **\"spécial\"**... dommage ! (10% de chance)").queue();
+                    Log.warn("Failed to add 'fake special' role to user " + event.getUser().getIdLong() + " in guild " + event.getGuild().getIdLong(), error);
+                }
+            );
+        } else if (chance < 0.20f) {
+            long randomDelay = ThreadLocalRandom.current().nextLong(6, 24);
+            guild.addRoleToMember(member, guild.getRoleById(FAKE_VIP_ROLE_ID)).queue(
+                success -> {
+                    event.reply("Surprise ! " + event.getUser().getAsMention() + " est maintenant **(pas) important** pendant " + randomDelay + " heures ! (20% de chance)").queue();
+                    guild.removeRoleFromMember(member, guild.getRoleById(FAKE_VIP_ROLE_ID)).queueAfter(randomDelay, TimeUnit.HOURS);
+                },
+                error -> {
+                    event.reply("Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! (20% de chance)").queue();
+                    Log.warn("Failed to add 'fake vip' role to user " + event.getUser().getIdLong() + " in guild " + event.getGuild().getIdLong(), error);
+                }
+            );
+        } else if (chance < 0.30f) {
+            long randomDelay = ThreadLocalRandom.current().nextLong(2, 16);
             guild.addRoleToMember(member, guild.getRoleById(COOL_ROLE_ID)).queue(
                 success -> {
-                    event.reply("Surprise ! " + event.getUser().getAsMention() + " est maintenant **cool** pendant 6 heures ! (20% de chance)").queue();
-                    guild.removeRoleFromMember(member, guild.getRoleById(COOL_ROLE_ID)).queueAfter(6, TimeUnit.HOURS);
+                    event.reply("Surprise ! " + event.getUser().getAsMention() + " est maintenant **cool** pendant " + randomDelay + " heures ! (20% de chance)").queue();
+                    guild.removeRoleFromMember(member, guild.getRoleById(COOL_ROLE_ID)).queueAfter(randomDelay, TimeUnit.HOURS);
                 },
                 error -> {
                     event.reply("Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! (20% de chance)").queue();
@@ -61,7 +102,7 @@ public class SpecialCommand {
         } else {
             chance = ThreadLocalRandom.current().nextFloat();
             
-            if (chance <= 0.05f) {
+            if (chance < 0.05f) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), 2, TimeUnit.HOURS);
                     event.reply("Surprise ! " + event.getUser().getAsMention() + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant 2 heures ! (XXXXX% de chance)").queue();
@@ -75,7 +116,7 @@ public class SpecialCommand {
                         }
                     );
                 }
-            } else if (chance <= 0.15f) {
+            } else if (chance < 0.15f) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), 1, TimeUnit.HOURS);
                     event.reply("Surprise ! " + event.getUser().getAsMention() + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant 1 heure ! (XXXXX% de chance)").queue();
@@ -89,7 +130,7 @@ public class SpecialCommand {
                         }
                     );
                 }
-            } else if (chance <= 0.20f) {
+            } else if (chance < 0.20f) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), 30, TimeUnit.MINUTES);
                     event.reply("Surprise ! " + event.getUser().getAsMention() + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant 30 minutes ! (XXXXX% de chance)").queue();
@@ -103,11 +144,11 @@ public class SpecialCommand {
                         }
                     );
                 }
-            } else if (chance <= 0.25f) {
+            } else if (chance < 0.25f) {
                 guild.addRoleToMember(member, guild.getRoleById(UNVERIFIED_ROLE_ID)).queue();
                 guild.removeRoleFromMember(member, guild.getRoleById(MEMBER_ROLE_ID)).queue();
                 event.reply("Surprise ! " + event.getUser().getAsMention() + ", n'est plus vérifié ! (XXXXX% de chance)").queue();
-            } else if (chance <= 0.30f) {
+            } else if (chance < 0.30f) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), 15, TimeUnit.MINUTES);
                     event.reply("Surprise ! " + event.getUser().getAsMention() + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant 15 minutes ! (XXXXX% de chance)").queue();
@@ -121,7 +162,7 @@ public class SpecialCommand {
                         }
                     );
                 }
-            } else if (chance <= 0.50f) {
+            } else if (chance < 0.50f) {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), 10, TimeUnit.MINUTES);
                     event.reply("Surprise ! " + event.getUser().getAsMention() + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant 10 minutes ! (XXXXX% de chance)").queue();
@@ -167,9 +208,9 @@ public class SpecialCommand {
         
         float chance = ThreadLocalRandom.current().nextFloat();
         // 50% chance to be put in timeout, then 80% for an "event timeout" (which is purely bot side), and 20% chance for a Discord timeout
-        if (chance <= 0.5f) {
+        if (chance < 0.5f) {
             chance = ThreadLocalRandom.current().nextFloat();
-            if (chance <= 0.8f) {
+            if (chance < 0.8f) {
                 JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), 1, TimeUnit.HOURS);
                 event.reply("Dommage... votre accès aux services Premium™ de l'événement a été **restreint** pour 1 heures.\n\n-# Ceci avait 40% de chance de se produire.").queue();
             } else {
