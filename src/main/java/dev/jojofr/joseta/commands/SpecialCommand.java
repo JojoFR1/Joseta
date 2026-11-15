@@ -37,7 +37,7 @@ public class SpecialCommand {
     private static final long MEMBER_ROLE_ID = 1235571503412543552L;
     private static final long UNVERIFIED_ROLE_ID = 1259874357384056852L;
     
-    private static final Duration GACHA_COOLDOWN = Duration.ofMillis(6);
+    private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
     
     private record RoleOutcome(long roleId, int minHours, int maxHours, double chance, String success, String failure, String logName) {}
     private static final List<RoleOutcome> ROLE_OUTCOMES = List.of(

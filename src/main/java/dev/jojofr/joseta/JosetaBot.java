@@ -35,7 +35,6 @@ public class JosetaBot {
     public static ZonedDateTime START = ZonedDateTime.of(LocalDateTime.of(2026, 11, 15, 18, 0), ZoneId.of("Europe/Paris"));
     public static ZonedDateTime END = ZonedDateTime.of(LocalDateTime.of(2026, 11, 23, 0, 0), ZoneId.of("Europe/Paris"));
     public static boolean isEventActive() {
-        if (true) return true; // TODO Debug mode, always return true
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Paris"));
         return now.isAfter(START) && now.isBefore(END);
     }
