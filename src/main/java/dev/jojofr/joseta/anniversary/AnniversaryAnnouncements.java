@@ -33,7 +33,7 @@ public class AnniversaryAnnouncements {
         new Announcement("launch", day(0, 18, 0), """
 {icon} **{premium} est de retour !**
 
-Vous pensiez l'avoir perdue à jamais ? Pour fêter l'anniversaire de {joseta}, **{premium}** revient pour **une semaine entière**, et cette fois-ci c'est ***gratuit***¹ !
+Vous pensiez l'avoir perdu à jamais ? Pour fêter l'anniversaire de {joseta}, **{premium}** revient pour **une semaine entière**, et cette fois-ci c'est ***gratuit***¹ !
 
 Au programme : de la surprise, de la *cool-itude* et d'autres... **surprises**. Restez attentifs, on vous en dévoile un peu plus chaque jour.
 
@@ -93,7 +93,7 @@ Il vous reste quelques tirages pour compléter votre collection et décrocher le
         new Announcement("finale", EVENT_END, """
 Malheureusement, dû à des coûts techniques trop avancés et à la surutilisation de nos services, nous sommes navrés de vous annoncer que **{premium}** ne sera plus disponible dès à présent.
 
-Nous vous présentons nos plus sincères excuses, mais ne craignez pas ! {joseta} restera à votre service, et les rôles obtenus grâce au gacha sont à vous **pour toujours**.
+Nous vous présentons nos plus sincères excuses, mais ne craignez pas ! {joseta} restera à votre service, et les rôles obtenus grâce au `/gacha` sont à vous **pour toujours**.
 
 Merci à toutes et tous d'avoir participé à cet anniversaire !
 
