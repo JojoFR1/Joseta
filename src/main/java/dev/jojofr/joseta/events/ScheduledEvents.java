@@ -1,6 +1,7 @@
 package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.JosetaBot;
+import dev.jojofr.joseta.anniversary.AnniversaryEventDao;
 import dev.jojofr.joseta.commands.ConfigurationCommand;
 import dev.jojofr.joseta.commands.ModerationCommands;
 import dev.jojofr.joseta.commands.ReminderCommand;
@@ -15,7 +16,10 @@ import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -29,6 +33,8 @@ import java.util.function.Function;
 public class ScheduledEvents {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     
+    private static final AnniversaryEventDao dao = Database.getJdbi().onDemand(AnniversaryEventDao.class);
+    
     public static void schedule() {
         // Check reminders every minute
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkReminders, 0, 1, TimeUnit.MINUTES);
@@ -36,6 +42,37 @@ public class ScheduledEvents {
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredSanctions, 0, 15, TimeUnit.MINUTES);
         // Check expired entities every 30 minutes
         scheduler.scheduleAtFixedRate(ScheduledEvents::checkExpiredEntities, 30, 30, TimeUnit.MINUTES);
+        
+        scheduler.scheduleWithFixedDelay(() -> {
+            try {
+                for (AnniversaryEventDao.TemporaryRole row : dao.getExpiredTemporaryRoles(Instant.now())) {
+                    Guild guild = JosetaBot.get().getGuildById(row.guildId());
+                    if (guild == null) continue;
+                    
+                    Role role = guild.getRoleById(row.roleId());
+                    if (role == null) {
+                        dao.deleteTemporaryRole(row.guildId(), row.userId(), row.roleId());
+                        continue;
+                    }
+                    
+                    guild.retrieveMemberById(row.userId()).queue(
+                        member -> guild.removeRoleFromMember(member, role).queue(
+                            success -> dao.deleteTemporaryRole(row.guildId(), row.userId(), row.roleId()),
+                            error -> Log.warn("Failed to remove temporary role {} from user {} in guild {}", error, row.roleId(), row.userId(), row.guildId())
+                        ),
+                        error -> {
+                            if (error instanceof ErrorResponseException e && e.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) {
+                                dao.deleteTemporaryRole(row.guildId(), row.userId(), row.roleId());
+                            } else {
+                                Log.warn("Failed to retrieve member {} in guild {} for temporary role removal", error, row.userId(), row.guildId());
+                            }
+                        }
+                    );
+                }
+            } catch (Throwable t) {
+                Log.err("Error while checking expired temporary roles", t);
+            }
+        }, 0, 1, TimeUnit.MINUTES);
     }
     
     public static void shutdown() {
