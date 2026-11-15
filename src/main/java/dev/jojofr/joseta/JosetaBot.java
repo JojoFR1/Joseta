@@ -23,7 +23,7 @@ import okhttp3.OkHttpClient;
 import org.jboss.jandex.Index;
 
 import java.time.*;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class JosetaBot {
@@ -40,20 +40,8 @@ public class JosetaBot {
         return now.isAfter(START) && now.isBefore(END);
     }
     
-    public static HashMap<Long, Instant> eventTimeouts = new HashMap<>();
+    public static ConcurrentHashMap<Long, Instant> eventTimeouts = new ConcurrentHashMap<>();
     public static void putUserInEventTimeout(long userId, long seconds, TimeUnit unit) { eventTimeouts.put(userId, Instant.now().plusSeconds(unit.toSeconds(seconds))); }
-    public static void putUserInEventTimeout(long userId, Instant timeoutEnd) { eventTimeouts.put(userId, timeoutEnd); }
-    public static boolean isUserInEventTimeout(long userId) {
-        if (!eventTimeouts.containsKey(userId)) return false;
-        
-        Instant timeoutEnd = eventTimeouts.get(userId);
-        if (Instant.now().isAfter(timeoutEnd)) {
-            eventTimeouts.remove(userId);
-            return false;
-        }
-        
-        return true;
-    }
     public static DiscordTimestamp getUserEventTimeout(long userId) {
         if (!eventTimeouts.containsKey(userId)) return null;
         
