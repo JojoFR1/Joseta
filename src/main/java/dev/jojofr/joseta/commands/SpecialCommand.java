@@ -4,6 +4,7 @@ import dev.jojofr.joseta.JosetaBot;
 import dev.jojofr.joseta.anniversary.AnniversaryEventDao;
 import dev.jojofr.joseta.anniversary.GachaCards;
 import dev.jojofr.joseta.annotations.InteractionModule;
+import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
@@ -146,6 +147,35 @@ public class SpecialCommand {
         if (timeoutEnd != null)
             event.reply("Votre accès aux services Premium™ de l'événement est actuellement **restreint** jusqu'au "+ timeoutEnd.longFull() +" ("+ timeoutEnd.relative() +").").queue();
         else event.reply("Votre accès aux services Premium™ de l'événement est actuellement **autorisé**.").queue();
+    }
+    
+    private static final String[] MAGIC_8_BALL_RESPONSES = {
+        "Oui.",
+        "Non.",
+        "Peut-être.",
+        "Certainement !",
+        "Je ne pense pas.",
+        "Demande à nouveau plus tard.",
+        "C'est certain.",
+        "Je ne peux pas te le dire maintenant.",
+        "Les signes indiquent que oui.",
+        "Les signes indiquent que non.",
+        "Absolument !",
+        "Pas du tout.",
+        "C'est possible.",
+        "Je ne suis pas sûr.",
+        "Oui, mais avec des conditions.",
+        "Non, mais il y a de l'espoir.",
+        "Je ne peux pas prédire ça.",
+        "C'est une question difficile.",
+        "Je ne suis pas autorisé à répondre à cette question."
+    };
+    @SlashCommandInteraction(name = "doisje", description = "Posez une question et vous recevrez une réponse garantie")
+    public void should(SlashCommandInteractionEvent event, @Option(name = "question", description = "La question à poser", required = true) String question) {
+        if (isBlocked(event, true)) return;
+        
+        String response = MAGIC_8_BALL_RESPONSES[ThreadLocalRandom.current().nextInt(MAGIC_8_BALL_RESPONSES.length)];
+        event.reply(event.getUser().getAsMention() + ", vous avez demandé : \"" + question + "\"\n\nRéponse : " + response).queue();
     }
     
     
