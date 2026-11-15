@@ -72,4 +72,17 @@ public interface AnniversaryEventDao {
         int copies = addCard(userId, cardId);
         return new PullResult(cardId, copies, totalPulls);
     }
+    
+    
+    @SqlUpdate("INSERT INTO event_announcements (announcement_key, sent_at) VALUES (:key, :sentAt) ON CONFLICT DO NOTHING")
+    int claimAnnouncement(String key, Instant sentAt);
+    
+    @SqlUpdate("DELETE FROM event_announcements WHERE announcement_key = :key")
+    void releaseAnnouncement(String key);
+    
+    @SqlQuery("SELECT announcement_key FROM event_announcements")
+    List<String> sentAnnouncements();
+    
+    @SqlQuery("SELECT MAX(sent_at) FROM event_announcements")
+    Optional<Instant> lastAnnouncementAt();
 }

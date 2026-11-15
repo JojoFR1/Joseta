@@ -1,6 +1,7 @@
 package dev.jojofr.joseta.events;
 
 import dev.jojofr.joseta.JosetaBot;
+import dev.jojofr.joseta.anniversary.AnniversaryAnnouncements;
 import dev.jojofr.joseta.anniversary.AnniversaryEventDao;
 import dev.jojofr.joseta.commands.ConfigurationCommand;
 import dev.jojofr.joseta.commands.ModerationCommands;
@@ -73,6 +74,8 @@ public class ScheduledEvents {
                 Log.err("Error while checking expired temporary roles", t);
             }
         }, 0, 1, TimeUnit.MINUTES);
+        
+        scheduler.scheduleWithFixedDelay(() -> AnniversaryAnnouncements.tick(dao), 0, 1, TimeUnit.MINUTES);
     }
     
     public static void shutdown() {
