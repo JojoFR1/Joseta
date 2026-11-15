@@ -32,10 +32,11 @@ public class JosetaBot {
     
     public static boolean debug = false;
     
-    public static ZonedDateTime START = ZonedDateTime.of(LocalDateTime.of(2026, 11, 15, 18, 0), ZoneId.of("Europe/Paris"));
-    public static ZonedDateTime END = ZonedDateTime.of(LocalDateTime.of(2026, 11, 23, 0, 0), ZoneId.of("Europe/Paris"));
+    public static ZoneId PARIS = ZoneId.of("Europe/Paris");
+    public static ZonedDateTime START = ZonedDateTime.of(LocalDateTime.of(2026, 11, 15, 18, 0), PARIS);
+    public static ZonedDateTime END = ZonedDateTime.of(LocalDateTime.of(2026, 11, 23, 0, 0), PARIS);
     public static boolean isEventActive() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Paris"));
+        ZonedDateTime now = ZonedDateTime.now(PARIS);
         return now.isAfter(START) && now.isBefore(END);
     }
     
