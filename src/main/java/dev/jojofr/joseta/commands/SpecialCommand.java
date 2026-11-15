@@ -20,6 +20,7 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -175,7 +176,7 @@ public class SpecialCommand {
         if (isBlocked(event, true)) return;
         
         String response = MAGIC_8_BALL_RESPONSES[ThreadLocalRandom.current().nextInt(MAGIC_8_BALL_RESPONSES.length)];
-        event.reply(event.getUser().getAsMention() + ", vous avez demandé : \"" + question + "\"\n\nRéponse : " + response).queue();
+        event.reply(event.getUser().getAsMention() + ", vous avez demandé : \"" + question + "\"\n\nRéponse : " + response).setAllowedMentions(Set.of()).queue();
     }
     
     @SlashCommandInteraction(name = "chat", description = "Discutez avec une IA surpuissante !")
