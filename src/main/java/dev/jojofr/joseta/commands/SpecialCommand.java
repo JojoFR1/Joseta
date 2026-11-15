@@ -178,6 +178,13 @@ public class SpecialCommand {
         event.reply(event.getUser().getAsMention() + ", vous avez demandé : \"" + question + "\"\n\nRéponse : " + response).queue();
     }
     
+    @SlashCommandInteraction(name = "chat", description = "Discutez avec une IA surpuissante !")
+    public void chat(SlashCommandInteractionEvent event) {
+        if (isBlocked(event, true)) return;
+        
+        event.reply("Profitez d'une intelligence artificielle surpuissante et personnalisable directement dans votre navigateur web ! Rendez-vous sur <https://joseta.jojofr.dev/chat> pour commencer à discuter avec Joseta.").queue();
+    }
+    
     
     @SlashCommandInteraction(name = "gacha", description = "Tentez votre chance pour obtenir un rôle spécial !")
     public void gacha(SlashCommandInteractionEvent event) {

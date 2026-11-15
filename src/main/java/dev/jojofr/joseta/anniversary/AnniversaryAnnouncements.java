@@ -64,7 +64,16 @@ Alors, **qui sera le premier à compléter un set ?** 👀
 Les rôles permanents n'attendent que vous, et les photos les plus rares se cachent encore. Continuez à tirer avec `/gacha` !
 
 -# Les doublons ne servent à rien, la revente ou l'échange n'est pas possible."""),
-        new Announcement("reviews", day(5, 12, 30), """
+        new Announcement("doisje", day(5, 19, 0), """
+Parce que **{premium}** pense à tout, voici deux dernières nouveautés pour bien finir la semaine !
+
+🎱 `/doisje` : posez votre question et recevez une réponse ***garantie*** par notre intelligence supérieure¹. Jamais contredite (sauf par elle-même).
+
+🤖 `/chat` : discutez avec une IA ***surpuissante*** directement dans votre navigateur, sans rien installer ! Déjà adoptée par plus de **500 millions** d'utilisateurs² → <https://joseta.jojofr.dev/chat>
+
+-# ¹ Les réponses de `/doisje` n'engagent en aucun cas l'équipe de Mindustry France.
+-# ² Chiffre non vérifié, comme tous les autres."""),
+        new Announcement("reviews", day(6, 12, 30), """
 ⭐⭐⭐⭐⭐ **Ce que disent nos utilisateurs de {premium}**
 
 > « J'ai tiré 54 fois avant de compléter mon premier set. Je suis fatigué mais heureux. »
@@ -77,11 +86,10 @@ Les rôles permanents n'attendent que vous, et les photos les plus rares se cach
 > - tout le monde
 
 -# Avis 100 % authentiques, vérifiés par notre équipe d'experts."""),
-        new Announcement("lastday", day(6, 18, 0), """
+        new Announcement("lastday", day(6, 20, 0), """
 **La fin de l'événement approche !**
 
-Il vous reste quelques tirages pour compléter votre collection et décrocher le rôle spécial permanent. `/gacha`, `/surprendmoi`, `/jeveuxetrecool` : profitez-en tant que {premium} est encore là !"""),
-        // TODO: set this to the moment the event ends (it must still be sent while the event is running).
+Il vous reste quelques tirages pour compléter votre collection et décrocher le rôle spécial permanent. `/gacha`, `/surprendmoi`, `/jeveuxetrecool`, `/chat`, `/doisje` : profitez-en tant que {premium} est encore là !"""),
         new Announcement("finale", EVENT_END, """
 Malheureusement, dû à des coûts techniques trop avancés et à la surutilisation de nos services, nous sommes navrés de vous annoncer que **{premium}** ne sera plus disponible dès à présent.
 
