@@ -42,27 +42,27 @@ public class SpecialCommand {
     
     private record RoleOutcome(long roleId, int minHours, int maxHours, double chance, String success, String failure, String logName) {}
     private static final List<RoleOutcome> ROLE_OUTCOMES = List.of(
-        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 36, 72, 1,
+        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 18, 36, 1,
             "Surprise ! {user} a obtenu un rôle **très** spécial pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
         ),
-        new RoleOutcome(FAKE_MOD_ROLE_ID, 24, 48, 3,
+        new RoleOutcome(FAKE_MOD_ROLE_ID, 12, 24, 3,
             "Surprise ! {user} a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! ({chance} de chance)",
             "fake mod"
         ),
-        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 12, 36, 6,
+        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 6, 18, 6,
             "Surprise ! {user} est maintenant **\"spécial\"** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **\"spécial\"**... dommage ! ({chance} de chance)",
             "fake special"
         ),
-        new RoleOutcome(FAKE_VIP_ROLE_ID, 6, 24, 12,
+        new RoleOutcome(FAKE_VIP_ROLE_ID, 3, 12, 12,
             "Surprise ! {user} est maintenant **(pas) important** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 2, 16, 18,
+        new RoleOutcome(COOL_ROLE_ID, 1, 8, 18,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
