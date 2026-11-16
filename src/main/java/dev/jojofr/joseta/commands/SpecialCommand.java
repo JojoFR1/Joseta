@@ -17,9 +17,11 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -40,29 +42,34 @@ public class SpecialCommand {
     
     private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
     
-    private record RoleOutcome(long roleId, int minHours, int maxHours, double chance, String success, String failure, String logName) {}
+    private static final long PERMANENT_ROLE_ODDS = 100_000;
+    private static final long LONG_TIMEOUT_ODDS = 50_000;
+    private static final Duration LONG_TIMEOUT = Duration.ofHours(24);
+    private static final double TIMEOUT_SHARE = 20;
+    
+    private record RoleOutcome(long roleId, int minMinutes, int maxMinutes, double chance, String success, String failure, String logName) {}
     private static final List<RoleOutcome> ROLE_OUTCOMES = List.of(
-        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 18, 36, 1,
+        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 1,
             "Surprise ! {user} a obtenu un rôle **très** spécial pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
         ),
-        new RoleOutcome(FAKE_MOD_ROLE_ID, 12, 24, 3,
+        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 3,
             "Surprise ! {user} a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! ({chance} de chance)",
             "fake mod"
         ),
-        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 6, 18, 6,
+        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 6,
             "Surprise ! {user} est maintenant **\"spécial\"** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **\"spécial\"**... dommage ! ({chance} de chance)",
             "fake special"
         ),
-        new RoleOutcome(FAKE_VIP_ROLE_ID, 3, 12, 12,
+        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 12,
             "Surprise ! {user} est maintenant **(pas) important** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 1, 8, 18,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 18,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
@@ -98,6 +105,17 @@ public class SpecialCommand {
     public void surprise(SlashCommandInteractionEvent event) {
         if (isBlocked(event, true)) return;
         
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        Role special = event.getGuild().getRoleById(SPECIAL_ROLE_ID);
+        if (special != null && random.nextLong(PERMANENT_ROLE_ODDS) == 0) {
+            givePermanentSpecialRole(event, special);
+            return;
+        }
+        if (random.nextLong(LONG_TIMEOUT_ODDS) == 0) {
+            applyLongTimeout(event);
+            return;
+        }
+        
         RoleOutcome outcome = pick(ROLE_OUTCOMES, RoleOutcome::chance, ThreadLocalRandom.current().nextDouble() * 100);
         if (outcome != null) {
             giveRandomRole(event, outcome);
@@ -105,7 +123,7 @@ public class SpecialCommand {
         }
         
         Penalty penalty = pick(PENALTIES, Penalty::chance, ThreadLocalRandom.current().nextDouble() * 100);
-        if (penalty == null) penalty = PENALTIES.get(PENALTIES.size() - 1);
+        if (penalty == null) penalty = PENALTIES.getLast();
         applyPenalty(event, penalty);
     }
     
@@ -256,7 +274,7 @@ public class SpecialCommand {
     
     
     private void giveRandomRole(SlashCommandInteractionEvent event, RoleOutcome outcome) {
-        Duration duration = Duration.ofHours(ThreadLocalRandom.current().nextLong(outcome.minHours(), outcome.maxHours()));
+        Duration duration = randomDuration(outcome.minMinutes(), outcome.maxMinutes());
         String chance = formatPercentage(outcome.chance());
         addTemporaryRole(event, outcome.roleId(), outcome.logName(), duration,
             () -> event.reply(formatTemplate(outcome.success(), event, duration, chance)).queue(),
@@ -277,23 +295,52 @@ public class SpecialCommand {
             return;
         }
         
-        String chance = formatPercentage(bandChance / 2);
+        String restrictChance = formatPercentage(bandChance * (100 - TIMEOUT_SHARE) / 100);
+        String timeoutChance = formatPercentage(bandChance * TIMEOUT_SHARE / 100);
         Duration restriction = penalty.restriction();
         Duration discordTimeout = penalty.discordTimeout();
         
-        if (ThreadLocalRandom.current().nextBoolean()) {
+        if (ThreadLocalRandom.current().nextDouble() * 100 >= TIMEOUT_SHARE) {
             restrict(event, restriction);
-            event.reply("Surprise ! " + userMention + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(restriction) + " ! (" + chance + " de chance)").queue();
+            event.reply("Surprise ! " + userMention + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(restriction) + " ! (" + restrictChance + " de chance)").queue();
         } else {
             timeoutOrFallback(event, discordTimeout,
-                () -> event.reply("Surprise ! " + userMention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(discordTimeout) + " ! (" + chance + " de chance)").queue(),
+                () -> event.reply("Surprise ! " + userMention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue(),
                 error -> {
                     restrict(event, discordTimeout);
-                    event.reply("Surprise--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(discordTimeout) + " ! (" + chance + " de chance)").queue();
+                    event.reply("Surprise--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue();
                     Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
                 }
             );
         }
+    }
+    
+    private void givePermanentSpecialRole(SlashCommandInteractionEvent event, Role role) {
+        Guild guild = event.getGuild();
+        String mention = event.getUser().getAsMention();
+        String odds = formatOdds(PERMANENT_ROLE_ODDS);
+        
+        guild.addRoleToMember(event.getMember(), role).queue(
+            success -> event.reply("\uD83C\uDF89 **INCROYABLE !** " + mention + " vient de décrocher le rôle **" + role.getName() + "** de façon **permanente** ! (" + odds + ")").queue(),
+            error -> {
+                Log.warn("Failed to give permanent special role to user {} in guild {}", error, event.getUser().getIdLong(), guild.getIdLong());
+                event.reply("Surprise--... ah, je n'ai pas pu vous donner le rôle **" + role.getName() + "** alors que c'était " + odds + " ! Contactez un administrateur.").queue();
+            }
+        );
+    }
+    
+    private void applyLongTimeout(SlashCommandInteractionEvent event) {
+        String mention = event.getUser().getAsMention();
+        String odds = formatOdds(LONG_TIMEOUT_ODDS);
+        
+        timeoutOrFallback(event, LONG_TIMEOUT,
+            () -> event.reply("\uD83D\uDC80 **Catastrophe !** " + mention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(LONG_TIMEOUT) + " ! (" + odds + ")").queue(),
+            error -> {
+                restrict(event, LONG_TIMEOUT);
+                event.reply("Catastrophe--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(LONG_TIMEOUT) + " ! (" + odds + ")").queue();
+                Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
+            }
+        );
     }
     
     private static void timeoutOrFallback(SlashCommandInteractionEvent event, Duration duration, Runnable runnable, Consumer<Throwable> error) {
@@ -368,8 +415,8 @@ public class SpecialCommand {
     
     private static String formatTemplate(String template, SlashCommandInteractionEvent event, Duration duration, String chance) {
         return template.replace("{user}", event.getUser().getAsMention())
-                       .replace("{hours}", formatDuration(duration))
-                       .replace("{chance}", chance);
+            .replace("{hours}", formatDuration(duration))
+            .replace("{chance}", chance);
     }
     private static String formatPercentage(double percent) {
         BigDecimal value = BigDecimal.valueOf(percent).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros();
@@ -377,11 +424,20 @@ public class SpecialCommand {
     }
     private static String formatDuration(Duration duration) {
         long minutes = duration.toMinutes();
-        if (minutes % 60 == 0) {
-            long hours = minutes / 60;
-            return hours + (hours > 1 ? " heures" : " heure");
-        }
-        return minutes + (minutes > 1 ? " minutes" : " minute");
+        long hours = minutes / 60;
+        long rest = minutes % 60;
+        if (hours == 0) return minutes + (minutes > 1 ? " minutes" : " minute");
+        String h = hours + (hours > 1 ? " heures" : " heure");
+        if (rest == 0) return h;
+        return h + " et " + rest + (rest > 1 ? " minutes" : " minute");
+    }
+    private static String formatOdds(long oneIn) {
+        return "1 chance sur " + NumberFormat.getIntegerInstance(Locale.FRANCE).format(oneIn);
+    }
+    private static Duration randomDuration(int minMinutes, int maxMinutes) {
+        int step = 5;
+        long steps = (maxMinutes - minMinutes) / step;
+        return Duration.ofMinutes(minMinutes + step * ThreadLocalRandom.current().nextLong(steps + 1));
     }
     
     private static String gachaProgress(List<Integer> owned) {
