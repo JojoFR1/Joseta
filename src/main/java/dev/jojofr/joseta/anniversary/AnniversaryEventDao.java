@@ -28,6 +28,14 @@ public interface AnniversaryEventDao {
     @SqlQuery("""
         SELECT guild_id, user_id, role_id, expires_at
         FROM event_temporary_roles
+        WHERE guild_id = :guildId AND user_id = :userId
+    """)
+    @RegisterConstructorMapper(TemporaryRole.class)
+    List<TemporaryRole> getTemporaryRolesForUser(long guildId, long userId);
+    
+    @SqlQuery("""
+        SELECT guild_id, user_id, role_id, expires_at
+        FROM event_temporary_roles
         WHERE expires_at <= :now
         ORDER BY expires_at
     """)

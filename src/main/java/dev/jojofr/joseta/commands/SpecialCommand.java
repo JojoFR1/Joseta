@@ -204,6 +204,26 @@ public class SpecialCommand {
         event.reply("Profitez d'une intelligence artificielle surpuissante et personnalisable directement dans votre navigateur web ! Rendez-vous sur <https://joseta.jojofr.dev/chat> pour commencer à discuter avec Joseta.").queue();
     }
     
+    @SlashCommandInteraction(name = "jaiquoi", description = "Obtenez une liste de vos rôles temporairement obtenus !")
+    public void what(SlashCommandInteractionEvent event) {
+        if (isBlocked(event, false)) return;
+        
+        List<AnniversaryEventDao.TemporaryRole> temporaryRoles = dao().getTemporaryRolesForUser(event.getGuild().getIdLong(), event.getUser().getIdLong());
+        if (temporaryRoles.isEmpty()) {
+            event.reply("Vous n'avez actuellement aucun rôle temporaire obtenu via l'événement.").queue();
+            return;
+        }
+        
+        StringBuilder message = new StringBuilder("Voici la liste de vos rôles temporaires obtenus via l'événement :\n");
+        for (AnniversaryEventDao.TemporaryRole temporaryRole : temporaryRoles) {
+            Role role = event.getGuild().getRoleById(temporaryRole.roleId());
+            if (role == null) continue;
+            message.append("- ").append(role.getAsMention()).append(" (expire ").append(DiscordTimestamp.from(temporaryRole.expiresAt()).relative()).append(")\n");
+        }
+        
+        event.reply(message.toString()).setAllowedMentions(Set.of()).queue();
+    }
+    
     
     @SlashCommandInteraction(name = "gacha", description = "Tentez votre chance pour obtenir un rôle spécial !")
     public void gacha(SlashCommandInteractionEvent event) {
@@ -450,4 +470,3 @@ public class SpecialCommand {
         return sb.toString();
     }
 }
-
