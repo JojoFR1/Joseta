@@ -54,22 +54,22 @@ public class SpecialCommand {
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
         ),
-        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 2,
+        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 3,
             "Surprise ! {user} a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! ({chance} de chance)",
             "fake mod"
         ),
-        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 4,
+        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 6,
             "Surprise ! {user} est maintenant **\"spécial\"** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **\"spécial\"**... dommage ! ({chance} de chance)",
             "fake special"
         ),
-        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 8,
+        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 10,
             "Surprise ! {user} est maintenant **(pas) important** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 15,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 20,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
