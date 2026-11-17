@@ -54,22 +54,22 @@ public class SpecialCommand {
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
         ),
-        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 3,
+        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 2,
             "Surprise ! {user} a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! ({chance} de chance)",
             "fake mod"
         ),
-        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 6,
+        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 4,
             "Surprise ! {user} est maintenant **\"spécial\"** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **\"spécial\"**... dommage ! ({chance} de chance)",
             "fake special"
         ),
-        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 12,
+        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 8,
             "Surprise ! {user} est maintenant **(pas) important** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 18,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 15,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
@@ -79,13 +79,13 @@ public class SpecialCommand {
     private static final double NEGATIVE_CHANCE = 100 - ROLE_OUTCOMES.stream().mapToDouble(RoleOutcome::chance).sum();
     private record Penalty(double chance, Duration restriction, Duration discordTimeout) {};
     private static final List<Penalty> PENALTIES = List.of(
-        new Penalty(5, Duration.ofHours(2), Duration.ofHours(1)),
-        new Penalty(10, Duration.ofHours(1), Duration.ofMinutes(30)),
-        new Penalty(5, Duration.ofMinutes(30), Duration.ofMinutes(15)),
-        new Penalty(5, null, null), // Unverified
-        new Penalty(5, Duration.ofMinutes(15), Duration.ofMinutes(10)),
-        new Penalty(20, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-        new Penalty(50, Duration.ofMinutes(5), Duration.ofMinutes(1))
+        new Penalty(40, Duration.ofMinutes(5), Duration.ofMinutes(1)),
+        new Penalty(26, Duration.ofMinutes(10), Duration.ofMinutes(5)),
+        new Penalty(15, Duration.ofMinutes(15), Duration.ofMinutes(10)),
+        new Penalty(9, Duration.ofMinutes(30), Duration.ofMinutes(15)),
+        new Penalty(5, Duration.ofHours(1), Duration.ofMinutes(30)),
+        new Penalty(3, Duration.ofHours(2), Duration.ofHours(1)),
+        new Penalty(2, null, null) // Unverified
     );
     
     static {
