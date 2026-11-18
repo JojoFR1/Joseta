@@ -1,6 +1,7 @@
 package dev.jojofr.joseta;
 
 import ch.qos.logback.classic.Level;
+import dev.jojofr.joseta.anniversary.AnniversaryEventDao;
 import dev.jojofr.joseta.annotations.EventProcessor;
 import dev.jojofr.joseta.annotations.InteractionProcessor;
 import dev.jojofr.joseta.database.Database;
@@ -24,7 +25,7 @@ import okhttp3.OkHttpClient;
 import org.jboss.jandex.Index;
 
 import java.time.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class JosetaBot {
@@ -41,19 +42,15 @@ public class JosetaBot {
         return now.isAfter(START) && now.isBefore(END);
     }
     
-    public static ConcurrentHashMap<GuildUserKey, Instant> eventTimeouts = new ConcurrentHashMap<>();
-    public static void putUserInEventTimeout(long guildId, long userId, long seconds, TimeUnit unit) { eventTimeouts.put(new GuildUserKey(guildId, userId), Instant.now().plusSeconds(unit.toSeconds(seconds))); }
+    public static void putUserInEventTimeout(long guildId, long userId, long seconds, TimeUnit unit) {
+        Database.getAnniversaryEventDao().upsertRestriction(guildId, userId, Instant.now().plusSeconds(unit.toSeconds(seconds)));
+    }
     public static DiscordTimestamp getUserEventTimeout(long guildId, long userId) {
-        GuildUserKey key = new GuildUserKey(guildId, userId);
-        if (!eventTimeouts.containsKey(key)) return null;
+        Optional<AnniversaryEventDao.Restriction> restriction = Database.getAnniversaryEventDao().getRestriction(guildId, userId);
+        if (restriction.isEmpty()) return null;
         
-        Instant timeoutEnd = eventTimeouts.get(key);
-        if (Instant.now().isAfter(timeoutEnd)) {
-            eventTimeouts.remove(key);
-            return null;
-        }
-        
-        return DiscordTimestamp.from(timeoutEnd.getEpochSecond());
+        Instant timeout = restriction.get().expiresAt();
+        return DiscordTimestamp.from(timeout);
     }
     
     /* TODO Allow to change the welcome image (would need to allow to customize the text location and content) - could use file upload modal

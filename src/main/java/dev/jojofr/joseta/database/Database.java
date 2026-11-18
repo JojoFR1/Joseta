@@ -2,6 +2,7 @@ package dev.jojofr.joseta.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import dev.jojofr.joseta.anniversary.AnniversaryEventDao;
 import dev.jojofr.joseta.database.daos.MarkovBlacklistDao;
 import dev.jojofr.joseta.database.entities.SanctionEntity;
 import dev.jojofr.joseta.utils.Log;
@@ -29,6 +30,8 @@ public class Database {
     
     private static ExecutorService executorService;
     private static JdbiExecutor executor;
+    
+    private static AnniversaryEventDao dao;
     
     public static boolean initialize(String user, String password, String host, String port, String database) {
         if (user == null || user.isBlank()) {
@@ -105,6 +108,8 @@ public class Database {
                 }
             });
             
+            dao = jdbi.onDemand(AnniversaryEventDao.class);
+            
             executorService = Executors.newFixedThreadPool(8);
             executor = JdbiExecutor.create(jdbi, executorService);
             
@@ -113,6 +118,11 @@ public class Database {
             Log.err("Database initialization failed.", e);
             return false;
         }
+    }
+    
+    public static AnniversaryEventDao getAnniversaryEventDao() {
+        if (dao == null) throw new IllegalStateException("The database is not initialized. Call Database.initialize(...) first.");
+        return dao;
     }
     
     public static void close() {

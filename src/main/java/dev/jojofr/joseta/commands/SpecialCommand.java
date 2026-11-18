@@ -209,7 +209,7 @@ public class SpecialCommand {
     
     @SlashCommandInteraction(name = "jaiquoi", description = "Obtenez une liste de vos rôles temporairement obtenus !")
     public void what(SlashCommandInteractionEvent event) {
-        List<AnniversaryEventDao.TemporaryRole> temporaryRoles = dao().getTemporaryRolesForUser(event.getGuild().getIdLong(), event.getUser().getIdLong());
+        List<AnniversaryEventDao.TemporaryRole> temporaryRoles = Database.getAnniversaryEventDao().getTemporaryRolesForUser(event.getGuild().getIdLong(), event.getUser().getIdLong());
         if (temporaryRoles.isEmpty()) {
             event.reply("Vous n'avez actuellement aucun rôle temporaire obtenu via l'événement.").queue();
             return;
@@ -238,7 +238,7 @@ public class SpecialCommand {
         AnniversaryEventDao.PullResult pull;
         List<Integer> owned;
         try {
-            AnniversaryEventDao dao = dao();
+            AnniversaryEventDao dao = Database.getAnniversaryEventDao();
             pull = dao.pull(userId, now, GACHA_COOLDOWN, GachaCards::roll);
             if (pull == null) {
                 Instant next = dao.lastPull(userId).orElse(now).plus(GACHA_COOLDOWN);
@@ -375,9 +375,6 @@ public class SpecialCommand {
         }
     }
     
-    
-    private static AnniversaryEventDao dao() { return Database.getJdbi().onDemand(AnniversaryEventDao.class); }
-    
     private static boolean isBlocked(SlashCommandInteractionEvent event, boolean checkRestriction) {
         if (!JosetaBot.isEventActive()) {
             event.reply("L'équipe de Mindustry France est navrée de vous annoncer que cette fonctionnalité n'est plus disponible pour le moment.").setEphemeral(true).queue();
@@ -409,7 +406,7 @@ public class SpecialCommand {
         }
         
         try {
-            dao().upsertTemporaryRole(guild.getIdLong(), userId, roleId, Instant.now().plus(duration));
+            Database.getAnniversaryEventDao().upsertTemporaryRole(guild.getIdLong(), userId, roleId, Instant.now().plus(duration));
         } catch (Exception e) {
             Log.warn("Failed to store temporary role '{}' ({}) for user {} in guild {}", e, logName, roleId, userId, guild.getIdLong());
             onFailure.run();

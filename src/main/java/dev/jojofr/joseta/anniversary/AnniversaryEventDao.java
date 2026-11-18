@@ -13,16 +13,15 @@ import java.util.function.IntSupplier;
 
 public interface AnniversaryEventDao {
     record TemporaryRole(long guildId, long userId, long roleId, Instant expiresAt) {}
+    record Restriction(long guildId, long userId, Instant expiresAt) {}
     record PullResult(int cardId, int copies, int totalPulls) {}
     
-    @SqlUpdate(
-        """
-            INSERT INTO event_temporary_roles (guild_id, user_id, role_id, expires_at)
-            VALUES (:guildId, :userId, :roleId, :expiresAt)
-            ON CONFLICT (guild_id, user_id, role_id) DO UPDATE
-            SET expires_at = GREATEST(event_temporary_roles.expires_at, EXCLUDED.expires_at)
-        """
-    )
+    @SqlUpdate("""
+        INSERT INTO event_temporary_roles (guild_id, user_id, role_id, expires_at)
+        VALUES (:guildId, :userId, :roleId, :expiresAt)
+        ON CONFLICT (guild_id, user_id, role_id) DO UPDATE
+        SET expires_at = GREATEST(event_temporary_roles.expires_at, EXCLUDED.expires_at)
+    """)
     void upsertTemporaryRole(long guildId, long userId, long roleId, Instant expiresAt);
     
     @SqlQuery("""
@@ -46,6 +45,33 @@ public interface AnniversaryEventDao {
     void deleteTemporaryRole(long guildId, long userId, long roleId);
     
     
+    @SqlUpdate("""
+        INSERT INTO event_restrictions (guild_id, user_id, expires_at)
+        VALUES (:guildId, :userId, :expiresAt)
+        ON CONFLICT (guild_id, user_id) DO UPDATE
+        SET expires_at = GREATEST(event_restrictions.expires_at, EXCLUDED.expires_at)
+    """)
+    void upsertRestriction(long guildId, long userId, Instant expiresAt);
+    
+    @SqlQuery("""
+        SELECT guild_id, user_id, expires_at
+        FROM event_restrictions
+        WHERE guild_id = :guildId AND user_id = :userId
+    """)
+    @RegisterConstructorMapper(Restriction.class)
+    Optional<Restriction> getRestriction(long guildId, long userId);
+    
+    @SqlQuery("""
+        SELECT guild_id, user_id, expires_at
+        FROM event_restrictions
+        WHERE expires_at <= :now
+        ORDER BY expires_at
+    """)
+    @RegisterConstructorMapper(Restriction.class)
+    List<Restriction> getExpiredRestrictions(Instant now);
+    
+    @SqlUpdate("DELETE FROM event_restrictions WHERE guild_id = :guildId AND user_id = :userId")
+    void deleteRestriction(long guildId, long userId);
     
     @SqlQuery("""
         INSERT INTO event_gacha_users (user_id, last_pull_at, pulls)
