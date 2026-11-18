@@ -40,7 +40,7 @@ public class SpecialCommand {
     private static final long MEMBER_ROLE_ID = 1235571503412543552L;
     private static final long UNVERIFIED_ROLE_ID = 1259874357384056852L;
     
-    private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
+    private static final Duration GACHA_COOLDOWN = Duration.ofHours(5);
     
     private static final long PERMANENT_ROLE_ODDS = 80_000;
     private static final long LONG_TIMEOUT_ODDS = 25_000;
