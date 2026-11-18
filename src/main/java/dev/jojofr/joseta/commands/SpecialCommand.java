@@ -162,7 +162,7 @@ public class SpecialCommand {
     public void isEventTimeout(SlashCommandInteractionEvent event) {
         if (isBlocked(event, false)) return;
         
-        DiscordTimestamp timeoutEnd = JosetaBot.getUserEventTimeout(event.getUser().getIdLong());
+        DiscordTimestamp timeoutEnd = JosetaBot.getUserEventTimeout(event.getGuild().getIdLong(), event.getUser().getIdLong());
         if (timeoutEnd != null)
             event.reply("Votre accès aux services Premium™ de l'événement est actuellement **restreint** jusqu'au "+ timeoutEnd.longFull() +" ("+ timeoutEnd.relative() +").").queue();
         else event.reply("Votre accès aux services Premium™ de l'événement est actuellement **autorisé**.").queue();
@@ -384,7 +384,7 @@ public class SpecialCommand {
         }
         if (!checkRestriction) return false;
         
-        DiscordTimestamp timeoutEnd = JosetaBot.getUserEventTimeout(event.getUser().getIdLong());
+        DiscordTimestamp timeoutEnd = JosetaBot.getUserEventTimeout(event.getGuild().getIdLong(), event.getUser().getIdLong());
         if (timeoutEnd == null) return false;
         
         event.reply("Votre accès aux services Premium™ de l'événement est actuellement **restreint** jusqu'au " + timeoutEnd.longFull() + " ("+ timeoutEnd.relative() +").").setEphemeral(true).queue();
@@ -392,7 +392,7 @@ public class SpecialCommand {
     }
     
     private static void restrict(SlashCommandInteractionEvent event, Duration duration) {
-        JosetaBot.putUserInEventTimeout(event.getUser().getIdLong(), duration.toMinutes(), TimeUnit.MINUTES);
+        JosetaBot.putUserInEventTimeout(event.getGuild().getIdLong(), event.getUser().getIdLong(), duration.toMinutes(), TimeUnit.MINUTES);
     }
     
     private void addTemporaryRole(SlashCommandInteractionEvent event, long roleId, String logName, Duration duration, Runnable onSuccess, Runnable onFailure) {

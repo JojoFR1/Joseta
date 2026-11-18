@@ -5,6 +5,7 @@ import dev.jojofr.joseta.annotations.EventProcessor;
 import dev.jojofr.joseta.annotations.InteractionProcessor;
 import dev.jojofr.joseta.database.Database;
 import dev.jojofr.joseta.database.daos.BotDao;
+import dev.jojofr.joseta.entities.GuildUserKey;
 import dev.jojofr.joseta.events.MiscEvents;
 import dev.jojofr.joseta.events.ScheduledEvents;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
@@ -40,14 +41,15 @@ public class JosetaBot {
         return now.isAfter(START) && now.isBefore(END);
     }
     
-    public static ConcurrentHashMap<Long, Instant> eventTimeouts = new ConcurrentHashMap<>();
-    public static void putUserInEventTimeout(long userId, long seconds, TimeUnit unit) { eventTimeouts.put(userId, Instant.now().plusSeconds(unit.toSeconds(seconds))); }
-    public static DiscordTimestamp getUserEventTimeout(long userId) {
-        if (!eventTimeouts.containsKey(userId)) return null;
+    public static ConcurrentHashMap<GuildUserKey, Instant> eventTimeouts = new ConcurrentHashMap<>();
+    public static void putUserInEventTimeout(long guildId, long userId, long seconds, TimeUnit unit) { eventTimeouts.put(new GuildUserKey(guildId, userId), Instant.now().plusSeconds(unit.toSeconds(seconds))); }
+    public static DiscordTimestamp getUserEventTimeout(long guildId, long userId) {
+        GuildUserKey key = new GuildUserKey(guildId, userId);
+        if (!eventTimeouts.containsKey(key)) return null;
         
-        Instant timeoutEnd = eventTimeouts.get(userId);
+        Instant timeoutEnd = eventTimeouts.get(key);
         if (Instant.now().isAfter(timeoutEnd)) {
-            eventTimeouts.remove(userId);
+            eventTimeouts.remove(key);
             return null;
         }
         
