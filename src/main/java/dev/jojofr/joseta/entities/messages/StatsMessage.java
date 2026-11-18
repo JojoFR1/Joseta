@@ -21,6 +21,8 @@ public class StatsMessage {
     public int currentPage = 0;
     private int lastMessagePage = 0;
     private int lastVoicePage = 0;
+    private int lastCountingPage = 0;
+    private int lastCountingSpecialPage = 0;
     public char leaderboardType = 'm';
     public Color color;
     
@@ -59,6 +61,9 @@ public class StatsMessage {
             message.messageCount = messageDao.getMemberMessageCountExcludingChannels(message.userId, guildId, excludedChannels);
             
             message.lastMessagePage = (messageDao.getAmountOfMembersWithMessages(guildId) - 1) / 10;
+            
+            message.lastCountingPage = (userDao.getMemberCountWithCountingSuccessInGuild(guildId) - 1) / 10;
+            message.lastCountingSpecialPage = (userDao.getMemberCountWithCountingSpecialSuccessInGuild(guildId) - 1) / 10;
         });
         
         return colorFuture.thenCombine(dbFuture, (color, ignored) -> {
@@ -88,6 +93,12 @@ public class StatsMessage {
     }
     
     public int getLastPage() {
-        return leaderboardType == 'm' ? lastMessagePage : lastVoicePage;
+        return switch (leaderboardType) {
+            case 'm' -> lastMessagePage;
+            case 'v' -> lastVoicePage;
+            case 'c' -> lastCountingPage;
+            case 's' -> lastCountingSpecialPage;
+            default -> 0;
+        };
     }
 }

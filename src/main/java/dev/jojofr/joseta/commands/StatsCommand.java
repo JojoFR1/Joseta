@@ -321,10 +321,12 @@ public class StatsCommand {
         };
         for (int i = 0; i < pageEntry.size(); i++) {
             LeaderboardEntry entry = pageEntry.get(i);
-            if (statsMessage.leaderboardType == 'm')
-                leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
-            else if (statsMessage.leaderboardType == 'v')
-                leaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), TimeUtils.formatTime(entry.count() / 1000)));
+            switch (statsMessage.leaderboardType) {
+                case 'm' -> leaderboardContent.append("%d. <@%d> · %,d messages\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
+                case 'v' -> leaderboardContent.append("%d. <@%d> · %s\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), TimeUtils.formatTime(entry.count() / 1000)));
+                case 'c' -> leaderboardContent.append("%d. <@%d> · %,d comptages réussis\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
+                case 's' -> leaderboardContent.append("%d. <@%d> · %,d comptages spéciaux réussis\n".formatted(i + 1 + (statsMessage.currentPage * 10), entry.id(), entry.count()));
+            }
         }
         
         return Container.of(

@@ -105,6 +105,12 @@ public interface UserDao {
     @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId AND time_voice > 0")
     int getMemberCountWithVoiceInGuild(long guildId);
     
+    @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId AND counting_success > 0")
+    int getMemberCountWithCountingSuccessInGuild(long guildId);
+    
+    @SqlQuery("SELECT COUNT(*) FROM users WHERE guild_id = :guildId AND counting_special_success > 0")
+    int getMemberCountWithCountingSpecialSuccessInGuild(long guildId);
+    
     
     @SqlUpdate("DELETE FROM users WHERE id = :id AND guild_id = :guildId")
     void delete(long id, long guildId);
