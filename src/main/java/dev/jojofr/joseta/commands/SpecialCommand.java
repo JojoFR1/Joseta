@@ -42,14 +42,14 @@ public class SpecialCommand {
     
     private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
     
-    private static final long PERMANENT_ROLE_ODDS = 100_000;
-    private static final long LONG_TIMEOUT_ODDS = 50_000;
+    private static final long PERMANENT_ROLE_ODDS = 80_000;
+    private static final long LONG_TIMEOUT_ODDS = 25_000;
     private static final Duration LONG_TIMEOUT = Duration.ofHours(24);
     private static final double TIMEOUT_SHARE = 20;
     
     private record RoleOutcome(long roleId, int minMinutes, int maxMinutes, double chance, String success, String failure, String logName) {}
     private static final List<RoleOutcome> ROLE_OUTCOMES = List.of(
-        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 1,
+        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 1.25,
             "Surprise ! {user} a obtenu un rôle **très** spécial pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
@@ -69,7 +69,7 @@ public class SpecialCommand {
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 20,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 19.75,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
@@ -80,12 +80,11 @@ public class SpecialCommand {
     private record Penalty(double chance, Duration restriction, Duration discordTimeout) {};
     private static final List<Penalty> PENALTIES = List.of(
         new Penalty(40, Duration.ofMinutes(5), Duration.ofMinutes(1)),
-        new Penalty(26, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-        new Penalty(15, Duration.ofMinutes(15), Duration.ofMinutes(10)),
-        new Penalty(9, Duration.ofMinutes(30), Duration.ofMinutes(15)),
-        new Penalty(5, Duration.ofHours(1), Duration.ofMinutes(30)),
-        new Penalty(3, Duration.ofHours(2), Duration.ofHours(1)),
-        new Penalty(2, null, null) // Unverified
+        new Penalty(30, Duration.ofMinutes(10), Duration.ofMinutes(5)),
+        new Penalty(16, Duration.ofMinutes(15), Duration.ofMinutes(10)),
+        new Penalty(8, Duration.ofMinutes(30), Duration.ofMinutes(15)),
+        new Penalty(4, Duration.ofHours(1), Duration.ofMinutes(30)),
+        new Penalty(2, Duration.ofHours(2), Duration.ofHours(1))
     );
     
     static {
