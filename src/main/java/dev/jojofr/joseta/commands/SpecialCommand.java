@@ -40,7 +40,7 @@ public class SpecialCommand {
     private static final long MEMBER_ROLE_ID = 1235571503412543552L;
     private static final long UNVERIFIED_ROLE_ID = 1259874357384056852L;
     
-    private static final Duration GACHA_COOLDOWN = Duration.ofHours(5);
+    private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
     
     private static final long PERMANENT_ROLE_ODDS = 80_000;
     private static final long LONG_TIMEOUT_ODDS = 25_000;
@@ -49,7 +49,7 @@ public class SpecialCommand {
     
     private record RoleOutcome(long roleId, int minMinutes, int maxMinutes, double chance, String success, String failure, String logName) {}
     private static final List<RoleOutcome> ROLE_OUTCOMES = List.of(
-        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 1.25,
+        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 0.5,
             "Surprise ! {user} a obtenu un rôle **très** spécial pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
@@ -69,7 +69,7 @@ public class SpecialCommand {
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 19.75,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 14.5,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
