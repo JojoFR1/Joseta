@@ -187,7 +187,11 @@ public class SpecialCommand {
         "Non, mais il y a de l'espoir.",
         "Je ne peux pas prédire ça.",
         "C'est une question difficile.",
-        "Je ne suis pas autorisé à répondre à cette question."
+        "Je ne suis pas autorisé à répondre à cette question.",
+        "Gamble !",
+        "Une pizza a emporter... Oui... Oui. Non... Oui. f2lix.",
+        "Je suis déjà marié.",
+        "Les addictions aux jeux d'argents et d'hasard sont dangereuses, si vous avez besoin d'aide, n'hésitez pas à contacter des associations spécialisées comme <https://www.joueurs-info-service.fr/> ou <https://sos-jeu.ch/>."
     };
     @SlashCommandInteraction(name = "doisje", description = "Posez une question et vous recevrez une réponse garantie")
     public void should(SlashCommandInteractionEvent event, @Option(name = "question", description = "La question à poser", required = true) String question) {
@@ -206,8 +210,6 @@ public class SpecialCommand {
     
     @SlashCommandInteraction(name = "jaiquoi", description = "Obtenez une liste de vos rôles temporairement obtenus !")
     public void what(SlashCommandInteractionEvent event) {
-        if (isBlocked(event, false)) return;
-        
         List<AnniversaryEventDao.TemporaryRole> temporaryRoles = dao().getTemporaryRolesForUser(event.getGuild().getIdLong(), event.getUser().getIdLong());
         if (temporaryRoles.isEmpty()) {
             event.reply("Vous n'avez actuellement aucun rôle temporaire obtenu via l'événement.").queue();
