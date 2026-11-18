@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.section.Section;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
@@ -22,6 +23,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 
 import java.awt.*;
@@ -117,14 +119,14 @@ public class StatsCommand {
     }
     
     @Interaction(id = "stats:leaderboard:type:*")
-    public void onLeaderboardTypeButton(ButtonInteractionEvent event) {
+    public void onLeaderboardTypeButton(StringSelectInteractionEvent event) {
         String[] parts = event.getComponentId().split(":");
-        if (parts.length <= 4) {
+        if (parts.length <= 3) {
             event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
             return;
         }
         
-        long ownerId = Long.parseLong(parts[4]);
+        long ownerId = Long.parseLong(parts[3]);
         if (event.getUser().getIdLong() != ownerId) {
             event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
             return;
@@ -133,8 +135,12 @@ public class StatsCommand {
         StatsMessage statsMessage = checkStatsMessage(event, ownerId);
         if (statsMessage == null) return;
         
-        String buttonId = parts[3];
-        if (buttonId.equals("m") || buttonId.equals("v")) statsMessage.leaderboardType = buttonId.charAt(0);
+        String buttonId = event.getSelectedOptions().getFirst().getValue();
+        if (!buttonId.equals("m") && !buttonId.equals("v") && !buttonId.equals("c") && !buttonId.equals("s")) {
+            event.reply("Type de classement invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        statsMessage.leaderboardType = buttonId.charAt(0);
         
         if (statsMessage.currentPage > statsMessage.getLastPage()) statsMessage.currentPage = statsMessage.getLastPage();
         
@@ -230,15 +236,34 @@ public class StatsCommand {
         Color accentColor = BotCache.getGuildConfiguration(guild.getIdLong()).accentColor;
         
         StringBuilder leaderboardContent = new StringBuilder();
-        leaderboardContent.append("### 🏆 Classement des ").append(statsMessage.leaderboardType == 'm' ? "messages" : "temps de vocal")
-            .append(" (page %d/%d)\n".formatted(statsMessage.currentPage + 1, statsMessage.getLastPage() + 1));
+        String leaderboardType = switch (statsMessage.leaderboardType) {
+            case 'm' -> "messages";
+            case 'v' -> "temps de vocal";
+            case 'c' -> "comptage";
+            case 's' -> "comptage spécial";
+            default -> "inconnu";
+        };
+        leaderboardContent.append("### 🏆 Classement des ").append(leaderboardType).append('\n');
         if (statsMessage.leaderboardType == 'v') leaderboardContent.append("-# Le temps de vocal est traqué uniquement depuis le 28 Juillet 2026\n");
         
-        Button typeSwitch = Button.success("stats:leaderboard:type:" + (statsMessage.leaderboardType == 'm' ? 'v' : 'm') + ":" + statsMessage.userId, "Classement " + (statsMessage.leaderboardType == 'm' ? "temps vocal" : "messages"));
+        StringSelectMenu typeSelect = StringSelectMenu.create("stats:leaderboard:type:" + statsMessage.userId)
+            .addOption("Classement messages", "m", "Classement des messages")
+            .addOption("Classement temps vocal", "v", "Classement du temps de vocal")
+            .addOption("Classement comptage", "c", "Classement du comptage")
+            .addOption("Classement comptage spécial", "s", "Classement du comptage spécial")
+            .setPlaceholder("Sélectionnez le type de classement")
+            .setDefaultValues(String.valueOf(statsMessage.leaderboardType))
+            .build();
         
         int startIndex = statsMessage.currentPage * 10;
         int endIndex = startIndex + 10;
-        List<LeaderboardEntry> pageEntry = statsMessage.leaderboardType == 'm' ? guildStatsCache.getMessageLeaderboard(startIndex, endIndex) : guildStatsCache.getVoiceLeaderboard(startIndex, endIndex);
+        List<LeaderboardEntry> pageEntry = switch (statsMessage.leaderboardType) {
+            case 'm' -> guildStatsCache.getMessageLeaderboard(startIndex, endIndex);
+            case 'v' -> guildStatsCache.getVoiceLeaderboard(startIndex, endIndex);
+            case 'c' -> guildStatsCache.getCountingLeaderboard(startIndex, endIndex);
+            case 's' -> guildStatsCache.getCountingSpecialLeaderboard(startIndex, endIndex);
+            default -> List.of();
+        };
         for (int i = 0; i < pageEntry.size(); i++) {
             LeaderboardEntry entry = pageEntry.get(i);
             if (statsMessage.leaderboardType == 'm')
@@ -274,10 +299,11 @@ public class StatsCommand {
             ActionRow.of(
                 Button.secondary("stats:leaderboard:nav:first:" + statsMessage.userId, "⏪").withDisabled(statsMessage.currentPage == 0),
                 Button.secondary("stats:leaderboard:nav:prev:" + statsMessage.userId, "◀️").withDisabled(statsMessage.currentPage <= 0),
-                typeSwitch,
+                Button.primary("stats:leaderboard:nav:page:" + statsMessage.userId, "Page " + (statsMessage.currentPage + 1) + "/" + (statsMessage.getLastPage() + 1)).withDisabled(true),
                 Button.secondary("stats:leaderboard:nav:next:" + statsMessage.userId, "▶️").withDisabled(statsMessage.currentPage >= statsMessage.getLastPage()),
                 Button.secondary("stats:leaderboard:nav:last:" + statsMessage.userId, "⏩").withDisabled(statsMessage.currentPage == statsMessage.getLastPage())
             ),
+            ActionRow.of(typeSelect),
             Separator.createDivider(Separator.Spacing.LARGE),
             
             createNavigationRow(statsMessage)

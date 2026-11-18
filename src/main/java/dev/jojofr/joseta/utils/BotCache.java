@@ -63,8 +63,10 @@ public class BotCache {
                 long totalVoiceTime = handle.attach(UserDao.class).getTotalTimeVoice(guildId);
                 List<LeaderboardEntry> messageLeaderboard = handle.attach(MessageDao.class).getMessageLeaderboard(guildId, 50, 0, excludedChannels);
                 List<LeaderboardEntry> voiceLeaderboard = handle.attach(UserDao.class).getVoiceLeaderboard(guildId, 50, 0);
+                List<LeaderboardEntry> countingLeaderboard = handle.attach(UserDao.class).getCountingLeaderboard(guildId, 50, 0);
+                List<LeaderboardEntry> countingSpecialLeaderboard = handle.attach(UserDao.class).getCountingSpecialLeaderboard(guildId, 50, 0);
                 
-                return new GuildStatsCache(id, totalMessages, totalVoiceTime, messageLeaderboard, voiceLeaderboard);
+                return new GuildStatsCache(id, totalMessages, totalVoiceTime, messageLeaderboard, voiceLeaderboard, countingLeaderboard, countingSpecialLeaderboard);
             })
         );
     }

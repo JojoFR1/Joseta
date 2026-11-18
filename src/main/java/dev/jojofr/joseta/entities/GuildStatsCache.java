@@ -16,15 +16,19 @@ public class GuildStatsCache {
     public final long totalVoiceTime;
     private final List<LeaderboardEntry> messageLeaderboard;
     private final List<LeaderboardEntry> voiceLeaderboard;
+    private final List<LeaderboardEntry> countingLeaderboard;
+    private final List<LeaderboardEntry> countingSpecialLeaderboard;
     
     public final Instant timestamp;
     
-    public GuildStatsCache(long guildId, int totalMessages, long totalVoiceTime, List<LeaderboardEntry> messageLeaderboard, List<LeaderboardEntry> voiceLeaderboard) {
+    public GuildStatsCache(long guildId, int totalMessages, long totalVoiceTime, List<LeaderboardEntry> messageLeaderboard, List<LeaderboardEntry> voiceLeaderboard, List<LeaderboardEntry> countingLeaderboard, List<LeaderboardEntry> countingSpecialLeaderboard) {
         this.guildId = guildId;
         this.totalMessages = totalMessages;
         this.totalVoiceTime = totalVoiceTime;
         this.messageLeaderboard = messageLeaderboard;
         this.voiceLeaderboard = voiceLeaderboard;
+        this.countingLeaderboard = countingLeaderboard;
+        this.countingSpecialLeaderboard = countingSpecialLeaderboard;
         this.timestamp = Instant.now();
     }
     
@@ -63,5 +67,39 @@ public class GuildStatsCache {
             voiceLeaderboard.addAll(updatedLeaderboard);
         }
         return voiceLeaderboard.subList(Math.max(0, start), Math.min(voiceLeaderboard.size(), end));
+    }
+    
+    public List<LeaderboardEntry> getCountingLeaderboard(int start, int end) {
+        if (countingLeaderboard.size() < 10) return countingLeaderboard;
+        if (end > countingLeaderboard.size()) {
+            int offset = countingLeaderboard.size();
+            int limit = 50;
+            if (offset + limit < end)
+                limit = (end - offset);
+            
+            if (limit % 50 != 0) limit += 50 - (limit % 50);
+            
+            int _limit = limit;
+            List<LeaderboardEntry> updatedLeaderboard = Database.withHandle(handle -> handle.attach(UserDao.class).getCountingLeaderboard(guildId, _limit, offset));
+            countingLeaderboard.addAll(updatedLeaderboard);
+        }
+        return countingLeaderboard.subList(Math.max(0, start), Math.min(countingLeaderboard.size(), end));
+    }
+    
+    public List<LeaderboardEntry> getCountingSpecialLeaderboard(int start, int end) {
+        if (countingSpecialLeaderboard.size() < 10) return countingSpecialLeaderboard;
+        if (end > countingSpecialLeaderboard.size()) {
+            int offset = countingSpecialLeaderboard.size();
+            int limit = 50;
+            if (offset + limit < end)
+                limit = (end - offset);
+            
+            if (limit % 50 != 0) limit += 50 - (limit % 50);
+            
+            int _limit = limit;
+            List<LeaderboardEntry> updatedLeaderboard = Database.withHandle(handle -> handle.attach(UserDao.class).getCountingSpecialLeaderboard(guildId, _limit, offset));
+            countingSpecialLeaderboard.addAll(updatedLeaderboard);
+        }
+        return countingSpecialLeaderboard.subList(Math.max(0, start), Math.min(countingSpecialLeaderboard.size(), end));
     }
 }

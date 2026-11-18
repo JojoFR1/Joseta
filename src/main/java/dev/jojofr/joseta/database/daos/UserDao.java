@@ -87,6 +87,14 @@ public interface UserDao {
     @RegisterConstructorMapper(value = LeaderboardEntry.class)
     List<LeaderboardEntry> getVoiceLeaderboard(long guildId, int limit, int offset);
     
+    @SqlQuery("SELECT id, counting_success as count FROM users WHERE guild_id = :guildId AND counting_success > 0 ORDER BY counting_success DESC LIMIT :limit OFFSET :offset")
+    @RegisterConstructorMapper(value = LeaderboardEntry.class)
+    List<LeaderboardEntry> getCountingLeaderboard(long guildId, int limit, int offset);
+    
+    @SqlQuery("SELECT id, counting_special_success as count FROM users WHERE guild_id = :guildId AND counting_special_success > 0 ORDER BY counting_special_success DESC LIMIT :limit OFFSET :offset")
+    @RegisterConstructorMapper(value = LeaderboardEntry.class)
+    List<LeaderboardEntry> getCountingSpecialLeaderboard(long guildId, int limit, int offset);
+    
     @SqlQuery("SELECT * FROM users WHERE id = :id AND guild_id = :guildId")
     @RegisterFieldMapper(value = UserEntity.class)
     UserEntity getById(long id, long guildId);
