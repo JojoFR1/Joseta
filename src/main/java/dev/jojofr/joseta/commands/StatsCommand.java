@@ -13,18 +13,23 @@ import dev.jojofr.joseta.utils.TimeUtils;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.section.Section;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.thumbnail.Thumbnail;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.modals.Modal;
 
 import java.awt.*;
 import java.time.Instant;
@@ -111,6 +116,21 @@ public class StatsCommand {
         switch (buttonId) {
             case "first" -> statsMessage.currentPage = 0;
             case "prev" -> statsMessage.previousPage();
+            case "page" -> {
+                Modal pageModal = Modal.create("stats:leaderboard:input:page:" + statsMessage.userId, "Aller à la page").addComponents(
+                    Label.of(
+                        "Définissez le numéro de page",
+                        "La page que vous souhaitez afficher, entre 1 et "+ (statsMessage.getLastPage() + 1) +".",
+                        TextInput.create("stats:leaderboard:nav:page:" + statsMessage.userId + ":input", TextInputStyle.SHORT)
+                            .setPlaceholder("Entrez le numéro de page (1-"+ (statsMessage.getLastPage() + 1) +")")
+                            .setMinLength(1)
+                            .setMaxLength(5)
+                            .setValue(String.valueOf(statsMessage.currentPage + 1))
+                            .setRequired(true)
+                            .build()
+                )).build();
+                event.replyModal(pageModal).queue();
+            }
             case "next" -> statsMessage.nextPage();
             case "last" -> statsMessage.currentPage = statsMessage.getLastPage();
         }
@@ -144,6 +164,41 @@ public class StatsCommand {
         
         if (statsMessage.currentPage > statsMessage.getLastPage()) statsMessage.currentPage = statsMessage.getLastPage();
         
+        event.editComponents(createGlobalStatsContainer(statsMessage, event.getGuild())).useComponentsV2().queue();
+    }
+    
+    @Interaction(id = "stats:leaderboard:input:*")
+    public void onLeaderboardPageInput(ModalInteractionEvent event) {
+        String[] parts = event.getCustomId().split(":");
+        if (parts.length <= 4) {
+            event.reply("ID de bouton invalide. Ce menu est obsolète. Veuillez utiliser la commande `/stats` pour créer un nouveau menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        long ownerId = Long.parseLong(parts[4]);
+        if (event.getUser().getIdLong() != ownerId) {
+            event.reply("Vous ne pouvez pas interagir avec ce menu, car vous n'êtes pas le propriétaire de l'interaction. Veuillez utiliser la commande `/stats` pour créer votre propre menu de statistiques.").setEphemeral(true).queue();
+            return;
+        }
+        
+        StatsMessage statsMessage = checkStatsMessage(event, ownerId);
+        if (statsMessage == null) return;
+        
+        String inputValue = event.getValue("stats:leaderboard:nav:page:" + statsMessage.userId + ":input").getAsString();
+        int pageNumber;
+        try {
+            pageNumber = Integer.parseInt(inputValue);
+        } catch (NumberFormatException e) {
+            event.reply("Numéro de page invalide. Veuillez entrer un nombre entier entre 1 et " + (statsMessage.getLastPage() + 1) + ".").setEphemeral(true).queue();
+            return;
+        }
+        
+        if (pageNumber < 1 || pageNumber > statsMessage.getLastPage() + 1) {
+            event.reply("Numéro de page invalide. Veuillez entrer un nombre entier entre 1 et " + (statsMessage.getLastPage() + 1) + ".").setEphemeral(true).queue();
+            return;
+        }
+        
+        statsMessage.currentPage = pageNumber - 1;
         event.editComponents(createGlobalStatsContainer(statsMessage, event.getGuild())).useComponentsV2().queue();
     }
     
@@ -299,7 +354,7 @@ public class StatsCommand {
             ActionRow.of(
                 Button.secondary("stats:leaderboard:nav:first:" + statsMessage.userId, "⏪").withDisabled(statsMessage.currentPage == 0),
                 Button.secondary("stats:leaderboard:nav:prev:" + statsMessage.userId, "◀️").withDisabled(statsMessage.currentPage <= 0),
-                Button.primary("stats:leaderboard:nav:page:" + statsMessage.userId, "Page " + (statsMessage.currentPage + 1) + "/" + (statsMessage.getLastPage() + 1)).withDisabled(true),
+                Button.primary("stats:leaderboard:nav:page:" + statsMessage.userId, "Page " + (statsMessage.currentPage + 1) + "/" + (statsMessage.getLastPage() + 1)),
                 Button.secondary("stats:leaderboard:nav:next:" + statsMessage.userId, "▶️").withDisabled(statsMessage.currentPage >= statsMessage.getLastPage()),
                 Button.secondary("stats:leaderboard:nav:last:" + statsMessage.userId, "⏩").withDisabled(statsMessage.currentPage == statsMessage.getLastPage())
             ),
