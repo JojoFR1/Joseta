@@ -43,8 +43,8 @@ public class SpecialCommand {
     
     private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
     
-    private static final long PERMANENT_ROLE_ODDS = 80_000;
-    private static final long LONG_TIMEOUT_ODDS = 25_000;
+    private static final long PERMANENT_ROLE_ODDS = 60_000;
+    private static final long LONG_TIMEOUT_ODDS = 20_000;
     private static final Duration LONG_TIMEOUT = Duration.ofHours(24);
     private static final double TIMEOUT_SHARE = 20;
     
