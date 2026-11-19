@@ -137,6 +137,8 @@ public class SpecialCommand {
         double roll = ThreadLocalRandom.current().nextDouble() * 100;
         String mention = event.getUser().getAsMention();
         
+        event.deferReply().queue();
+        
         if (roll < restrictChance) {
             restrict(event, COOL_RESTRICTION);
             event.reply("Dommage... votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(restrictChance) + " de chance de se produire.").queue();
@@ -155,6 +157,7 @@ public class SpecialCommand {
                 () -> event.reply("Incroyable ! " + mention + ", tu es maintenant **cool** pendant " + formatDuration(COOL_DURATION) + " !\n\n-# Ceci avait " + formatPercentage(coolChance) + " de chance de se produire.").queue(),
                 () -> event.reply("Dommage... le bot n'a pas pu vous rendre **cool**, mais au fond vous êtes déjà cool !\n\n-# Ceci avait " + formatPercentage(coolChance) + " de chance de se produire.").queue()
             );
+            Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), COOL_ROLE_ID, COOL_DURATION.toSeconds());
         }
     }
     
@@ -200,6 +203,7 @@ public class SpecialCommand {
         
         String response = MAGIC_8_BALL_RESPONSES[ThreadLocalRandom.current().nextInt(MAGIC_8_BALL_RESPONSES.length)];
         event.reply(event.getUser().getAsMention() + ", vous avez demandé : \"" + question + "\"\n\nRéponse : " + response).setAllowedMentions(Set.of()).queue();
+        Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), 3, 0);
     }
     
     @SlashCommandInteraction(name = "chat", description = "Discutez avec une IA surpuissante !")
@@ -311,10 +315,14 @@ public class SpecialCommand {
         String userMention = event.getUser().getAsMention();
         double bandChance = NEGATIVE_CHANCE * penalty.chance() / 100;
         
+        event.deferReply().queue();
+        
+        // No longer used
         if (penalty.discordTimeout() == null && penalty.restriction() == null) {
             guild.addRoleToMember(member, guild.getRoleById(UNVERIFIED_ROLE_ID)).queue();
             guild.removeRoleFromMember(member, guild.getRoleById(MEMBER_ROLE_ID)).queue();
             event.reply("Surprise ! " + userMention + ", vous n'êtes plus vérifié ! (" + formatPercentage(bandChance) + " de chance)").queue();
+            Database.getAnniversaryEventDao().upsertHistoryEntry(guild.getIdLong(), member.getIdLong(), 2, 0);
             return;
         }
         
@@ -350,6 +358,7 @@ public class SpecialCommand {
                 event.reply("Surprise--... ah, je n'ai pas pu vous donner le rôle **" + role.getName() + "** alors que c'était " + odds + " ! Contactez un administrateur.").queue();
             }
         );
+        Database.getAnniversaryEventDao().upsertHistoryEntry(guild.getIdLong(), event.getUser().getIdLong(), role.getIdLong(), 0);
     }
     
     private void applyLongTimeout(SlashCommandInteractionEvent event) {
@@ -364,6 +373,7 @@ public class SpecialCommand {
                 Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
             }
         );
+        Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), 1, LONG_TIMEOUT.toSeconds());
     }
     
     private static void timeoutOrFallback(SlashCommandInteractionEvent event, Duration duration, Runnable runnable, Consumer<Throwable> error) {
@@ -372,6 +382,7 @@ public class SpecialCommand {
                 success -> runnable.run(),
                 error
             );
+            Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), 1, duration.toSeconds());
         } catch (RuntimeException e) {
             error.accept(e);
         }
@@ -393,12 +404,15 @@ public class SpecialCommand {
     
     private static void restrict(SlashCommandInteractionEvent event, Duration duration) {
         JosetaBot.putUserInEventTimeout(event.getGuild().getIdLong(), event.getUser().getIdLong(), duration.toMinutes(), TimeUnit.MINUTES);
+        Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), 0, duration.toSeconds());
     }
     
     private void addTemporaryRole(SlashCommandInteractionEvent event, long roleId, String logName, Duration duration, Runnable onSuccess, Runnable onFailure) {
         Guild guild = event.getGuild();
         Member member = event.getMember();
         long userId = event.getUser().getIdLong();
+        
+        event.deferReply().queue();
         
         Role role = guild.getRoleById(roleId);
         if (role == null) {
@@ -409,6 +423,7 @@ public class SpecialCommand {
         
         try {
             Database.getAnniversaryEventDao().upsertTemporaryRole(guild.getIdLong(), userId, roleId, Instant.now().plus(duration));
+            Database.getAnniversaryEventDao().upsertHistoryEntry(guild.getIdLong(), userId, roleId, duration.toSeconds());
         } catch (Exception e) {
             Log.warn("Failed to store temporary role '{}' ({}) for user {} in guild {}", e, logName, roleId, userId, guild.getIdLong());
             onFailure.run();

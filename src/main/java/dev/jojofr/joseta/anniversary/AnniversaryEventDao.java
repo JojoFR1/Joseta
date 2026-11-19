@@ -15,6 +15,7 @@ public interface AnniversaryEventDao {
     record TemporaryRole(long guildId, long userId, long roleId, Instant expiresAt) {}
     record Restriction(long guildId, long userId, Instant expiresAt) {}
     record PullResult(int cardId, int copies, int totalPulls) {}
+    record HistoryEntry(long guildId, long userId, long id, int count, Instant time) {}
     
     @SqlUpdate("""
         INSERT INTO event_temporary_roles (guild_id, user_id, role_id, expires_at)
@@ -119,4 +120,15 @@ public interface AnniversaryEventDao {
     
     @SqlQuery("SELECT MAX(sent_at) FROM event_announcements")
     Optional<Instant> lastAnnouncementAt();
+    
+    
+    @SqlUpdate("""
+        INSERT INTO event_history (guild_id, user_id, id, time)
+        VALUES (:guildId, :userId, :id, :time)
+        ON CONFLICT (guild_id, user_id, id)
+        DO UPDATE SET
+            count = event_history.count + 1,
+            time = event_history.time + EXCLUDED.time
+    """)
+    void upsertHistoryEntry(long guildId, long userId, long id, long additionalTime);
 }
