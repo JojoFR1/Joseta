@@ -55,7 +55,7 @@ public class SpecialCommand {
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
         ),
-        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 3,
+        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 4,
             "Surprise ! {user} a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! ({chance} de chance)",
             "fake mod"
@@ -70,7 +70,7 @@ public class SpecialCommand {
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 14.5,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 18.5,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
@@ -82,10 +82,10 @@ public class SpecialCommand {
     private static final List<Penalty> PENALTIES = List.of(
         new Penalty(40, Duration.ofMinutes(5), Duration.ofMinutes(1)),
         new Penalty(30, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-        new Penalty(16, Duration.ofMinutes(15), Duration.ofMinutes(10)),
+        new Penalty(18, Duration.ofMinutes(15), Duration.ofMinutes(10)),
         new Penalty(8, Duration.ofMinutes(30), Duration.ofMinutes(15)),
-        new Penalty(4, Duration.ofHours(1), Duration.ofMinutes(30)),
-        new Penalty(2, Duration.ofHours(2), Duration.ofHours(1))
+        new Penalty(3, Duration.ofHours(1), Duration.ofMinutes(30)),
+        new Penalty(1, Duration.ofHours(2), Duration.ofHours(1))
     );
     
     static {
