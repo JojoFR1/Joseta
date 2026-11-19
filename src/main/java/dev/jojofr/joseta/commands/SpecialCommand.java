@@ -137,28 +137,30 @@ public class SpecialCommand {
         double roll = ThreadLocalRandom.current().nextDouble() * 100;
         String mention = event.getUser().getAsMention();
         
-        event.deferReply().queue();
-        
-        if (roll < restrictChance) {
-            restrict(event, COOL_RESTRICTION);
-            event.reply("Dommage... votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(restrictChance) + " de chance de se produire.").queue();
-        } else if (roll < COOL_BAD_CHANCE) {
-            timeoutOrFallback(event, COOL_DISCORD_TIMEOUT,
-                () -> event.reply("Terrible... " + mention + ", vous avez été mis en **exclusion temporaire** pour " + formatDuration(COOL_DISCORD_TIMEOUT) + " par le bot.\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue(),
-                error -> {
+        event.deferReply().queue(
+            hook -> {
+                if (roll < restrictChance) {
                     restrict(event, COOL_RESTRICTION);
-                    event.reply("Terribl-... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue();
-                    Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
+                    hook.editOriginal("Dommage... votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(restrictChance) + " de chance de se produire.").queue();
+                } else if (roll < COOL_BAD_CHANCE) {
+                    timeoutOrFallback(event, COOL_DISCORD_TIMEOUT,
+                        () -> hook.editOriginal("Terrible... " + mention + ", vous avez été mis en **exclusion temporaire** pour " + formatDuration(COOL_DISCORD_TIMEOUT) + " par le bot.\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue(),
+                        error -> {
+                            restrict(event, COOL_RESTRICTION);
+                            hook.editOriginal("Terribl-... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue();
+                            Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
+                        }
+                    );
+                    return;
+                } else {
+                    addTemporaryRole(event, COOL_ROLE_ID, "cool", COOL_DURATION,
+                        () -> hook.editOriginal("Incroyable ! " + mention + ", tu es maintenant **cool** pendant " + formatDuration(COOL_DURATION) + " !\n\n-# Ceci avait " + formatPercentage(coolChance) + " de chance de se produire.").queue(),
+                        () -> hook.editOriginal("Dommage... le bot n'a pas pu vous rendre **cool**, mais au fond vous êtes déjà cool !\n\n-# Ceci avait " + formatPercentage(coolChance) + " de chance de se produire.").queue()
+                    );
+                    Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), COOL_ROLE_ID, COOL_DURATION.toSeconds());
                 }
-            );
-            return;
-        } else {
-            addTemporaryRole(event, COOL_ROLE_ID, "cool", COOL_DURATION,
-                () -> event.reply("Incroyable ! " + mention + ", tu es maintenant **cool** pendant " + formatDuration(COOL_DURATION) + " !\n\n-# Ceci avait " + formatPercentage(coolChance) + " de chance de se produire.").queue(),
-                () -> event.reply("Dommage... le bot n'a pas pu vous rendre **cool**, mais au fond vous êtes déjà cool !\n\n-# Ceci avait " + formatPercentage(coolChance) + " de chance de se produire.").queue()
-            );
-            Database.getAnniversaryEventDao().upsertHistoryEntry(event.getGuild().getIdLong(), event.getUser().getIdLong(), COOL_ROLE_ID, COOL_DURATION.toSeconds());
-        }
+            }
+        );
     }
     
     @SlashCommandInteraction(name = "jepeux", description = "Vérifie si vos services Premium™ de l'événement sont actuellement restreints.")
@@ -315,35 +317,37 @@ public class SpecialCommand {
         String userMention = event.getUser().getAsMention();
         double bandChance = NEGATIVE_CHANCE * penalty.chance() / 100;
         
-        event.deferReply().queue();
-        
-        // No longer used
-        if (penalty.discordTimeout() == null && penalty.restriction() == null) {
-            guild.addRoleToMember(member, guild.getRoleById(UNVERIFIED_ROLE_ID)).queue();
-            guild.removeRoleFromMember(member, guild.getRoleById(MEMBER_ROLE_ID)).queue();
-            event.reply("Surprise ! " + userMention + ", vous n'êtes plus vérifié ! (" + formatPercentage(bandChance) + " de chance)").queue();
-            Database.getAnniversaryEventDao().upsertHistoryEntry(guild.getIdLong(), member.getIdLong(), 2, 0);
-            return;
-        }
-        
-        String restrictChance = formatPercentage(bandChance * (100 - TIMEOUT_SHARE) / 100);
-        String timeoutChance = formatPercentage(bandChance * TIMEOUT_SHARE / 100);
-        Duration restriction = penalty.restriction();
-        Duration discordTimeout = penalty.discordTimeout();
-        
-        if (ThreadLocalRandom.current().nextDouble() * 100 >= TIMEOUT_SHARE) {
-            restrict(event, restriction);
-            event.reply("Surprise ! " + userMention + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(restriction) + " ! (" + restrictChance + " de chance)").queue();
-        } else {
-            timeoutOrFallback(event, discordTimeout,
-                () -> event.reply("Surprise ! " + userMention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue(),
-                error -> {
-                    restrict(event, discordTimeout);
-                    event.reply("Surprise--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue();
-                    Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
+        event.deferReply().queue(
+            hook -> {
+                // No longer used
+                if (penalty.discordTimeout() == null && penalty.restriction() == null) {
+                    guild.addRoleToMember(member, guild.getRoleById(UNVERIFIED_ROLE_ID)).queue();
+                    guild.removeRoleFromMember(member, guild.getRoleById(MEMBER_ROLE_ID)).queue();
+                    hook.editOriginal("Surprise ! " + userMention + ", vous n'êtes plus vérifié ! (" + formatPercentage(bandChance) + " de chance)").queue();
+                    Database.getAnniversaryEventDao().upsertHistoryEntry(guild.getIdLong(), member.getIdLong(), 2, 0);
+                    return;
                 }
-            );
-        }
+                
+                String restrictChance = formatPercentage(bandChance * (100 - TIMEOUT_SHARE) / 100);
+                String timeoutChance = formatPercentage(bandChance * TIMEOUT_SHARE / 100);
+                Duration restriction = penalty.restriction();
+                Duration discordTimeout = penalty.discordTimeout();
+                
+                if (ThreadLocalRandom.current().nextDouble() * 100 >= TIMEOUT_SHARE) {
+                    restrict(event, restriction);
+                    hook.editOriginal("Surprise ! " + userMention + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(restriction) + " ! (" + restrictChance + " de chance)").queue();
+                } else {
+                    timeoutOrFallback(event, discordTimeout,
+                        () -> event.reply("Surprise ! " + userMention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue(),
+                        error -> {
+                            restrict(event, discordTimeout);
+                            event.reply("Surprise--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue();
+                            Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
+                        }
+                    );
+                }
+            }
+        );
     }
     
     private void givePermanentSpecialRole(SlashCommandInteractionEvent event, Role role) {
@@ -411,8 +415,6 @@ public class SpecialCommand {
         Guild guild = event.getGuild();
         Member member = event.getMember();
         long userId = event.getUser().getIdLong();
-        
-        event.deferReply().queue();
         
         Role role = guild.getRoleById(roleId);
         if (role == null) {

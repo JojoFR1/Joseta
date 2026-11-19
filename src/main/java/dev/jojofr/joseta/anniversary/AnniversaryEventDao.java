@@ -124,7 +124,7 @@ public interface AnniversaryEventDao {
     
     @SqlUpdate("""
         INSERT INTO event_history (guild_id, user_id, id, time)
-        VALUES (:guildId, :userId, :id, :time)
+        VALUES (:guildId, :userId, :id, :additionalTime)
         ON CONFLICT (guild_id, user_id, id)
         DO UPDATE SET
             count = event_history.count + 1,
