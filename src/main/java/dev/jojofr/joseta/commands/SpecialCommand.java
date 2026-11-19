@@ -35,8 +35,8 @@ public class SpecialCommand {
     private static final long FAKE_MOD_ROLE_ID = 1571287699023728830L;
     private static final long FAKE_SPECIAL_ROLE_ID = 1569651860577718313L;
     private static final long SPECIAL_ROLE_ID = 1483155563251499231L;
-    private static final long COOL_ROLE_ID = 1346232611483156635L;
     private static final long FAKE_VIP_ROLE_ID = 1569659426418335824L;
+    private static final long COOL_ROLE_ID = 1346232611483156635L;
     
     private static final long MEMBER_ROLE_ID = 1235571503412543552L;
     private static final long UNVERIFIED_ROLE_ID = 1259874357384056852L;
@@ -141,10 +141,10 @@ public class SpecialCommand {
             hook -> {
                 if (roll < restrictChance) {
                     restrict(event, COOL_RESTRICTION);
-                    hook.editOriginal("Dommage... votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(restrictChance) + " de chance de se produire.").queue();
+                    hook.editOriginal("Dommage... votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(restrictChance) + " de chance de se produire.").queue();
                 } else if (roll < COOL_BAD_CHANCE) {
                     timeoutOrFallback(event, COOL_DISCORD_TIMEOUT,
-                        () -> hook.editOriginal("Terrible... " + mention + ", vous avez été mis en **exclusion temporaire** pour " + formatDuration(COOL_DISCORD_TIMEOUT) + " par le bot.\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue(),
+                        () -> hook.editOriginal("Terrible... " + mention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(COOL_DISCORD_TIMEOUT) + " par le bot.\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue(),
                         error -> {
                             restrict(event, COOL_RESTRICTION);
                             hook.editOriginal("Terribl-... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pour " + formatDuration(COOL_RESTRICTION) + ".\n\n-# Ceci avait " + formatPercentage(timeoutChance) + " de chance de se produire.").queue();
@@ -241,7 +241,7 @@ public class SpecialCommand {
             return;
         }
         
-        StringBuilder message = new StringBuilder("# LES ACTIONS PASSÉES AVANT LE 19/11/2026, 19H30 NE SONT PAS INCLUSES DANS CETTE LISTE POUR LE MOMENT !\n-# Il est possible dans le futur que vos anciennes actions soit enregistrées et affichées ici, mais pour le moment elles ne le sont pas.\n\nVoici la liste de vos rôles temporaires et pénalités passés via l'événement :\n");
+        StringBuilder message = new StringBuilder("Voici la liste de vos rôles temporaires et pénalités passés via l'événement :\n");
         for (AnniversaryEventDao.HistoryEntry historyEntry : historyEntries) {
             if (historyEntry.id() <= 3) {
                 String action = switch ((int) historyEntry.id()) {
