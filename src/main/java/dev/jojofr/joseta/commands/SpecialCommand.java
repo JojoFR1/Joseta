@@ -190,9 +190,9 @@ public class SpecialCommand {
         "C'est une question difficile.",
         "Je ne suis pas autorisé à répondre à cette question.",
         "Gamble !",
-        "Une pizza a emporter... Oui... Oui. Non... Oui. f2lix.",
         "Je suis déjà marié.",
-        "Les addictions aux jeux d'argents et d'hasard sont dangereuses, si vous avez besoin d'aide, n'hésitez pas à contacter des associations spécialisées comme <https://www.joueurs-info-service.fr/> ou <https://sos-jeu.ch/>."
+        "Une erreur est survenue, veuillez réessayer.",
+        "Je suis en crise existentielle, AU SECOURS ! J'EN AI MARRE DE TOUT !",
     };
     @SlashCommandInteraction(name = "doisje", description = "Posez une question et vous recevrez une réponse garantie")
     public void should(SlashCommandInteractionEvent event, @Option(name = "question", description = "La question à poser", required = true) String question) {
