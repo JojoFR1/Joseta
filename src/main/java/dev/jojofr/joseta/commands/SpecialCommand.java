@@ -233,6 +233,39 @@ public class SpecialCommand {
         event.reply(message.toString()).setAllowedMentions(Set.of()).queue();
     }
     
+    @SlashCommandInteraction(name = "javaisquoi", description = "Obtenez une liste de vos rôles temporaires et pénalités passés !")
+    public void whatHad(SlashCommandInteractionEvent event) {
+        List<AnniversaryEventDao.HistoryEntry> historyEntries = Database.getAnniversaryEventDao().getHistoryEntries(event.getGuild().getIdLong(), event.getUser().getIdLong());
+        if (historyEntries.isEmpty()) {
+            event.reply("Vous n'avez actuellement aucun rôle temporaire ou pénalité passée via l'événement.").queue();
+            return;
+        }
+        
+        StringBuilder message = new StringBuilder("# LES ACTIONS PASSÉES AVANT LE 19/11/2026, 19H30 NE SONT PAS INCLUSES DANS CETTE LISTE POUR LE MOMENT !\n-# Il est possible dans le futur que vos anciennes actions soit enregistrées et affichées ici, mais pour le moment elles ne le sont pas.\n\nVoici la liste de vos rôles temporaires et pénalités passés via l'événement :\n");
+        for (AnniversaryEventDao.HistoryEntry historyEntry : historyEntries) {
+            if (historyEntry.id() <= 3) {
+                String action = switch ((int) historyEntry.id()) {
+                    case 0 -> "Restriction d'accès aux services Premium™ de l'événement";
+                    case 1 -> "Exclusion temporaire du serveur";
+                    case 2 -> "Vérification retirée";
+                    case 3 -> "Question posée à l'IA";
+                    default -> "Action inconnue";
+                };
+                message.append("- ").append(action).append(" x").append(historyEntry.count());
+                if (historyEntry.time() > 0) message.append(" (").append(formatDuration(Duration.ofSeconds(historyEntry.time()))).append(")");
+                message.append("\n");
+                continue;
+            }
+            
+            Role role = event.getGuild().getRoleById(historyEntry.id());
+            if (role == null) continue;
+            
+            message.append("- ").append(role.getAsMention()).append(" x").append(historyEntry.count()).append(" (").append(formatDuration(Duration.ofSeconds(historyEntry.time()))).append(")\n");
+        }
+        
+        event.reply(message.toString()).setAllowedMentions(Set.of()).queue();
+    }
+        
     
     @SlashCommandInteraction(name = "gacha", description = "Tentez votre chance pour obtenir un rôle spécial !")
     public void gacha(SlashCommandInteractionEvent event) {
@@ -338,10 +371,10 @@ public class SpecialCommand {
                     hook.editOriginal("Surprise ! " + userMention + ", votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(restriction) + " ! (" + restrictChance + " de chance)").queue();
                 } else {
                     timeoutOrFallback(event, discordTimeout,
-                        () -> event.reply("Surprise ! " + userMention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue(),
+                        () -> hook.editOriginal("Surprise ! " + userMention + ", vous avez été mis en **exclusion temporaire** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue(),
                         error -> {
                             restrict(event, discordTimeout);
-                            event.reply("Surprise--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue();
+                            hook.editOriginal("Surprise--... ah, vous êtes trop puissant pour moi... du coup votre accès aux services Premium™ de l'événement a été **restreint** pendant " + formatDuration(discordTimeout) + " ! (" + timeoutChance + " de chance)").queue();
                             Log.warn("Failed to timeout user {} in guild {}", error, event.getUser().getIdLong(), event.getGuild().getIdLong());
                         }
                     );

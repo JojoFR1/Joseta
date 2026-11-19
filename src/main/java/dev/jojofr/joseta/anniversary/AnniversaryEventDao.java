@@ -15,7 +15,7 @@ public interface AnniversaryEventDao {
     record TemporaryRole(long guildId, long userId, long roleId, Instant expiresAt) {}
     record Restriction(long guildId, long userId, Instant expiresAt) {}
     record PullResult(int cardId, int copies, int totalPulls) {}
-    record HistoryEntry(long guildId, long userId, long id, int count, Instant time) {}
+    record HistoryEntry(long guildId, long userId, long id, int count, long time) {}
     
     @SqlUpdate("""
         INSERT INTO event_temporary_roles (guild_id, user_id, role_id, expires_at)
@@ -131,4 +131,13 @@ public interface AnniversaryEventDao {
             time = event_history.time + EXCLUDED.time
     """)
     void upsertHistoryEntry(long guildId, long userId, long id, long additionalTime);
+    
+    @SqlQuery("""
+        SELECT guild_id, user_id, id, count, time
+        FROM event_history
+        WHERE guild_id = :guildId AND user_id = :userId
+        ORDER BY time DESC
+    """)
+    @RegisterConstructorMapper(HistoryEntry.class)
+    List<HistoryEntry> getHistoryEntries(long guildId, long userId);
 }
