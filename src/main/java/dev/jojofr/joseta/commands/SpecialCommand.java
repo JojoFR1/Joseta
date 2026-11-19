@@ -7,6 +7,7 @@ import dev.jojofr.joseta.annotations.InteractionModule;
 import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.Database;
+import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.DiscordTimestamp;
 import dev.jojofr.joseta.utils.Log;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -162,9 +163,10 @@ public class SpecialCommand {
         if (isBlocked(event, false)) return;
         
         DiscordTimestamp timeoutEnd = JosetaBot.getUserEventTimeout(event.getGuild().getIdLong(), event.getUser().getIdLong());
+        DiscordTimestamp nextGacha = DiscordTimestamp.from(Database.getAnniversaryEventDao().lastPull(event.getUser().getIdLong()).orElse(Instant.now()).plus(GACHA_COOLDOWN));
         if (timeoutEnd != null)
-            event.reply("Votre accès aux services Premium™ de l'événement est actuellement **restreint** jusqu'au "+ timeoutEnd.longFull() +" ("+ timeoutEnd.relative() +").").queue();
-        else event.reply("Votre accès aux services Premium™ de l'événement est actuellement **autorisé**.").queue();
+            event.reply(BotCache.CROSS_EMOJI.getFormatted() + " Votre accès aux services Premium™ de l'événement est actuellement **restreint** jusqu'au "+ timeoutEnd.longFull() +" ("+ timeoutEnd.relative() +").\n\nProchain tirage possible " + nextGacha.relative() + " (" + nextGacha.longFull() + ").").queue();
+        else event.reply(BotCache.CHECK_EMOJI.getFormatted() + " Votre accès aux services Premium™ de l'événement est actuellement **autorisé**.\n\nProchain tirage possible " + nextGacha.relative() + " (" + nextGacha.longFull() + ").").queue();
     }
     
     private static final String[] MAGIC_8_BALL_RESPONSES = {
