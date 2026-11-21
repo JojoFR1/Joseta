@@ -41,36 +41,36 @@ public class SpecialCommand {
     private static final long MEMBER_ROLE_ID = 1235571503412543552L;
     private static final long UNVERIFIED_ROLE_ID = 1259874357384056852L;
     
-    private static final Duration GACHA_COOLDOWN = Duration.ofHours(6);
+    private static final Duration GACHA_COOLDOWN = Duration.ofHours(4);
     
-    private static final long PERMANENT_ROLE_ODDS = 60_000;
-    private static final long LONG_TIMEOUT_ODDS = 20_000;
+    private static final long PERMANENT_ROLE_ODDS = 20_000;
+    private static final long LONG_TIMEOUT_ODDS = 10_000;
     private static final Duration LONG_TIMEOUT = Duration.ofHours(24);
     private static final double TIMEOUT_SHARE = 20;
     
     private record RoleOutcome(long roleId, int minMinutes, int maxMinutes, double chance, String success, String failure, String logName) {}
     private static final List<RoleOutcome> ROLE_OUTCOMES = List.of(
-        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 0.5,
+        new RoleOutcome(FAKE_ADMIN_ROLE_ID, 24 * 60, 48 * 60, 1,
             "Surprise ! {user} a obtenu un rôle **très** spécial pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle **très** spécial... dommage ! ({chance} de chance)",
             "fake admin"
         ),
-        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 4,
+        new RoleOutcome(FAKE_MOD_ROLE_ID, 6 * 60, 12 * 60, 7,
             "Surprise ! {user} a obtenu un rôle *moins spécial* que le **très** spécial mais tout autant __spécial__ pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous donner le rôle *moins spécial* que le **très** spécial mais tout autant __spécial__... dommage ! ({chance} de chance)",
             "fake mod"
         ),
-        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 6,
+        new RoleOutcome(FAKE_SPECIAL_ROLE_ID, 3 * 60, 6 * 60, 9,
             "Surprise ! {user} est maintenant **\"spécial\"** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **\"spécial\"**... dommage ! ({chance} de chance)",
             "fake special"
         ),
-        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 10,
+        new RoleOutcome(FAKE_VIP_ROLE_ID, 60, 3 * 60, 13,
             "Surprise ! {user} est maintenant **(pas) important** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **(pas) important**... dommage ! ({chance} de chance)",
             "fake vip"
         ),
-        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 18.5,
+        new RoleOutcome(COOL_ROLE_ID, 30, 2 * 60, 20,
             "Surprise ! {user} est maintenant **cool** pendant {hours} ! ({chance} de chance)",
             "Surprise--... ah, je n'ai pas pu vous rendre **cool**, mais au fond vous êtes déjà cool ! ({chance} de chance)",
             "cool"
@@ -80,12 +80,14 @@ public class SpecialCommand {
     private static final double NEGATIVE_CHANCE = 100 - ROLE_OUTCOMES.stream().mapToDouble(RoleOutcome::chance).sum();
     private record Penalty(double chance, Duration restriction, Duration discordTimeout) {};
     private static final List<Penalty> PENALTIES = List.of(
-        new Penalty(40, Duration.ofMinutes(5), Duration.ofMinutes(1)),
-        new Penalty(30, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-        new Penalty(18, Duration.ofMinutes(15), Duration.ofMinutes(10)),
-        new Penalty(8, Duration.ofMinutes(30), Duration.ofMinutes(15)),
-        new Penalty(3, Duration.ofHours(1), Duration.ofMinutes(30)),
-        new Penalty(1, Duration.ofHours(2), Duration.ofHours(1))
+        new Penalty(32, Duration.ofMinutes(1), Duration.ofMinutes(1)),
+        new Penalty(24, Duration.ofMinutes(2), Duration.ofMinutes(1)),
+        new Penalty(20, Duration.ofMinutes(5), Duration.ofMinutes(3)),
+        new Penalty(10, Duration.ofMinutes(10), Duration.ofMinutes(5)),
+        new Penalty(8, Duration.ofMinutes(15), Duration.ofMinutes(10)),
+        new Penalty(4, Duration.ofMinutes(30), Duration.ofMinutes(15)),
+        new Penalty(1.5, Duration.ofHours(1), Duration.ofMinutes(30)),
+        new Penalty(0.5, Duration.ofHours(2), Duration.ofHours(1))
     );
     
     static {
@@ -97,9 +99,9 @@ public class SpecialCommand {
     
     private static final double COOL_BAD_CHANCE = 50;
     private static final double COOL_RESTRICT_CHANCE = 80;
-    private static final Duration COOL_DURATION = Duration.ofHours(1);
+    private static final Duration COOL_DURATION = Duration.ofMinutes(30);
     private static final Duration COOL_RESTRICTION = Duration.ofHours(1);
-    private static final Duration COOL_DISCORD_TIMEOUT = Duration.ofMinutes(5);
+    private static final Duration COOL_DISCORD_TIMEOUT = Duration.ofMinutes(10);
     
     @SlashCommandInteraction(name = "surprendmoi", description = "Obtenez une surprise aléatoirement aléatoire !")
     public void surprise(SlashCommandInteractionEvent event) {
