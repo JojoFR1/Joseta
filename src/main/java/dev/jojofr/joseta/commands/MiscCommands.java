@@ -1,12 +1,16 @@
 package dev.jojofr.joseta.commands;
 
 import dev.jojofr.joseta.annotations.InteractionModule;
+import dev.jojofr.joseta.annotations.types.Option;
 import dev.jojofr.joseta.annotations.types.interaction.SlashCommandInteraction;
 import dev.jojofr.joseta.database.entities.ConfigurationEntity;
 import dev.jojofr.joseta.events.MessageEvents;
 import dev.jojofr.joseta.utils.BotCache;
 import dev.jojofr.joseta.utils.markov.MarkovGen;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 @InteractionModule
 public class MiscCommands {
@@ -41,12 +45,28 @@ public class MiscCommands {
         );
     }
     
+    private static final String[] answers = {
+        "Oui.", "Non.", "Peut-être.", "Je ne sais pas.", "Certainement.", "Absolument pas.", "C'est possible.",
+        "Je ne peux pas répondre à ça.", "Demande à nouveau plus tard.", "Je ne suis pas sûr.",
+        "C'est une bonne question.", "Je ne peux pas te dire ça.",
+        "Je ne suis pas autorisé à répondre à cette question.", "Je ne suis pas sûr de comprendre la question."
+    };
+    @SlashCommandInteraction(name = "demande", description = "Posez une question au bot.")
+    public void demande(SlashCommandInteractionEvent event, @Option(name = "question", required = true) String question) {
+        String answer = answers[ThreadLocalRandom.current().nextInt(answers.length)];
+        event.reply("Question: " + question + "\nRéponse: " + answer).setAllowedMentions(Set.of()).queue();
+    }
     
     @SlashCommandInteraction(name = "multi", description = "Envoie le texte d'aide pour le multijoueur.")
     public void multiInfo(SlashCommandInteractionEvent event) { event.reply(MessageEvents.autoResponseMessage).queue(); }
     
-    @SlashCommandInteraction(name = "surprendmoi", description = "Obtenez une surprise aléatoire.")
+    @SlashCommandInteraction(name = "surprendmoi", description = "Obtenez une surprise aléatoirement aléatoire !")
     public void surprises(SlashCommandInteractionEvent event) {
+        event.reply("Les addictions aux jeux d'argents et d'hasard sont dangereuses, si vous avez besoin d'aide, n'hésitez pas à contacter des associations spécialisées comme <https://www.joueurs-info-service.fr/> ou <https://sos-jeu.ch/>.").queue();
+    }
+    
+    @SlashCommandInteraction(name = "gacha", description = "Tentez votre chance pour obtenir un rôle spécial !")
+    public void gacha(SlashCommandInteractionEvent event) {
         event.reply("Les addictions aux jeux d'argents et d'hasard sont dangereuses, si vous avez besoin d'aide, n'hésitez pas à contacter des associations spécialisées comme <https://www.joueurs-info-service.fr/> ou <https://sos-jeu.ch/>.").queue();
     }
 }
