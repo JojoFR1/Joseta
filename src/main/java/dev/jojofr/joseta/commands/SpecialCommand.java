@@ -41,7 +41,7 @@ public class SpecialCommand {
     private static final long MEMBER_ROLE_ID = 1235571503412543552L;
     private static final long UNVERIFIED_ROLE_ID = 1259874357384056852L;
     
-    private static final Duration GACHA_COOLDOWN = Duration.ofHours(4);
+    private static final Duration GACHA_COOLDOWN = Duration.ofHours(3);
     
     private static final long PERMANENT_ROLE_ODDS = 20_000;
     private static final long LONG_TIMEOUT_ODDS = 10_000;
@@ -80,14 +80,14 @@ public class SpecialCommand {
     private static final double NEGATIVE_CHANCE = 100 - ROLE_OUTCOMES.stream().mapToDouble(RoleOutcome::chance).sum();
     private record Penalty(double chance, Duration restriction, Duration discordTimeout) {};
     private static final List<Penalty> PENALTIES = List.of(
-        new Penalty(32, Duration.ofMinutes(1), Duration.ofMinutes(1)),
-        new Penalty(24, Duration.ofMinutes(2), Duration.ofMinutes(1)),
-        new Penalty(20, Duration.ofMinutes(5), Duration.ofMinutes(3)),
+        new Penalty(36, Duration.ofMinutes(1), Duration.ofMinutes(1)),
+        new Penalty(26, Duration.ofMinutes(2), Duration.ofMinutes(1)),
+        new Penalty(22, Duration.ofMinutes(5), Duration.ofMinutes(3)),
         new Penalty(10, Duration.ofMinutes(10), Duration.ofMinutes(5)),
-        new Penalty(8, Duration.ofMinutes(15), Duration.ofMinutes(10)),
-        new Penalty(4, Duration.ofMinutes(30), Duration.ofMinutes(15)),
-        new Penalty(1.5, Duration.ofHours(1), Duration.ofMinutes(30)),
-        new Penalty(0.5, Duration.ofHours(2), Duration.ofHours(1))
+        new Penalty(4, Duration.ofMinutes(15), Duration.ofMinutes(10)),
+        new Penalty(2, Duration.ofMinutes(30), Duration.ofMinutes(15)),
+        new Penalty(0, Duration.ofHours(1), Duration.ofMinutes(30)),
+        new Penalty(0, Duration.ofHours(2), Duration.ofHours(1))
     );
     
     static {
@@ -262,7 +262,7 @@ public class SpecialCommand {
             Role role = event.getGuild().getRoleById(historyEntry.id());
             if (role == null) continue;
             
-            message.append("- ").append(role.getAsMention()).append(" x").append(historyEntry.count()).append(" (").append(formatDuration(Duration.ofSeconds(historyEntry.time()))).append(")\n");
+            message.append("- ").append(role.getAsMention()).append(" (`").append(role.getName()).append("`) x").append(historyEntry.count()).append(" (").append(formatDuration(Duration.ofSeconds(historyEntry.time()))).append(")\n");
         }
         
         event.reply(message.toString()).setAllowedMentions(Set.of()).queue();
