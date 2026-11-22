@@ -1,21 +1,21 @@
 [versions]
 jda = "6.7.0"
-logback = "1.6.5"
+logback = "1.6.8"
 dotenv = "3.2.0"
 
-jandex = "3.6.0"
+jandex = "3.6.1"
 
-postgresql = "42.7.13"
+postgresql = "42.7.14"
 hikari = "7.1.0"
 
-jdbi = "3.54.0"
-flyway = "13.9.0"
+jdbi = "3.55.0"
+flyway = "13.13.0"
 
 junit = "6.1.3"
 testcontainers = "2.0.5"
 assertj = "3.27.7"
 
-shadow = "9.6.0"
+shadow = "9.6.1"
 jandexPlugin = "2.3.0"
 
 [libraries]
